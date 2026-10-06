@@ -1,11 +1,16 @@
 /**
- * A Worker that serves the product RPC route exactly as the API Worker builds it, against a fake
- * Planning Center, so `worker.stack.test.ts` can prove the transport's runtime behavior in workerd
- * without reaching a Planning Center account. It differs from the API Worker in three ways:
+ * A Worker that serves both product transports exactly as the API Worker builds them, the RPC
+ * route and the HttpApi router (Better Auth, liveness, CORS, `/api/v1`), against a fake Planning
+ * Center, so `worker.stack.test.ts` can prove their runtime behavior in workerd without reaching
+ * a Planning Center account. It differs from the API Worker in these ways:
  * - Planning Center is `fakePlanningCenter`: an HTTP client that answers from fixtures, scripted
- *   by id prefix (`slow-read`, `defect`, `slow-prepare`, `slow-commit`, `unencodable`), and
- *   records every request it receives.
- * - Requests act as the dev auth bypass account, so no session is needed.
+ *   by id prefix (`slow-read`, `defect`, `slow-prepare`, `slow-commit`, `unencodable`,
+ *   `limited`, `down`, `missing`, `refused`), and records every request it receives.
+ * - RPC requests act as the dev auth bypass account, so no session is needed. HttpApi requests
+ *   resolve real sessions: `POST /__fixture/session` seeds a user with two Planning Center
+ *   accounts and answers the user's signed bearer token, and the demo header works with
+ *   `FIXTURE_DEMO_SETTINGS`. The `chordCharts` flag is on only for accounts whose id ends in
+ *   `-flag-on`.
  * - `GET /__fixture/state` reports what the isolate saw: server builds, Planning Center requests,
  *   outcome log lines, scripted disconnects, and D1 schedule audit rows.
  * - A request with `x-fixture-abort-after-ms` gets a signal that aborts after that many
@@ -13,14 +18,18 @@
  *   without `enable_request_signal`), so this stands in for the disconnect. The timer is created
  *   in the request's own I/O context, as workerd's own abort would be.
  */
+import { createAuth } from "@pcobooster/api/auth";
 import { createDatabase } from "@pcobooster/api/db/client";
+import { account, session, user } from "@pcobooster/api/db/schema";
 import { structuredLogging } from "@pcobooster/api/logging";
+import type { FeatureFlags } from "@pcobooster/api/modules/feature-flags/feature-flags";
 import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
 import { PROCEDURE_LOG_MESSAGE } from "@pcobooster/api/rpc/outcome";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
+import { makeSignature } from "better-auth/crypto";
 import {
   Duration,
   Effect,
@@ -38,20 +47,35 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import { Database } from "./database";
-import { makeRpcRoute, waitUntilAfterDisconnect } from "./rpc-route";
+import { makeHttpApp } from "./http-app";
+import { isRpcPath, makeRpcRoute, waitUntilAfterDisconnect } from "./rpc-route";
 import { cachedAcrossRequests } from "./shared-initialization";
 
 export const FIXTURE_STATE_PATH = "/__fixture/state";
 export const FIXTURE_ABORT_AFTER_HEADER = "x-fixture-abort-after-ms";
 /** Where the stack test serves this Worker, beside the API Worker's 3010. */
 const FIXTURE_PORT = 3011;
-export const FIXTURE_RELEASE_VERSION = "rpc-stack-fixture";
+export const FIXTURE_RELEASE_VERSION = "transport-stack-fixture";
+export const FIXTURE_SESSION_PATH = "/__fixture/session";
+/** The demo the HttpApi side serves; the stack test derives the demo token from it. */
+export const FIXTURE_DEMO_SETTINGS = {
+  DEMO_ACCESS_KEY: "transport-fixture-demo-access-key",
+  DEMO_PLANNING_CENTER_CLIENT: "fixture-demo-client",
+  DEMO_PLANNING_CENTER_PAT: "fixture-demo-pat",
+};
+/** The Retry-After Planning Center sends a `limited` write: longer than reads wait for. */
+export const FIXTURE_RETRY_AFTER_SECONDS = 7;
 
 /** How long the scripted slow steps take. */
 const SLOW_READ_MS = 1500;
 const SLOW_COMMIT_MS = 1500;
 const HANG_MS = 60_000;
 const SERVICE_UNAVAILABLE = 503;
+const TOO_MANY_REQUESTS = 429;
+const PROVIDER_ERROR = 500;
+const FORBIDDEN = 403;
+const NOT_FOUND = 404;
+const SESSION_LIFETIME_MS = 3_600_000;
 
 const planningCenterCallSchema = Schema.Struct({
   method: Schema.String,
@@ -87,6 +111,8 @@ type Disconnect = typeof disconnectSchema.Type;
 
 const auditRowSchema = Schema.Struct({
   request_id: Schema.String,
+  method: Schema.NullOr(Schema.String),
+  path: Schema.NullOr(Schema.String),
   event_type: Schema.String,
   success: Schema.Number,
   status_code: Schema.Number,
@@ -178,16 +204,131 @@ const PLAN_PATH =
   /^\/services\/v2\/service_types\/(?<serviceTypeId>[^/]+)\/plans\/(?<planId>[^/]+)$/u;
 const TEAM_POSITIONS_PATH =
   /^\/services\/v2\/service_types\/(?<serviceTypeId>[^/]+)\/team_positions$/u;
+const PLAN_PERSON_PATH =
+  /^\/services\/v2\/plan_people\/(?<planPersonId>[^/]+)$/u;
+const SONG_PATH = /^\/services\/v2\/songs\/(?<songId>[^/]+)$/u;
+const SONG_ARRANGEMENTS_PATH = /^\/services\/v2\/songs\/[^/]+\/arrangements$/u;
+const PLANS_PATH = /^\/services\/v2\/service_types\/[^/]+\/plans$/u;
 const TEAM_MEMBERS_PATH =
   /^\/services\/v2\/service_types\/(?<serviceTypeId>[^/]+)\/plans\/[^/]+\/team_members$/u;
 
 type Scripted = Effect.Effect<{
   readonly status: number;
   readonly body: JsonValue;
+  readonly headers?: Record<string, string>;
 }>;
 
 const answer = (body: JsonValue): Scripted =>
   Effect.succeed({ status: 200, body });
+
+const failure = (status: number, headers?: Record<string, string>): Scripted =>
+  Effect.succeed({
+    status,
+    body: { errors: [{ title: `Fixture ${status}` }] },
+    headers,
+  });
+
+const organization = {
+  data: [
+    {
+      type: "Organization",
+      id: "org-1",
+      attributes: { name: "Fixture Church", time_zone: "America/Los_Angeles" },
+    },
+  ],
+  included: [],
+  meta: { total_count: 1, count: 1 },
+  links: {},
+};
+
+const serviceTypes = {
+  data: [
+    {
+      type: "ServiceType",
+      id: "st-1",
+      attributes: { name: "Sunday", sequence: 1, archived_at: null },
+    },
+    {
+      type: "ServiceType",
+      id: "st-2",
+      attributes: { name: "Wednesday", sequence: 2, archived_at: null },
+    },
+  ],
+  included: [],
+  meta: { total_count: 2, count: 2 },
+  links: {},
+};
+
+const emptyCollection = {
+  data: [],
+  included: [],
+  meta: { total_count: 0, count: 0 },
+  links: {},
+};
+
+const song = (songId: string) => ({
+  data: {
+    type: "Song",
+    id: songId,
+    attributes: { title: "Amazing Grace", author: "John Newton" },
+  },
+});
+
+/**
+ * A plan person's status change, scripted by id: `limited` is rate limited past the read wait,
+ * `down` fails, `missing` is not found, `refused` is forbidden; the rest succeed.
+ */
+const scriptStatusWrite = (planPersonId: string): Scripted => {
+  if (planPersonId.startsWith("limited")) {
+    return failure(TOO_MANY_REQUESTS, {
+      "retry-after": String(FIXTURE_RETRY_AFTER_SECONDS),
+    });
+  }
+  if (planPersonId.startsWith("down")) {
+    return failure(PROVIDER_ERROR);
+  }
+  if (planPersonId.startsWith("missing")) {
+    return failure(NOT_FOUND);
+  }
+  if (planPersonId.startsWith("refused")) {
+    return failure(FORBIDDEN);
+  }
+  return answer({
+    data: {
+      type: "PlanPerson",
+      id: planPersonId,
+      attributes: { status: "C" },
+    },
+  });
+};
+
+/** What the HttpApi endpoints read: the organization, service types, plans, and songs. */
+const scriptHttpApiRead = (method: string, path: string): Scripted => {
+  const planPersonMatch = PLAN_PERSON_PATH.exec(path)?.groups;
+  if (method === "PATCH" && planPersonMatch !== undefined) {
+    return scriptStatusWrite(planPersonMatch.planPersonId ?? "");
+  }
+  if (method !== "GET") {
+    return failure(NOT_FOUND);
+  }
+  if (path === "/services/v2") {
+    return answer(organization);
+  }
+  if (path === "/services/v2/service_types") {
+    return answer(serviceTypes);
+  }
+  if (PLANS_PATH.test(path) || SONG_ARRANGEMENTS_PATH.test(path)) {
+    return answer(emptyCollection);
+  }
+  const songMatch = SONG_PATH.exec(path)?.groups;
+  if (songMatch !== undefined) {
+    const songId = songMatch.songId ?? "";
+    return songId.startsWith("defect")
+      ? Effect.die(new Error("The fake Planning Center adapter crashed"))
+      : answer(song(songId));
+  }
+  return failure(NOT_FOUND);
+};
 
 /** The scripted answer to one Planning Center request. */
 const script = (method: string, path: string): Scripted => {
@@ -229,10 +370,7 @@ const script = (method: string, path: string): Scripted => {
       planPerson(serviceTypeId.startsWith("unencodable") ? "" : "plan-person-1")
     );
   }
-  return Effect.succeed({
-    status: 404,
-    body: { errors: [{ title: "Not found" }] },
-  });
+  return scriptHttpApiRead(method, path);
 };
 
 const decodeAuditRows = Schema.decodeUnknownSync(Schema.Array(auditRowSchema));
@@ -248,11 +386,11 @@ const fakePlanningCenter: HttpClient.HttpClient = HttpClient.make(
     };
     seen.planningCenterCalls.push(call);
     return script(request.method, url.pathname).pipe(
-      Effect.map(({ status, body }) => {
+      Effect.map(({ status, body, headers }) => {
         call.finishedAt = Date.now();
         return HttpClientResponse.fromWeb(
           request,
-          Response.json(body, { status })
+          Response.json(body, { status, headers })
         );
       })
     );
@@ -287,12 +425,28 @@ const withScriptedDisconnect = (
     );
   });
 
-export default class RpcStackFixture extends Cloudflare.Worker<RpcStackFixture>()(
-  "RpcStackFixture",
+/** `chordCharts` is on only for accounts whose id ends in `-flag-on`. */
+const fixtureFeatureFlags: FeatureFlags = {
+  isEnabled: (flag, subject) =>
+    Effect.succeed(
+      flag === "chordCharts" &&
+        (subject.planningCenterAccountId?.endsWith("-flag-on") ?? false)
+    ),
+};
+
+/** What `POST /__fixture/session` answers: a bearer token and the user's two account ids. */
+export const fixtureSessionSchema = Schema.Struct({
+  token: Schema.String,
+  flagOnAccountId: Schema.String,
+  flagOffAccountId: Schema.String,
+});
+
+export default class TransportStackFixture extends Cloudflare.Worker<TransportStackFixture>()(
+  "TransportStackFixture",
   Effect.gen(function* fixtureProps() {
     const { stage } = yield* Alchemy.Stack;
     return {
-      name: `pcobooster-${stage}-rpc-fixture`,
+      name: `pcobooster-${stage}-transport-fixture`,
       main: import.meta.url,
       workersDev: false,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
@@ -324,6 +478,78 @@ export default class RpcStackFixture extends Cloudflare.Worker<RpcStackFixture>(
         }).pipe(Scope.provide(isolateScope));
       })
     );
+    // The HttpApi side resolves real sessions, so it has its own server without the bypass.
+    const http = yield* cachedAcrossRequests(
+      Effect.gen(function* buildHttpApp() {
+        const db = createDatabase(yield* database.raw);
+        const config = testServerConfig({
+          PCOBOOSTER_VERSION: FIXTURE_RELEASE_VERSION,
+          ...FIXTURE_DEMO_SETTINGS,
+        });
+        const auth = createAuth(config, db);
+        const authContext = yield* Effect.promise(
+          async () => await auth.$context
+        );
+        const server = testServer({
+          database: db,
+          config,
+          auth,
+          featureFlags: fixtureFeatureFlags,
+        });
+        const app = yield* makeHttpApp({
+          server,
+          pacer,
+          report: null,
+          releaseVersion: config.releaseVersion,
+        }).pipe(Scope.provide(isolateScope));
+        return { app, db, secret: authContext.secret };
+      })
+    );
+    /** A user with two Planning Center accounts and a session, as native sign-in leaves them. */
+    const seedSession = Effect.gen(function* seed() {
+      const { db, secret } = yield* http;
+      const id = crypto.randomUUID();
+      const now = new Date();
+      const later = new Date(now.getTime() + SESSION_LIFETIME_MS);
+      const token = crypto.randomUUID();
+      const linked = (suffix: string) => ({
+        id: `account-${id}-${suffix}`,
+        accountId: `pc-${id}-${suffix}`,
+        providerId: "planning-center",
+        userId: id,
+        accessToken: `token-${id}-${suffix}`,
+        accessTokenExpiresAt: later,
+        scope: "openid,services,people",
+        updatedAt: now,
+      });
+      const flagOn = linked("flag-on");
+      const flagOff = linked("flag-off");
+      yield* Effect.promise(async () => {
+        await db.insert(user).values({
+          id,
+          name: "Fixture Person",
+          email: `${id}@fixture.test`,
+          emailVerified: true,
+          updatedAt: now,
+        });
+        await db.insert(account).values([flagOn, flagOff]);
+        await db.insert(session).values({
+          id: `session-${id}`,
+          token,
+          userId: id,
+          expiresAt: later,
+          updatedAt: now,
+        });
+      });
+      const signature = yield* Effect.promise(
+        async () => await makeSignature(token, secret)
+      );
+      return HttpServerResponse.jsonUnsafe({
+        token: `${token}.${signature}`,
+        flagOnAccountId: flagOn.id,
+        flagOffAccountId: flagOff.id,
+      });
+    });
     const state = (requestId: string | null) =>
       Effect.gen(function* readState() {
         const binding = yield* database.raw;
@@ -335,7 +561,7 @@ export default class RpcStackFixture extends Cloudflare.Worker<RpcStackFixture>(
                   async () =>
                     await binding
                       .prepare(
-                        "select request_id, event_type, success, status_code, error_code, metadata from activity_events where request_id = ?"
+                        "select request_id, method, path, event_type, success, status_code, error_code, metadata from activity_events where request_id = ?"
                       )
                       .bind(requestId)
                       .all()
@@ -360,6 +586,15 @@ export default class RpcStackFixture extends Cloudflare.Worker<RpcStackFixture>(
         const url = new URL(httpRequest.url, "http://fixture");
         if (url.pathname === FIXTURE_STATE_PATH) {
           return yield* state(url.searchParams.get("requestId"));
+        }
+        if (url.pathname === FIXTURE_SESSION_PATH) {
+          return yield* seedSession;
+        }
+        if (httpRequest.method === "OPTIONS" || !isRpcPath(url.pathname)) {
+          const { app } = yield* http;
+          return yield* app.pipe(
+            Effect.provideService(HttpClient.HttpClient, fakePlanningCenter)
+          );
         }
         const rpc = yield* route;
         return yield* rpc(yield* withScriptedDisconnect(httpRequest)).pipe(

@@ -1,22 +1,32 @@
 /**
  * The API Worker as Alchemy runs it under `alchemy dev`: workerd, a migrated local D1, the KV
  * cache, the auth rate limit, and settings bound from `Config`. The unit tests build the Hono
- * app directly; this catches wiring they cannot, such as a binding that is not provided or a
+ * router directly; this catches wiring they cannot, such as a binding that is not provided or a
  * migration that fails to apply. It runs in the `test` stage, so it never touches `local`'s
  * data or ports, and needs no secrets.
  *
- * Beside it runs `RpcStackFixture`: the same Effect RPC route over a fake Planning Center, which
- * proves the transport's runtime behavior in workerd (server reuse across requests,
- * cancellation, write completion, request rejection, defect isolation, outcome lines).
+ * Beside it runs `TransportStackFixture`: the same Effect RPC route and HttpApi router over a
+ * fake Planning Center, which proves both transports' runtime behavior in workerd (server reuse
+ * across requests, cancellation, write completion, request rejection, defect isolation, outcome
+ * lines, bearer and demo sessions, and every fault status the HttpApi spike endpoints answer).
  */
 import path from "node:path";
 
 import { assert } from "@effect/vitest";
+import { demoSessionToken } from "@pcobooster/api/auth/demo-access";
 import { resolveReleaseVersion } from "@pcobooster/api/config/release";
-import { makeProductClient } from "@pcobooster/client/product-client";
+import { testServerConfig } from "@pcobooster/api/testing/server";
+import {
+  failureStatus,
+  makeProductClient,
+} from "@pcobooster/client/product-client";
 import type { ProcedureInput } from "@pcobooster/client/product-client";
+import { makeProductHttpClient } from "@pcobooster/client/product-http-client";
+import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
+import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { InternalError } from "@pcobooster/contracts/faults/internal-error";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
+import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
@@ -28,13 +38,17 @@ import type { Cause } from "effect";
 import * as HttpClient from "effect/unstable/http/HttpClient";
 import * as HttpClientRequest from "effect/unstable/http/HttpClientRequest";
 
-import RpcStackFixture, {
+import TransportStackFixture, {
   FIXTURE_ABORT_AFTER_HEADER,
+  FIXTURE_DEMO_SETTINGS,
   FIXTURE_RELEASE_VERSION,
+  FIXTURE_RETRY_AFTER_SECONDS,
+  FIXTURE_SESSION_PATH,
   FIXTURE_STATE_PATH,
+  fixtureSessionSchema,
   fixtureStateSchema,
-} from "./rpc-stack.fixture";
-import type { FixtureState } from "./rpc-stack.fixture";
+} from "./transport-stack.fixture";
+import type { FixtureState } from "./transport-stack.fixture";
 import Api from "./worker";
 
 /** Settings the API reads in a local stage; fictional, since nothing here reaches Planning Center. */
@@ -59,7 +73,7 @@ const ApiStack = Alchemy.Stack(
   { providers, state: State.inMemoryState() },
   Effect.gen(function* apiAndRpcFixture() {
     const api = yield* Api;
-    const fixture = yield* RpcStackFixture;
+    const fixture = yield* TransportStackFixture;
     return { url: api.url, fixtureUrl: fixture.url };
   })
 );
@@ -138,11 +152,11 @@ test(
 
 // ---- Effect RPC -----------------------------------------------------------------------------
 
-/** The RPC fixture Worker's local URL, once it answers. */
+/** The transport fixture Worker's local URL, once it answers. */
 const fixtureUrl = stack.pipe(
   Effect.flatMap(({ fixtureUrl: url }) =>
     url === undefined
-      ? Effect.die(new Error("The RPC fixture Worker has no local URL"))
+      ? Effect.die(new Error("The transport fixture Worker has no local URL"))
       : Effect.succeed(url)
   ),
   Effect.tap((url) =>
@@ -390,7 +404,7 @@ test(
 /**
  * Calls `tag` and walks away after `abortAfterMs`: the client aborts its fetch, and the fixture
  * aborts the request's signal at the same moment (local workerd never reports the disconnect
- * itself; see `rpc-stack.fixture.ts`). Resolves with how the call settled.
+ * itself; see `transport-stack.fixture.ts`). Resolves with how the call settled.
  */
 const abandonedCall = <Tag extends "catalog.plan" | "schedule.assign">(
   url: string,
@@ -844,6 +858,595 @@ test(
         fields.planningCenterRequests,
       ]),
       [["Info", "people.dashboardRoster", 404, "NOT_FOUND", 0]]
+    );
+  }),
+  requestTimeout
+);
+
+// ---- Effect HttpApi (spike) -------------------------------------------------------------------
+
+/** The API Worker's browser origin in the `test` stage (`stage.ts`). */
+const TEST_STAGE_ORIGIN = "http://127.0.0.1:3010";
+/** The fixture's HttpApi server uses `testServerConfig()`'s origin. */
+const FIXTURE_ORIGIN = "http://localhost:3000";
+
+const httpAnswerSchema = Schema.Struct({
+  _tag: Schema.optional(Schema.String),
+  message: Schema.optional(Schema.String),
+  reason: Schema.optional(Schema.String),
+});
+/** Better Auth answers some reads with a bare `null`. */
+const decodeHttpAnswer = Schema.decodeUnknownSync(
+  Schema.fromJsonString(Schema.NullOr(httpAnswerSchema))
+);
+
+interface HttpAnswer {
+  readonly status: number;
+  readonly headers: Headers;
+  /** The fault's tag, `ok` for another JSON body, or null for an empty one. */
+  readonly tag: string | null;
+  readonly message: string | undefined;
+}
+
+/** One raw HTTP request, as a web client or the native app would send it. */
+const sendHttp = (
+  url: string,
+  route: string,
+  {
+    method = "GET",
+    headers = {},
+    body,
+  }: {
+    readonly method?: string;
+    readonly headers?: Record<string, string>;
+    readonly body?: string;
+  } = {}
+) =>
+  Effect.promise(async (): Promise<HttpAnswer> => {
+    const sent = new Headers({ "x-pcobooster-client": "web;api=1" });
+    if (body !== undefined) {
+      sent.set("content-type", "application/json");
+    }
+    for (const [name, value] of Object.entries(headers)) {
+      sent.set(name, value);
+    }
+    const response = await fetch(`${url}${route}`, {
+      method,
+      headers: sent,
+      body,
+    });
+    const text = await response.text();
+    const answer = text === "" ? null : decodeHttpAnswer(text);
+    return {
+      status: response.status,
+      headers: response.headers,
+      tag: answer === null ? null : (answer._tag ?? "ok"),
+      message: answer?.message,
+    };
+  });
+
+const decodeFixtureSession = Schema.decodeUnknownSync(
+  Schema.fromJsonString(fixtureSessionSchema)
+);
+
+/** A fresh user with its own credential, so a rate-limited answer never holds another test. */
+const nativeSession = (url: string) =>
+  Effect.promise(async () => {
+    const response = await fetch(`${url}${FIXTURE_SESSION_PATH}`, {
+      method: "POST",
+    });
+    return decodeFixtureSession(await response.text());
+  });
+
+const bearerHeaders = (token: string, accountId: string) => ({
+  authorization: `Bearer ${token}`,
+  "x-pcobooster-account": accountId,
+});
+
+const fixtureDemoToken = (() => {
+  const { demo } = testServerConfig(FIXTURE_DEMO_SETTINGS);
+  if (demo === null) {
+    throw new Error("FIXTURE_DEMO_SETTINGS must configure a demo");
+  }
+  return demoSessionToken(demo);
+})();
+
+/** The HttpApi client as the native app builds it, sending `headers` on every call. */
+const nativeHttpClient = (url: string, headers: Record<string, string>) =>
+  makeProductHttpClient({
+    url,
+    client: "expo",
+    credentials: "omit",
+    httpHeaders: () => headers,
+  });
+
+const STATUS_WRITE = (planPersonId: string) => ({
+  planPersonId,
+  status: "C" as const,
+  serviceTypeId: "st-1",
+  personId: "person-1",
+  planId: "plan-1",
+});
+
+const corsAndCache = (answer: HttpAnswer) => [
+  answer.headers.get("access-control-allow-origin"),
+  answer.headers.get("access-control-allow-credentials"),
+  answer.headers.get("cache-control"),
+];
+
+test(
+  "answers HttpApi preflights and keeps CORS and no-store on successes, faults, and unknown paths",
+  Effect.gen(function* httpCors() {
+    const url = yield* apiUrl;
+    const origin = { origin: TEST_STAGE_ORIGIN };
+    const preflight = yield* sendHttp(url, "/api/v1/plan-people/pp-1", {
+      method: "OPTIONS",
+      headers: {
+        ...origin,
+        "access-control-request-method": "PATCH",
+        "access-control-request-headers":
+          "authorization,x-pcobooster-account,x-pcobooster-demo,x-pcobooster-client,x-pcobooster-priority",
+      },
+    });
+    const foreign = yield* sendHttp(url, "/api/v1/plan-people/pp-1", {
+      method: "OPTIONS",
+      headers: {
+        origin: "https://evil.example",
+        "access-control-request-method": "PATCH",
+      },
+    });
+    const answers = yield* Effect.all([
+      sendHttp(url, "/health", { headers: origin }),
+      sendHttp(url, "/api/v1/songs/song-1/chord-charts", { headers: origin }),
+      sendHttp(url, "/api/v1/retired-endpoint", { headers: origin }),
+    ]);
+
+    assert.strictEqual(preflight.status, 204);
+    assert.strictEqual(
+      preflight.headers.get("access-control-allow-origin"),
+      TEST_STAGE_ORIGIN
+    );
+    assert.include(
+      preflight.headers.get("access-control-allow-methods") ?? "",
+      "PATCH"
+    );
+    assert.include(
+      preflight.headers.get("access-control-allow-headers") ?? "",
+      "x-pcobooster-priority"
+    );
+    assert.isNull(foreign.headers.get("access-control-allow-origin"));
+    assert.deepStrictEqual(
+      answers.map((answer) => [
+        answer.status,
+        answer.tag,
+        ...corsAndCache(answer),
+      ]),
+      [
+        [200, "ok", TEST_STAGE_ORIGIN, "true", "private, no-store"],
+        [
+          401,
+          "Unauthenticated",
+          TEST_STAGE_ORIGIN,
+          "true",
+          "private, no-store",
+        ],
+        [404, null, TEST_STAGE_ORIGIN, "true", "private, no-store"],
+      ]
+    );
+  }),
+  requestTimeout
+);
+
+test(
+  "answers each HttpApi spike endpoint 401 without a session and 426 to an RPC-era client",
+  Effect.gen(function* httpUnauthenticated() {
+    const url = yield* apiUrl;
+    const unauthenticated = yield* Effect.all([
+      sendHttp(
+        url,
+        "/api/v1/people/plan-window-history?date=2026-10-11T17%3A00%3A00Z"
+      ),
+      sendHttp(url, "/api/v1/plan-people/pp-1", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "C" }),
+      }),
+      sendHttp(url, "/api/v1/songs/song-1/chord-charts"),
+    ]);
+    const outdated = yield* sendHttp(url, "/api/v1/songs/song-1/chord-charts", {
+      headers: { "x-pcobooster-client": "web;rpc=1" },
+    });
+
+    assert.deepStrictEqual(
+      unauthenticated.map((answer) => [answer.status, answer.tag]),
+      [
+        [401, "Unauthenticated"],
+        [401, "Unauthenticated"],
+        [401, "Unauthenticated"],
+      ]
+    );
+    assert.deepStrictEqual(
+      [outdated.status, outdated.tag],
+      [426, "ClientOutdated"]
+    );
+  }),
+  requestTimeout
+);
+
+test(
+  "still answers Better Auth on the Effect router: a session read and a sign-in start",
+  Effect.gen(function* betterAuthRoutes() {
+    const url = yield* apiUrl;
+    const sessionRead = yield* sendHttp(url, "/api/auth/get-session");
+    // Better Auth validates the native start's PKCE query before it does anything else.
+    const nativeStart = yield* sendHttp(url, "/api/auth/native/start");
+    const unknownAuthPath = yield* sendHttp(url, "/api/auth/no-such-route");
+
+    assert.strictEqual(sessionRead.status, 200);
+    assert.strictEqual(
+      sessionRead.headers.get("cache-control"),
+      "private, no-store"
+    );
+    assert.strictEqual(nativeStart.status, 400);
+    assert.notStrictEqual(nativeStart.tag, null);
+    assert.strictEqual(unknownAuthPath.status, 404);
+  }),
+  requestTimeout
+);
+
+test(
+  "authenticates HttpApi calls by bearer token and picks the account the header names",
+  Effect.gen(function* httpBearer() {
+    const url = yield* fixtureUrl;
+    const session = yield* nativeSession(url);
+    const onClient = nativeHttpClient(
+      url,
+      bearerHeaders(session.token, session.flagOnAccountId)
+    );
+    const offClient = nativeHttpClient(
+      url,
+      bearerHeaders(session.token, session.flagOffAccountId)
+    );
+    const charts = yield* Effect.promise(
+      async () =>
+        await onClient.call("chordCharts.song", { songId: " song-1 " })
+    );
+    const flagOff = yield* settled(
+      async () => await offClient.call("chordCharts.song", { songId: "song-1" })
+    );
+    yield* Effect.promise(async () => {
+      await onClient.dispose();
+      await offClient.dispose();
+    });
+
+    assert.deepStrictEqual(charts, {
+      song: { id: "song-1", title: "Amazing Grace", author: "John Newton" },
+      arrangements: [],
+    });
+    assert.isTrue(
+      Result.isFailure(flagOff) &&
+        flagOff.failure.cause instanceof NotFound &&
+        failureStatus(flagOff.failure.cause) === 404
+    );
+  }),
+  requestTimeout
+);
+
+test(
+  "pages people.planWindowHistory with a continuation in the URL and logs its outcome line",
+  Effect.gen(function* httpPagedRead() {
+    const url = yield* fixtureUrl;
+    const session = yield* nativeSession(url);
+    const requestId = uniqueId("http-paged");
+    const since = Date.now();
+    const client = nativeHttpClient(url, {
+      ...bearerHeaders(session.token, session.flagOffAccountId),
+      "x-request-id": requestId,
+    });
+    const batch = yield* Effect.promise(
+      async () =>
+        await client.call(
+          "people.planWindowHistory",
+          {
+            date: "2026-10-11T10:00:00-07:00",
+            // The organization has st-1 and st-2; the cursor says only st-2 is left.
+            continuation: { plans: [], serviceTypeIds: ["st-2"] },
+          },
+          { priority: "speculative" }
+        )
+    );
+    const state = yield* fixtureStateWhen(
+      url,
+      requestId,
+      (current) => current.logs.length > 0
+    );
+    yield* Effect.promise(async () => {
+      await client.dispose();
+    });
+
+    assert.deepStrictEqual(
+      [
+        batch.loadedPlanCount,
+        batch.deferredPlans,
+        batch.deferredServiceTypeIds,
+      ],
+      [0, [], []]
+    );
+    assert.deepStrictEqual(
+      state.planningCenterCalls
+        .filter(
+          (entry) => entry.startedAt >= since && entry.path.endsWith("/plans")
+        )
+        .map((entry) => entry.path),
+      ["/services/v2/service_types/st-2/plans"]
+    );
+    assert.deepStrictEqual(
+      state.logs.map(({ fields }) => [
+        fields.procedure,
+        fields.status,
+        fields.priority,
+        fields.kind,
+        fields.client,
+      ]),
+      [["people.planWindowHistory", 200, "speculative", "read", "expo;api=1"]]
+    );
+  }),
+  requestTimeout
+);
+
+test(
+  "PATCHes a plan person's status through the typed client and audits the real path",
+  Effect.gen(function* httpWrite() {
+    const url = yield* fixtureUrl;
+    const session = yield* nativeSession(url);
+    const requestId = uniqueId("http-write");
+    const planPersonId = uniqueId("plan-person");
+    const client = nativeHttpClient(url, {
+      ...bearerHeaders(session.token, session.flagOffAccountId),
+      "x-request-id": requestId,
+    });
+    const updated = yield* Effect.promise(
+      async () =>
+        await client.call("schedule.updateStatus", STATUS_WRITE(planPersonId))
+    );
+    const state = yield* fixtureStateWhen(
+      url,
+      requestId,
+      (current) => current.logs.length > 0 && current.audit.length > 0
+    );
+    yield* Effect.promise(async () => {
+      await client.dispose();
+    });
+
+    assert.deepStrictEqual(updated, { success: true });
+    assert.deepStrictEqual(
+      state.audit.map((row) => [
+        row.method,
+        row.path,
+        row.status_code,
+        row.success,
+      ]),
+      [["PATCH", `/api/v1/plan-people/${planPersonId}`, 200, 1]]
+    );
+    assert.deepStrictEqual(
+      state.logs.map(({ fields }) => [
+        fields.procedure,
+        fields.status,
+        fields.kind,
+      ]),
+      [["schedule.updateStatus", 200, "write"]]
+    );
+  }),
+  requestTimeout
+);
+
+test(
+  "answers Planning Center's failures on a write with each fault's status, CORS, and no-store",
+  Effect.gen(function* httpWriteFaults() {
+    const url = yield* fixtureUrl;
+    const answers = yield* Effect.all(
+      ["limited", "down", "missing", "refused"].map((script) =>
+        Effect.gen(function* scriptedWrite() {
+          // Each its own credential: a 429 holds back its credential's later requests.
+          const session = yield* nativeSession(url);
+          return yield* sendHttp(
+            url,
+            `/api/v1/plan-people/${uniqueId(script)}`,
+            {
+              method: "PATCH",
+              headers: {
+                origin: FIXTURE_ORIGIN,
+                ...bearerHeaders(session.token, session.flagOffAccountId),
+              },
+              body: JSON.stringify({ status: "D", planId: "plan-1" }),
+            }
+          );
+        })
+      )
+    );
+    const session = yield* nativeSession(url);
+    const client = nativeHttpClient(
+      url,
+      bearerHeaders(session.token, session.flagOffAccountId)
+    );
+    const typed = yield* Effect.all(
+      ["limited", "down"].map((script) =>
+        settled(
+          async () =>
+            await client.call(
+              "schedule.updateStatus",
+              STATUS_WRITE(uniqueId(script))
+            )
+        )
+      )
+    );
+    yield* Effect.promise(async () => {
+      await client.dispose();
+    });
+
+    assert.deepStrictEqual(
+      answers.map((answer) => [
+        answer.status,
+        answer.tag,
+        ...corsAndCache(answer),
+      ]),
+      [
+        [429, "RateLimited", FIXTURE_ORIGIN, "true", "private, no-store"],
+        [
+          502,
+          "ExternalServiceFailure",
+          FIXTURE_ORIGIN,
+          "true",
+          "private, no-store",
+        ],
+        [404, "NotFound", FIXTURE_ORIGIN, "true", "private, no-store"],
+        [403, "Forbidden", FIXTURE_ORIGIN, "true", "private, no-store"],
+      ]
+    );
+    assert.strictEqual(
+      answers[0]?.headers.get("retry-after"),
+      String(FIXTURE_RETRY_AFTER_SECONDS)
+    );
+    const [limited, down] = typed;
+    assert.isTrue(
+      limited !== undefined &&
+        Result.isFailure(limited) &&
+        limited.failure.cause instanceof RateLimited &&
+        limited.failure.cause.retryAfterSeconds === FIXTURE_RETRY_AFTER_SECONDS
+    );
+    assert.isTrue(
+      down !== undefined &&
+        Result.isFailure(down) &&
+        down.failure.cause instanceof ExternalServiceFailure
+    );
+  }),
+  { timeout: 60_000 }
+);
+
+test(
+  "answers a defect behind an HttpApi endpoint with 500 InternalError and no detail",
+  Effect.gen(function* httpDefect() {
+    const url = yield* fixtureUrl;
+    const session = yield* nativeSession(url);
+    const answer = yield* sendHttp(url, "/api/v1/songs/defect-1/chord-charts", {
+      headers: bearerHeaders(session.token, session.flagOnAccountId),
+    });
+    const client = nativeHttpClient(
+      url,
+      bearerHeaders(session.token, session.flagOnAccountId)
+    );
+    const typed = yield* settled(
+      async () => await client.call("chordCharts.song", { songId: "defect-2" })
+    );
+    yield* Effect.promise(async () => {
+      await client.dispose();
+    });
+
+    assert.deepStrictEqual(
+      [answer.status, answer.tag, answer.message],
+      [500, "InternalError", "Internal server error"]
+    );
+    assert.isTrue(rejectedWithInternalError(typed));
+  }),
+  requestTimeout
+);
+
+test(
+  "rejects malformed HttpApi input with 400 before any Planning Center request",
+  Effect.gen(function* httpMalformed() {
+    const url = yield* fixtureUrl;
+    const session = yield* nativeSession(url);
+    const requestId = uniqueId("http-malformed");
+    const headers = {
+      ...bearerHeaders(session.token, session.flagOnAccountId),
+      "x-request-id": requestId,
+    };
+    const planPersonId = uniqueId("never-written");
+    const answers = yield* Effect.all([
+      sendHttp(url, "/api/v1/people/plan-window-history?date=next-sunday", {
+        headers,
+      }),
+      sendHttp(
+        url,
+        `/api/v1/people/plan-window-history?date=2026-10-11T17%3A00%3A00Z&continuation=${encodeURIComponent("{not json")}`,
+        { headers }
+      ),
+      sendHttp(url, "/api/v1/songs/%20/chord-charts", { headers }),
+      sendHttp(url, `/api/v1/plan-people/${planPersonId}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ status: "X" }),
+      }),
+      sendHttp(url, `/api/v1/plan-people/${planPersonId}`, {
+        method: "PATCH",
+        headers,
+        body: "{",
+      }),
+    ]);
+    const state = yield* fixtureStateWhen(
+      url,
+      requestId,
+      (current) => current.logs.length >= answers.length
+    );
+
+    assert.deepStrictEqual(
+      answers.map((answer) => [answer.status, answer.tag]),
+      Array.from({ length: answers.length }, () => [400, "RequestRejected"])
+    );
+    assert.isFalse(
+      state.planningCenterCalls.some((entry) =>
+        entry.path.includes(planPersonId)
+      )
+    );
+    assert.deepStrictEqual(
+      state.logs.map(({ fields }) => [
+        fields.status,
+        fields.planningCenterRequests,
+      ]),
+      Array.from({ length: answers.length }, () => [400, 0])
+    );
+  }),
+  requestTimeout
+);
+
+test(
+  "serves a demo session from the demo header: reads answer, writes are refused as read-only",
+  Effect.gen(function* httpDemo() {
+    const url = yield* fixtureUrl;
+    const client = nativeHttpClient(url, {
+      "x-pcobooster-demo": fixtureDemoToken,
+    });
+    const read = yield* Effect.promise(
+      async () =>
+        await client.call("people.planWindowHistory", {
+          date: "2026-10-11T17:00:00Z",
+        })
+    );
+    const write = yield* settled(
+      async () =>
+        await client.call(
+          "schedule.updateStatus",
+          STATUS_WRITE(uniqueId("demo"))
+        )
+    );
+    const unknownDemo = yield* sendHttp(
+      url,
+      "/api/v1/people/plan-window-history?date=2026-10-11T17%3A00%3A00Z",
+      { headers: { "x-pcobooster-demo": "not-the-demo-token" } }
+    );
+    yield* Effect.promise(async () => {
+      await client.dispose();
+    });
+
+    assert.strictEqual(read.loadedPlanCount, 0);
+    assert.isTrue(
+      Result.isFailure(write) &&
+        write.failure.cause instanceof Forbidden &&
+        write.failure.cause.message ===
+          "This demo is read-only, so changes aren't saved."
+    );
+    assert.deepStrictEqual(
+      [unknownDemo.status, unknownDemo.tag],
+      [401, "Unauthenticated"]
     );
   }),
   requestTimeout
