@@ -1,3 +1,5 @@
+import type { ProcedureInput } from "@pcobooster/client/product-client";
+import { callForQuery, speculativeQuery } from "@pcobooster/client/query";
 import { PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE } from "@pcobooster/contracts/people";
 import type {
   CandidateDetailsBatch,
@@ -42,8 +44,7 @@ import {
   useHydrateQueryFromCache,
 } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import { callForQuery, speculativeQuery } from "@/lib/request-priority";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 /**
  * The selected plan's roster rarely changes behind the scheduler's back, and this app's
@@ -90,7 +91,8 @@ export const createPositionCandidatesQueryOptions = ({
     const candidates = await callForQuery(
       context,
       async (options) =>
-        await orpc.people.positionCandidates(
+        await productClient.call(
+          "people.positionCandidates",
           {
             serviceTypeId,
             positionId,
@@ -113,7 +115,7 @@ export const createPositionCandidatesQueryOptions = ({
 });
 
 type WindowContinuation = NonNullable<
-  Parameters<typeof orpc.people.planWindowHistory>[0]
+  ProcedureInput<"people.planWindowHistory">
 >["continuation"];
 
 /**
@@ -129,7 +131,8 @@ const fetchPlanWindowHistory = async (
   const batch = await callForQuery(
     context,
     async (options) =>
-      await orpc.people.planWindowHistory(
+      await productClient.call(
+        "people.planWindowHistory",
         { date: dateKey, continuation },
         options
       )
@@ -185,7 +188,8 @@ const fetchCandidateDetails = async (
   const batch = await callForQuery(
     context,
     async (options) =>
-      await orpc.people.candidateDetails(
+      await productClient.call(
+        "people.candidateDetails",
         {
           personIds: [...personIds],
           planId,

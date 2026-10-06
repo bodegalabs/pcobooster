@@ -1,5 +1,5 @@
-import { ORPCError } from "@orpc/client";
 import type { captureAnalytics } from "@pcobooster/analytics/client";
+import { failureCode } from "@pcobooster/client/product-client";
 import { z } from "zod";
 
 const OPERATIONS = new Set([
@@ -34,15 +34,15 @@ const errorCodeSchema = z.enum([
   "TOO_MANY_REQUESTS",
   "BAD_GATEWAY",
   "INTERNAL_SERVER_ERROR",
+  "CLIENT_OUTDATED",
 ]);
 
 /** Only operation names and outcomes are captured, never request/response bodies or error messages. */
 export const measureWorkflow = async <T>(
-  path: readonly string[],
+  operation: string,
   execute: () => Promise<T>,
   capture: typeof captureAnalytics
 ): Promise<T> => {
-  const operation = path.join(".");
   if (!OPERATIONS.has(operation)) {
     return await execute();
   }
@@ -56,7 +56,7 @@ export const measureWorkflow = async <T>(
     return result;
   } catch (error) {
     const errorCode = errorCodeSchema.safeParse(
-      error instanceof ORPCError ? error.code : undefined
+      error instanceof Error ? failureCode(error) : undefined
     );
     capture("workflow failed", {
       operation,

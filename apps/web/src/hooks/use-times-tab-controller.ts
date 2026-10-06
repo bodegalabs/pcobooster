@@ -18,7 +18,7 @@ import {
   planTimeEditHasChanges,
 } from "@/lib/schedule/plan-time-edits";
 import type { EditablePlanTime } from "@/lib/schedule/plan-time-edits";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 interface UseTimesTabControllerProps {
   serviceTypeId: string | null;
@@ -109,7 +109,7 @@ export const useTimesTabController = ({
         timeZone,
         teamPositionsQuery.data
       );
-      await orpc.planTimes.update({
+      await productClient.call("planTimes.update", {
         planTimeId: planTime.id,
         serviceTypeId,
         planId,
@@ -149,7 +149,7 @@ export const useTimesTabController = ({
     try {
       await queryClient.cancelQueries({ queryKey: planTimesQueryKey });
       const request = buildCreatePlanTimeRequest(edit, timeZone);
-      const created = await orpc.planTimes.create({
+      const created = await productClient.call("planTimes.create", {
         serviceTypeId,
         planId,
         name: request.name,
@@ -195,7 +195,7 @@ export const useTimesTabController = ({
           current.filter((time) => time.id !== planTime.id)
       );
 
-      await orpc.planTimes.delete({
+      await productClient.call("planTimes.delete", {
         planTimeId: planTime.id,
         serviceTypeId,
         planId,

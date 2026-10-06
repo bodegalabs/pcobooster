@@ -1,3 +1,4 @@
+import { speculativeQuery } from "@pcobooster/client/query";
 import type { SongLibraryEntry } from "@pcobooster/contracts/songs";
 import { formatCalendarDateLabel } from "@pcobooster/planning-center-models/calendar";
 import { useQueryClient } from "@tanstack/react-query";
@@ -43,7 +44,6 @@ import {
   parseRecentSongs,
 } from "@/lib/recent-songs";
 import type { RecentSong } from "@/lib/recent-songs";
-import { speculativeQuery } from "@/lib/request-priority";
 import {
   planningCenterSongUrl,
   selectSongLibrary,

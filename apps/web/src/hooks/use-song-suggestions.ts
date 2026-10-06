@@ -1,9 +1,9 @@
+import { callForQuery } from "@pcobooster/client/query";
 import type { SongsSuggestions } from "@pcobooster/contracts/songs";
 import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
-import { callForQuery } from "@/lib/request-priority";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 const SONG_SUGGESTIONS_STALE_TIME_MS = 10 * 60 * 1000;
 
@@ -14,7 +14,8 @@ export const useSongSuggestions = () =>
     queryFn: async (context) =>
       await callForQuery(
         context,
-        async (options) => await orpc.songs.suggestions({}, options)
+        async (options) =>
+          await productClient.call("songs.suggestions", {}, options)
       ),
     staleTime: SONG_SUGGESTIONS_STALE_TIME_MS,
   });

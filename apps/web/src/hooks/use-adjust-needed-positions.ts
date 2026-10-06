@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { queryKeys } from "@/lib/query-keys";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 type NeededPositionChange = "add" | "remove";
 
@@ -57,7 +57,7 @@ export const useAdjustNeededPositions = (
       position: Pick<TeamPosition, "id" | "teamId" | "name">;
       change: NeededPositionChange;
     }) =>
-      await orpc.neededPositions.adjust({
+      await productClient.call("neededPositions.adjust", {
         serviceTypeId,
         planId,
         teamId: position.teamId,

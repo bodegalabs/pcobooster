@@ -1,5 +1,5 @@
 import { ACCOUNT_PANEL_CACHE_KEY } from "@/lib/account-panel-cache";
-import { writeBrowserStorage } from "@/lib/browser-storage";
+import { readBrowserStorage, writeBrowserStorage } from "@/lib/browser-storage";
 import { clearChordChartDrafts } from "@/lib/chord-chart-draft";
 import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
 import { clearCachedOrganizationTimeZone } from "@/lib/organization-time-zone-cache";
@@ -13,8 +13,8 @@ import { clearCachedSongOptions } from "@/lib/song-options-cache";
 import { clearCachedSongSearch } from "@/lib/song-search-cache";
 import { clearCachedTeamPositions } from "@/lib/team-positions-cache";
 
-/** Forgets browser data saved for one organization before showing another. */
-export const clearAccountScopedCaches = (): void => {
+/** Forgets every saved API answer; what the person wrote or chose stays. */
+const clearCachedApiAnswers = (): void => {
   writeBrowserStorage(ACCOUNT_PANEL_CACHE_KEY, null);
   clearCachedPositionCandidates();
   clearCachedPeopleDashboards();
@@ -22,10 +22,34 @@ export const clearAccountScopedCaches = (): void => {
   clearCachedMyScheduledPlans();
   clearCachedOrganizationTimeZone();
   clearCachedPlanItems();
-  clearRecentSongs();
-  clearChordChartDrafts();
   clearCachedScheduleCatalog();
   clearCachedSongOptions();
   clearCachedSongSearch();
   clearCachedTeamPositions();
+};
+
+/** Forgets browser data saved for one organization before showing another. */
+export const clearAccountScopedCaches = (): void => {
+  clearCachedApiAnswers();
+  clearRecentSongs();
+  clearChordChartDrafts();
+};
+
+/**
+ * Raise when the API's answers change shape or transport, so answers saved by an older build
+ * are dropped instead of shown. 2: Effect RPC replaced oRPC.
+ */
+const API_CACHE_GENERATION = "2";
+const API_CACHE_GENERATION_KEY = "pcobooster:api-cache-generation";
+
+/** Drops API answers an older build saved; drafts and recent songs survive. Runs at startup. */
+export const discardApiCachesFromOlderBuilds = (): void => {
+  if (typeof window === "undefined") {
+    return;
+  }
+  if (readBrowserStorage(API_CACHE_GENERATION_KEY) === API_CACHE_GENERATION) {
+    return;
+  }
+  clearCachedApiAnswers();
+  writeBrowserStorage(API_CACHE_GENERATION_KEY, API_CACHE_GENERATION);
 };

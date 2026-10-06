@@ -10,7 +10,7 @@ import {
   readCachedSongSearch,
   writeCachedSongSearch,
 } from "@/lib/song-search-cache";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 const SONG_SEARCH_STALE_TIME_MS = 5 * 60 * 1000;
 
@@ -30,7 +30,8 @@ export const useSongSearch = (query: string) => {
         return [];
       }
 
-      const songs = await orpc.songs.search(
+      const songs = await productClient.call(
+        "songs.search",
         { query: trimmedQuery },
         { signal }
       );

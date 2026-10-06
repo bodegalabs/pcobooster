@@ -1,3 +1,4 @@
+import { speculativeQuery } from "@pcobooster/client/query";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   PlanItem,
@@ -36,8 +37,8 @@ import type {
   PlanItemsOptimisticSnapshot,
 } from "@/lib/plan-items-query-state";
 import { queryKeys } from "@/lib/query-keys";
-import { requestScheduler, speculativeQuery } from "@/lib/request-priority";
-import { orpc } from "@/orpc-client";
+import { requestScheduler } from "@/lib/request-priority";
+import { productClient } from "@/product-client";
 
 export type AddedPlanItemKind = "song" | "header" | "item";
 
@@ -197,7 +198,11 @@ export const usePlanTabController = ({
     if (sequence.at(-1) === created.id) {
       return;
     }
-    await orpc.planItems.reorder({ serviceTypeId, planId, sequence });
+    await productClient.call("planItems.reorder", {
+      serviceTypeId,
+      planId,
+      sequence,
+    });
   };
 
   const createItemMutation = useMutation<
@@ -216,7 +221,7 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      const created = await orpc.planItems.create({
+      const created = await productClient.call("planItems.create", {
         serviceTypeId,
         planId,
         itemType: kind,
@@ -295,7 +300,7 @@ export const usePlanTabController = ({
           (arrangement) => arrangement.id === songOptions.suggestedArrangementId
         ) ?? null;
 
-      const created = await orpc.planItems.create({
+      const created = await productClient.call("planItems.create", {
         serviceTypeId,
         planId,
         title: songOptions?.song.title ?? song.title,
@@ -360,7 +365,11 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      await orpc.planItems.delete({ itemId: item.id, serviceTypeId, planId });
+      await productClient.call("planItems.delete", {
+        itemId: item.id,
+        serviceTypeId,
+        planId,
+      });
     },
     onSuccess: async (_result, item) => {
       // Drop it from the cache before it stops being hidden, or it shows again until
@@ -447,7 +456,7 @@ export const usePlanTabController = ({
         if (isNonEmptyString(serviceTypeId) && isNonEmptyString(planId)) {
           void (async () => {
             try {
-              await orpc.planItems.delete({
+              await productClient.call("planItems.delete", {
                 itemId: item.id,
                 serviceTypeId,
                 planId,
@@ -474,7 +483,7 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      await orpc.planItems.reorder({
+      await productClient.call("planItems.reorder", {
         serviceTypeId,
         planId,
         sequence: nextItems.map((item) => item.id),
@@ -532,7 +541,7 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      return await orpc.planItems.update({
+      return await productClient.call("planItems.update", {
         itemId: item.id,
         serviceTypeId,
         planId,

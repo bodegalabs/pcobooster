@@ -1,5 +1,5 @@
-import { ORPCError } from "@orpc/client";
 import type { captureAnalytics } from "@pcobooster/analytics/client";
+import { PositionMismatch } from "@pcobooster/contracts/faults/position-mismatch";
 import { describe, expect, it, vi } from "vitest";
 
 import { measureWorkflow } from "./workflow-analytics";
@@ -8,7 +8,7 @@ describe("workflow analytics", () => {
   it("records success only after the real operation resolves and preserves its result", async () => {
     const capture = vi.fn<typeof captureAnalytics>();
     const result = await measureWorkflow(
-      ["schedule", "assign"],
+      "schedule.assign",
       async () => {
         expect(capture).not.toHaveBeenCalled();
         return await Promise.resolve("saved");
@@ -24,12 +24,21 @@ describe("workflow analytics", () => {
 
   it("records a bounded error code, never a provider message, and rethrows the same error", async () => {
     const capture = vi.fn<typeof captureAnalytics>();
-    const error = new ORPCError("POSITION_MISMATCH", {
+    const error = new PositionMismatch({
       message: "Private person and plan details",
+      details: {
+        selected: {
+          teamId: "team-1",
+          teamName: "Band",
+          positionId: "position-1",
+          positionName: "Keys",
+        },
+        created: { planPersonId: "plan-person-1", teamPositionName: "Piano" },
+      },
     });
     await expect(
       measureWorkflow(
-        ["schedule", "assign"],
+        "schedule.assign",
         async () => await Promise.reject(error),
         capture
       )
@@ -43,7 +52,7 @@ describe("workflow analytics", () => {
   it("does not count reads as writes and reports rejected write cancellations", async () => {
     const capture = vi.fn<typeof captureAnalytics>();
     await measureWorkflow(
-      ["people", "list"],
+      "people.list",
       async () => await Promise.resolve("data"),
       capture
     );
@@ -51,7 +60,7 @@ describe("workflow analytics", () => {
     error.name = "AbortError";
     await expect(
       measureWorkflow(
-        ["planItems", "update"],
+        "planItems.update",
         async () => await Promise.reject(error),
         capture
       )

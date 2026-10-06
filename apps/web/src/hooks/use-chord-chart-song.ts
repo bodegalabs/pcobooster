@@ -1,4 +1,4 @@
-import { ORPCError } from "@orpc/client";
+import { callForQuery } from "@pcobooster/client/query";
 import type {
   ChordChartArrangement,
   ChordChartCreateInput,
@@ -8,21 +8,25 @@ import type {
   ChordChartUpdateInput,
   LyricsSearchResult,
 } from "@pcobooster/contracts/chord-charts";
+import { isProductFault } from "@pcobooster/contracts/faults";
+import { Conflict } from "@pcobooster/contracts/faults/conflict";
+import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryClient, QueryFunctionContext } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import { queryKeys } from "@/lib/query-keys";
-import { callForQuery } from "@/lib/request-priority";
 import { clearCachedSongOptionsForSong } from "@/lib/song-options-cache";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 export const createChordChartSongQueryOptions = (songId: string) => ({
   queryKey: queryKeys.chordChartSong(songId),
   queryFn: async (context: QueryFunctionContext) =>
     await callForQuery(
       context,
-      async (options) => await orpc.chordCharts.song({ songId }, options)
+      async (options) =>
+        await productClient.call("chordCharts.song", { songId }, options)
     ),
   staleTime: 30 * 1000,
 });
@@ -107,23 +111,23 @@ const rememberWrittenArrangement = (
 };
 
 export const isChordChartConflict = (error: Error): boolean =>
-  error instanceof ORPCError && error.code === "CONFLICT";
+  error instanceof Conflict;
 
 /** The API's safe message, or `fallback` for network and unexpected failures. */
 export const chordChartErrorMessage = (
   error: Error,
   fallback: string
 ): string =>
-  error instanceof ORPCError && error.message !== "" ? error.message : fallback;
+  isProductFault(error) && error.message !== "" ? error.message : fallback;
 
 export type ChordChartLoadFailure = "not-found" | "no-access" | "failed";
 
 /** Why a song didn't load, so the page can say what would help. */
 export const chordChartLoadFailure = (error: Error): ChordChartLoadFailure => {
-  if (error instanceof ORPCError && error.code === "NOT_FOUND") {
+  if (error instanceof NotFound) {
     return "not-found";
   }
-  if (error instanceof ORPCError && error.code === "FORBIDDEN") {
+  if (error instanceof Forbidden) {
     return "no-access";
   }
   return "failed";
@@ -133,7 +137,7 @@ export const useSaveChordChart = (songId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: ChordChartUpdateInput) =>
-      await orpc.chordCharts.update(input),
+      await productClient.call("chordCharts.update", input),
     onSuccess: (arrangement) => {
       rememberWrittenArrangement(queryClient, songId, arrangement);
     },
@@ -144,7 +148,7 @@ export const useCreateChordChart = (songId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: ChordChartCreateInput) =>
-      await orpc.chordCharts.create(input),
+      await productClient.call("chordCharts.create", input),
     onSuccess: (arrangement) => {
       rememberWrittenArrangement(queryClient, songId, arrangement);
     },
@@ -162,7 +166,11 @@ export const useLyricsSearch = (query: string) =>
       await callForQuery(
         context,
         async (options) =>
-          await orpc.chordCharts.lyricsSearch({ query }, options)
+          await productClient.call(
+            "chordCharts.lyricsSearch",
+            { query },
+            options
+          )
       ),
     enabled: query.length >= 2,
     staleTime: 60 * 60 * 1000,
@@ -174,7 +182,7 @@ export const useCreateSong = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: ChordChartSongCreateInput) =>
-      await orpc.chordCharts.createSong(input),
+      await productClient.call("chordCharts.createSong", input),
     onSuccess: (created) => {
       queryClient.setQueryData(
         queryKeys.chordChartSong(created.song.id),
@@ -205,7 +213,8 @@ export const useChordChartPdf = (target: ChordChartPdfTarget) =>
       await callForQuery(
         context,
         async (options) =>
-          await orpc.chordCharts.pdf(
+          await productClient.call(
+            "chordCharts.pdf",
             {
               songId: target.songId,
               arrangementId: target.arrangementId,

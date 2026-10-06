@@ -1,3 +1,4 @@
+import { speculativeQuery } from "@pcobooster/client/query";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
@@ -22,7 +23,6 @@ import { createTeamPositionsQueryOptions } from "@/hooks/use-team-positions";
 import { isQueryFresh } from "@/lib/intent-prefetch";
 import { hydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import { speculativeQuery } from "@/lib/request-priority";
 import {
   readCachedPlansEntry,
   writeCachedPlans,
@@ -40,7 +40,7 @@ import {
   readStoredServiceTypeIds,
   SERVICE_TYPE_FILTER_STORAGE_KEY,
 } from "@/lib/service-plan-selection";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 /** The positions, items, and times a plan's Overview is built from. */
 const overviewQueryOptions = (row: ServicePlanRow) => ({
@@ -123,7 +123,8 @@ export const useServicePlanSelection = ({
       (serviceTypes ?? []).map((serviceType) => ({
         queryKey: queryKeys.plans(serviceType.id),
         queryFn: async ({ signal }: QueryFunctionContext) =>
-          await orpc.catalog.plans(
+          await productClient.call(
+            "catalog.plans",
             { serviceTypeId: serviceType.id },
             { signal }
           ),

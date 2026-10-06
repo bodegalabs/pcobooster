@@ -8,7 +8,7 @@ import {
   readCachedServiceTypesEntry,
   writeCachedServiceTypes,
 } from "@/lib/schedule-catalog-cache";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 export const useServiceTypes = () => {
   const queryKey = queryKeys.serviceTypes();
@@ -21,7 +21,7 @@ export const useServiceTypes = () => {
   const query = useQuery<ServiceType[]>({
     queryKey,
     queryFn: async ({ signal }) =>
-      await orpc.catalog.serviceTypes({}, { signal }),
+      await productClient.call("catalog.serviceTypes", {}, { signal }),
     // 10 minutes
     staleTime: 10 * 60 * 1000,
   });

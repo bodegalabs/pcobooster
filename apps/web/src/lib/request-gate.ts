@@ -46,11 +46,14 @@ const proceed = (
   responseHeaders,
 });
 
-/** Sign-in and the API endpoints the signed-out browser needs stay reachable. */
+/**
+ * Sign-in and the API endpoints the signed-out browser needs stay reachable. Every RPC call
+ * posts to one URL; Effect's HTTP client adds the trailing slash.
+ */
 const isSignedOutPath = (pathname: string): boolean =>
   pathname.startsWith("/api/auth") ||
   pathname === "/api/rpc" ||
-  pathname.startsWith("/api/rpc/") ||
+  pathname === "/api/rpc/" ||
   pathname === "/auth";
 
 /** Same-origin and relative. */

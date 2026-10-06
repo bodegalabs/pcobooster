@@ -1,5 +1,9 @@
-import { ORPCError } from "@orpc/client";
 import type { captureAnalyticsException } from "@pcobooster/analytics/client";
+import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
+import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
+import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
+import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import { QueryClient, QueryObserver } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
 
@@ -32,8 +36,9 @@ describe("read error reporting", () => {
   it("reports once after retries, deduplicates observers, and sends no provider payload or IDs", async () => {
     const capture = vi.fn<typeof captureAnalyticsException>();
     const client = createClient(capture);
-    const error = new ORPCError("BAD_GATEWAY", {
+    const error = new ExternalServiceFailure({
       message: "Private person data",
+      service: "planning-center",
     });
     const queryKey = ["plan-items", "private-service", "private-plan"];
     const observer = new QueryObserver(client, { queryKey, enabled: false });
@@ -95,10 +100,15 @@ describe("read error reporting", () => {
     const capture = vi.fn<typeof captureAnalyticsException>();
     const client = createClient(capture);
     await Promise.all(
-      ["UNAUTHORIZED", "FORBIDDEN", "NOT_FOUND", "TOO_MANY_REQUESTS"].map(
-        async (code) =>
-          await failObservedRead(client, new ORPCError(code), {
-            queryKey: ["plans", code],
+      [
+        new Unauthenticated({ message: "Sign in" }),
+        new Forbidden({ message: "No access" }),
+        new NotFound({ message: "No plan", resource: "plan" }),
+        new RateLimited({ message: "held back", service: "planning-center" }),
+      ].map(
+        async (fault) =>
+          await failObservedRead(client, fault, {
+            queryKey: ["plans", fault._tag],
           })
       )
     );

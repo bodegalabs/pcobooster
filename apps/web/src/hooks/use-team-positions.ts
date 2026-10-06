@@ -1,3 +1,4 @@
+import { callForQuery } from "@pcobooster/client/query";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { TeamPositionGroup } from "@pcobooster/planning-center-models/types";
 import { useQuery } from "@tanstack/react-query";
@@ -6,12 +7,11 @@ import { useCallback } from "react";
 
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import { callForQuery } from "@/lib/request-priority";
 import {
   readCachedTeamPositions,
   writeCachedTeamPositions,
 } from "@/lib/team-positions-cache";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 const TEAM_POSITIONS_STALE_TIME_MS = 10 * 60 * 1000;
 
@@ -28,7 +28,8 @@ export const createTeamPositionsQueryOptions = (
     const groups = await callForQuery(
       context,
       async (options) =>
-        await orpc.catalog.teamPositions(
+        await productClient.call(
+          "catalog.teamPositions",
           { serviceTypeId, planId, seriesId: seriesId ?? undefined },
           options
         )

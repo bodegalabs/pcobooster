@@ -1,11 +1,12 @@
-import { ORPCError } from "@orpc/client";
+import { isProductFault } from "@pcobooster/contracts/faults";
+import { AlreadyScheduled } from "@pcobooster/contracts/faults/already-scheduled";
+import { PositionMismatch } from "@pcobooster/contracts/faults/position-mismatch";
 import {
   isNonEmptyString,
   isString,
 } from "@pcobooster/planning-center-models/json";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { z } from "zod";
 
 import {
   cancelScheduleMutationQueries,
@@ -16,48 +17,20 @@ import {
   settleScheduleMutationQueries,
 } from "@/hooks/use-schedule-cache-optimism";
 import type { OptimisticSchedulePerson } from "@/hooks/use-schedule-cache-optimism";
-import { orpc } from "@/orpc-client";
-
-const mismatchDetailsSchema = z.object({
-  selected: z
-    .object({
-      teamName: z.string().optional(),
-      positionName: z.string().optional(),
-    })
-    .optional(),
-  created: z.object({ teamPositionName: z.string().optional() }).optional(),
-});
-
-const scheduleErrorDataSchema = z.object({
-  message: z.string().optional(),
-  details: z.unknown().optional(),
-});
+import { productClient } from "@/product-client";
 
 const formatScheduleClientError = (error: Error): string => {
-  if (!(error instanceof ORPCError)) {
-    return error.message;
-  }
-
-  const errorData = scheduleErrorDataSchema.safeParse(error.data);
-  const data = errorData.success ? errorData.data : undefined;
-
-  if (error.code === "ALREADY_SCHEDULED") {
+  if (error instanceof AlreadyScheduled) {
     return "ALREADY_SCHEDULED";
   }
-  if (error.code === "POSITION_MISMATCH") {
-    const parsed = mismatchDetailsSchema.safeParse(data?.details);
-    if (parsed.success) {
-      const { selected, created } = parsed.data;
-      return `Created in "${created?.teamPositionName ?? "Unknown position"}" instead of "${selected?.teamName ?? "Unknown team"} - ${selected?.positionName ?? "Unknown position"}".`;
-    }
+  if (error instanceof PositionMismatch) {
+    const { selected, created } = error.details;
+    return `Created in "${created.teamPositionName}" instead of "${selected.teamName} - ${selected.positionName}".`;
   }
-  if (isString(data?.details) && data.details.length > 0) {
-    return data.details;
+  if (isProductFault(error)) {
+    return error.message || "Failed to schedule";
   }
-  if (isNonEmptyString(data?.message)) {
-    return data.message;
-  }
-  return error.message || "Failed to schedule";
+  return error.message;
 };
 
 interface ScheduleFeedback {
@@ -122,7 +95,7 @@ export const useSchedulePlanPerson = ({
         throw new Error("Missing schedule assignment details");
       }
 
-      return await orpc.schedule.assign({
+      return await productClient.call("schedule.assign", {
         serviceTypeId,
         personId: person.id,
         planId,
@@ -187,7 +160,7 @@ export const useSchedulePlanPerson = ({
       onScheduleSuccess?.();
     },
     onError: (err, _variables, context) => {
-      if (err instanceof ORPCError && err.code === "ALREADY_SCHEDULED") {
+      if (err instanceof AlreadyScheduled) {
         setScheduleSuccess(true);
         settleScheduleMutationQueries(queryClient, {
           serviceTypeId,

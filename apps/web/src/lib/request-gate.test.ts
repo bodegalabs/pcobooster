@@ -27,10 +27,7 @@ describe(decideRequestGate, () => {
       "https://pcobooster.com/services/1/plans/2/lineup?teamId=3",
     ],
     ["http://www.pcobooster.com/", "https://pcobooster.com/"],
-    [
-      "https://www.pcobooster.com/api/rpc/health",
-      "https://pcobooster.com/api/rpc/health",
-    ],
+    ["https://www.pcobooster.com/api/rpc/", "https://pcobooster.com/api/rpc/"],
   ])("permanently redirects %s to the apex", (url, location) => {
     expect(
       decideRequestGate(signedOut(url, { hasSessionCookie: true }))
@@ -78,7 +75,7 @@ describe(decideRequestGate, () => {
     // A prefix match; the API rejects unknown auth routes.
     "/api/authz",
     "/api/rpc",
-    "/api/rpc/session/status",
+    "/api/rpc/",
     "/auth",
     "/auth?next=%2Fpeople",
     "/robots.txt",

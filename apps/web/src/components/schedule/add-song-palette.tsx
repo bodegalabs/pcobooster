@@ -1,3 +1,4 @@
+import { speculativeQuery } from "@pcobooster/client/query";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { SongCatalogEntry } from "@pcobooster/planning-center-models/types";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,7 +33,6 @@ import {
 import { useSongSearch } from "@/hooks/use-song-search";
 import { useSongSuggestions } from "@/hooks/use-song-suggestions";
 import { isQueryFresh } from "@/lib/intent-prefetch";
-import { speculativeQuery } from "@/lib/request-priority";
 import { formatCompactAgo, songPreviewFacts } from "@/lib/song-library";
 import type { PreviousSong } from "@/lib/song-library";
 import { cn } from "@/lib/utils";

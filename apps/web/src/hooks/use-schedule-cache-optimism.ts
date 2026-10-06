@@ -1,4 +1,4 @@
-import { ORPCError } from "@orpc/client";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import type {
   PlanWindowHistoryBatch,
   PositionCandidates,
@@ -47,7 +47,7 @@ const OPTIMISTIC_PLAN_PERSON_ID_PREFIX = "optimistic:";
 
 /** Planning Center no longer has the plan person, so the lineup on screen is stale. */
 export const isMissingPlanPersonError = (error: Error): boolean =>
-  error instanceof ORPCError && error.code === "NOT_FOUND";
+  error instanceof NotFound;
 
 /** Stands in for the plan person an assign creates until Planning Center returns its ID. */
 export const createOptimisticPlanPersonId = (

@@ -37,7 +37,7 @@ import {
   useHydrateQueryFromCache,
 } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 const ROSTER_STALE_TIME_MS = 5 * 60 * 1000;
 const ACTIVITY_STALE_TIME_MS = 2 * 60 * 1000;
@@ -48,7 +48,9 @@ const NO_BATCHES: readonly string[][] = [];
 const fetchRoster = async ({
   signal,
 }: QueryFunctionContext): Promise<PeopleDashboardRoster> => {
-  const roster = await orpc.people.dashboardRoster(undefined, { signal });
+  const roster = await productClient.call("people.dashboardRoster", undefined, {
+    signal,
+  });
   writeCachedPeopleDashboardRoster(roster);
   return roster;
 };
@@ -61,7 +63,8 @@ const fetchActivity = async (
   personIds: readonly string[],
   signal: AbortSignal
 ): Promise<PeopleDashboardActivity[]> => {
-  const batch = await orpc.people.dashboardActivity(
+  const batch = await productClient.call(
+    "people.dashboardActivity",
     { personIds: [...personIds] },
     { signal }
   );

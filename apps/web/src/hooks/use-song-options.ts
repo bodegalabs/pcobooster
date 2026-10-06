@@ -1,3 +1,4 @@
+import { callForQuery } from "@pcobooster/client/query";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { SongOptionSet } from "@pcobooster/planning-center-models/types";
 import { useQuery } from "@tanstack/react-query";
@@ -6,12 +7,11 @@ import { useCallback } from "react";
 
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import { callForQuery } from "@/lib/request-priority";
 import {
   readCachedSongOptions,
   writeCachedSongOptions,
 } from "@/lib/song-options-cache";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 export const createSongOptionsQueryOptions = (
   songId: string | null,
@@ -26,7 +26,11 @@ export const createSongOptionsQueryOptions = (
     const optionSet = await callForQuery(
       context,
       async (options) =>
-        await orpc.songs.options({ songId, serviceTypeId }, options)
+        await productClient.call(
+          "songs.options",
+          { songId, serviceTypeId },
+          options
+        )
     );
     writeCachedSongOptions(songId, serviceTypeId, optionSet);
     return optionSet;
