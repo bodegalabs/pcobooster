@@ -6,7 +6,10 @@
 import "@pcobooster/api/rpc/services";
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
 import { CatalogHandlers } from "@pcobooster/api/rpc/handlers/catalog";
+import { DemoHandlers } from "@pcobooster/api/rpc/handlers/demo";
+import { FeedbackHandlers } from "@pcobooster/api/rpc/handlers/feedback";
 import { HealthHandlers } from "@pcobooster/api/rpc/handlers/health";
+import { IdentityHandlers } from "@pcobooster/api/rpc/handlers/identity";
 import { scheduleHandlers } from "@pcobooster/api/rpc/handlers/schedule";
 import { PlanningCenterSessionLive } from "@pcobooster/api/rpc/planning-center-session";
 import { ProcedureScopeLive } from "@pcobooster/api/rpc/procedure-scope";
@@ -33,6 +36,9 @@ export type ProductRpcServerOptions = ProcedureScopeOptions &
 export const productHandlers = (options: ProductRpcServerOptions) =>
   Layer.mergeAll(
     HealthHandlers,
+    IdentityHandlers,
+    DemoHandlers,
+    FeedbackHandlers,
     CatalogHandlers,
     scheduleHandlers(options.scheduleAudit)
   );
