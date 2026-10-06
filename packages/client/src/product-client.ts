@@ -1,0 +1,218 @@
+/**
+ * The one product RPC client for web, SSR, Expo, and the deploy check. Each client builds one
+ * `ManagedRuntime` holding `RpcClient.make(ProductRpc)`; every call is a lookup by tag on that
+ * client, so a new procedure needs no client edit.
+ */
+import { isProductFault } from "@pcobooster/contracts/faults";
+import type { ProductFault } from "@pcobooster/contracts/faults";
+import type { RequestPriority } from "@pcobooster/contracts/request-priority";
+import {
+  RPC_HEADERS,
+  RPC_PROTOCOL_VERSION,
+} from "@pcobooster/contracts/rpc/procedure";
+import { ProductRpc } from "@pcobooster/contracts/rpc/product";
+import type {
+  ProcedureTag,
+  ProductRpcs,
+  ReadProcedureTag,
+} from "@pcobooster/contracts/rpc/product";
+import {
+  Cause,
+  Context,
+  Data,
+  Effect,
+  Exit,
+  Layer,
+  ManagedRuntime,
+  Option,
+} from "effect";
+import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
+import * as HttpClient from "effect/unstable/http/HttpClient";
+import * as HttpClientRequest from "effect/unstable/http/HttpClientRequest";
+import {
+  RpcClient,
+  RpcClientError,
+  RpcSerialization,
+} from "effect/unstable/rpc";
+import type { Rpc } from "effect/unstable/rpc";
+
+type ProcedureOf<Tag extends ProcedureTag> = Rpc.ExtractTag<ProductRpcs, Tag>;
+export type ProcedureInput<Tag extends ProcedureTag> = Rpc.PayloadConstructor<
+  ProcedureOf<Tag>
+>;
+export type ProcedureOutput<Tag extends ProcedureTag> = Rpc.Success<
+  ProcedureOf<Tag>
+>;
+
+/** Which app is calling; sent as `x-pcobooster-client` with the RPC protocol version. */
+export type ClientName = "web" | "ssr" | "expo" | "deploy";
+
+export interface ProductClientConfig {
+  /** Absolute URL of `/api/rpc`. */
+  readonly url: string;
+  readonly client: ClientName;
+  /** Web: "include" (cookies). SSR, Expo, and the deploy check: "omit". */
+  readonly credentials: RequestCredentials;
+  /** SSR passes the API service binding's fetch; others use the global one. */
+  readonly fetch?: typeof globalThis.fetch;
+  /**
+   * HTTP headers read when each call is sent, for credentials that change while the client
+   * lives (Expo: bearer token, account, demo). The server reads identity from HTTP headers only.
+   */
+  readonly httpHeaders?: () => HeadersInit;
+}
+
+export interface CallOptions<Tag extends ProcedureTag> {
+  /** Aborting interrupts the call and cancels its fetch; the call rejects with AbortError. */
+  readonly signal?: AbortSignal;
+  /** Only reads may be sent at speculative priority. Default interactive. */
+  readonly priority?: Tag extends ReadProcedureTag
+    ? RequestPriority
+    : "interactive";
+  /** HTTP headers for this call only (SSR forwards the incoming cookie this way). */
+  readonly httpHeaders?: HeadersInit;
+}
+
+/**
+ * The call never produced a product answer: the network failed, or the response was not an RPC
+ * response (a gateway's HTML page, a body that did not decode). Client-only; never on the wire.
+ */
+export class TransportFailure extends Data.TaggedError("TransportFailure")<{
+  readonly tag: ProcedureTag;
+  readonly reason: "network" | "undecodable";
+  readonly cause: unknown;
+}> {}
+
+/** What a call rejects with, besides an AbortError `DOMException` when its signal aborts. */
+export type CallFailure = ProductFault | TransportFailure;
+
+export interface ProductClient {
+  /** Resolves with the decoded success; rejects with a `CallFailure` or an AbortError. */
+  readonly call: <Tag extends ProcedureTag>(
+    tag: Tag,
+    input: ProcedureInput<Tag>,
+    options?: CallOptions<Tag>
+  ) => Promise<ProcedureOutput<Tag>>;
+  readonly dispose: () => Promise<void>;
+}
+
+/** One sender per procedure, keyed by tag, so a call by tag keeps its own types. */
+type Senders = {
+  readonly [Tag in ProcedureTag]: (
+    input: ProcedureInput<Tag>,
+    options: { readonly headers: Record<string, string> }
+  ) => Effect.Effect<
+    ProcedureOutput<Tag>,
+    ProductFault | RpcClientError.RpcClientError
+  >;
+};
+
+const ProductRpcClient = Context.Service<Senders>(
+  "@pcobooster/client/ProductRpcClient"
+);
+
+/** Per-call HTTP headers, read by the HTTP client inside the call's fiber. */
+const CallHttpHeaders = Context.Service<Headers>(
+  "@pcobooster/client/CallHttpHeaders"
+);
+
+const withCallHeaders =
+  (config: ProductClientConfig) =>
+  (request: HttpClientRequest.HttpClientRequest) =>
+    Effect.map(Effect.serviceOption(CallHttpHeaders), (perCall) => {
+      const headers = new Headers(config.httpHeaders?.());
+      headers.set(
+        RPC_HEADERS.client,
+        `${config.client};rpc=${RPC_PROTOCOL_VERSION}`
+      );
+      if (Option.isSome(perCall)) {
+        for (const [name, value] of perCall.value) {
+          headers.set(name, value);
+        }
+      }
+      return HttpClientRequest.setHeaders(request, headers);
+    });
+
+const clientLayer = (config: ProductClientConfig) =>
+  Layer.effect(ProductRpcClient)(
+    RpcClient.make(ProductRpc).pipe(Effect.map((client): Senders => client))
+  ).pipe(
+    Layer.provide(
+      RpcClient.layerProtocolHttp({
+        url: config.url,
+        transformClient: HttpClient.mapRequestEffect(withCallHeaders(config)),
+      })
+    ),
+    Layer.provide(RpcSerialization.layerJson),
+    Layer.provide(FetchHttpClient.layer),
+    Layer.provide(
+      Layer.succeed(FetchHttpClient.RequestInit)({
+        credentials: config.credentials,
+      })
+    ),
+    Layer.provide(
+      Layer.succeed(FetchHttpClient.Fetch)(config.fetch ?? globalThis.fetch)
+    )
+  );
+
+const abortError = (): DOMException =>
+  new DOMException("The call was aborted", "AbortError");
+
+/** The value, or the one thing a failed call rejects with. */
+const settle = <Value>(
+  tag: ProcedureTag,
+  exit: Exit.Exit<Value, unknown>
+): Value => {
+  if (Exit.isSuccess(exit)) {
+    return exit.value;
+  }
+  if (Cause.hasInterruptsOnly(exit.cause)) {
+    throw abortError();
+  }
+  const failure = exit.cause.reasons.find(Cause.isFailReason)?.error;
+  if (isProductFault(failure)) {
+    throw failure;
+  }
+  throw new TransportFailure({
+    tag,
+    reason:
+      failure instanceof RpcClientError.RpcClientError &&
+      failure.reason._tag !== "RpcClientDefect"
+        ? "network"
+        : "undecodable",
+    cause: failure ?? Cause.squash(exit.cause),
+  });
+};
+
+export const makeProductClient = (
+  config: ProductClientConfig
+): ProductClient => {
+  const runtime = ManagedRuntime.make(clientLayer(config));
+  return {
+    call: async (tag, input, options = {}) => {
+      if (options.signal?.aborted === true) {
+        throw abortError();
+      }
+      const exit = await runtime.runPromiseExit(
+        ProductRpcClient.pipe(
+          Effect.flatMap((senders) =>
+            senders[tag](input, {
+              headers: {
+                [RPC_HEADERS.priority]: options.priority ?? "interactive",
+              },
+            })
+          ),
+          Effect.provideService(
+            CallHttpHeaders,
+            new Headers(options.httpHeaders)
+          )
+        ),
+        { signal: options.signal }
+      );
+      return settle(tag, exit);
+    },
+    dispose: async () => {
+      await runtime.dispose();
+    },
+  };
+};

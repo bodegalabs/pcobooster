@@ -1,0 +1,22 @@
+{
+  "name": "@pcobooster/client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./product-client": "./src/product-client.ts"
+  },
+  "scripts": {
+    "test": "vitest run --root ../.. packages/client/src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pcobooster/contracts": "workspace:*",
+    "effect": "4.0.0-rc.117"
+  },
+  "devDependencies": {
+    "@pcobooster/config": "workspace:*",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  }
+}

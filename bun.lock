@@ -219,6 +219,19 @@
         "vitest": "^5.0.1",
       },
     },
+    "packages/client": {
+      "name": "@pcobooster/client",
+      "version": "0.1.0",
+      "dependencies": {
+        "@pcobooster/contracts": "workspace:*",
+        "effect": "4.0.0-rc.117",
+      },
+      "devDependencies": {
+        "@pcobooster/config": "workspace:*",
+        "typescript": "^7.0.2",
+        "vitest": "^5.0.1",
+      },
+    },
     "packages/config": {
       "name": "@pcobooster/config",
       "version": "0.1.0",
@@ -964,6 +977,8 @@
     "@pcobooster/analytics": ["@pcobooster/analytics@workspace:packages/analytics"],
 
     "@pcobooster/api": ["@pcobooster/api@workspace:packages/api"],
+
+    "@pcobooster/client": ["@pcobooster/client@workspace:packages/client"],
 
     "@pcobooster/config": ["@pcobooster/config@workspace:packages/config"],
 
