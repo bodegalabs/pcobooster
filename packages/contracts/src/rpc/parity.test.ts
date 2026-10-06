@@ -1,11 +1,9 @@
 /**
- * The Effect RPC contract against main's oRPC router. `main-procedures.fixture.json` was
- * extracted once from main (its `source` says which commit and files): each procedure's name,
- * how main's transport ran it (`wrapper`), whether it is a read or a write, and its feature flag.
+ * The Effect RPC contract against the transport it replaced. `main-procedures.fixture.json` was
+ * extracted once from main before the cutover (its `source` says which commit and files): each
+ * procedure's name, how main's transport ran it (`wrapper`), whether it is a read or a write,
+ * and its feature flag.
  */
-import { isContractProcedure } from "@orpc/contract";
-import type { AnyContractRouter } from "@orpc/contract";
-import { appContract } from "@pcobooster/contracts";
 import { procedureKindOf } from "@pcobooster/contracts/rpc/procedure";
 import { ProductRpc } from "@pcobooster/contracts/rpc/product";
 import { requiredFeatureOf } from "@pcobooster/contracts/rpc/required-feature";
@@ -46,24 +44,7 @@ const declared = [...ProductRpc.requests.values()]
   }))
   .toSorted((a, b) => a.tag.localeCompare(b.tag));
 
-/** Every procedure path in an oRPC contract router, dotted. */
-const contractPaths = (
-  router: AnyContractRouter,
-  prefix: readonly string[]
-): string[] =>
-  isContractProcedure(router)
-    ? [prefix.join(".")]
-    : Object.entries(router).flatMap(([key, child]) =>
-        contractPaths(child, [...prefix, key])
-      );
-
-describe("parity with main's oRPC procedures", () => {
-  it("lists the procedures main's router serves today", () => {
-    expect(contractPaths(appContract, []).toSorted()).toStrictEqual(
-      main.procedures.map(({ tag }) => tag)
-    );
-  });
-
+describe("parity with the procedures main served before the cutover", () => {
   it("declares the same 49 procedures, each a read or a write as main ran it, with main's flags", () => {
     expect(main.procedures).toHaveLength(49);
     expect(

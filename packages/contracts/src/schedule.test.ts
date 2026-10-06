@@ -1,9 +1,7 @@
 import {
-  scheduleAlreadyScheduledErrorDataSchema,
   scheduleAssignInputSchema,
   scheduleAssignOutputSchema,
   scheduleMutationOutputSchema,
-  schedulePositionMismatchErrorDataSchema,
   scheduleRemoveInputSchema,
   scheduleUpdateStatusInputSchema,
 } from "@pcobooster/contracts/schedule";
@@ -97,57 +95,6 @@ describe("schedule contracts", () => {
     );
     expect(
       scheduleMutationOutputSchema.safeParse({ success: false }).success
-    ).toBeFalsy();
-  });
-
-  it("preserves typed already-scheduled conflict details", () => {
-    const withDetails = {
-      message: "Person is already scheduled",
-      details: "Planning Center rejected the duplicate assignment",
-    };
-    expect(
-      scheduleAlreadyScheduledErrorDataSchema.parse(withDetails)
-    ).toStrictEqual(withDetails);
-    expect(
-      scheduleAlreadyScheduledErrorDataSchema.parse({
-        message: "Already scheduled",
-      })
-    ).toStrictEqual({ message: "Already scheduled" });
-    expect(
-      scheduleAlreadyScheduledErrorDataSchema.safeParse({
-        message: "Already scheduled",
-        details: { code: "duplicate" },
-      }).success
-    ).toBeFalsy();
-  });
-
-  it("preserves selected and created position mismatch details", () => {
-    const mismatch = {
-      message: "Created assignment did not match the selected position",
-      details: {
-        selected: {
-          teamId: "team-1",
-          teamName: "Band",
-          positionId: "position-1",
-          positionName: "Keys",
-        },
-        created: {
-          planPersonId: "plan-person-1",
-          teamPositionName: "Band - Piano",
-        },
-      },
-    };
-    expect(
-      schedulePositionMismatchErrorDataSchema.parse(mismatch)
-    ).toStrictEqual(mismatch);
-    expect(
-      schedulePositionMismatchErrorDataSchema.safeParse({
-        ...mismatch,
-        details: {
-          ...mismatch.details,
-          created: { teamPositionName: "Band - Piano" },
-        },
-      }).success
     ).toBeFalsy();
   });
 });

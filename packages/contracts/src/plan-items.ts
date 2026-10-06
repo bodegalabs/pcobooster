@@ -1,5 +1,3 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import {
   planItemSchema,
   planItemServicePositionSchema,
@@ -48,58 +46,6 @@ export const planItemsReorderInputSchema = planItemsListInputSchema.extend({
 
 export const planItemsListOutputSchema = z.array(planItemSchema);
 export const planItemsSuccessSchema = z.object({ success: z.literal(true) });
-
-const planItemsProcedure = oc.errors({
-  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-  FORBIDDEN: applicationErrorMap.FORBIDDEN,
-  TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-  BAD_REQUEST: applicationErrorMap.BAD_REQUEST,
-  BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
-
-export const planItemsContract = {
-  list: planItemsProcedure
-    .route({
-      method: "GET",
-      path: "/plan-items",
-      summary: "List a plan's run-sheet items",
-    })
-    .input(planItemsListInputSchema)
-    .output(planItemsListOutputSchema),
-  create: planItemsProcedure
-    .route({
-      method: "POST",
-      path: "/plan-items",
-      summary: "Create a run-sheet item",
-    })
-    .input(planItemsCreateInputSchema)
-    .output(planItemSchema),
-  update: planItemsProcedure
-    .route({
-      method: "PATCH",
-      path: "/plan-items/{itemId}",
-      summary: "Update a run-sheet item",
-    })
-    .input(planItemsUpdateInputSchema)
-    .output(planItemSchema),
-  delete: planItemsProcedure
-    .route({
-      method: "DELETE",
-      path: "/plan-items/{itemId}",
-      summary: "Delete a run-sheet item",
-    })
-    .input(planItemsDeleteInputSchema)
-    .output(planItemsSuccessSchema),
-  reorder: planItemsProcedure
-    .route({
-      method: "POST",
-      path: "/plan-items/reorder",
-      summary: "Reorder a plan's run-sheet items",
-    })
-    .input(planItemsReorderInputSchema)
-    .output(planItemsSuccessSchema),
-};
 
 export type PlanItemsListInput = z.input<typeof planItemsListInputSchema>;
 export type PlanItemsCreateInput = z.input<typeof planItemsCreateInputSchema>;

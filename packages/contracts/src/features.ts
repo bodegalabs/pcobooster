@@ -1,5 +1,3 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import { z } from "zod";
 
 /**
@@ -15,20 +13,6 @@ export const enabledFeaturesSchema = z.record(
   featureFlagNameSchema,
   z.boolean()
 );
-
-const featureProcedure = oc.errors({
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
-
-export const featuresContract = {
-  status: featureProcedure
-    .route({
-      method: "GET",
-      path: "/features",
-      summary: "Check which feature flags are on for this visitor",
-    })
-    .output(enabledFeaturesSchema),
-};
 
 export type FeatureFlagName = z.output<typeof featureFlagNameSchema>;
 export type EnabledFeatures = z.output<typeof enabledFeaturesSchema>;

@@ -1,47 +1,32 @@
-import { ORPCError } from "@orpc/server";
 import {
   createPostHogExceptionReporter,
-  isReportableRequestError,
-  requestErrorSchema,
   toPostHogExceptionCapture,
 } from "@pcobooster/api/modules/analytics/posthog-exception";
+import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 const NOW = new Date("2026-09-28T17:00:00.000Z");
 const request = {
+  code: "BAD_GATEWAY",
   path: "/api/rpc/planItems/create",
   method: "POST",
   requestId: "request-1",
 };
 
-const planningCenterFailure = (): ORPCError<string, unknown> => {
+const planningCenterFailure = (): ExternalServiceFailure => {
   const cause = new Error("Planning Center responded 503");
   cause.stack = [
     "Error: Planning Center responded 503",
     "    at createPlanItem (index.js:10:5)",
     "    at async run (index.js:20:7)",
   ].join("\n");
-  return new ORPCError("BAD_GATEWAY", { cause });
-};
-
-describe(isReportableRequestError, () => {
-  it("reports server failures and defects, not expected client faults", () => {
-    expect(isReportableRequestError(planningCenterFailure())).toBeTruthy();
-    expect(isReportableRequestError(new Error("defect"))).toBeTruthy();
-    for (const code of [
-      "UNAUTHORIZED",
-      "FORBIDDEN",
-      "BAD_REQUEST",
-      "NOT_FOUND",
-      "CONFLICT",
-      "TOO_MANY_REQUESTS",
-      "CLIENT_CLOSED_REQUEST",
-    ]) {
-      expect(isReportableRequestError(new ORPCError(code))).toBeFalsy();
-    }
+  return new ExternalServiceFailure({
+    message: "Planning Center is unavailable",
+    service: "planning-center",
+    cause,
   });
-});
+};
 
 describe(toPostHogExceptionCapture, () => {
   it("describes the root cause and groups by procedure and error code", () => {
@@ -64,7 +49,7 @@ describe(toPostHogExceptionCapture, () => {
           {
             type: "Error",
             value: "Planning Center responded 503",
-            mechanism: { handled: true, synthetic: false, type: "orpc" },
+            mechanism: { handled: true, synthetic: false, type: "rpc" },
             stacktrace: {
               type: "raw",
               frames: [
@@ -97,15 +82,15 @@ describe(toPostHogExceptionCapture, () => {
     });
   });
 
-  it("labels errors thrown outside oRPC as unhandled", () => {
+  it("groups defects as unhandled and describes the defect itself", () => {
     const capture = toPostHogExceptionCapture(
       "key",
-      { ...request, error: requestErrorSchema.parse("plain string") },
+      { ...request, code: "UNHANDLED", error: new TypeError("plain defect") },
       NOW
     );
     expect(capture.properties).toMatchObject({
       $exception_fingerprint: "api:/api/rpc/planItems/create:UNHANDLED",
-      $exception_list: [{ type: "Error", value: "plain string" }],
+      $exception_list: [{ type: "TypeError", value: "plain defect" }],
     });
   });
 });
@@ -121,7 +106,7 @@ describe(createPostHogExceptionReporter, () => {
     ).toBeNull();
   });
 
-  it("sends reportable errors and skips expected faults", async () => {
+  it("sends each reported failure to PostHog", async () => {
     const send = vi.fn<typeof globalThis.fetch>(
       async () => await Promise.resolve(new Response(null, { status: 200 }))
     );
@@ -131,7 +116,6 @@ describe(createPostHogExceptionReporter, () => {
       now: () => NOW,
     });
 
-    await report?.({ ...request, error: new ORPCError("FORBIDDEN") });
     await report?.({ ...request, error: planningCenterFailure() });
 
     expect(send).toHaveBeenCalledOnce();

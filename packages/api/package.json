@@ -13,7 +13,6 @@
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
-    "@orpc/server": "^1.15.0",
     "@pcobooster/contracts": "workspace:*",
     "@pcobooster/planning-center-models": "workspace:*",
     "@pcobooster/presentation-mode": "workspace:*",

@@ -74,7 +74,8 @@ export const postHogProcedureReporter = (
     Effect.tryPromise(async () => {
       await report({
         error,
-        path: `${RPC_PATH}#${fields.procedure}`,
+        code: fields.code ?? "UNHANDLED",
+        path: `${RPC_PATH}/${fields.procedure.replaceAll(".", "/")}`,
         method: "POST",
         requestId: fields.requestId,
       });

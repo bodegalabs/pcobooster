@@ -1,18 +1,14 @@
-import { applicationRuntimeFor } from "@pcobooster/api/application/runtime";
 import { deploymentTier } from "@pcobooster/api/config/feature-flags";
 import type { ServerEnvironment } from "@pcobooster/api/config/server-config";
 import { resolveServerConfig } from "@pcobooster/api/config/server-config";
-import { boundaryLog, structuredLogging } from "@pcobooster/api/logging";
-import { appRouter } from "@pcobooster/api/orpc";
-import { PlanningCenterPacing } from "@pcobooster/api/planning-center/pacing";
+import { structuredLogging } from "@pcobooster/api/logging";
 import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
 import type { SharedReadStore } from "@pcobooster/api/planning-center/services/shared-read-store";
 import { createServerDependencies } from "@pcobooster/api/server";
 import type { FeatureFlagSource } from "@pcobooster/api/server";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
-import { Config, Context, Effect, Layer, Redacted, Scope } from "effect";
-import type * as HttpClient from "effect/unstable/http/HttpClient";
+import { Config, Effect, Layer, Redacted, Scope } from "effect";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
@@ -128,8 +124,8 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
 });
 
 /**
- * Hono serves Better Auth, oRPC, and the OpenAPI reference (`app.ts`); `POST /api/rpc` is the
- * Effect RPC route (`rpc-route.ts`).
+ * `POST /api/rpc` is the product's Effect RPC route (`rpc-route.ts`); Hono serves Better Auth
+ * and liveness (`app.ts`).
  */
 export default class Api extends Cloudflare.Worker<Api>()(
   "Api",
@@ -219,8 +215,6 @@ export default class Api extends Cloudflare.Worker<Api>()(
             return outcome.success;
           },
           server,
-          log: boundaryLog("server"),
-          router: appRouter,
         });
         return { hono, rpc };
       })
@@ -233,20 +227,13 @@ export default class Api extends Cloudflare.Worker<Api>()(
           httpRequest.method !== "OPTIONS" &&
           isRpcPath(new URL(httpRequest.url, "http://api").pathname)
         ) {
-          // Effect RPC; oRPC keeps `/api/rpc/<procedure>` until every procedure is ported.
           return yield* rpc(httpRequest);
         }
         const request = yield* HttpServerRequest.toWeb(httpRequest).pipe(
           Effect.orDie
         );
-        // Procedures run on this request's fiber context (Alchemy's HTTP client, logger, and
-        // per-event tracer), so their spans land in this invocation's Workers trace.
-        const services = yield* Effect.context<HttpClient.HttpClient>();
-        const runtime = applicationRuntimeFor(
-          Context.add(services, PlanningCenterPacing, pacer)
-        );
         const response = yield* Effect.promise(
-          async () => await handler.fetch(request, { runtime })
+          async () => await handler.fetch(request)
         );
         return HttpServerResponse.fromWeb(response);
       }),

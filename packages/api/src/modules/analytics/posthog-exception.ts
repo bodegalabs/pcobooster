@@ -1,37 +1,25 @@
-import { ORPCError } from "@orpc/server";
 import { createPostHogCaptureSender } from "@pcobooster/api/modules/analytics/posthog-capture";
 import type { PostHogCaptureBody } from "@pcobooster/api/modules/analytics/posthog-capture";
-import { z } from "zod";
 
-const SERVER_ERROR_STATUS = 500;
 const EXCEPTION_MESSAGE_MAX_LENGTH = 500;
 const STACK_FRAME =
   /^\s*at (?:(?<fn>.+?) \()?(?<file>[^()]+?):(?<line>\d+):(?<col>\d+)\)?$/u;
 /** API exceptions are not tied to a person: the handler would need a session lookup. */
 const SERVER_DISTINCT_ID = "pcobooster-api";
 
-/** Anything a handler throws, as an `Error`; oRPC's own errors pass through intact. */
-export const requestErrorSchema = z
-  .unknown()
-  .transform((value) =>
-    value instanceof Error ? value : new Error(String(value))
-  );
-
+/**
+ * One 5xx procedure failure. The RPC route reports only those; expected faults (auth,
+ * validation, conflicts, rate limits) are ordinary outcomes and stay in the logs.
+ */
 export interface ReportedRequestError {
   readonly error: Error;
-  /** The procedure's URL path, such as `/api/rpc/planItems/create`. */
+  /** The answer's code (`BAD_GATEWAY`), or `UNHANDLED` for a defect. */
+  readonly code: string;
+  /** Names the procedure as main's URLs did, such as `/api/rpc/planItems/create`. */
   readonly path: string;
   readonly method: string;
   readonly requestId: string;
 }
-
-/**
- * Only failures the product should not produce are reported: 5xx responses and anything
- * that was not an `ORPCError`. Expected faults (auth, validation, conflicts, rate limits)
- * are ordinary outcomes and stay in the logs.
- */
-export const isReportableRequestError = (error: Error): boolean =>
-  !(error instanceof ORPCError) || error.status >= SERVER_ERROR_STATUS;
 
 interface ExceptionFrame {
   readonly platform: "node:javascript";
@@ -64,11 +52,9 @@ const parseStackFrames = (stack: string | undefined): ExceptionFrame[] => {
   return frames.toReversed();
 };
 
-/** The underlying cause explains a 5xx better than the generic transport error wrapping it. */
+/** The underlying cause explains a 5xx better than the fault wrapping it. */
 const rootCause = (error: Error): Error =>
-  error instanceof ORPCError && error.cause !== undefined
-    ? requestErrorSchema.parse(error.cause)
-    : error;
+  error.cause instanceof Error ? error.cause : error;
 
 interface ExceptionEntry {
   readonly type: string;
@@ -76,7 +62,7 @@ interface ExceptionEntry {
   readonly mechanism: {
     readonly handled: true;
     readonly synthetic: false;
-    readonly type: "orpc";
+    readonly type: "rpc";
   };
   stacktrace?: { readonly type: "raw"; readonly frames: ExceptionFrame[] };
 }
@@ -85,7 +71,7 @@ const toExceptionEntry = (cause: Error): ExceptionEntry => {
   const entry: ExceptionEntry = {
     type: cause.name,
     value: cause.message.slice(0, EXCEPTION_MESSAGE_MAX_LENGTH),
-    mechanism: { handled: true, synthetic: false, type: "orpc" },
+    mechanism: { handled: true, synthetic: false, type: "rpc" },
   };
   const frames = parseStackFrames(cause.stack);
   if (frames.length > 0) {
@@ -99,10 +85,7 @@ export const toPostHogExceptionCapture = (
   reported: ReportedRequestError,
   now: Date
 ): PostHogCaptureBody => {
-  const code =
-    reported.error instanceof ORPCError
-      ? z.string().parse(reported.error.code)
-      : "UNHANDLED";
+  const { code } = reported;
   return {
     api_key: apiKey,
     event: "$exception",
@@ -142,9 +125,6 @@ export const createPostHogExceptionReporter = ({
   }
   const sendCapture = createPostHogCaptureSender(send);
   return async (reported) => {
-    if (!isReportableRequestError(reported.error)) {
-      return;
-    }
     await sendCapture(toPostHogExceptionCapture(apiKey, reported, now()));
   };
 };

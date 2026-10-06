@@ -1,5 +1,3 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import { keyOptionSchema } from "@pcobooster/contracts/song-schemas";
 import { z } from "zod";
 
@@ -151,68 +149,6 @@ export const lyricsSearchInputSchema = z.object({
 });
 
 export const lyricsSearchOutputSchema = z.array(lyricsSearchResultSchema);
-
-const chordChartsProcedure = oc.errors({
-  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-  FORBIDDEN: applicationErrorMap.FORBIDDEN,
-  NOT_FOUND: applicationErrorMap.NOT_FOUND,
-  BAD_REQUEST: applicationErrorMap.BAD_REQUEST,
-  CONFLICT: applicationErrorMap.CONFLICT,
-  TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-  BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
-
-export const chordChartsContract = {
-  song: chordChartsProcedure
-    .route({
-      method: "GET",
-      path: "/chord-charts/songs/{songId}",
-      summary: "Read a song's arrangements with their chord charts",
-    })
-    .input(chordChartSongInputSchema)
-    .output(chordChartSongOutputSchema),
-  update: chordChartsProcedure
-    .route({
-      method: "PATCH",
-      path: "/chord-charts/songs/{songId}/arrangements/{arrangementId}",
-      summary: "Save an arrangement's chord chart to Planning Center",
-    })
-    .input(chordChartUpdateInputSchema)
-    .output(chordChartArrangementSchema),
-  create: chordChartsProcedure
-    .route({
-      method: "POST",
-      path: "/chord-charts/songs/{songId}/arrangements",
-      summary: "Create an arrangement from a chord chart in Planning Center",
-    })
-    .input(chordChartCreateInputSchema)
-    .output(chordChartArrangementSchema),
-  createSong: chordChartsProcedure
-    .route({
-      method: "POST",
-      path: "/chord-charts/songs",
-      summary: "Add a song to Planning Center, ready for a chord chart",
-    })
-    .input(chordChartSongCreateInputSchema)
-    .output(chordChartSongOutputSchema),
-  pdf: chordChartsProcedure
-    .route({
-      method: "GET",
-      path: "/chord-charts/songs/{songId}/arrangements/{arrangementId}/pdf",
-      summary: "Read the PDF Planning Center renders from the saved chart",
-    })
-    .input(chordChartPdfInputSchema)
-    .output(chordChartPdfOutputSchema),
-  lyricsSearch: chordChartsProcedure
-    .route({
-      method: "GET",
-      path: "/chord-charts/lyrics",
-      summary: "Search published song lyrics to start a chart from",
-    })
-    .input(lyricsSearchInputSchema)
-    .output(lyricsSearchOutputSchema),
-};
 
 export type ChordChartLayout = z.output<typeof chordChartLayoutSchema>;
 export type ChordChartArrangement = z.output<

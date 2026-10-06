@@ -1,295 +1,50 @@
-import { ORPCError, os } from "@orpc/server";
-import type { BoundaryLog } from "@pcobooster/api/logging";
-import type { ReportRequestError } from "@pcobooster/api/modules/analytics/posthog-exception";
-import { appRouter } from "@pcobooster/api/orpc";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { describe, expect, it, vi } from "vitest";
-import { z } from "zod";
 
 import { createServerApp } from "./app";
-import { serveForTest } from "./test-app";
 
 const allowedOrigin = "https://pcobooster.com";
 const server = testServer({
   config: testServerConfig({ BETTER_AUTH_URL: allowedOrigin }),
 });
-const recordedAt = new Date("2026-09-19T12:34:56.000Z");
-const privateNoStore = "private, no-store";
 type TestAuthHandler = (request: Request) => Promise<Response> | Response;
-type TestErrorLogger = BoundaryLog["error"];
-
-const testProcedure = os.$context<{ resHeaders?: Headers }>();
-
-const procedureWithErrors = testProcedure.errors({
-  FORBIDDEN: {
-    data: z.object({ message: z.string() }),
-    status: 403,
-  },
-});
-
-const testRouter = {
-  cookie: testProcedure.input(z.object({})).handler(({ context }) => {
-    context.resHeaders?.append(
-      "Set-Cookie",
-      "selected-account=account-1; Path=/; HttpOnly"
-    );
-    return { selected: true };
-  }),
-  forbidden: procedureWithErrors.input(z.object({})).handler(() => {
-    throw new ORPCError("FORBIDDEN", {
-      data: { message: "Admin access required" },
-    });
-  }),
-  defect: testProcedure.input(z.object({})).handler(() => {
-    throw new Error("private database diagnostic");
-  }),
-  health: testProcedure
-    .route({ method: "GET", path: "/health" })
-    .input(z.object({}))
-    .output(z.object({ status: z.literal("ok") }))
-    .handler(() => ({ status: "ok" as const })),
-  timestamp: testProcedure
-    .input(z.object({}))
-    .output(z.object({ recordedAt: z.date() }))
-    .handler(() => ({ recordedAt })),
-};
-
-const rpcRequest = (path: string, requestId?: string) => {
-  const headers = new Headers({ "content-type": "application/json" });
-  if (requestId !== undefined) {
-    headers.set("x-request-id", requestId);
-  }
-  return new Request(`http://localhost/api/rpc/${path}`, {
-    body: JSON.stringify({ json: {} }),
-    headers,
-    method: "POST",
-  });
-};
 
 const createTestApp = (authHandler: TestAuthHandler) =>
-  serveForTest(
-    createServerApp({
-      authHandler,
-      server,
-      enableRequestLogging: false,
-      log: { error: vi.fn<TestErrorLogger>() },
-      router: testRouter,
-    })
-  );
+  createServerApp({ authHandler, server, enableRequestLogging: false });
 
 describe(createServerApp, () => {
-  it("composes the production router for both API transports", async () => {
-    const productionApp = serveForTest(
-      createServerApp({
-        server,
-        enableRequestLogging: false,
-        log: { error: vi.fn<TestErrorLogger>() },
-        router: appRouter,
-      })
-    );
-
-    const rpcResponse = await productionApp.request(rpcRequest("health"));
-    const referenceResponse = await productionApp.request(
-      "/api/reference/health"
-    );
-
-    expect([rpcResponse.status, referenceResponse.status]).toStrictEqual([
-      200, 200,
-    ]);
-    await expect(rpcResponse.json()).resolves.toStrictEqual({
-      json: { status: "ok", version: "development" },
-    });
-    await expect(referenceResponse.json()).resolves.toStrictEqual({
-      status: "ok",
-      version: "development",
-    });
-    expect(
-      [rpcResponse, referenceResponse].map((response) =>
-        response.headers.get("cache-control")
-      )
-    ).toStrictEqual([privateNoStore, privateNoStore]);
-  });
-
-  it("serves the transport health endpoints", async () => {
+  it("serves liveness at / and /health", async () => {
     const app = createTestApp(() => new Response(null, { status: 501 }));
 
     const rootResponse = await app.request("/");
     const healthResponse = await app.request("/health");
-    const rpcHealthResponse = await app.request(rpcRequest("health"));
 
-    expect([
-      rootResponse.status,
-      healthResponse.status,
-      rpcHealthResponse.status,
-    ]).toStrictEqual([200, 200, 200]);
+    expect([rootResponse.status, healthResponse.status]).toStrictEqual([
+      200, 200,
+    ]);
     await expect(rootResponse.text()).resolves.toBe("OK");
     await expect(healthResponse.json()).resolves.toStrictEqual({
       status: "ok",
     });
-    await expect(rpcHealthResponse.json()).resolves.toStrictEqual({
-      json: { status: "ok" },
-    });
   });
 
-  it("preserves native Date metadata through the RPC transport", async () => {
-    const app = createTestApp(() => new Response(null, { status: 501 }));
-
-    const response = await app.request(rpcRequest("timestamp"));
-
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toStrictEqual({
-      json: { recordedAt: recordedAt.toISOString() },
-      meta: [[1, "recordedAt"]],
-    });
-  });
-
-  it("serializes declared errors without leaking internal details", async () => {
-    const app = createTestApp(() => new Response(null, { status: 501 }));
-
-    const response = await app.request(rpcRequest("forbidden"));
-
-    expect(response.status).toBe(403);
-    await expect(response.json()).resolves.toStrictEqual({
-      json: {
-        code: "FORBIDDEN",
-        data: { message: "Admin access required" },
-        defined: true,
-        message: "Forbidden",
-        status: 403,
-      },
-    });
-  });
-
-  it("keeps unexpected defects out of the HTTP response", async () => {
-    const app = createTestApp(() => new Response(null, { status: 501 }));
-
-    const response = await app.request(rpcRequest("defect"));
-    const body = await response.text();
-
-    expect(response.status).toBe(500);
-    expect(body).toContain("INTERNAL_SERVER_ERROR");
-    expect(body).not.toContain("private database diagnostic");
-    expect(response.headers.get("cache-control")).toBe(privateNoStore);
-  });
-
-  it("logs the request ID and path for an unexpected RPC failure", async () => {
-    const log = { error: vi.fn<TestErrorLogger>() };
-    const app = serveForTest(
-      createServerApp({
-        authHandler: () => new Response(null, { status: 501 }),
-        server,
-        enableRequestLogging: false,
-        log,
-        router: testRouter,
-      })
-    );
-
-    await app.request(rpcRequest("defect", "request-123"));
-
-    expect(log.error).toHaveBeenCalledWith(
-      "oRPC request failed",
-      {
-        requestId: "request-123",
-        path: "/api/rpc/defect",
-        method: "POST",
-      },
-      expect.any(Error)
-    );
-  });
-
-  it("reports unexpected failures, not expected faults, to error tracking", async () => {
-    const reportError = vi.fn<ReportRequestError>(async () => {
-      await Promise.resolve();
-    });
-    const app = serveForTest(
-      createServerApp({
-        authHandler: () => new Response(null, { status: 501 }),
-        server,
-        enableRequestLogging: false,
-        log: { error: vi.fn<TestErrorLogger>() },
-        reportError,
-        router: testRouter,
-      })
-    );
-
-    await app.request(rpcRequest("defect", "request-123"));
-
-    expect(reportError).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({
-        path: "/api/rpc/defect",
-        method: "POST",
-        requestId: "request-123",
-      })
-    );
-  });
-
-  it("still answers when error reporting fails", async () => {
-    const log = { error: vi.fn<TestErrorLogger>() };
-    const app = serveForTest(
-      createServerApp({
-        authHandler: () => new Response(null, { status: 501 }),
-        server,
-        enableRequestLogging: false,
-        log,
-        reportError: async () => {
-          await Promise.reject(new Error("PostHog down"));
-        },
-        router: testRouter,
-      })
-    );
-
-    const response = await app.request(rpcRequest("defect"));
-
-    expect(response.status).toBe(500);
-    expect(log.error).toHaveBeenCalledWith(
-      "Failed to report exception to PostHog",
-      expect.objectContaining({ path: "/api/rpc/defect" }),
-      expect.any(Error)
-    );
-  });
-
-  it.each(["/api/rpc/missing", "/api/reference/missing"])(
-    "returns a JSON 404 for an unmatched handler at %s",
-    async (path) => {
-      const app = createTestApp(() => new Response(null, { status: 501 }));
-
-      const response = await app.request(path);
-
-      expect(response.status).toBe(404);
-      await expect(response.json()).resolves.toStrictEqual({
-        error: "Not found",
-      });
-    }
-  );
-
-  it("sets private no-store on successful, error, and unmatched API responses", async () => {
+  it("no longer serves per-procedure RPC paths or the OpenAPI reference", async () => {
     const app = createTestApp(() => new Response(null, { status: 501 }));
 
     const responses = await Promise.all([
-      app.request(rpcRequest("health")),
-      app.request(rpcRequest("forbidden")),
-      app.request("/api/reference/health"),
-      app.request("/api/reference/missing"),
-      app.request(rpcRequest("cookie")),
+      app.request("/api/rpc/health", { method: "POST" }),
+      app.request("/api/reference"),
     ]);
 
     expect(responses.map((response) => response.status)).toStrictEqual([
-      200, 403, 200, 404, 200,
+      404, 404,
     ]);
-    expect(
-      responses.map((response) => response.headers.get("cache-control"))
-    ).toStrictEqual(
-      Array.from({ length: responses.length }, () => privateNoStore)
-    );
-    expect(responses.at(-1)?.headers.get("set-cookie")).toBe(
-      "selected-account=account-1; Path=/; HttpOnly"
-    );
   });
 
   it("answers credentialed CORS preflight requests", async () => {
     const app = createTestApp(() => new Response(null, { status: 501 }));
 
-    const response = await app.request("/api/rpc/health", {
+    const response = await app.request("/api/rpc", {
       headers: {
         "Access-Control-Request-Headers": "content-type,authorization",
         "Access-Control-Request-Method": "GET",
@@ -335,15 +90,11 @@ describe(createServerApp, () => {
         );
       }
     );
-    const app = serveForTest(
-      createServerApp({
-        authHandler,
-        server,
-        enableRequestLogging: false,
-        log: { error: vi.fn<TestErrorLogger>() },
-        router: testRouter,
-      })
-    );
+    const app = createServerApp({
+      authHandler,
+      server,
+      enableRequestLogging: false,
+    });
 
     const response = await app.request("/api/auth/sign-in", {
       body: JSON.stringify({ provider: "test" }),
@@ -370,16 +121,12 @@ describe(createServerApp, () => {
     const allowAuthWrite = vi.fn<(clientIp: string) => Promise<boolean>>(
       async () => await Promise.resolve(false)
     );
-    const app = serveForTest(
-      createServerApp({
-        allowAuthWrite,
-        authHandler,
-        server,
-        enableRequestLogging: false,
-        log: { error: vi.fn<TestErrorLogger>() },
-        router: testRouter,
-      })
-    );
+    const app = createServerApp({
+      allowAuthWrite,
+      authHandler,
+      server,
+      enableRequestLogging: false,
+    });
 
     const response = await app.request("/api/auth/sign-in/social", {
       headers: { "cf-connecting-ip": "203.0.113.7" },
@@ -397,16 +144,12 @@ describe(createServerApp, () => {
     const allowAuthWrite = vi.fn<(clientIp: string) => Promise<boolean>>(
       async () => await Promise.resolve(false)
     );
-    const app = serveForTest(
-      createServerApp({
-        allowAuthWrite,
-        authHandler,
-        server,
-        enableRequestLogging: false,
-        log: { error: vi.fn<TestErrorLogger>() },
-        router: testRouter,
-      })
-    );
+    const app = createServerApp({
+      allowAuthWrite,
+      authHandler,
+      server,
+      enableRequestLogging: false,
+    });
     const headers = { "cf-connecting-ip": "203.0.113.7" };
 
     const start = await app.request(
@@ -434,16 +177,12 @@ describe(createServerApp, () => {
     const allowAuthWrite = vi.fn<(clientIp: string) => Promise<boolean>>(
       async () => await Promise.resolve(false)
     );
-    const app = serveForTest(
-      createServerApp({
-        allowAuthWrite,
-        authHandler,
-        server,
-        enableRequestLogging: false,
-        log: { error: vi.fn<TestErrorLogger>() },
-        router: testRouter,
-      })
-    );
+    const app = createServerApp({
+      allowAuthWrite,
+      authHandler,
+      server,
+      enableRequestLogging: false,
+    });
 
     const sessionRead = await app.request("/api/auth/get-session", {
       headers: { "cf-connecting-ip": "203.0.113.7" },

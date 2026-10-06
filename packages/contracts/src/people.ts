@@ -1,16 +1,7 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import {
   blockoutProgressSchema,
   blockoutSchema,
-  candidateDetailsBatchSchema,
-  myScheduledPlansDataSchema,
-  peopleDashboardActivityBatchSchema,
-  peopleDashboardPersonDetailSchema,
-  peopleDashboardRosterSchema,
   peopleSearchResultSchema,
-  planWindowHistoryBatchSchema,
-  positionCandidatesSchema,
   windowPlanRefSchema,
 } from "@pcobooster/contracts/people-schemas";
 import { z } from "zod";
@@ -92,92 +83,6 @@ export const peopleMyScheduledPlansInputSchema = z.object({});
 
 export const peopleSearchOutputSchema = z.array(peopleSearchResultSchema);
 export const peopleBlockoutsOutputSchema = z.array(blockoutSchema);
-
-const peopleProcedure = oc.errors({
-  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-  FORBIDDEN: applicationErrorMap.FORBIDDEN,
-  TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-  BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
-
-const dashboardProcedure = peopleProcedure.errors({
-  NOT_FOUND: applicationErrorMap.NOT_FOUND,
-});
-
-export const peopleContract = {
-  positionCandidates: peopleProcedure
-    .route({
-      method: "GET",
-      path: "/people/position-candidates",
-      summary: "List candidates for a team position on a plan",
-    })
-    .input(peoplePositionCandidatesInputSchema)
-    .output(positionCandidatesSchema),
-  planWindowHistory: peopleProcedure
-    .route({
-      method: "POST",
-      path: "/people/plan-window-history",
-      summary: "Read serving history from rosters around a plan date",
-    })
-    .input(peoplePlanWindowHistoryInputSchema)
-    .output(planWindowHistoryBatchSchema),
-  candidateDetails: peopleProcedure
-    .route({
-      method: "POST",
-      path: "/people/candidate-details",
-      summary: "Read availability for a batch of candidates",
-    })
-    .input(peopleCandidateDetailsInputSchema)
-    .output(candidateDetailsBatchSchema),
-  search: peopleProcedure
-    .route({
-      method: "GET",
-      path: "/people/search",
-      summary: "Search the people directory",
-    })
-    .input(peopleSearchInputSchema)
-    .output(peopleSearchOutputSchema),
-  blockouts: peopleProcedure
-    .route({
-      method: "GET",
-      path: "/people/{personId}/blockouts",
-      summary: "List a person's future blockouts",
-    })
-    .input(peopleBlockoutsInputSchema)
-    .output(peopleBlockoutsOutputSchema),
-  dashboardRoster: dashboardProcedure
-    .route({
-      method: "GET",
-      path: "/people/dashboard-roster",
-      summary: "Read the People dashboard roster",
-    })
-    .output(peopleDashboardRosterSchema),
-  dashboardActivity: dashboardProcedure
-    .route({
-      method: "POST",
-      path: "/people/dashboard-activity",
-      summary: "Read serving activity for a batch of roster people",
-    })
-    .input(peopleDashboardActivityInputSchema)
-    .output(peopleDashboardActivityBatchSchema),
-  dashboardPerson: dashboardProcedure
-    .route({
-      method: "GET",
-      path: "/people/dashboard/{personId}",
-      summary: "Read a person's monthly activity",
-    })
-    .input(peopleDashboardPersonInputSchema)
-    .output(peopleDashboardPersonDetailSchema),
-  myScheduledPlans: peopleProcedure
-    .route({
-      method: "GET",
-      path: "/people/my-scheduled-plans",
-      summary: "List upcoming plans the current person is scheduled on",
-    })
-    .input(peopleMyScheduledPlansInputSchema)
-    .output(myScheduledPlansDataSchema),
-};
 
 export type PeoplePositionCandidatesInput = z.input<
   typeof peoplePositionCandidatesInputSchema

@@ -81,12 +81,15 @@ const stack = beforeAll(deploy(ApiStack), { timeout: 180_000 });
  */
 const requestTimeout = { timeout: 60_000 };
 
-/** The local API Worker's URL; `alchemy dev` always serves one. */
+/** The local API Worker's URL once it answers; `alchemy dev` always serves one. */
 const apiUrl = stack.pipe(
   Effect.flatMap(({ url }) =>
     url === undefined
       ? Effect.die(new Error("The API Worker has no local URL"))
       : Effect.succeed(url)
+  ),
+  Effect.tap((url) =>
+    Test.executeWhenReady(HttpClientRequest.get(`${url}/health`))
   )
 );
 
@@ -111,27 +114,6 @@ const repeatedSignOuts = (url: string, clientIp: string, count: number) =>
       rateLimited: statuses.filter((status) => status === 429).length,
     }))
   );
-
-test(
-  "serves health through oRPC with its bindings wired",
-  Effect.gen(function* serveHealth() {
-    const url = yield* apiUrl;
-    const response = yield* Test.executeWhenReady(
-      HttpClientRequest.post(`${url}/api/rpc/health`).pipe(
-        HttpClientRequest.bodyJsonUnsafe({ json: {} })
-      )
-    );
-    assert.strictEqual(response.status, 200);
-    assert.deepStrictEqual(yield* response.json, {
-      // The Worker binds the deploying commit (`GITHUB_SHA`, set in CI) as its release version.
-      json: {
-        status: "ok",
-        version: resolveReleaseVersion(process.env.GITHUB_SHA),
-      },
-    });
-  }),
-  requestTimeout
-);
 
 test(
   "limits auth writes per client IP but never session reads",

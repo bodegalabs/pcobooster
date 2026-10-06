@@ -1,40 +1,8 @@
-import { OpenAPIHandler } from "@orpc/openapi/fetch";
-import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
-import { onError } from "@orpc/server";
-import type { AnyRouter } from "@orpc/server";
-import { RPCHandler } from "@orpc/server/fetch";
-import { ResponseHeadersPlugin } from "@orpc/server/plugins";
-import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
-import type { ApplicationRuntime } from "@pcobooster/api/application/runtime";
 import { NATIVE_SIGN_IN_START_PATH } from "@pcobooster/api/auth/native-sign-in";
-import type { BoundaryLog } from "@pcobooster/api/logging";
-import {
-  createPostHogExceptionReporter,
-  requestErrorSchema,
-} from "@pcobooster/api/modules/analytics/posthog-exception";
-import type { ReportRequestError } from "@pcobooster/api/modules/analytics/posthog-exception";
 import type { ServerDependencies } from "@pcobooster/api/server";
-import type { HttpClient } from "effect/unstable/http/HttpClient";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger as requestLogger } from "hono/logger";
-import { z } from "zod";
-
-import { createContext } from "./context";
-
-const privateNoStore = "private, no-store";
-const requestLogContextSchema = z.object({
-  request: z.instanceof(Request),
-  requestId: z.string(),
-});
-type RequestLogContext = z.infer<typeof requestLogContextSchema>;
-
-type ErrorLogger = Pick<BoundaryLog, "error">;
-
-const preventSharedCaching = (response: Response): Response => {
-  response.headers.set("Cache-Control", privateNoStore);
-  return response;
-};
 
 type AuthHandler = (request: Request) => Promise<Response> | Response;
 
@@ -53,12 +21,8 @@ const isAuthWrite = (request: Request): boolean =>
   (request.method === "GET" &&
     new URL(request.url).pathname === NATIVE_SIGN_IN_START);
 
-/** What the Worker hands each request: a runtime bound to that request's Effect fiber. */
-export interface ServerAppBindings {
-  readonly runtime: ApplicationRuntime<HttpClient>;
-}
-
-export type ServerApp = Hono<{ Bindings: ServerAppBindings }>;
+/** Better Auth and liveness; product procedures are the Effect RPC route (`rpc-route.ts`). */
+export type ServerApp = Hono;
 
 export interface CreateServerAppOptions {
   /**
@@ -71,13 +35,6 @@ export interface CreateServerAppOptions {
   /** Defaults to Better Auth's handler; tests substitute their own. */
   authHandler?: AuthHandler;
   enableRequestLogging?: boolean;
-  log: ErrorLogger;
-  /**
-   * Sends unexpected failures to error tracking, which alerts on new issues. Defaults to
-   * PostHog when the stage has a project key (production only); null disables it.
-   */
-  reportError?: ReportRequestError | null;
-  router: AnyRouter;
 }
 
 export const createServerApp = ({
@@ -85,43 +42,8 @@ export const createServerApp = ({
   server,
   authHandler = async (request) => await server.auth.handler(request),
   enableRequestLogging = true,
-  log,
-  reportError = createPostHogExceptionReporter({
-    apiKey: server.config.postHogProjectKey,
-    fetch: globalThis.fetch,
-  }),
-  router,
 }: CreateServerAppOptions): ServerApp => {
   const app: ServerApp = new Hono();
-
-  /** Logs every failed procedure and reports the unexpected ones; never throws. */
-  const handleProcedureError = async (
-    message: string,
-    failure: Error,
-    requestContext: RequestLogContext | null
-  ): Promise<void> => {
-    if (requestContext === null) {
-      log.error(message, {}, failure);
-      return;
-    }
-    const { request, requestId } = requestContext;
-    const { method } = request;
-    const { pathname: path } = new URL(request.url);
-    log.error(message, { requestId, method, path }, failure);
-    if (reportError === null) {
-      return;
-    }
-    try {
-      // Awaited so the Worker keeps the capture alive; it only delays failed responses.
-      await reportError({ error: failure, path, method, requestId });
-    } catch (error) {
-      log.error(
-        "Failed to report exception to PostHog",
-        { requestId, method, path },
-        error instanceof Error ? error : new Error(String(error))
-      );
-    }
-  };
 
   if (enableRequestLogging) {
     app.use("/*", requestLogger());
@@ -172,84 +94,6 @@ export const createServerApp = ({
     ["GET", "POST"],
     "/api/auth",
     async (c) => await handleAuthRequest(c.req.raw)
-  );
-
-  const apiHandler = new OpenAPIHandler(router, {
-    plugins: [
-      new ResponseHeadersPlugin(),
-      new OpenAPIReferencePlugin({
-        schemaConverters: [new ZodToJsonSchemaConverter()],
-      }),
-    ],
-    interceptors: [
-      // oxlint-disable-next-line promise/prefer-await-to-callbacks -- oRPC exposes error interceptors as callbacks.
-      onError(async (error, { context }) => {
-        const parsed = requestLogContextSchema.safeParse(context);
-        await handleProcedureError(
-          "OpenAPI request failed",
-          requestErrorSchema.parse(error),
-          parsed.success ? parsed.data : null
-        );
-      }),
-    ],
-  });
-
-  const rpcHandler = new RPCHandler(router, {
-    plugins: [new ResponseHeadersPlugin()],
-    interceptors: [
-      // oxlint-disable-next-line promise/prefer-await-to-callbacks -- oRPC exposes error interceptors as callbacks.
-      onError(async (error, { context }) => {
-        const parsed = requestLogContextSchema.safeParse(context);
-        await handleProcedureError(
-          "oRPC request failed",
-          requestErrorSchema.parse(error),
-          parsed.success ? parsed.data : null
-        );
-      }),
-    ],
-  });
-
-  const handleRpcRequest = async (
-    request: Request,
-    { runtime }: ServerAppBindings
-  ): Promise<Response> => {
-    const result = await rpcHandler.handle(request, {
-      context: createContext({ request, runtime, server }),
-      prefix: "/api/rpc",
-    });
-
-    return preventSharedCaching(
-      result.matched
-        ? result.response
-        : Response.json({ error: "Not found" }, { status: 404 })
-    );
-  };
-
-  const handleOpenApiRequest = async (
-    request: Request,
-    { runtime }: ServerAppBindings
-  ): Promise<Response> => {
-    const result = await apiHandler.handle(request, {
-      context: createContext({ request, runtime, server }),
-      prefix: "/api/reference",
-    });
-
-    return preventSharedCaching(
-      result.matched
-        ? result.response
-        : Response.json({ error: "Not found" }, { status: 404 })
-    );
-  };
-
-  app.all("/api/rpc", async (c) => await handleRpcRequest(c.req.raw, c.env));
-  app.all("/api/rpc/*", async (c) => await handleRpcRequest(c.req.raw, c.env));
-  app.all(
-    "/api/reference",
-    async (c) => await handleOpenApiRequest(c.req.raw, c.env)
-  );
-  app.all(
-    "/api/reference/*",
-    async (c) => await handleOpenApiRequest(c.req.raw, c.env)
   );
 
   app.get("/", (c) => c.text("OK"));

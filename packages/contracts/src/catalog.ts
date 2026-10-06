@@ -1,5 +1,3 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import { z } from "zod";
 
 export const serviceTypeSchema = z.object({
@@ -84,66 +82,6 @@ export const planOutputSchema = planSchema.nullable();
 export const adjacentPlansOutputSchema = z.array(planSchema);
 export const organizationOutputSchema = z.object({ timeZone: z.string() });
 export const teamPositionsOutputSchema = z.array(teamPositionGroupSchema);
-
-const catalogProcedure = oc.errors({
-  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-  FORBIDDEN: applicationErrorMap.FORBIDDEN,
-  TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-  BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
-
-export const catalogContract = {
-  serviceTypes: catalogProcedure
-    .route({
-      method: "GET",
-      path: "/catalog/service-types",
-      summary: "List active service types",
-    })
-    .input(serviceTypesInputSchema)
-    .output(serviceTypesOutputSchema),
-  plans: catalogProcedure
-    .route({
-      method: "GET",
-      path: "/catalog/plans",
-      summary: "List upcoming plans for a service type",
-    })
-    .input(plansInputSchema)
-    .output(plansOutputSchema),
-  plan: catalogProcedure
-    .route({
-      method: "GET",
-      path: "/catalog/plans/{planId}",
-      summary: "Get one plan's details, including past plans",
-    })
-    .input(planInputSchema)
-    .output(planOutputSchema),
-  adjacentPlans: catalogProcedure
-    .route({
-      method: "GET",
-      path: "/catalog/plans/{planId}/adjacent",
-      summary:
-        "List the nearest plans before or after a plan in its service type",
-    })
-    .input(adjacentPlansInputSchema)
-    .output(adjacentPlansOutputSchema),
-  organization: catalogProcedure
-    .route({
-      method: "GET",
-      path: "/catalog/organization",
-      summary: "Get the organization calendar time zone",
-    })
-    .input(organizationInputSchema)
-    .output(organizationOutputSchema),
-  teamPositions: catalogProcedure
-    .route({
-      method: "GET",
-      path: "/catalog/team-positions",
-      summary: "List plan positions and their scheduled people",
-    })
-    .input(teamPositionsInputSchema)
-    .output(teamPositionsOutputSchema),
-};
 
 export type ServiceType = z.output<typeof serviceTypeSchema>;
 export type Plan = z.output<typeof planSchema>;
