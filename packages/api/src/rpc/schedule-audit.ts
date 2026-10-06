@@ -153,8 +153,12 @@ export const auditSchedule = <Value, Failure, Services>(
         authentication,
         request
       );
-      return Effect.tryPromise(async () => {
-        await recordActivity(event);
+      return Effect.tryPromise({
+        try: async () => {
+          await recordActivity(event);
+        },
+        catch: (error) =>
+          error instanceof Error ? error : new Error(String(error)),
       }).pipe(
         Effect.catchCause((cause) =>
           scheduleLog.warn("Failed to record scheduling activity event", {

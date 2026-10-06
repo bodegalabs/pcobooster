@@ -117,10 +117,17 @@ export interface ProcedureLogFields {
   readonly priority: RequestPriority;
   readonly client: string | null;
   readonly kind: ProcedureKindValue | null;
+  /** Main's Planning Center summary line, folded into this one. */
   readonly planningCenterRequests: number;
+  /** Requests the pacer held back, and for how long in total. */
   readonly rateLimitPauses: number;
+  readonly rateLimitPauseMs: number;
+  /** Speculative requests the pacer refused outright. */
+  readonly rateLimitRejections: number;
   readonly rateLimited429s: number;
   readonly budgetExhausted: boolean;
+  /** The procedure's Planning Center request cap; null when it never reached a handler. */
+  readonly requestBudget: number | null;
 }
 
 export const procedureLogFields = (
@@ -140,8 +147,11 @@ export const procedureLogFields = (
     kind: call.kind,
     planningCenterRequests: totals?.requests ?? 0,
     rateLimitPauses: totals?.pacedRequests ?? 0,
+    rateLimitPauseMs: totals?.pacedWaitMs ?? 0,
+    rateLimitRejections: totals?.rateLimitRejections ?? 0,
     rateLimited429s: totals?.rateLimited ?? 0,
     budgetExhausted: (totals?.subrequestLimitHits ?? 0) > 0,
+    requestBudget: call.accounting?.requestBudget ?? null,
   };
 };
 

@@ -108,6 +108,11 @@ export const ProcedureScopeLive = (
       const procedure = isSupportedClient(exchange.client)
         ? effect
         : Effect.fail(clientOutdated);
+      // RpcServer runs each procedure in a span named `rpc.<procedure>`.
+      yield* Effect.annotateCurrentSpan({
+        "rpc.procedure": rpc._tag,
+        "request.id": exchange.requestId,
+      });
       const program = procedure.pipe(
         Effect.provideService(RequestContext, {
           ...createRequestContext(exchange.request),

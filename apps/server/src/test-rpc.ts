@@ -11,6 +11,7 @@ import type {
   ProductClientConfig,
 } from "@pcobooster/client/product-client";
 import { Effect, Scope } from "effect";
+import type { Tracer } from "effect";
 import * as HttpClient from "effect/unstable/http/HttpClient";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
@@ -28,6 +29,8 @@ export interface RpcRouteTestOptions {
   readonly report?: ReportProcedureFailure | null;
   /** What Planning Center calls reach; any request fails the test by default. */
   readonly httpClient?: HttpClient.HttpClient;
+  /** Records the spans procedures run in. */
+  readonly tracer?: Tracer.Tracer;
 }
 
 export interface RpcRouteTest {
@@ -68,7 +71,10 @@ export const serveRpcForTest = (options: RpcRouteTestOptions): RpcRouteTest => {
           Effect.provideService(
             HttpClient.HttpClient,
             options.httpClient ?? unreachableHttpClient
-          )
+          ),
+          options.tracer === undefined
+            ? (effect) => effect
+            : Effect.withTracer(options.tracer)
         )
       )
     );

@@ -444,6 +444,28 @@ describe("schedule writes over Effect RPC", () => {
     );
   });
 
+  it("logs an audit persistence failure with the procedure and request it ran in", async () => {
+    const { route, client, recordActivity } = setup();
+    recordActivity.mockRejectedValueOnce(new Error("database unavailable"));
+
+    await client.call("schedule.assign", input);
+
+    expect(
+      route.logs.find(
+        (line) => line.message === "Failed to record scheduling activity event"
+      )
+    ).toMatchObject({
+      level: "warn",
+      fields: {
+        procedure: "schedule.assign",
+        requestId: "request-1",
+        method: "POST",
+        path: "/api/rpc/",
+        error: "database unavailable",
+      },
+    });
+  });
+
   it("maps provider failure and keeps audit persistence failure from changing a successful mutation", async () => {
     const { client, recordActivity, create } = setup();
     create.mockReturnValueOnce(
