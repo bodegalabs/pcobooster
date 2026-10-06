@@ -8,7 +8,7 @@
 ## Project Structure & Module Organization
 
 - `apps/web/`: TanStack Start product UI on Cloudflare Workers. File routes live in `apps/web/src/routes` (`src/routeTree.gen.ts` is generated and committed); the sign-in gate and other request middleware in `src/start.ts`; components, hooks, and public assets under `apps/web/src` and `apps/web/public`.
-- `apps/server/`: the API Worker, an Alchemy Effect-native `Cloudflare.Worker` (`src/worker.ts`) that reads its settings with `Config` at startup, binds D1, and serves the product's Effect RPC route (`src/rpc-route.ts`, `POST /api/rpc`) and the Hono app (`src/app.ts`: Better Auth, liveness, CORS). `src/database.ts` declares the D1 database and its `Drizzle.Schema`; `src/stage.ts` derives per-stage origins for both the Worker and `alchemy.run.ts`.
+- `apps/server/`: the API Worker, an Alchemy Effect-native `Cloudflare.Worker` (`src/worker.ts`) that reads its settings with `Config` at startup, binds D1, and serves the product's Effect RPC route (`src/rpc-route.ts`, `POST /api/rpc`) and one Effect `HttpRouter` (`src/http-app.ts`: the HttpApi product API under `/api/v1` (spike: three endpoints), Better Auth, liveness, CORS, and the cache policy). `src/database.ts` declares the D1 database and its `Drizzle.Schema`; `src/stage.ts` derives per-stage origins for both the Worker and `alchemy.run.ts`.
 - `apps/marketing/`: independent marketing site, a TanStack Start app prerendered to static files. Its interactive product replica lives in `apps/marketing/src/components/product-demo/` with fictional fixtures; it shares design tokens and shared UI from `packages/ui` (currently the phone menu) with the product; its own primitives stay in `apps/marketing/src/components/ui`.
 - `apps/admin/`: private full-stack TanStack Start admin app for `admin.pcobooster.com`, deployed as its own Cloudflare Worker behind Cloudflare Access. Its server functions read D1 through the Worker's own binding using `packages/api` modules; the public API has no admin procedures. See `docs/admin.md`.
 - `packages/design-tokens/`: product color and radius tokens (`tokens.css`, light on `:root`, dark under `.dark`) shared by `apps/web` and the marketing replica.
@@ -60,7 +60,7 @@
 ## Testing Guidelines
 
 - Framework: Vitest, with tests colocated beside API and web source.
-- `apps/server/src/worker.stack.test.ts` runs the real API Worker through Alchemy's test harness (`alchemy/Test/Vitest`, local workerd, in-memory state, the `test` stage on port 3010). Extend it when a change adds a binding or startup wiring that unit tests of the Hono app cannot reach.
+- `apps/server/src/worker.stack.test.ts` runs the real API Worker through Alchemy's test harness (`alchemy/Test/Vitest`, local workerd, in-memory state, the `test` stage on port 3010). Extend it when a change adds a binding or startup wiring that unit tests of the router cannot reach. `src/transport-stack.fixture.ts` serves both transports over a fake Planning Center for it.
 - Prioritize tests for transforms/matching/sorting logic and Planning Center edge cases.
 - Inject narrow typed service dependencies into feature modules and pass fresh test implementations explicitly. Request paths must not rely on process-global credentials or implicit async context. Preserve exact assertions on optional flags so missing values cannot pass as `false`.
 - Prefer test-driven fixes for regressions: reproduce the bug or edge case with a focused failing test, then implement the smallest code change that makes it pass.
@@ -89,7 +89,7 @@ The account is on Cloudflare Workers Free: each Worker invocation may make at mo
 ## Architecture Notes
 
 - Preferred flow: `apps/web` -> `productClient.call("ns.proc", input)` -> `apps/server` `/api/rpc` -> `packages/api/src/rpc/handlers/*` -> Effect application program -> `packages/api/src/modules/*` -> service adapter.
-- Better Auth is mounted directly by Hono at `/api/auth/*`. The product Worker's `/api/*` and `/admin/*` server routes forward through service bindings (locally too), so browser requests stay on the web origin.
+- Better Auth is mounted on the API Worker's Effect router at `/api/auth/*`. The product Worker's `/api/*` and `/admin/*` server routes forward through service bindings (locally too), so browser requests stay on the web origin.
 - Product operations use Effect RPC at `POST /api/rpc`. Better Auth and liveness health are the intentional non-RPC surfaces. Callers catch failures with `instanceof` on the fault class or `failureStatus(error)`.
 - Native clients sign in through `/api/auth/native/start` and `/api/auth/native/exchange`, then send `Authorization: Bearer <token>` plus `x-pcobooster-account` (and `x-pcobooster-demo`) headers instead of cookies; keep the web cookie flow and these header reads in step. See [docs/native-auth.md](docs/native-auth.md).
 - Database access uses Drizzle through `packages/api/src/db`; migrations include Better Auth tables.

@@ -42,8 +42,8 @@ export const moduleLog = (module: string): ModuleLog => ({
 export const structuredLogging = Logger.layer([Logger.consoleStructured]);
 
 /**
- * Writes a log line from code that runs outside any Effect, such as Better Auth hooks and Hono
- * handlers, in the same structured shape.
+ * Writes a log line from code that runs outside any Effect, such as Better Auth hooks and
+ * request handlers, in the same structured shape.
  */
 export const logOutsideEffect = (line: Effect.Effect<void>): void => {
   Effect.runSync(Effect.provide(line, structuredLogging));

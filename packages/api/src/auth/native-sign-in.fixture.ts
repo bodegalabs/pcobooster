@@ -1,6 +1,6 @@
 /**
  * Test helpers for native sign-in: a stubbed Planning Center and an app plus browser that run
- * the flow against any handler (Better Auth's, or the API Worker's Hono app). Shared by
+ * the flow against any handler (Better Auth's, or the API Worker's router). Shared by
  * `native-sign-in.test.ts` and `apps/server/src/native-sign-in.test.ts`; never imported by
  * runtime code.
  */

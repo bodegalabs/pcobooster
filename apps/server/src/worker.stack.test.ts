@@ -1,6 +1,6 @@
 /**
  * The API Worker as Alchemy runs it under `alchemy dev`: workerd, a migrated local D1, the KV
- * cache, the auth rate limit, and settings bound from `Config`. The unit tests build the Hono
+ * cache, the auth rate limit, and settings bound from `Config`. The unit tests build the Worker's
  * router directly; this catches wiring they cannot, such as a binding that is not provided or a
  * migration that fails to apply. It runs in the `test` stage, so it never touches `local`'s
  * data or ports, and needs no secrets.

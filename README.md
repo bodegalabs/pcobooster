@@ -14,7 +14,7 @@ This app helps teams schedule people into open positions for specific plans by c
 
 The public marketing site lives at `/`, with the origin story at `/about`. The authenticated product starts at `/services`.
 
-This is a Bun/Turborepo monorepo. The product UI lives in `apps/web`, the API Worker (an Alchemy Effect-native Cloudflare Worker serving Effect RPC and Hono) lives in `apps/server`, server implementation lives in `packages/api`, browser-safe Effect RPC contracts live in `packages/contracts`, the product RPC client lives in `packages/client`, Planning Center models and calendar rules live in `packages/planning-center-models`, and the static marketing site lives in `apps/marketing`. See [marketing development and deployment](docs/marketing.md).
+This is a Bun/Turborepo monorepo. The product UI lives in `apps/web`, the API Worker (an Alchemy Effect-native Cloudflare Worker serving Effect RPC and an Effect HTTP router) lives in `apps/server`, server implementation lives in `packages/api`, browser-safe Effect RPC contracts live in `packages/contracts`, the product RPC client lives in `packages/client`, Planning Center models and calendar rules live in `packages/planning-center-models`, and the static marketing site lives in `apps/marketing`. See [marketing development and deployment](docs/marketing.md).
 
 For parallel remote development, see [Codex cloud development](docs/codex-cloud.md).
 
@@ -96,7 +96,7 @@ Product operations are Effect RPC procedures at `POST /api/rpc`, called through 
 apps/
   web/                       # TanStack Start product UI
   admin/                     # TanStack Start admin app
-  server/                    # API Worker (Alchemy Effect-native) serving Effect RPC and Hono
+  server/                    # API Worker (Alchemy Effect-native) serving Effect RPC and Effect HttpApi
   marketing/                 # Prerendered TanStack Start marketing site
 packages/
   api/                       # Server-side application, auth, DB, adapters, RPC server

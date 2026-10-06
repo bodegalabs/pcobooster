@@ -2,7 +2,7 @@
 
 A native app (the Expo app; the Swift app that first used this flow is gone) signs in with the same Planning Center OAuth flow as the web, run inside the system's web authentication session (`ASWebAuthenticationSession` on iOS), and then holds a Better Auth session as a bearer token instead of a cookie. The web sign-in is unchanged: a callback that a native start did not begin never takes the native path.
 
-Code: `packages/api/src/auth/native-sign-in.ts` (start, exchange, callback hook), `packages/api/src/auth/bearer-sessions.ts` (bearer tokens), `packages/api/src/auth/planning-center-session.ts` and `packages/api/src/auth/demo-access.ts` (request headers), and `apps/server/src/app.ts` (rate limit).
+Code: `packages/api/src/auth/native-sign-in.ts` (start, exchange, callback hook), `packages/api/src/auth/bearer-sessions.ts` (bearer tokens), `packages/api/src/auth/planning-center-session.ts` and `packages/api/src/auth/demo-access.ts` (request headers), and `apps/server/src/http-app.ts` (rate limit).
 
 ## Flow
 
