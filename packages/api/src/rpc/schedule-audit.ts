@@ -50,6 +50,11 @@ export interface ScheduleAttempt {
 export interface ScheduleAuditDependencies {
   /** Writes one activity row; D1 through the request's server by default. */
   readonly recordActivity?: (event: ActivityEventInput) => Promise<void>;
+  /**
+   * The path the row names. HttpApi endpoints pass their real path; RPC calls, which all share
+   * one URL, default to a synthetic per-procedure path.
+   */
+  readonly path?: string;
 }
 
 /**
@@ -104,13 +109,14 @@ const activityMetadata = ({
 export const scheduleActivityEvent = (
   attempt: ScheduleAttempt,
   authentication: AccountAuthentication,
-  request: RequestContextValue
+  request: RequestContextValue,
+  path: string = procedurePath(attempt.operation)
 ): ActivityEventInput => {
   const outcome = procedureOutcome(attempt.exit);
   const { input } = attempt;
   return {
     ...getActivityRequestContext(request.request),
-    path: procedurePath(attempt.operation),
+    path,
     requestId: request.requestId,
     eventType: eventTypes[attempt.operation],
     actorUserId: authentication.userId,
@@ -147,6 +153,7 @@ export const auditSchedule = <Value, Failure, Services>(
     const { authentication } = yield* PlanningCenterAccess;
     const request = yield* RequestContext;
     const server = yield* Server;
+    const path = dependencies.path ?? procedurePath(operation);
     const recordActivity =
       dependencies.recordActivity ??
       (async (event: ActivityEventInput) => {
@@ -159,7 +166,8 @@ export const auditSchedule = <Value, Failure, Services>(
       const event = scheduleActivityEvent(
         { operation, input, exit },
         authentication,
-        request
+        request,
+        path
       );
       return Effect.tryPromise({
         try: async () => {
@@ -172,7 +180,7 @@ export const auditSchedule = <Value, Failure, Services>(
           scheduleLog.warn("Failed to record scheduling activity event", {
             requestId: request.requestId,
             method: request.method,
-            path: procedurePath(operation),
+            path,
             error: causeError(cause).message,
           })
         )
