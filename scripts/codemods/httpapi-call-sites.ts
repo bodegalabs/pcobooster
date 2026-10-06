@@ -1,14 +1,13 @@
 /**
  * Rewrites RPC-shaped product calls to the HttpApi client, using the contracts' route table:
  *
- *   client.call("catalog.plan", { serviceTypeId, planId }, options)
- *   client.run((api) => api.catalog.plan({ params: { serviceTypeId, planId } }), options)
+ *   client.call("catalog.plan", { serviceTypeId: "1", planId: "2" }, options)
+ *   client.run((api) => api.catalog.plan({ params: { serviceTypeId: "1", planId: "2" } }), options)
  *
- * Each input property goes to the part its route names: path params to `params`, the rest to
- * `query` (GET, DELETE) or `payload` (POST, PUT, PATCH). An input variable is passed whole
- * to every part, whose schema keeps only its own fields. Splitting an object with spreads or
- * effectful property values could duplicate getters or reorder evaluations, so these inputs
- * are left for a hand edit, along with computed keys, unknown tags, and variable tags.
+ * Primitive literal input fields go to the declared params/query/payload part. All other
+ * inputs need a hand edit: run delays callback evaluation until after options and their
+ * getters, so even identifiers must be captured eagerly. Query wrappers also need review
+ * before moving receiver evaluation out of their callback.
  *
  *   bun scripts/codemods/httpapi-call-sites.ts <file or directory>...
  *
@@ -20,7 +19,12 @@ import path from "node:path";
 import { procedureRoutes } from "@pcobooster/contracts/http/api";
 import type { ProcedureRoute } from "@pcobooster/contracts/http/route";
 import { parseSync, Visitor } from "oxc-parser";
-import type { Argument, ObjectExpression, Span } from "oxc-parser";
+import type {
+  Argument,
+  CallExpression,
+  ObjectExpression,
+  Span,
+} from "oxc-parser";
 import { z } from "zod";
 
 const routesByTag = new Map(procedureRoutes.map((route) => [route.tag, route]));
@@ -38,6 +42,24 @@ export interface CallSiteResult {
 }
 
 const stringValue = z.string();
+const primitiveValue = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+  z.bigint(),
+  z.null(),
+]);
+
+const isDirectReceiver = (
+  receiver: Span & { readonly type: string }
+): boolean =>
+  ["Identifier", "MemberExpression", "CallExpression"].includes(receiver.type);
+
+const needsManualCall = (call: CallExpression): boolean =>
+  call.optional ||
+  (call.callee.type === "MemberExpression" &&
+    (call.callee.optional || !isDirectReceiver(call.callee.object))) ||
+  call.arguments[2]?.type === "SpreadElement";
 type Property = Exclude<
   ObjectExpression["properties"][number],
   { type: "SpreadElement" }
@@ -58,33 +80,28 @@ const propertyName = (property: Property): string | undefined => {
 
 const isEmptyInput = (input: Argument | undefined): boolean =>
   input === undefined ||
-  (input.type === "Identifier" && input.name === "undefined") ||
   (input.type === "ObjectExpression" && input.properties.length === 0);
 
 const literal = (members: readonly string[]): string =>
   `{ ${members.join(", ")} }`;
 
-/** Reject operations whose order or count would change when path params are split out. */
-const unsafeObjectProblem = (
-  input: ObjectExpression,
-  split: boolean
-): string | undefined => {
+/** Only primitive literal fields are independent of delayed callback evaluation. */
+const unsafeObjectProblem = (input: ObjectExpression): string | undefined => {
   for (const property of input.properties) {
     if (property.type === "SpreadElement") {
-      if (split) {
-        return "a spread input needs a single evaluation before splitting";
-      }
-      continue;
+      return "a spread input needs eager single evaluation before conversion";
+    }
+    if (property.computed) {
+      return "a computed key in the input";
     }
     if (property.kind !== "init" || property.method) {
       return "an accessor or method in the input";
     }
     if (
-      split &&
-      property.value.type !== "Identifier" &&
-      property.value.type !== "Literal"
+      property.value.type !== "Literal" ||
+      !primitiveValue.safeParse(property.value.value).success
     ) {
-      return "an input property needs its original evaluation order before splitting";
+      return "an input property needs eager evaluation before options and run";
     }
   }
   return undefined;
@@ -109,22 +126,12 @@ const requestFor = (
   }
   const parts: string[] = [];
   if (input.type !== "ObjectExpression") {
-    if (input.type !== "Identifier") {
-      return {
-        problem:
-          "an input expression needs a single evaluation before conversion",
-      };
-    }
-    const whole = text(input);
-    if (takesParams) {
-      parts.push(`params: ${whole}`);
-    }
-    if (takesRest) {
-      parts.push(`${restKey}: ${whole}`);
-    }
-    return { request: literal(parts) };
+    return {
+      problem:
+        "an input expression needs eager single evaluation before options and run",
+    };
   }
-  const problem = unsafeObjectProblem(input, takesParams && takesRest);
+  const problem = unsafeObjectProblem(input);
   if (problem !== undefined) {
     return { problem };
   }
@@ -221,6 +228,14 @@ export const rewriteCallSites = (
       }
       if (extra.length > 0) {
         skipped.push({ ...where, reason: "more than three arguments" });
+        return;
+      }
+      if (needsManualCall(node)) {
+        skipped.push({
+          ...where,
+          reason:
+            "optional calls, complex receivers or spread options need a hand edit",
+        });
         return;
       }
       const placed = requestFor(route, input, text);
@@ -341,65 +356,31 @@ export const rewriteTransportMetadata = (
   return { source: migrated, rewritten: migrated === source ? 0 : 1, skipped };
 };
 
-/** Simplifies the old query callback after native call conversion. */
+/** Reports old query wrappers; moving their receiver can change capture and getter timing. */
 export const rewriteQuerySites = (
   file: string,
   source: string
 ): CallSiteResult => {
   const { program } = parseSync(file, source);
-  const edits: { start: number; end: number; text: string }[] = [];
-  const text = (span: Span) => source.slice(span.start, span.end);
+  const skipped: Skipped[] = [];
   new Visitor({
     CallExpression: (node) => {
       if (
-        node.callee.type !== "Identifier" ||
-        node.callee.name !== "callForQuery"
+        node.callee.type === "Identifier" &&
+        node.callee.name === "callForQuery" &&
+        (node.arguments[1]?.type === "ArrowFunctionExpression" ||
+          node.arguments[1]?.type === "FunctionExpression")
       ) {
-        return;
+        skipped.push({
+          file,
+          line: lineOf(source, node.start),
+          reason:
+            "a query wrapper needs review of delayed receiver and input evaluation",
+        });
       }
-      const [context, callback, ...extra] = node.arguments;
-      if (
-        context === undefined ||
-        callback?.type !== "ArrowFunctionExpression" ||
-        extra.length > 0
-      ) {
-        return;
-      }
-      const body =
-        callback.body.type === "AwaitExpression"
-          ? callback.body.argument
-          : callback.body;
-      if (
-        body.type !== "CallExpression" ||
-        body.callee.type !== "MemberExpression" ||
-        body.callee.computed ||
-        body.callee.property.type !== "Identifier" ||
-        body.callee.property.name !== "run"
-      ) {
-        return;
-      }
-      const [call, options] = body.arguments;
-      const [parameter] = callback.params;
-      if (
-        call === undefined ||
-        parameter?.type !== "Identifier" ||
-        options?.type !== "Identifier" ||
-        options.name !== parameter.name
-      ) {
-        return;
-      }
-      edits.push({
-        start: node.start,
-        end: node.end,
-        text: `callForQuery(${text(context)}, ${text(body.callee.object)}, ${text(call)})`,
-      });
     },
   }).visit(program);
-  let rewritten = source;
-  for (const edit of edits.toSorted((a, b) => b.start - a.start)) {
-    rewritten = `${rewritten.slice(0, edit.start)}${edit.text}${rewritten.slice(edit.end)}`;
-  }
-  return { source: rewritten, rewritten: edits.length, skipped: [] };
+  return { source, rewritten: 0, skipped };
 };
 
 const SOURCE_FILE = /\.(?:ts|tsx|mts)$/u;
@@ -447,7 +428,7 @@ const main = async (targets: readonly string[]) => {
     const result = {
       source: query.source,
       rewritten: metadata.rewritten + native.rewritten + query.rewritten,
-      skipped: [...metadata.skipped, ...native.skipped],
+      skipped: [...metadata.skipped, ...native.skipped, ...query.skipped],
     };
     skipped.push(...result.skipped);
     if (result.rewritten > 0) {
