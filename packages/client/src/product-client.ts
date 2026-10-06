@@ -106,9 +106,6 @@ export class TransportFailure extends Data.TaggedError("TransportFailure")<{
   override readonly message = TRANSPORT_FAILURE_MESSAGE;
 }
 
-/** What a call rejects with, besides an AbortError `DOMException` when its signal aborts. */
-export type CallFailure = ProductFault | TransportFailure;
-
 /**
  * A transport failure retries as an unavailable gateway would (503: worth one retry, never a
  * 4xx), but reports its own code, so analytics tells a lost connection from a down API.
@@ -153,7 +150,10 @@ export const failureMessage = (error: Error, fallback: string): string =>
     : fallback;
 
 export interface ProductClient {
-  /** Resolves with the decoded success; rejects with a `CallFailure` or an AbortError. */
+  /**
+   * Resolves with the decoded success; rejects with a ProductFault, a TransportFailure, or an
+   * AbortError `DOMException` when its signal aborts.
+   */
   readonly call: <Tag extends ProcedureTag>(
     tag: Tag,
     ...[input, options]: CallArguments<Tag>

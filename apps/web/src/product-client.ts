@@ -24,7 +24,7 @@ const sharedClient = (): ProductClient => {
  * Every browser call to the API. Interactive calls hold speculative work back until they
  * settle, and writes are measured for workflow analytics.
  */
-export const productClient: ProductClient = {
+export const productClient: Pick<ProductClient, "call"> = {
   call: async (tag, ...args) =>
     await requestScheduler.track(
       args[1]?.priority ?? "interactive",
@@ -35,8 +35,4 @@ export const productClient: ProductClient = {
           captureAnalytics
         )
     ),
-  dispose: async () => {
-    await tabClient?.dispose();
-    tabClient = undefined;
-  },
 };
