@@ -149,6 +149,64 @@ const rejectedExit = (requestId: string) => ({
   },
 });
 
+const corsHeaders = (response: Response) => ({
+  status: response.status,
+  allowOrigin: response.headers.get("access-control-allow-origin"),
+  allowCredentials: response.headers.get("access-control-allow-credentials"),
+  vary: response.headers.get("vary"),
+});
+
+describe("CORS on RPC responses", () => {
+  const productOrigin = "https://pcobooster.com";
+  const corsServer = testServer({
+    config: testServerConfig({ BETTER_AUTH_URL: productOrigin }),
+  });
+
+  it("allows the product origin with credentials, as every other API response does", async () => {
+    const route = serveRpcForTest({ server: corsServer });
+
+    const answered = await route.fetch(
+      rawRpc("health", {}, { origin: productOrigin })
+    );
+    const refused = await route.fetch(
+      new Request(TEST_RPC_URL, {
+        method: "GET",
+        headers: { origin: productOrigin },
+      })
+    );
+
+    expect([corsHeaders(answered), corsHeaders(refused)]).toStrictEqual([
+      {
+        status: 200,
+        allowOrigin: productOrigin,
+        allowCredentials: "true",
+        vary: "Origin",
+      },
+      {
+        status: 405,
+        allowOrigin: productOrigin,
+        allowCredentials: "true",
+        vary: "Origin",
+      },
+    ]);
+  });
+
+  it("names no allowed origin to any other site", async () => {
+    const route = serveRpcForTest({ server: corsServer });
+
+    const response = await route.fetch(
+      rawRpc("health", {}, { origin: "https://elsewhere.example" })
+    );
+
+    expect(corsHeaders(response)).toStrictEqual({
+      status: 200,
+      allowOrigin: null,
+      allowCredentials: "true",
+      vary: "Origin",
+    });
+  });
+});
+
 describe("malformed RPC bodies", () => {
   it.each([
     {

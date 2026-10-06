@@ -41,13 +41,14 @@ describe(createServerApp, () => {
     ]);
   });
 
-  it("answers credentialed CORS preflight requests", async () => {
+  it("answers credentialed CORS preflight requests, allowing the RPC transport's headers", async () => {
     const app = createTestApp(() => new Response(null, { status: 501 }));
 
     const response = await app.request("/api/rpc", {
       headers: {
-        "Access-Control-Request-Headers": "content-type,authorization",
-        "Access-Control-Request-Method": "GET",
+        "Access-Control-Request-Headers":
+          "content-type,authorization,x-pcobooster-client",
+        "Access-Control-Request-Method": "POST",
         Origin: allowedOrigin,
       },
       method: "OPTIONS",
@@ -61,10 +62,10 @@ describe(createServerApp, () => {
       "true"
     );
     expect(response.headers.get("access-control-allow-methods")).toContain(
-      "GET"
+      "POST"
     );
     expect(response.headers.get("access-control-allow-headers")).toBe(
-      "Content-Type,Authorization"
+      "Content-Type,Authorization,x-pcobooster-client,x-request-id,x-pcobooster-account,x-pcobooster-demo"
     );
   });
 

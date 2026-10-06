@@ -4,6 +4,8 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger as requestLogger } from "hono/logger";
 
+import { corsPolicy } from "./cors";
+
 type AuthHandler = (request: Request) => Promise<Response> | Response;
 
 /** Whether the client at this IP may make another auth write now (a Workers rate limit). */
@@ -49,15 +51,7 @@ export const createServerApp = ({
     app.use("/*", requestLogger());
   }
 
-  app.use(
-    "/*",
-    cors({
-      allowHeaders: ["Content-Type", "Authorization"],
-      allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-      credentials: true,
-      origin: server.config.publicOrigin,
-    })
-  );
+  app.use("/*", cors(corsPolicy(server.config.publicOrigin)));
 
   const isOverAuthWriteLimit = async (request: Request): Promise<boolean> => {
     // Set by Cloudflare at the edge and forwarded unchanged by the product Worker.

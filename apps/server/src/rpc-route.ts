@@ -28,6 +28,8 @@ import * as Cookies from "effect/unstable/http/Cookies";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
+import { corsPolicy, corsResponseHeaders } from "./cors";
+
 export const RPC_PATH = "/api/rpc";
 
 /** Effect's HTTP client posts to `<url>/`, so the route answers with and without the slash. */
@@ -128,12 +130,12 @@ export const finishResponse = (
   );
 };
 
-const rpcRoute =
-  <Services>(
-    httpEffect: ProductRpcHttpEffect,
-    options: RpcRouteOptions<Services>
-  ) =>
-  (httpRequest: HttpServerRequest.HttpServerRequest) =>
+const rpcRoute = <Services>(
+  httpEffect: ProductRpcHttpEffect,
+  options: RpcRouteOptions<Services>
+) => {
+  const cors = corsPolicy(options.server.config.publicOrigin);
+  return (httpRequest: HttpServerRequest.HttpServerRequest) =>
     Effect.gen(function* serveRpc() {
       if (httpRequest.method !== "POST") {
         return HttpServerResponse.empty({ status: METHOD_NOT_ALLOWED_STATUS });
@@ -177,7 +179,14 @@ const rpcRoute =
       }
       yield* writeUnsentOutcomes;
       return finishResponse(answered.value, exchange, options.releaseVersion);
-    });
+    }).pipe(
+      Effect.map(
+        HttpServerResponse.setHeaders(
+          corsResponseHeaders(cors, httpRequest.headers.origin ?? null)
+        )
+      )
+    );
+};
 
 /** The per-request handler: what the Worker's fetch runs for `POST /api/rpc`. */
 export type RpcRoute<Services> = ReturnType<typeof rpcRoute<Services>>;
