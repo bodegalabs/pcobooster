@@ -13,6 +13,7 @@ import { Effect, Schema } from "effect";
 import type { Json } from "effect/Schema";
 
 import { fixtureFiles } from "./fixture-files";
+import { makeFixtureRoster } from "./fixture-roster";
 import accountsFixture from "./fixtures/accounts.list.json";
 
 const FixtureFileSchema = Schema.Struct({
@@ -145,12 +146,12 @@ export interface FixtureFetchOptions {
 }
 
 /** Answers declared HTTP endpoints without leaving the device. */
-export const makeFixtureFetch =
-  ({
-    latencyMs,
-    overrides = {},
-  }: FixtureFetchOptions): typeof globalThis.fetch =>
-  async (input, init) => {
+export const makeFixtureFetch = ({
+  latencyMs,
+  overrides = {},
+}: FixtureFetchOptions): typeof globalThis.fetch => {
+  const updateRoster = makeFixtureRoster();
+  return async (input, init) => {
     const request = new Request(input, init);
     const url = new URL(request.url);
     const match = matchRoute(procedureRoutes, request.method, url.pathname);
@@ -231,7 +232,7 @@ export const makeFixtureFetch =
         : { found: true, value: override };
     return answer.found
       ? jsonResponse(
-          answer.value,
+          updateRoster(match.route.tag, payload, answer.value),
           200,
           match.route.tag === "demo.start"
             ? { "set-cookie": FIXTURE_DEMO_COOKIE }
@@ -244,3 +245,4 @@ export const makeFixtureFetch =
           })
         );
   };
+};

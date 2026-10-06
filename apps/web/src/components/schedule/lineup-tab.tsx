@@ -1,3 +1,4 @@
+import type { SlotRef } from "@pcobooster/planning-center-models/scheduling-notifications";
 import type {
   PlanTime,
   TeamPositionGroup,
@@ -8,7 +9,6 @@ import {
   TeamRoster,
   TeamRosterSkeleton,
 } from "@/components/schedule/team-roster";
-import type { SlotRef } from "@/components/schedule/types";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 
 interface LineupTabProps {

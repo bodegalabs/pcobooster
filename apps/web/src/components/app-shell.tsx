@@ -14,6 +14,7 @@ import {
   UsersIcon,
 } from "@hugeicons/core-free-icons";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import type { PlanView } from "@pcobooster/planning-center-models/plan-overview";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import type { RegisterableHotkey } from "@tanstack/react-hotkeys";
 import { Link, getRouteApi, useLocation } from "@tanstack/react-router";
@@ -94,7 +95,7 @@ import {
   PLAN_BUILDER_SHORTCUTS,
   SHORTCUTS_PALETTE_HOTKEY,
 } from "@/lib/app-hotkeys";
-import type { DetailRoute, PlanView } from "@/lib/app-routes";
+import type { DetailRoute } from "@/lib/app-routes";
 import {
   getAppSection,
   getAppSectionLabel,

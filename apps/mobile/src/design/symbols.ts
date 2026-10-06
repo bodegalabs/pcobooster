@@ -86,6 +86,8 @@ export const AppSymbol = {
   keyTransitionNote: sf("square.and.pencil"),
   chartLayout: sf("slider.horizontal.3"),
   readiness: sf("checkmark.circle"),
+  readinessSeal: sf("checkmark.seal"),
+  arrowUpRight: sf("arrow.up.right"),
   calendarDay: sf("calendar"),
   mail: sf("envelope"),
   addPerson: sf("person.badge.plus"),

@@ -29,14 +29,25 @@ export const LaunchRoute = ({ isSignedIn }: { isSignedIn: boolean }) => {
   const pathname = usePathname();
   const hasOpened = useRef(false);
   useEffect(() => {
-    if (hasOpened.current || pathname === "/") {
-      return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (!hasOpened.current && pathname !== "/") {
+      const href = launchHref(isSignedIn);
+      if (href === null) {
+        hasOpened.current = true;
+      } else {
+        // Native tabs settle their initial Services screen after the root Redirect. An earlier
+        // push is replaced by those initial params. This delay affects development launch args only.
+        timer = setTimeout(() => {
+          hasOpened.current = true;
+          router.push(href);
+        }, 500);
+      }
     }
-    hasOpened.current = true;
-    const href = launchHref(isSignedIn);
-    if (href !== null) {
-      router.push(href);
-    }
+    return () => {
+      if (timer !== undefined) {
+        clearTimeout(timer);
+      }
+    };
   }, [isSignedIn, pathname, router]);
   return null;
 };

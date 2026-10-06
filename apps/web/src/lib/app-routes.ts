@@ -1,6 +1,5 @@
+import type { PlanView } from "@pcobooster/planning-center-models/plan-overview";
 import { notFound } from "@tanstack/react-router";
-
-export type PlanView = "overview" | "assign" | "lineup" | "plan" | "times";
 
 export const planViews: readonly PlanView[] = [
   "overview",

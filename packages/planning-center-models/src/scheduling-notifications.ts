@@ -4,7 +4,13 @@ import type {
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
 
-import type { SlotRef } from "@/components/schedule/types";
+export interface SlotRef {
+  teamId: string;
+  teamName: string;
+  positionId: string;
+  positionName: string;
+  source?: TeamPositionGroup["positions"][number]["source"];
+}
 
 /**
  * - `unsent`: the email is prepared but not sent, so the person cannot see or answer the request.

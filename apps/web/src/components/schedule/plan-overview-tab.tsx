@@ -2,6 +2,22 @@ import type { Plan } from "@pcobooster/contracts/catalog";
 import { formatCalendarDateLabel } from "@pcobooster/planning-center-models/calendar";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
+  PlanOrder,
+  PlanSchedule,
+  PlanStaffing,
+  ReadinessCheck,
+  PlanView,
+} from "@pcobooster/planning-center-models/plan-overview";
+import {
+  buildReadinessChecks,
+  formatDuration,
+  formatTimeOfDay,
+  summarizeOrder,
+  summarizeStaffing,
+  summarizeTimes,
+} from "@pcobooster/planning-center-models/plan-overview";
+import type { SlotRef } from "@pcobooster/planning-center-models/scheduling-notifications";
+import type {
   PlanTime,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
@@ -22,7 +38,6 @@ import type { CSSProperties, ReactNode } from "react";
 import { PageScrollArea } from "@/components/page-shell";
 import { QueryDataBoundary } from "@/components/query-data-boundary";
 import type { ReadQueryState } from "@/components/query-data-boundary";
-import type { SlotRef } from "@/components/schedule/types";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button-variants";
 import {
@@ -38,22 +53,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { usePlanItems } from "@/hooks/use-plan-items";
-import type { PlanView } from "@/lib/app-routes";
 import { getPlanViewLabel } from "@/lib/app-routes";
-import type {
-  PlanOrder,
-  PlanSchedule,
-  PlanStaffing,
-  ReadinessCheck,
-} from "@/lib/plan-overview";
-import {
-  buildReadinessChecks,
-  formatDuration,
-  formatTimeOfDay,
-  summarizeOrder,
-  summarizeStaffing,
-  summarizeTimes,
-} from "@/lib/plan-overview";
 import { queryKeys } from "@/lib/query-keys";
 import { planSlotLink } from "@/lib/schedule-navigation";
 import { cn } from "@/lib/utils";

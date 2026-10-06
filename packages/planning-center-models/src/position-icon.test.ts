@@ -1,6 +1,5 @@
+import { resolvePositionIconId } from "@pcobooster/planning-center-models/position-icon";
 import { describe, expect, it } from "vitest";
-
-import { resolvePositionIconId } from "@/lib/format/position-icon";
 
 describe(resolvePositionIconId, () => {
   it("maps band positions", () => {

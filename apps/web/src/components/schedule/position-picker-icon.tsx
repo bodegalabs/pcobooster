@@ -10,10 +10,10 @@ import {
   Speaker01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { resolvePositionIconId } from "@pcobooster/planning-center-models/position-icon";
+import type { PositionIconId } from "@pcobooster/planning-center-models/position-icon";
 import { KeyboardMusic } from "lucide-react";
 
-import { resolvePositionIconId } from "@/lib/format/position-icon";
-import type { PositionIconId } from "@/lib/format/position-icon";
 import { cn } from "@/lib/utils";
 
 const POSITION_ICONS = {

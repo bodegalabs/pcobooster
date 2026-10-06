@@ -5,8 +5,9 @@ import type {
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
 
-import type { PlanView } from "@/lib/app-routes";
-import { collectUnnotifiedPeople } from "@/lib/schedule/scheduling-notifications";
+import { collectUnnotifiedPeople } from "./scheduling-notifications";
+
+export type PlanView = "overview" | "lineup" | "plan" | "times" | "assign";
 
 /** A position that still needs people, as a link target into Assign. */
 export interface OpenPosition {

@@ -15,6 +15,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { getSchedulingNotificationState } from "@pcobooster/planning-center-models/scheduling-notifications";
+import type { SlotRef } from "@pcobooster/planning-center-models/scheduling-notifications";
 import type {
   FilledPositionPerson,
   PlanTime,
@@ -46,7 +48,6 @@ import {
   TeamPickerIcon,
 } from "@/components/schedule/position-picker-icon";
 import { UnsentNotificationMark } from "@/components/schedule/scheduling-notification-mark";
-import type { SlotRef } from "@/components/schedule/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,7 +84,6 @@ import {
   reorderLineupColumnIds,
 } from "@/lib/lineup-column-order";
 import { openSlotCount } from "@/lib/schedule/open-positions";
-import { getSchedulingNotificationState } from "@/lib/schedule/scheduling-notifications";
 import { cn } from "@/lib/utils";
 
 /**

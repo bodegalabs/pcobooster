@@ -1,3 +1,8 @@
+import {
+  formatDuration,
+  keyLabelOf,
+  keyOptionPartsOf,
+} from "@pcobooster/planning-center-models/plan-overview";
 import type {
   ArrangementOption,
   KeyOption,
@@ -24,11 +29,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDraftPopover } from "@/hooks/use-persist-on-close-popover";
 import { useSongOptions } from "@/hooks/use-song-options";
-import {
-  formatDuration,
-  keyLabelOf,
-  keyOptionPartsOf,
-} from "@/lib/plan-overview";
 import type { KeyTransition } from "@/lib/plan-set-insights";
 
 /** The key first, then whose key it is or how it is sung, on its own line. */

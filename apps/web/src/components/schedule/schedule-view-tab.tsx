@@ -1,3 +1,11 @@
+import {
+  getPositionNotificationStates,
+  getSchedulingNotificationState,
+} from "@pcobooster/planning-center-models/scheduling-notifications";
+import type {
+  SchedulingNotificationState,
+  SlotRef,
+} from "@pcobooster/planning-center-models/scheduling-notifications";
 import type {
   FilledPositionPerson,
   PersonWithAvailability,
@@ -18,7 +26,6 @@ import { SectionLabel } from "@/components/schedule/section-label";
 import { SelectedPositionHeader } from "@/components/schedule/selected-position-header";
 import { SomeoneElseRow } from "@/components/schedule/someone-else-row";
 import { TeamRoster } from "@/components/schedule/team-roster";
-import type { SlotRef } from "@/components/schedule/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Drawer,
@@ -37,11 +44,6 @@ import { useShowScheduleHistory } from "@/hooks/use-show-schedule-history";
 import { getInitials } from "@/lib/format/initials";
 import { partitionPeopleForRecommendationStrip } from "@/lib/people/recommendation-strip-order";
 import { openSlotCount } from "@/lib/schedule/open-positions";
-import {
-  getPositionNotificationStates,
-  getSchedulingNotificationState,
-} from "@/lib/schedule/scheduling-notifications";
-import type { SchedulingNotificationState } from "@/lib/schedule/scheduling-notifications";
 import { cn } from "@/lib/utils";
 
 interface ScheduleViewTabProps {

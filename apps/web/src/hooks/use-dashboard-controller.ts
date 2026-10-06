@@ -1,5 +1,6 @@
 import { speculativeQuery } from "@pcobooster/client/query";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import type { SlotRef } from "@pcobooster/planning-center-models/scheduling-notifications";
 import type {
   Plan,
   ServiceType,
@@ -11,7 +12,6 @@ import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import type { ReadQueryState } from "@/components/query-data-boundary";
-import type { SlotRef } from "@/components/schedule/types";
 import { useCollapsedTeams } from "@/hooks/use-collapsed-teams";
 import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import { useMediaQuery } from "@/hooks/use-media-query";
