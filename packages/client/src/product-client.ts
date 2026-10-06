@@ -109,10 +109,13 @@ export class TransportFailure extends Data.TaggedError("TransportFailure")<{
 /** What a call rejects with, besides an AbortError `DOMException` when its signal aborts. */
 export type CallFailure = ProductFault | TransportFailure;
 
-/** A transport failure counts as the gateway being unavailable: worth one retry, never a 4xx. */
+/**
+ * A transport failure retries as an unavailable gateway would (503: worth one retry, never a
+ * 4xx), but reports its own code, so analytics tells a lost connection from a down API.
+ */
 const transportFailureOutcome = {
   status: 503,
-  code: "SERVICE_UNAVAILABLE",
+  code: "NETWORK_ERROR",
 } as const;
 
 const callFailureOutcome = (

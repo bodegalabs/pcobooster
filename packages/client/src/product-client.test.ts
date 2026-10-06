@@ -156,7 +156,7 @@ describe(failureStatus, () => {
     [
       new TransportFailure({ tag: "health", reason: "network", cause: null }),
       503,
-      "SERVICE_UNAVAILABLE",
+      "NETWORK_ERROR",
     ],
     [new TypeError("not a call failure"), undefined, undefined],
   ])("reads %o as %s", (failure, status, code) => {

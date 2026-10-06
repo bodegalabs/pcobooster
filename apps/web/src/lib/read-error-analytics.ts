@@ -45,6 +45,7 @@ const errorCodeSchema = z.enum([
   "BAD_GATEWAY",
   "INTERNAL_SERVER_ERROR",
   "SERVICE_UNAVAILABLE",
+  "NETWORK_ERROR",
   "GATEWAY_TIMEOUT",
   "CLIENT_OUTDATED",
 ]);

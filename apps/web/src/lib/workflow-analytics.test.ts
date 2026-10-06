@@ -1,4 +1,5 @@
 import type { captureAnalytics } from "@pcobooster/analytics/client";
+import { TransportFailure } from "@pcobooster/client/product-client";
 import { PositionMismatch } from "@pcobooster/contracts/faults/position-mismatch";
 import { describe, expect, it, vi } from "vitest";
 
@@ -68,6 +69,28 @@ describe("workflow analytics", () => {
     expect(capture).toHaveBeenCalledExactlyOnceWith("workflow failed", {
       operation: "planItems.update",
       error_code: "UNKNOWN",
+    });
+  });
+
+  it("reports a write that never reached the API as a network error", async () => {
+    const capture = vi.fn<typeof captureAnalytics>();
+    const error = new TransportFailure({
+      tag: "schedule.assign",
+      reason: "network",
+      cause: null,
+    });
+
+    await expect(
+      measureWorkflow(
+        "schedule.assign",
+        async () => await Promise.reject(error),
+        capture
+      )
+    ).rejects.toBe(error);
+
+    expect(capture).toHaveBeenCalledExactlyOnceWith("workflow failed", {
+      operation: "schedule.assign",
+      error_code: "NETWORK_ERROR",
     });
   });
 });

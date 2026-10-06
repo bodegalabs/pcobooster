@@ -1,4 +1,5 @@
 import type { captureAnalyticsException } from "@pcobooster/analytics/client";
+import { TransportFailure } from "@pcobooster/client/product-client";
 import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
 import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
@@ -139,6 +140,27 @@ describe("read error reporting", () => {
     expect(capture).toHaveBeenCalledExactlyOnceWith(expect.any(Error), {
       operation: "team-positions",
       error_code: "UNKNOWN",
+      outcome: "read_failed",
+    });
+  });
+
+  it("reports a read that never reached the API as a network error", async () => {
+    const capture = vi.fn<typeof captureAnalyticsException>();
+    const client = createClient(capture);
+
+    await failObservedRead(
+      client,
+      new TransportFailure({
+        tag: "planTimes.list",
+        reason: "network",
+        cause: null,
+      }),
+      { queryKey: ["plan-times"] }
+    );
+
+    expect(capture).toHaveBeenCalledExactlyOnceWith(expect.any(Error), {
+      operation: "plan-times",
+      error_code: "NETWORK_ERROR",
       outcome: "read_failed",
     });
   });
