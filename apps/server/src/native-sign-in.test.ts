@@ -13,14 +13,19 @@ import { PLANNING_CENTER_SELECTED_ACCOUNT_HEADER } from "@pcobooster/api/auth/pl
 import { createDatabase } from "@pcobooster/api/db/client";
 import { account } from "@pcobooster/api/db/schema";
 import type { ServerDependencies } from "@pcobooster/api/server";
-import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
+import {
+  testFeatureFlags,
+  testServer,
+  testServerConfig,
+} from "@pcobooster/api/testing/server";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { createLocalD1 } from "../../../scripts/database/local-d1";
-import { createServerApp } from "./app";
-import type { ServerApp } from "./app";
+import { serveHttpForTest } from "./test-http";
+import type { HttpAppTest } from "./test-http";
 import { serveRpcForTest } from "./test-rpc";
 import type { RpcRouteTest } from "./test-rpc";
 
@@ -30,11 +35,12 @@ const config = testServerConfig();
 const origin = config.publicOrigin;
 const planningCenter = createPlanningCenterStub(globalThis.fetch);
 
-let app: ServerApp;
+let app: HttpAppTest;
 let rpcRoute: RpcRouteTest;
 let server: ServerDependencies;
+const featureFlags = testFeatureFlags();
 const handler = async (request: Request): Promise<Response> =>
-  await app.request(request);
+  await app.fetch(request);
 
 const profile = (
   name: string,
@@ -91,8 +97,8 @@ describe("native sign-in through the API Worker", () => {
     vi.stubGlobal("fetch", planningCenter.fetch);
     const auth = createAuth(config, database);
     await auth.$context;
-    server = testServer({ config, database, auth });
-    app = createServerApp({ server, enableRequestLogging: false });
+    server = testServer({ config, database, auth, featureFlags });
+    app = serveHttpForTest({ server });
     rpcRoute = serveRpcForTest({ server });
   });
 
@@ -101,7 +107,7 @@ describe("native sign-in through the API Worker", () => {
     await runtime.dispose();
   });
 
-  it("hands the app a code through Hono's auth routes", async () => {
+  it("hands the app a code through the Worker's auth routes", async () => {
     planningCenter.signInAs(profile("round-trip"));
     const run = await runNativeSignIn(handler, origin);
     const exchanged = await exchangeRun(handler, origin, run);
@@ -184,11 +190,51 @@ describe("native sign-in through the API Worker", () => {
     expect(selected).toStrictEqual([first, second, first]);
   });
 
+  it("authenticates HttpApi calls with the bearer token and selects the account the header names", async () => {
+    const graceChurch = profile("http-a", "http-select@example.com");
+    const hopeChapel = profile("http-b", "http-select@example.com");
+    planningCenter.signInAs(graceChurch);
+    await signInNatively(handler, origin);
+    planningCenter.signInAs(hopeChapel);
+    const { token } = await signInNatively(handler, origin);
+    const [first, second] = await Promise.all(
+      [graceChurch, hopeChapel].map(accountIdFor)
+    );
+    const callAsAccount = async (headers: Record<string, string>) => {
+      const client = app.client({ client: "expo", httpHeaders: () => headers });
+      try {
+        return await client.call("chordCharts.song", { songId: "song-1" });
+      } finally {
+        await client.dispose();
+      }
+    };
+    featureFlags.evaluations.length = 0;
+
+    // The flag is off for everyone, so a signed-in caller gets NotFound after its flag check.
+    await expect(
+      callAsAccount({
+        authorization: `Bearer ${token}`,
+        [PLANNING_CENTER_SELECTED_ACCOUNT_HEADER]: first ?? "",
+      })
+    ).rejects.toBeInstanceOf(NotFound);
+    await expect(
+      callAsAccount({
+        authorization: `Bearer ${token}`,
+        [PLANNING_CENTER_SELECTED_ACCOUNT_HEADER]: second ?? "",
+      })
+    ).rejects.toBeInstanceOf(NotFound);
+    await expect(callAsAccount({})).rejects.toBeInstanceOf(Unauthenticated);
+    expect(
+      featureFlags.evaluations.map(
+        ({ subject }) => subject.planningCenterAccountId
+      )
+    ).toStrictEqual([first, second]);
+  });
+
   it("limits the native start on every path Better Auth would serve it", async () => {
-    const limitedApp = createServerApp({
+    const limitedApp = serveHttpForTest({
       server,
       allowAuthWrite: async () => await Promise.resolve(false),
-      enableRequestLogging: false,
     });
     const query = new URLSearchParams({
       code_challenge: createPkcePair().challenge,
@@ -207,7 +253,7 @@ describe("native sign-in through the API Worker", () => {
 
     const statuses = await Promise.all(
       attempts.map(async ([method, path]) => {
-        const response = await limitedApp.request(
+        const response = await limitedApp.fetch(
           new Request(`${origin}${path}?${query}`, {
             method,
             headers: { "cf-connecting-ip": "203.0.113.7" },
@@ -226,7 +272,7 @@ describe("native sign-in through the API Worker", () => {
     const { token } = await signInNatively(handler, origin);
     const authorization = `Bearer ${token}`;
 
-    const signOut = await app.request(
+    const signOut = await app.fetch(
       new Request(`${origin}/api/auth/sign-out`, {
         method: "POST",
         headers: { authorization, "content-type": "application/json" },

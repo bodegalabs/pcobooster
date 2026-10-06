@@ -1,7 +1,8 @@
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { describe, expect, it, vi } from "vitest";
 
-import { createServerApp } from "./app";
+import { makeHttpApp } from "./http-app";
+import { serveHttpForTest } from "./test-http";
 
 const allowedOrigin = "https://pcobooster.com";
 const server = testServer({
@@ -10,9 +11,9 @@ const server = testServer({
 type TestAuthHandler = (request: Request) => Promise<Response> | Response;
 
 const createTestApp = (authHandler: TestAuthHandler) =>
-  createServerApp({ authHandler, server, enableRequestLogging: false });
+  serveHttpForTest({ authHandler, server });
 
-describe(createServerApp, () => {
+describe(makeHttpApp, () => {
   it("serves liveness at / and /health", async () => {
     const app = createTestApp(() => new Response(null, { status: 501 }));
 
@@ -41,13 +42,13 @@ describe(createServerApp, () => {
     ]);
   });
 
-  it("answers credentialed CORS preflight requests, allowing the RPC transport's headers", async () => {
+  it("answers credentialed CORS preflight requests, allowing every header the clients send", async () => {
     const app = createTestApp(() => new Response(null, { status: 501 }));
 
     const response = await app.request("/api/rpc", {
       headers: {
         "Access-Control-Request-Headers":
-          "content-type,authorization,x-pcobooster-client",
+          "content-type,authorization,x-pcobooster-client,x-pcobooster-priority",
         "Access-Control-Request-Method": "POST",
         Origin: allowedOrigin,
       },
@@ -61,11 +62,57 @@ describe(createServerApp, () => {
     expect(response.headers.get("access-control-allow-credentials")).toBe(
       "true"
     );
-    expect(response.headers.get("access-control-allow-methods")).toContain(
-      "POST"
-    );
     expect(response.headers.get("access-control-allow-headers")).toBe(
-      "Content-Type,Authorization,x-pcobooster-client,x-request-id,x-pcobooster-account,x-pcobooster-demo"
+      "Content-Type,Authorization,x-pcobooster-client,x-request-id,x-pcobooster-account,x-pcobooster-demo,x-pcobooster-priority"
+    );
+    expect(response.headers.get("access-control-allow-methods")).toBe(
+      "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    );
+  });
+
+  it("answers a preflight from another origin without allowing it", async () => {
+    const app = createTestApp(() => new Response(null, { status: 501 }));
+
+    const response = await app.request("/api/v1/plan-people/pp-1", {
+      headers: {
+        "Access-Control-Request-Method": "PATCH",
+        Origin: "https://evil.example",
+      },
+      method: "OPTIONS",
+    });
+
+    expect(response.status).toBe(204);
+    expect(response.headers.get("access-control-allow-origin")).toBeNull();
+  });
+
+  it("puts CORS and the cache policy on every answer, errors and unknown paths included", async () => {
+    const app = createTestApp(() => new Response(null, { status: 501 }));
+    const headers = { Origin: allowedOrigin };
+
+    const responses = await Promise.all([
+      app.request("/health", { headers }),
+      app.request("/api/v1/nothing-here", { headers }),
+      app.request("/api/auth/get-session", { headers }),
+    ]);
+
+    expect(
+      responses.map((response) => [
+        response.status,
+        response.headers.get("access-control-allow-origin"),
+        response.headers.get("access-control-allow-credentials"),
+        response.headers.get("vary"),
+        response.headers.get("cache-control"),
+        response.headers.get("x-pcobooster-version"),
+      ])
+    ).toStrictEqual(
+      [200, 404, 501].map((status) => [
+        status,
+        allowedOrigin,
+        "true",
+        "Origin",
+        "private, no-store",
+        "http-app-test",
+      ])
     );
   });
 
@@ -91,11 +138,7 @@ describe(createServerApp, () => {
         );
       }
     );
-    const app = createServerApp({
-      authHandler,
-      server,
-      enableRequestLogging: false,
-    });
+    const app = serveHttpForTest({ authHandler, server });
 
     const response = await app.request("/api/auth/sign-in", {
       body: JSON.stringify({ provider: "test" }),
@@ -122,12 +165,7 @@ describe(createServerApp, () => {
     const allowAuthWrite = vi.fn<(clientIp: string) => Promise<boolean>>(
       async () => await Promise.resolve(false)
     );
-    const app = createServerApp({
-      allowAuthWrite,
-      authHandler,
-      server,
-      enableRequestLogging: false,
-    });
+    const app = serveHttpForTest({ allowAuthWrite, authHandler, server });
 
     const response = await app.request("/api/auth/sign-in/social", {
       headers: { "cf-connecting-ip": "203.0.113.7" },
@@ -145,12 +183,7 @@ describe(createServerApp, () => {
     const allowAuthWrite = vi.fn<(clientIp: string) => Promise<boolean>>(
       async () => await Promise.resolve(false)
     );
-    const app = createServerApp({
-      allowAuthWrite,
-      authHandler,
-      server,
-      enableRequestLogging: false,
-    });
+    const app = serveHttpForTest({ allowAuthWrite, authHandler, server });
     const headers = { "cf-connecting-ip": "203.0.113.7" };
 
     const start = await app.request(
@@ -178,12 +211,7 @@ describe(createServerApp, () => {
     const allowAuthWrite = vi.fn<(clientIp: string) => Promise<boolean>>(
       async () => await Promise.resolve(false)
     );
-    const app = createServerApp({
-      allowAuthWrite,
-      authHandler,
-      server,
-      enableRequestLogging: false,
-    });
+    const app = serveHttpForTest({ allowAuthWrite, authHandler, server });
 
     const sessionRead = await app.request("/api/auth/get-session", {
       headers: { "cf-connecting-ip": "203.0.113.7" },

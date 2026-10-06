@@ -10,11 +10,10 @@ import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import { Config, Effect, Layer, Redacted, Scope } from "effect";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
-import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
-import { AUTH_RATE_LIMIT_PERIOD_SECONDS, createServerApp } from "./app";
 import { Database } from "./database";
 import { FeatureFlagApp } from "./feature-flags";
+import { AUTH_RATE_LIMIT_PERIOD_SECONDS, makeHttpApp } from "./http-app";
 import { apiWorkerObservability, apiWorkerTelemetry } from "./observability";
 import { PlanningCenterCache } from "./planning-center-cache";
 import {
@@ -29,7 +28,7 @@ import { currentStageSettings } from "./stage";
 const PREVIEW_SECRET_PLACEHOLDER = "minted-by-alchemy-random-at-runtime";
 
 /**
- * Auth writes (sign-in, sign-out, native sign-in start and exchange; see `createServerApp`) each
+ * Auth writes (sign-in, sign-out, native sign-in start and exchange; see `http-app.ts`) each
  * client IP may make per minute. A whole church signing in from one network stays well under it;
  * a script hammering sign-in does not. Cloudflare counts per location, so it is a brake on abuse,
  * not an exact quota.
@@ -124,8 +123,8 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
 });
 
 /**
- * `POST /api/rpc` is the product's Effect RPC route (`rpc-route.ts`); Hono serves Better Auth
- * and liveness (`app.ts`).
+ * `POST /api/rpc` is the product's Effect RPC route (`rpc-route.ts`); one Effect router serves
+ * everything else (`http-app.ts`): the HttpApi product API, Better Auth, and liveness.
  */
 export default class Api extends Cloudflare.Worker<Api>()(
   "Api",
@@ -168,7 +167,7 @@ export default class Api extends Cloudflare.Worker<Api>()(
     const resolveEnvironment = yield* readEnvironment;
     // One pacer per isolate shares each credential's Planning Center budget across requests.
     const pacer = new PlanningCenterRatePacer();
-    // The Effect RPC server lives as long as the isolate, so this scope is never closed.
+    // The RPC server and the router live as long as the isolate, so this scope is never closed.
     const isolateScope = Scope.makeUnsafe();
     // The D1, KV, and Flagship bindings and a runtime-minted secret are only readable inside a
     // request, so the app is built by the first one and shared by the rest of the isolate's
@@ -202,40 +201,38 @@ export default class Api extends Cloudflare.Worker<Api>()(
         yield* Effect.promise(async () => {
           await server.auth.$context;
         });
+        const report = postHogProcedureReporter(config.postHogProjectKey);
         const rpc = yield* makeRpcRoute({
           server,
           pacer,
-          report: postHogProcedureReporter(config.postHogProjectKey),
+          report,
           releaseVersion: config.releaseVersion,
           afterDisconnect: waitUntilAfterDisconnect,
         }).pipe(Scope.provide(isolateScope));
-        const hono = createServerApp({
+        const http = yield* makeHttpApp({
+          server,
+          pacer,
+          report,
+          releaseVersion: config.releaseVersion,
           allowAuthWrite: async (clientIp) => {
             const outcome = await rateLimit.limit({ key: clientIp });
             return outcome.success;
           },
-          server,
-        });
-        return { hono, rpc };
+        }).pipe(Scope.provide(isolateScope));
+        return { http, rpc };
       })
     );
     return {
       fetch: Effect.gen(function* fetch() {
         const httpRequest = yield* HttpServerRequest.HttpServerRequest;
-        const { hono: handler, rpc } = yield* app;
+        const { http, rpc } = yield* app;
         if (
           httpRequest.method !== "OPTIONS" &&
           isRpcPath(new URL(httpRequest.url, "http://api").pathname)
         ) {
           return yield* rpc(httpRequest);
         }
-        const request = yield* HttpServerRequest.toWeb(httpRequest).pipe(
-          Effect.orDie
-        );
-        const response = yield* Effect.promise(
-          async () => await handler.fetch(request)
-        );
-        return HttpServerResponse.fromWeb(response);
+        return yield* http;
       }),
     };
   }).pipe(
