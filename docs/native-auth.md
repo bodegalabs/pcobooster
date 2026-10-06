@@ -94,7 +94,7 @@ A code is consumed by its first exchange attempt, including one with the wrong v
 
 | Header | Value | Read by |
 | --- | --- | --- |
-| `Authorization` | `Bearer <token>` | Better Auth's `bearer` plugin, before every Better Auth endpoint and every `auth.api.*` call, so RPC procedures (`POST /api/rpc`) and `/api/auth/*` both accept it |
+| `Authorization` | `Bearer <token>` | Better Auth's `bearer` plugin, before every Better Auth endpoint and every `auth.api.*` call, so the product API (`/api/v1`) and `/api/auth/*` both accept it |
 | `x-pcobooster-account` | An account row id from `accounts.list` | `getSelectedPlanningCenterAccountId`, before the `pco-selected-account-id` cookie |
 | `x-pcobooster-demo` | The demo token from `demo.start`'s `Set-Cookie: pcobooster-demo=<token>` | `resolveDemoSession`, before the `pcobooster-demo` cookie |
 
@@ -141,7 +141,7 @@ The API Worker's per-IP auth limit (`AUTH_RATE_LIMIT`, 30 requests a minute per 
 ## Where it works
 
 - **Production** (`https://pcobooster.com`) and **local real OAuth** (`bun run dev:auth`, main checkout, `http://127.0.0.1:3001`): Planning Center only redirects to those registered callbacks. Locally the cookies are unprefixed and not `Secure`, which `ASWebAuthenticationSession` accepts on http loopback.
-- **`bun run dev`** (personal access token): every request is already signed in as the token's owner, so the simulator can call `POST /api/rpc` with no token. Native sign-in still needs `dev:auth`.
+- **`bun run dev`** (personal access token): every request is already signed in as the token's owner, so the simulator can call `/api/v1` with no token. Native sign-in still needs `dev:auth`.
 - **Previews and staging** sit behind Cloudflare Access and broker OAuth through production; native sign-in is not supported there.
 
 ## Rollback
