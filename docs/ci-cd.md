@@ -31,7 +31,7 @@ Deploys build from source: Alchemy runs each Vite app's build itself and skips a
 
 A preview job authenticates to Infisical using GitHub OIDC, checks the PR is still open at the expected head, and runs `bun alchemy deploy --stage pr-<number>`. Alchemy owns a separate D1 database, Planning Center cache KV namespace, API/web/admin Workers, and Cloudflare Access application for each PR, so opening a preview asks for the same one-time-code sign-in as staging (see [Staging](#staging)). The preview URL is exposed in GitHub's deployment environment. Production data is never copied into these databases.
 
-Every deploy then runs `scripts/cloudflare/verify-deployment.ts`. Both the web and API Workers carry the deployed `GITHUB_SHA` as a `PCOBOOSTER_VERSION` env prop, so every commit redeploys both even when only one app changed. The script polls the web Worker's `GET /version` and the API's `POST /api/rpc/health` (through the web Worker) until both report the commit, then checks that `/` returns 200. A deploy that finishes without the new code live in either Worker, or with a broken web → API binding, fails the job.
+Every deploy then runs `scripts/cloudflare/verify-deployment.ts`. Both the web and API Workers carry the deployed `GITHUB_SHA` as a `PCOBOOSTER_VERSION` env prop, so every commit redeploys both even when only one app changed. The script polls the web Worker's `GET /version` and the API's `health` procedure (through the web Worker, with `makeProductClient` as the `deploy` client, so the whole RPC stack answers) until both report the commit, then checks that `/` returns 200. A deploy that finishes without the new code live in either Worker, or with a broken web → API binding, fails the job.
 
 Pass a value a Worker must redeploy for as an `env` prop, not a `Config` read inside an Effect-native Worker's init (`apps/server/src/worker.ts`): Alchemy's change detection hashes `env` props and file inputs but not init-time `Config` reads, so changing only such a value (including rotating a secret) plans as a noop. Force a redeploy with `bun alchemy deploy --force` after rotating one.
 
@@ -70,15 +70,7 @@ A deploy you run yourself (`bun run deploy:production`, `bun run infra:deploy`) 
 
 ## iOS releases (TestFlight)
 
-A push to `main` that changes `apps/ios` uploads the app to TestFlight once production has deployed the same revision, so the API the build calls is already live. A manual CI run on `main` with `release_ios` uploads at any time. The `testflight` job runs on a macOS runner in the `testflight` environment (`main` only, no reviewers), rejects a superseded revision, reads production's secrets through OIDC, and runs `bun run ios:release` (`apps/ios/scripts/release.sh`). The build number is the commit count of `main`, so every release is newer than the last.
-
-A release shares production's trust level and Infisical project: the build embeds `POSTHOG_PROJECT_KEY`, and signs and uploads with an App Store Connect API key stored there as `ASC_KEY_ID`, `ASC_ISSUER_ID`, and `ASC_KEY_P8_BASE64`. The key needs the **Admin** role, because CI has no Apple ID and cloud-managed distribution signing creates the certificate on demand; without the key, the job stops before archiving. `alchemy.ci.ts` declares the environment and extends production's OIDC binding to it. To set it up once:
-
-1. In App Store Connect, Users and Access, Integrations, create a team API key with the Admin role and download its `.p8`.
-2. Add the three secrets to Infisical Production `/`: the key ID, the issuer ID, and `base64 < AuthKey_<id>.p8`.
-3. Run `bun run infra:plan`, then, after Jake confirms, `bun run infra:deploy`. It creates the environment, updates the OIDC binding, and sets the repository variable `TESTFLIGHT_RELEASES=enabled`, which turns the job on. Until then the job is skipped.
-
-Locally, `bun run ios:release` still works with the Apple ID signed in to Xcode.
+The Swift app and its `testflight` CI job were removed with the move to Effect RPC; the Expo app will bring its own release job. `alchemy.ci.ts` still declares the `testflight` environment, its OIDC binding (shared with production), and the `TESTFLIGHT_RELEASES` variable, and Infisical Production `/` keeps the App Store Connect key (`ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8_BASE64`, Admin role) for that job to use.
 
 ## OIDC and token scope
 
