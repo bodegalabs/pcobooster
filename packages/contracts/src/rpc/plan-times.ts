@@ -64,7 +64,6 @@ export const planTimesUpdate = write("planTimes.update", {
   success: planTimeSchema,
 });
 
-/** Answers nothing (main: `z.void()`, HTTP 204). */
 export const planTimesDelete = write("planTimes.delete", {
   payload: planTimesDeleteInputSchema,
   success: Schema.Void,

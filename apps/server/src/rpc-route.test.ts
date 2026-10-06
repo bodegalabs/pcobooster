@@ -163,7 +163,7 @@ const malformedDefect = {
   defect: "The request is not a valid RPC request.",
 };
 
-const rejectedExit = (requestId: string) => ({
+const rejectedExit = (requestId: string | number) => ({
   _tag: "Exit",
   requestId,
   exit: {
@@ -283,6 +283,15 @@ describe("malformed RPC bodies", () => {
       answer: [malformedDefect],
       procedure: "",
     },
+    {
+      case: "a batch of more than one request",
+      body: JSON.stringify([
+        { _tag: "Request", id: "1", tag: "health", payload: {}, headers: [] },
+        { _tag: "Request", id: 1, tag: "no.such", payload: {}, headers: [] },
+      ]),
+      answer: [rejectedExit("1"), rejectedExit(1)],
+      procedure: ["health", "no.such"],
+    },
   ])(
     "answers $case with a sanitized 400 and logs it",
     async ({ body, answer, procedure }) => {
@@ -300,15 +309,13 @@ describe("malformed RPC bodies", () => {
         status: 400,
         cacheControl: privateNoStore,
         body: answer,
-        lines: [
-          {
-            level: "info",
-            procedure,
-            status: 400,
-            code: "BAD_REQUEST",
-            client: "web;rpc=1",
-          },
-        ],
+        lines: [procedure].flat().map((tag) => ({
+          level: "info",
+          procedure: tag,
+          status: 400,
+          code: "BAD_REQUEST",
+          client: "web;rpc=1",
+        })),
       });
     }
   );

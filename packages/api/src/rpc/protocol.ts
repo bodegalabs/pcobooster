@@ -81,9 +81,9 @@ const malformedRequest = new RequestRejected({
 });
 
 /**
- * The one message an HTTP caller sends: Effect's client posts a single Request per call, and a
- * hand-written caller may batch several. Ping, Ack, Interrupt, and Eof mean nothing in one
- * buffered HTTP exchange.
+ * The one message an HTTP caller sends: Effect's client posts a single Request per call. Batches
+ * are refused, so one Worker invocation runs one procedure against one Planning Center budget.
+ * Ping, Ack, Interrupt, and Eof mean nothing in one buffered HTTP exchange.
  */
 const isRequestEnvelope = Schema.is(
   Schema.Struct({
@@ -115,8 +115,8 @@ interface MalformedMessage {
 const UNREADABLE_BODY: readonly MalformedMessage[] = [{ id: null, tag: "" }];
 
 /**
- * Null when the body is one well-formed Request or a non-empty array of them; otherwise each
- * message to reject. A batch with one malformed message is rejected whole.
+ * Null when the body is one well-formed Request, bare or as a one-element array; otherwise each
+ * message to reject.
  */
 export const malformedMessages = (
   body: string
@@ -131,7 +131,7 @@ export const malformedMessages = (
   if (messages.length === 0) {
     return UNREADABLE_BODY;
   }
-  if (messages.every(isRequestEnvelope)) {
+  if (messages.length === 1 && isRequestEnvelope(messages[0])) {
     return null;
   }
   return messages.map((message) => ({

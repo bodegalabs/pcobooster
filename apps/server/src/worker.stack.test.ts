@@ -702,21 +702,6 @@ test(
       ],
       { concurrency: "unbounded" }
     );
-    // Both calls in one HTTP request share one RPC client on the server.
-    const batch = yield* postRpc(
-      url,
-      [
-        rpcRequest("1", "catalog.plan", {
-          serviceTypeId: "st-batch",
-          planId: uniqueId("defect"),
-        }),
-        rpcRequest("2", "catalog.plan", {
-          serviceTypeId: "st-batch",
-          planId: "plan-batch",
-        }),
-      ],
-      uniqueId("batch")
-    );
     yield* Effect.promise(async () => {
       await client.dispose();
     });
@@ -725,16 +710,6 @@ test(
     assert.strictEqual(
       Result.isSuccess(survived) ? survived.success?.id : null,
       "plan-ok"
-    );
-    assert.strictEqual(batch.status, 200);
-    assert.deepStrictEqual(
-      exitTags(batch.messages).toSorted((a, b) =>
-        a.requestId.localeCompare(b.requestId)
-      ),
-      [
-        { requestId: "1", result: "InternalError", reason: undefined },
-        { requestId: "2", result: "Success", reason: undefined },
-      ]
     );
   }),
   requestTimeout
