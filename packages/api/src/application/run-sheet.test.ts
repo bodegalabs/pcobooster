@@ -20,9 +20,9 @@ import { Cause, Effect, Exit } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 /**
- * Runs a program as a `write` procedure's parts run over RPC: a prepare step stops when the
- * caller leaves; a commit finishes uninterruptibly, and its real result is what the route
- * records, even though the caller has gone.
+ * Runs a program as a `write` endpoint's parts run: a prepare step stops when the caller
+ * leaves; a commit finishes uninterruptibly, and its real result is what the endpoint records,
+ * even though the caller has gone.
  */
 const run = async <Value, Failure>(
   program: Effect.Effect<Value, Failure, RequestContext | Server>,

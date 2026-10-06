@@ -1,4 +1,4 @@
-/** People answers over Effect RPC. Ported from the zod schemas in `../people-schemas.ts`. */
+/** People answers. Ported from the zod schemas in `../people-schemas.ts`. */
 import {
   finiteNumber,
   integer,

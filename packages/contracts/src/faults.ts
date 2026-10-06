@@ -1,5 +1,5 @@
 /**
- * The one set of faults. Application programs fail with them, RPC handlers return them
+ * The one set of faults. Application programs fail with them, endpoint handlers return them
  * unchanged, the wire carries them, and clients catch the same classes (`instanceof NotFound`).
  * Each class lives in `faults/<name>.ts`; this module is the union and the status table.
  */

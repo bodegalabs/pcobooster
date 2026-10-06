@@ -28,7 +28,6 @@
     "./session": "./src/session.ts",
     "./song-schemas": "./src/song-schemas.ts",
     "./songs": "./src/songs.ts",
-    "./rpc/*": "./src/rpc/*.ts",
     "./http/*": "./src/http/*.ts"
   },
   "scripts": {

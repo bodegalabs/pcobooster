@@ -460,7 +460,7 @@ describe("monorepo architecture boundaries", () => {
         );
         if (replacedSegment && !routeExceptions.has(replacedSegment)) {
           violations.push(
-            `${file.relativePath} is a replaced REST route (${replacedSegment}); use the product RPC client`
+            `${file.relativePath} is a replaced REST route (${replacedSegment}); use the product API client`
           );
         }
       }

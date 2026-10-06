@@ -1,7 +1,7 @@
 /**
  * Bearer sessions for native clients: `Authorization: Bearer <signed session token>` stands in
- * for the session cookie on every Better Auth endpoint and every `auth.api.*` call, so the RPC
- * session lookup and `/api/auth/*` (get-session, sign-out) both accept it. The native app gets
+ * for the session cookie on every Better Auth endpoint and every `auth.api.*` call, so the
+ * product API's session lookup and `/api/auth/*` (get-session, sign-out) both accept it. The native app gets
  * its token from the sign-in exchange (`native-sign-in.ts`); browsers keep HttpOnly cookies.
  */
 import type { BetterAuthPlugin } from "better-auth";

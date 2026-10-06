@@ -6,7 +6,7 @@ import { faultStatus } from "@pcobooster/contracts/faults/outcome";
 import { Effect, Schema } from "effect";
 
 /**
- * A defect, or a success the server could not encode. Programs never construct it: the RPC
+ * A defect, or a success the server could not encode. Programs never construct it: the
  * transport logs and reports the cause, then answers with this so no defect reaches the wire.
  */
 export class InternalError extends faultClass<InternalError>()(

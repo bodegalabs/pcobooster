@@ -1,4 +1,4 @@
-/** Song answers over Effect RPC. Ported from the zod schemas in `../song-schemas.ts`. */
+/** Song answers. Ported from the zod schemas in `../song-schemas.ts`. */
 import { layoutOptionSchema } from "@pcobooster/contracts/http/plan-item-schemas";
 import { finiteNumber, mutableArray } from "@pcobooster/contracts/http/schema";
 import { Schema } from "effect";

@@ -1,6 +1,6 @@
 /**
  * Schema building blocks the contracts share, each matching the zod rule it replaces
- * (`../*.ts`), so the Effect RPC contracts accept and answer exactly what the previous transport did.
+ * (`../*.ts`), so the API contracts accept and answer exactly what the zod transport did.
  */
 import { Schema } from "effect";
 

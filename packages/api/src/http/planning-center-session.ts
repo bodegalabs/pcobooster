@@ -9,7 +9,7 @@ import { requiredFeatureOf } from "@pcobooster/contracts/http/required-feature";
 import { Effect, Layer } from "effect";
 
 /**
- * Per call, as for RPC: resolves the caller's access (demo, then cookie or bearer session, then
+ * Per call: resolves the caller's access (demo, then cookie or bearer session, then
  * the account), answers `NotFound` when the endpoint's `RequiredFeature` is off for that caller,
  * runs the endpoint with every Planning Center capability bound to that one credential, and
  * settles the shared read caches when it ends, however it ends.

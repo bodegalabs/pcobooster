@@ -37,9 +37,9 @@ export const clearAccountScopedCaches = (): void => {
 
 /**
  * Raise when the API's answers change shape or transport, so answers saved by an older build
- * are dropped instead of shown. 2: answers come from the Effect RPC client.
+ * are dropped instead of shown. 3: answers come from the HttpApi client (`/api/v1`).
  */
-const API_CACHE_GENERATION = "2";
+const API_CACHE_GENERATION = "3";
 const API_CACHE_GENERATION_KEY = "pcobooster:api-cache-generation";
 
 /** Drops API answers an older build saved; drafts and recent songs survive. Runs at startup. */

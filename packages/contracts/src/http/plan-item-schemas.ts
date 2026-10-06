@@ -1,4 +1,4 @@
-/** Run-sheet item answers over Effect RPC. Ported from the zod schemas in `../plan-item-schemas.ts`. */
+/** Run-sheet item answers. Ported from the zod schemas in `../plan-item-schemas.ts`. */
 import { finiteNumber, mutableArray } from "@pcobooster/contracts/http/schema";
 import { Schema } from "effect";
 

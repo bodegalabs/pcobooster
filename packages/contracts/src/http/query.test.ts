@@ -5,8 +5,10 @@ import { Exit, Predicate, Schema } from "effect";
 import { describe, expect, it } from "vitest";
 
 /**
- * The query codecs as `read` builds them for people.planWindowHistory: the client encodes with
- * the wire twin, the server decodes with the endpoint's own (HttpApi's array-from-single step).
+ * The query codecs as `read` would build them for people.planWindowHistory's input, which has
+ * a scalar and a structured value: the client encodes with the wire twin, the server decodes
+ * with the endpoint's own (HttpApi's array-from-single step). The endpoint itself is a POST
+ * read; the last test shows why.
  */
 const serverQuery = urlQuery(peoplePlanWindowHistoryInputSchema);
 const wireQuery = urlQuery(
@@ -118,7 +120,7 @@ describe(urlQuery, () => {
     expect(decode({ personIds: " a " })).toStrictEqual({ personIds: ["a"] });
   });
 
-  it("fits a typical continuation in a URL, but not the schema's 1000-plan cap", () => {
+  it("fits a typical continuation in a URL, but not the schema's 1000-plan cap, so it is a POST read", () => {
     const urlLength = (count: number) =>
       throughUrl(
         encodeForUrl({

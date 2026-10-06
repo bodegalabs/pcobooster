@@ -11,7 +11,7 @@ import type { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticat
 
 /**
  * The faults application programs fail with. `RequestRejected` and `InternalError` are not
- * among them: only the RPC transport answers with those.
+ * among them: only the transport (`packages/api/src/http`) answers with those.
  */
 export type ApplicationFault =
   | AlreadyScheduled

@@ -3,7 +3,7 @@ import { faultStatus } from "@pcobooster/contracts/faults/outcome";
 import { Schema } from "effect";
 
 /**
- * The caller announced an RPC protocol older than the server supports (`x-pcobooster-client`),
+ * The caller announced an API version older than the server supports (`x-pcobooster-client`),
  * or a header the server cannot read. The procedure never ran; the app must reload or update.
  */
 export class ClientOutdated extends faultClass<ClientOutdated>()(

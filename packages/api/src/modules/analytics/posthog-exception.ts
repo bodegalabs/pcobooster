@@ -8,7 +8,7 @@ const STACK_FRAME =
 const SERVER_DISTINCT_ID = "pcobooster-api";
 
 /**
- * One 5xx procedure failure. The RPC route reports only those; expected faults (auth,
+ * One 5xx procedure failure. The product API reports only those; expected faults (auth,
  * validation, conflicts, rate limits) are ordinary outcomes and stay in the logs.
  */
 export interface ReportedRequestError {
