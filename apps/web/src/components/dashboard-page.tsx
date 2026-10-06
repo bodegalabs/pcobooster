@@ -1,4 +1,5 @@
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import { formatPlanDate } from "@pcobooster/planning-center-models/service-plans";
 import type { Plan } from "@pcobooster/planning-center-models/types";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -40,7 +41,6 @@ import {
 import { NEXT_PLAN_HOTKEY, PREVIOUS_PLAN_HOTKEY } from "@/lib/app-hotkeys";
 import { queryKeys } from "@/lib/query-keys";
 import type { DashboardView } from "@/lib/schedule-navigation";
-import { formatPlanDate } from "@/lib/service-plan-selection";
 
 const formatHeaderPlanDate = (
   date: Date | string | undefined,

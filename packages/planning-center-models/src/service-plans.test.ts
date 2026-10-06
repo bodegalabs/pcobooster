@@ -1,5 +1,3 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-
 import {
   formatPlanDate,
   formatPlanDateTile,
@@ -7,8 +5,9 @@ import {
   formatPlanRelativeDay,
   groupPlansByMonthAndDay,
   isInDateWindow,
-} from "./service-plan-selection";
-import type { ServicePlanRow } from "./service-plan-selection";
+} from "@pcobooster/planning-center-models/service-plans";
+import type { ServicePlanRow } from "@pcobooster/planning-center-models/service-plans";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 /** Saturday October 31, 2026, 7:00 PM in Los Angeles; Sunday, November 1 in UTC. */
 const HALLOWEEN_EVENING_SERVICE = new Date("2026-11-01T02:00:00.000Z");

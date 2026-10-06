@@ -1,5 +1,14 @@
 import { speculativeQuery } from "@pcobooster/client/query";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import type {
+  DateRangeFilter,
+  ServicePlanRow,
+} from "@pcobooster/planning-center-models/service-plans";
+import {
+  formatPlanDate,
+  isInDateWindow,
+  parsePlanDate,
+} from "@pcobooster/planning-center-models/service-plans";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
@@ -28,15 +37,8 @@ import {
   writeCachedPlans,
 } from "@/lib/schedule-catalog-cache";
 import { planWorkspaceLink } from "@/lib/schedule-navigation";
-import type {
-  DateRangeFilter,
-  ServicePlanRow,
-  ServicePlanTableSelectorProps,
-} from "@/lib/service-plan-selection";
+import type { ServicePlanTableSelectorProps } from "@/lib/service-plan-selection";
 import {
-  formatPlanDate,
-  isInDateWindow,
-  parsePlanDate,
   readStoredServiceTypeIds,
   SERVICE_TYPE_FILTER_STORAGE_KEY,
 } from "@/lib/service-plan-selection";
