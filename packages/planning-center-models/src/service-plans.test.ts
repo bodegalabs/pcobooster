@@ -1,12 +1,17 @@
 import {
+  buildServicePlanRows,
   formatPlanDate,
   formatPlanDateTile,
+  formatPlanDetail,
   formatPlanMonthHeading,
   formatPlanRelativeDay,
   groupPlansByMonthAndDay,
   isInDateWindow,
 } from "@pcobooster/planning-center-models/service-plans";
-import type { ServicePlanRow } from "@pcobooster/planning-center-models/service-plans";
+import type {
+  ServicePlanRow,
+  ServicePlanRowPlan,
+} from "@pcobooster/planning-center-models/service-plans";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 /** Saturday October 31, 2026, 7:00 PM in Los Angeles; Sunday, November 1 in UTC. */
@@ -163,5 +168,62 @@ describe(isInDateWindow, () => {
     expect(
       isInDateWindow(new Date("2027-02-01T19:00:00.000Z"), "14", zone)
     ).toBeFalsy();
+  });
+});
+
+describe(buildServicePlanRows, () => {
+  const serviceTypes = [
+    { id: "2", name: "Youth Night", sequence: 1 },
+    { id: "1", name: "Sunday Gathering", sequence: 0 },
+  ];
+  const plans = new Map<string, ServicePlanRowPlan[]>([
+    [
+      "1",
+      [
+        { id: "b", title: "Rooted", sortDate: "2026-10-04T16:00:00.000Z" },
+        { id: "undated", title: "Someday" },
+      ],
+    ],
+    [
+      "2",
+      [
+        { id: "a", title: "Questions", sortDate: "2026-10-04T16:00:00.000Z" },
+        {
+          id: "c",
+          title: "Earlier",
+          sortDate: new Date("2026-10-01T02:00:00.000Z"),
+        },
+      ],
+    ],
+  ]);
+
+  it("keeps dated plans of selected service types in date, then service type order", () => {
+    const rows = buildServicePlanRows(
+      serviceTypes,
+      (serviceType) => plans.get(serviceType.id),
+      new Set(["1", "2"])
+    );
+    expect(rows.map((row) => row.planId)).toStrictEqual(["c", "b", "a"]);
+  });
+
+  it("leaves out service types that are not selected", () => {
+    const rows = buildServicePlanRows(
+      serviceTypes,
+      (serviceType) => plans.get(serviceType.id),
+      new Set(["2"])
+    );
+    expect(rows.map((row) => row.planId)).toStrictEqual(["c", "a"]);
+  });
+});
+
+describe(formatPlanDetail, () => {
+  it("joins the titles that are present", () => {
+    expect(
+      formatPlanDetail({ planTitle: "Deep Roots", seriesTitle: "Rooted" })
+    ).toBe("Deep Roots · Rooted");
+    expect(formatPlanDetail({ planTitle: "", seriesTitle: "Rooted" })).toBe(
+      "Rooted"
+    );
+    expect(formatPlanDetail({ planTitle: "", seriesTitle: null })).toBeNull();
   });
 });

@@ -7,6 +7,7 @@ import type {
 import {
   formatPlanDate,
   formatPlanDateTile,
+  formatPlanDetail,
   formatPlanRelativeDay,
   groupPlansByMonthAndDay,
 } from "@pcobooster/planning-center-models/service-plans";
@@ -96,11 +97,6 @@ const ScheduledBadge = () => (
   </span>
 );
 
-const planDetailText = (row: ServicePlanRow): string | null => {
-  const parts = [row.planTitle, row.seriesTitle].filter(isNonEmptyString);
-  return parts.length > 0 ? parts.join(" · ") : null;
-};
-
 const PlanAgendaRow = ({
   row,
   isActive,
@@ -116,7 +112,7 @@ const PlanAgendaRow = ({
   getPlanIntentProps: GetIntentPrefetchProps<ServicePlanRow>;
   orgTimeZone: string;
 }) => {
-  const detail = planDetailText(row);
+  const detail = formatPlanDetail(row);
   const label = `${row.serviceTypeName}, ${formatPlanDate(row.sortDate, orgTimeZone)}`;
   return (
     <Item

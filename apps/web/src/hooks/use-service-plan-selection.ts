@@ -5,9 +5,9 @@ import type {
   ServicePlanRow,
 } from "@pcobooster/planning-center-models/service-plans";
 import {
+  buildServicePlanRows,
   formatPlanDate,
   isInDateWindow,
-  parsePlanDate,
 } from "@pcobooster/planning-center-models/service-plans";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
@@ -148,57 +148,17 @@ export const useServicePlanSelection = ({
     queries: planQueryOptions,
   });
 
-  const rows = useMemo(() => {
-    if (!serviceTypes) {
-      return [];
-    }
-
-    const flattened: ServicePlanRow[] = [];
-
-    for (const [index, serviceType] of serviceTypes.entries()) {
-      if (!selectedServiceTypeIdSet.has(serviceType.id)) {
-        continue;
-      }
-
-      const plans = planQueries[index]?.data ?? [];
-      for (const plan of plans) {
-        const sortDate = parsePlanDate(plan.sortDate);
-        if (!sortDate) {
-          continue;
-        }
-
-        flattened.push({
-          serviceTypeId: serviceType.id,
-          serviceTypeName: serviceType.name,
-          serviceTypeSequence: serviceType.sequence,
-          planId: plan.id,
-          planTitle: plan.title,
-          seriesTitle: plan.seriesTitle ?? null,
-          seriesId: plan.seriesId ?? null,
-          sortDate,
-        });
-      }
-    }
-
-    return flattened.toSorted((a, b) => {
-      const byDate = a.sortDate.getTime() - b.sortDate.getTime();
-      if (byDate !== 0) {
-        return byDate;
-      }
-
-      const byServiceOrder = a.serviceTypeSequence - b.serviceTypeSequence;
-      if (byServiceOrder !== 0) {
-        return byServiceOrder;
-      }
-
-      const byServiceName = a.serviceTypeName.localeCompare(b.serviceTypeName);
-      if (byServiceName !== 0) {
-        return byServiceName;
-      }
-
-      return a.planTitle.localeCompare(b.planTitle);
-    });
-  }, [planQueries, selectedServiceTypeIdSet, serviceTypes]);
+  const rows = useMemo(
+    () =>
+      serviceTypes
+        ? buildServicePlanRows(
+            serviceTypes,
+            (_serviceType, index) => planQueries[index]?.data,
+            selectedServiceTypeIdSet
+          )
+        : [],
+    [planQueries, selectedServiceTypeIdSet, serviceTypes]
+  );
 
   const myScheduledPlanIdSet = useMemo(
     () => new Set(myScheduledPlans?.planIds),

@@ -23,6 +23,86 @@ export interface ServicePlanRow {
   sortDate: Date;
 }
 
+/** The service type fields a plan row carries. */
+export interface ServicePlanRowServiceType {
+  readonly id: string;
+  readonly name: string;
+  readonly sequence: number;
+}
+
+/** The plan fields a plan row carries. */
+export interface ServicePlanRowPlan {
+  readonly id: string;
+  readonly title: string;
+  readonly seriesTitle?: string | null;
+  readonly seriesId?: string | null;
+  readonly sortDate?: Date | string;
+}
+
+export const parsePlanDate = (
+  value: Date | string | undefined
+): Date | null => {
+  if (value === undefined || value === "") {
+    return null;
+  }
+  const parsed = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+/**
+ * The agenda's rows: every dated plan of the selected service types, in date order, then
+ * service type order (`sequence`, then name), then plan title. Plans without a sort date are
+ * left out. `plansFor` answers a service type's plans (undefined while they load).
+ */
+export const buildServicePlanRows = (
+  serviceTypes: readonly ServicePlanRowServiceType[],
+  plansFor: (
+    serviceType: ServicePlanRowServiceType,
+    index: number
+  ) => readonly ServicePlanRowPlan[] | undefined,
+  selectedServiceTypeIds: ReadonlySet<string>
+): ServicePlanRow[] => {
+  const rows: ServicePlanRow[] = [];
+  for (const [index, serviceType] of serviceTypes.entries()) {
+    if (!selectedServiceTypeIds.has(serviceType.id)) {
+      continue;
+    }
+    for (const plan of plansFor(serviceType, index) ?? []) {
+      const sortDate = parsePlanDate(plan.sortDate);
+      if (sortDate === null) {
+        continue;
+      }
+      rows.push({
+        serviceTypeId: serviceType.id,
+        serviceTypeName: serviceType.name,
+        serviceTypeSequence: serviceType.sequence,
+        planId: plan.id,
+        planTitle: plan.title,
+        seriesTitle: plan.seriesTitle ?? null,
+        seriesId: plan.seriesId ?? null,
+        sortDate,
+      });
+    }
+  }
+  return rows.toSorted(
+    (a, b) =>
+      a.sortDate.getTime() - b.sortDate.getTime() ||
+      a.serviceTypeSequence - b.serviceTypeSequence ||
+      a.serviceTypeName.localeCompare(b.serviceTypeName) ||
+      a.planTitle.localeCompare(b.planTitle)
+  );
+};
+
+/** "Deep Roots · Rooted": the plan and series titles that are present, or null for neither. */
+export const formatPlanDetail = (
+  row: Pick<ServicePlanRow, "planTitle" | "seriesTitle">
+): string | null => {
+  const parts = [row.planTitle, row.seriesTitle].filter(
+    (part): part is string => part !== null && part !== ""
+  );
+  return parts.length > 0 ? parts.join(" · ") : null;
+};
+
 /** "Sat, Oct 31, 2026" for the org calendar day a plan falls on. */
 export const formatPlanDate = (date: Date, orgTimeZone: string): string =>
   formatCalendarDateLabel(date, orgTimeZone, "weekdayMonthDayYear");
@@ -101,16 +181,6 @@ export const groupPlansByMonthAndDay = (
     }
   }
   return months;
-};
-
-export const parsePlanDate = (
-  value: Date | string | undefined
-): Date | null => {
-  if (value === undefined || value === "") {
-    return null;
-  }
-  const parsed = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
 export const isInDateWindow = (
