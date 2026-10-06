@@ -4,6 +4,7 @@
  * Each class lives in `faults/<name>.ts`; this module is the union and the status table.
  */
 import { AlreadyScheduled } from "@pcobooster/contracts/faults/already-scheduled";
+import { ClientOutdated } from "@pcobooster/contracts/faults/client-outdated";
 import { Conflict } from "@pcobooster/contracts/faults/conflict";
 import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
 import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
@@ -23,6 +24,7 @@ export const productFaultSchema = Schema.Union([
   Forbidden,
   InvalidInput,
   RequestRejected,
+  ClientOutdated,
   NotFound,
   Conflict,
   AlreadyScheduled,
@@ -45,6 +47,7 @@ export const faultOutcome = {
   Forbidden: { status: 403, code: "FORBIDDEN" },
   InvalidInput: { status: 400, code: "BAD_REQUEST" },
   RequestRejected: { status: 400, code: "BAD_REQUEST" },
+  ClientOutdated: { status: 426, code: "CLIENT_OUTDATED" },
   NotFound: { status: 404, code: "NOT_FOUND" },
   Conflict: { status: 409, code: "CONFLICT" },
   AlreadyScheduled: { status: 409, code: "ALREADY_SCHEDULED" },

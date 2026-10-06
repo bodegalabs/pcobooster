@@ -1,10 +1,12 @@
 /**
  * The only two ways to declare a procedure. Both fail with `ProductFault` and carry the
  * `ProcedureKind` annotation, so no procedure can miss either; `product.test.ts` checks every
- * procedure in `ProductRpc` has a kind.
+ * procedure in `ProductRpc` has a kind. A flagged procedure also carries `RequiredFeature`.
  */
 import { productFaultSchema } from "@pcobooster/contracts/faults";
+import type { FeatureFlagName } from "@pcobooster/contracts/features";
 import { REQUEST_PRIORITY_HEADER } from "@pcobooster/contracts/request-priority";
+import { RequiredFeature } from "@pcobooster/contracts/rpc/required-feature";
 import { Context } from "effect";
 import type { Schema } from "effect";
 import { Rpc } from "effect/unstable/rpc";
@@ -27,8 +29,10 @@ export interface ProcedureSchemas<
   Payload extends Schema.Top,
   Success extends Schema.Top,
 > {
+  /** `Schema.Void` for a procedure that takes no input (main's `.output` without `.input`). */
   readonly payload: Payload;
   readonly success: Success;
+  readonly feature?: FeatureFlagName;
 }
 
 /**
@@ -58,15 +62,20 @@ const procedure =
     Success extends Schema.Top,
   >(
     tag: Tag,
-    { payload, success }: ProcedureSchemas<Payload, Success>
-  ): Procedure<Kind, Tag, Payload, Success> =>
-    Object.assign(
-      Rpc.make(tag, { payload, success, error: productFaultSchema }).annotate(
-        ProcedureKind,
-        kind
-      ),
+    { payload, success, feature }: ProcedureSchemas<Payload, Success>
+  ): Procedure<Kind, Tag, Payload, Success> => {
+    const declared = Rpc.make(tag, {
+      payload,
+      success,
+      error: productFaultSchema,
+    }).annotate(ProcedureKind, kind);
+    return Object.assign(
+      feature === undefined
+        ? declared
+        : declared.annotate(RequiredFeature, feature),
       { kind }
     );
+  };
 
 export const read = procedure("read");
 export const write = procedure("write");
@@ -81,13 +90,10 @@ export const procedureKindOf = (
 export const RPC_HEADERS = {
   /** RPC message header, per call. Absent means interactive. */
   priority: REQUEST_PRIORITY_HEADER,
-  /** HTTP header: `<web|ssr|expo|deploy>;rpc=<protocol version>`. */
+  /** HTTP header: `<web|ssr|expo|deploy>;rpc=<protocol version>` (`client-version.ts`). */
   client: "x-pcobooster-client",
   requestId: "x-request-id",
 } as const;
-
-/** The RPC protocol version clients announce in `x-pcobooster-client`. */
-export const RPC_PROTOCOL_VERSION = 1;
 
 /** Response header on every RPC response: the API's release, for version-skew handling. */
 export const SERVER_VERSION_HEADER = "x-pcobooster-version";

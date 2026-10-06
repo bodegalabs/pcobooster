@@ -6,10 +6,9 @@
 import { isProductFault } from "@pcobooster/contracts/faults";
 import type { ProductFault } from "@pcobooster/contracts/faults";
 import type { RequestPriority } from "@pcobooster/contracts/request-priority";
-import {
-  RPC_HEADERS,
-  RPC_PROTOCOL_VERSION,
-} from "@pcobooster/contracts/rpc/procedure";
+import { formatClientHeader } from "@pcobooster/contracts/rpc/client-version";
+import type { ClientName } from "@pcobooster/contracts/rpc/client-version";
+import { RPC_HEADERS } from "@pcobooster/contracts/rpc/procedure";
 import { ProductRpc } from "@pcobooster/contracts/rpc/product";
 import type {
   ProcedureTag,
@@ -44,12 +43,10 @@ export type ProcedureOutput<Tag extends ProcedureTag> = Rpc.Success<
   ProcedureOf<Tag>
 >;
 
-/** Which app is calling; sent as `x-pcobooster-client` with the RPC protocol version. */
-export type ClientName = "web" | "ssr" | "expo" | "deploy";
-
 export interface ProductClientConfig {
   /** Absolute URL of `/api/rpc`. */
   readonly url: string;
+  /** Sent as `x-pcobooster-client` with the RPC protocol version. */
   readonly client: ClientName;
   /** Web: "include" (cookies). SSR, Expo, and the deploy check: "omit". */
   readonly credentials: RequestCredentials;
@@ -121,10 +118,7 @@ const withCallHeaders =
   (request: HttpClientRequest.HttpClientRequest) =>
     Effect.map(Effect.serviceOption(CallHttpHeaders), (perCall) => {
       const headers = new Headers(config.httpHeaders?.());
-      headers.set(
-        RPC_HEADERS.client,
-        `${config.client};rpc=${RPC_PROTOCOL_VERSION}`
-      );
+      headers.set(RPC_HEADERS.client, formatClientHeader(config.client));
       if (Option.isSome(perCall)) {
         for (const [name, value] of perCall.value) {
           headers.set(name, value);

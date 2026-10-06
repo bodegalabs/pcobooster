@@ -38,7 +38,7 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import { Database } from "./database";
-import { makeRpcRoute } from "./rpc-route";
+import { makeRpcRoute, waitUntilAfterDisconnect } from "./rpc-route";
 import { cachedAcrossRequests } from "./shared-initialization";
 
 export const FIXTURE_STATE_PATH = "/__fixture/state";
@@ -320,6 +320,7 @@ export default class RpcStackFixture extends Cloudflare.Worker<RpcStackFixture>(
           pacer,
           report: null,
           releaseVersion: server.config.releaseVersion,
+          afterDisconnect: waitUntilAfterDisconnect,
         }).pipe(Scope.provide(isolateScope));
       })
     );

@@ -47,12 +47,13 @@ describe("faults on the wire", () => {
     expect(persistence).not.toHaveProperty("detail");
   });
 
-  it("keeps main's status and code for every fault", () => {
+  it("keeps main's status and code for every fault main had, and 426 for an outdated client", () => {
     expect(faultOutcome).toStrictEqual({
       Unauthenticated: { status: 401, code: "UNAUTHORIZED" },
       Forbidden: { status: 403, code: "FORBIDDEN" },
       InvalidInput: { status: 400, code: "BAD_REQUEST" },
       RequestRejected: { status: 400, code: "BAD_REQUEST" },
+      ClientOutdated: { status: 426, code: "CLIENT_OUTDATED" },
       NotFound: { status: 404, code: "NOT_FOUND" },
       Conflict: { status: 409, code: "CONFLICT" },
       AlreadyScheduled: { status: 409, code: "ALREADY_SCHEDULED" },

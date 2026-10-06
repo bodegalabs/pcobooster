@@ -25,6 +25,7 @@ import {
 import * as Cloudflare from "alchemy/Cloudflare";
 import { Effect, Option } from "effect";
 import type { Scope } from "effect";
+import * as Cookies from "effect/unstable/http/Cookies";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
@@ -38,8 +39,22 @@ export const isRpcPath = (pathname: string): boolean =>
 const CLIENT_CLOSED_STATUS = 499;
 const METHOD_NOT_ALLOWED_STATUS = 405;
 
-export interface RpcRouteOptions extends ProductRpcServerOptions {
+/**
+ * Keeps the invocation alive for work that finishes after the caller left: writes completing
+ * uninterruptibly, and their outcome lines. The Worker uses workerd's `waitUntil`.
+ */
+export type AfterDisconnect<Services> = (
+  work: Effect.Effect<void>
+) => Effect.Effect<void, never, Services>;
+
+export const waitUntilAfterDisconnect = (work: Effect.Effect<void>) =>
+  Cloudflare.WorkerExecutionContext.pipe(
+    Effect.flatMap((execution) => execution.waitUntil(work))
+  );
+
+export interface RpcRouteOptions<Services> extends ProductRpcServerOptions {
   readonly releaseVersion: string;
+  readonly afterDisconnect: AfterDisconnect<Services>;
 }
 
 const routeLog = moduleLog("rpc");
@@ -90,13 +105,14 @@ const disconnected = (signal: AbortSignal): Effect.Effect<boolean> =>
 
 /**
  * The one writer of RPC response headers: `Cache-Control: private, no-store` and the server
- * version on every response, and an HTTP status mirrored from a lone procedure's outcome
+ * version on every response, each cookie a procedure set as its own `Set-Cookie` line (beside
+ * any the response already had), and an HTTP status mirrored from a lone procedure's outcome
  * (batches stay 200). The Effect client decodes the body whatever the status, so mirroring only
  * gives Workers Logs and Cloudflare analytics a truthful status column.
  */
-const finishResponse = (
+export const finishResponse = (
   response: HttpServerResponse.HttpServerResponse,
-  exchange: RpcExchangeState,
+  exchange: Pick<RpcExchangeState, "outcomes" | "cookies">,
   releaseVersion: string
 ): HttpServerResponse.HttpServerResponse => {
   const [only, ...others] = exchange.outcomes;
@@ -107,12 +123,16 @@ const finishResponse = (
     HttpServerResponse.setHeaders({
       "cache-control": "private, no-store",
       [SERVER_VERSION_HEADER]: releaseVersion,
-    })
+    }),
+    HttpServerResponse.mergeCookies(Cookies.fromIterable(exchange.cookies))
   );
 };
 
 const rpcRoute =
-  (httpEffect: ProductRpcHttpEffect, options: RpcRouteOptions) =>
+  <Services>(
+    httpEffect: ProductRpcHttpEffect,
+    options: RpcRouteOptions<Services>
+  ) =>
   (httpRequest: HttpServerRequest.HttpServerRequest) =>
     Effect.gen(function* serveRpc() {
       if (httpRequest.method !== "POST") {
@@ -150,8 +170,7 @@ const rpcRoute =
         )
       );
       if (Option.isNone(answered)) {
-        const execution = yield* Cloudflare.WorkerExecutionContext;
-        yield* execution.waitUntil(
+        yield* options.afterDisconnect(
           Effect.andThen(exchange.settled.await, writeUnsentOutcomes)
         );
         return HttpServerResponse.empty({ status: CLIENT_CLOSED_STATUS });
@@ -185,12 +204,12 @@ const rpcRoute =
     });
 
 /** The per-request handler: what the Worker's fetch runs for `POST /api/rpc`. */
-export type RpcRoute = ReturnType<typeof rpcRoute>;
+export type RpcRoute<Services> = ReturnType<typeof rpcRoute<Services>>;
 
 /** Builds the product RPC server in `scope` (the isolate's lifetime) and returns its route. */
-export const makeRpcRoute = (
-  options: RpcRouteOptions
-): Effect.Effect<RpcRoute, never, Scope.Scope> =>
+export const makeRpcRoute = <Services>(
+  options: RpcRouteOptions<Services>
+): Effect.Effect<RpcRoute<Services>, never, Scope.Scope> =>
   Effect.map(makeProductRpcServer(options), (httpEffect) =>
     rpcRoute(httpEffect, options)
   );

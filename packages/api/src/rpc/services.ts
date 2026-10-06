@@ -12,9 +12,11 @@ import type {
   ProcedureCall,
   ProcedureOutcome,
 } from "@pcobooster/api/rpc/outcome";
+import type { ResponseCookies } from "@pcobooster/api/rpc/response-cookies";
 import type { Server } from "@pcobooster/api/server";
 import type { RequestPriority } from "@pcobooster/contracts/request-priority";
 import { Context, Latch } from "effect";
+import type * as Cookies from "effect/unstable/http/Cookies";
 import type { HttpClient } from "effect/unstable/http/HttpClient";
 
 declare module "@pcobooster/contracts/rpc/server-services" {
@@ -23,7 +25,8 @@ declare module "@pcobooster/contracts/rpc/server-services" {
       | RequestContext
       | Server
       | PlanningCenterAccounting
-      | HttpClient;
+      | HttpClient
+      | ResponseCookies;
     readonly planningCenter: PlanningCenterRequest;
   }
 }
@@ -44,6 +47,8 @@ export interface FinishedProcedure {
  * - dispatched and finished procedures: ProcedureScope (`dispatch`, `finish`).
  * - `outcomes`: whoever writes a line (`recordLogged`); the route mirrors a lone outcome's
  *   status onto the HTTP response.
+ * - `cookies`: procedures, through `ResponseCookies`; the route writes each as its own
+ *   `Set-Cookie` line.
  */
 export interface RpcExchangeState {
   readonly request: Request;
@@ -54,6 +59,8 @@ export interface RpcExchangeState {
     { readonly tag: string; readonly priority: RequestPriority }
   >;
   readonly outcomes: readonly ProcedureOutcome[];
+  readonly cookies: readonly Cookies.Cookie[];
+  readonly setCookie: (cookie: Cookies.Cookie) => void;
   /**
    * Open while no dispatched procedure is running. After the caller disconnects the route waits
    * on it, so a write and its audit finish inside the invocation.
@@ -83,6 +90,7 @@ export const makeRpcExchange = (
   client: string | null
 ): RpcExchangeState => {
   const outcomes: ProcedureOutcome[] = [];
+  const cookies: Cookies.Cookie[] = [];
   const settled = Latch.makeUnsafe(true);
   const dispatched = new Set<string>();
   const finished = new Map<string, FinishedProcedure>();
@@ -93,6 +101,10 @@ export const makeRpcExchange = (
     client,
     calls: new Map(),
     outcomes,
+    cookies,
+    setCookie: (cookie) => {
+      cookies.push(cookie);
+    },
     settled,
     dispatch: (rpcRequestId) => {
       dispatched.add(rpcRequestId);

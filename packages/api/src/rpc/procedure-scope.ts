@@ -9,11 +9,17 @@ import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center
 import { PLANNING_CENTER_REQUEST_CAP } from "@pcobooster/api/planning-center/request-budget";
 import { procedureOutcome } from "@pcobooster/api/rpc/outcome";
 import type { ProcedureCall } from "@pcobooster/api/rpc/outcome";
+import { ResponseCookies } from "@pcobooster/api/rpc/response-cookies";
 import { RpcExchange } from "@pcobooster/api/rpc/services";
 import { Server, serverDependenciesForRequest } from "@pcobooster/api/server";
 import type { ServerDependencies } from "@pcobooster/api/server";
+import { ClientOutdated } from "@pcobooster/contracts/faults/client-outdated";
 import { InternalError } from "@pcobooster/contracts/faults/internal-error";
 import { parseRequestPriority } from "@pcobooster/contracts/request-priority";
+import {
+  isSupportedClient,
+  MINIMUM_RPC_PROTOCOL_VERSION,
+} from "@pcobooster/contracts/rpc/client-version";
 import {
   procedureKindOf,
   RPC_HEADERS,
@@ -52,16 +58,24 @@ const fromRequestFiber = <Identifier, Service>(
     })
   );
 
+const clientOutdated = new ClientOutdated({
+  message:
+    "This version of pcobooster is out of date. Reload or update it to continue.",
+  minimumProtocolVersion: MINIMUM_RPC_PROTOCOL_VERSION,
+});
+
 /**
  * The outermost middleware of every procedure. In order:
  * 1. marks the request id dispatched in the exchange (graft 2: a later defect for it is an
  *    encode failure, not a rejected request);
  * 2. builds the request context from the workerd request only, fresh Planning Center
  *    accounting with the call's priority, and the per-request server view;
- * 3. runs writes uninterruptibly (their kind comes from the contract), so a disconnect cannot
+ * 3. answers `ClientOutdated` without running the procedure when the caller's
+ *    `x-pcobooster-client` is below the supported protocol (or unreadable);
+ * 4. runs writes uninterruptibly (their kind comes from the contract), so a disconnect cannot
  *    cut a provider write or its audit short; `preparedWrite` reopens the prepare step;
- * 4. on exit, records the outcome for its one log line;
- * 5. answers anything that is not a ProductFault or an interrupt with InternalError, so no
+ * 5. on exit, records the outcome for its one log line;
+ * 6. answers anything that is not a ProductFault or an interrupt with InternalError, so no
  *    defect from a handler reaches the wire.
  */
 export const ProcedureScopeLive = (
@@ -91,7 +105,10 @@ export const ProcedureScopeLive = (
         accounting,
       };
       exchange.dispatch(rpcRequestId);
-      const program = effect.pipe(
+      const procedure = isSupportedClient(exchange.client)
+        ? effect
+        : Effect.fail(clientOutdated);
+      const program = procedure.pipe(
         Effect.provideService(RequestContext, {
           ...createRequestContext(exchange.request),
           requestId: exchange.requestId,
@@ -102,6 +119,7 @@ export const ProcedureScopeLive = (
         ),
         Effect.provideService(PlanningCenterAccounting, accounting),
         Effect.provideService(HttpClient.HttpClient, httpClient),
+        Effect.provideService(ResponseCookies, { set: exchange.setCookie }),
         Effect.provideService(PlanningCenterPacing, options.pacer),
         Effect.annotateLogs({
           procedure: rpc._tag,

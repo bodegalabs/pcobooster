@@ -1,10 +1,8 @@
 /** Catalog procedures over Effect RPC. Ported from the zod schemas in `../catalog.ts`. */
-import { PlanningCenterSession } from "@pcobooster/contracts/rpc/planning-center-session";
+import { planningCenterGroup } from "@pcobooster/contracts/rpc/group";
 import { read } from "@pcobooster/contracts/rpc/procedure";
+import { requiredId } from "@pcobooster/contracts/rpc/schema";
 import { Schema } from "effect";
-import { RpcGroup } from "effect/unstable/rpc";
-
-const requiredId = Schema.Trim.check(Schema.isMinLength(1));
 
 export const planSchema = Schema.Struct({
   id: Schema.String,
@@ -27,6 +25,4 @@ export const catalogPlan = read("catalog.plan", {
   success: Schema.NullOr(planSchema),
 });
 
-export const catalogRpc = RpcGroup.make(catalogPlan).middleware(
-  PlanningCenterSession
-);
+export const catalogRpc = planningCenterGroup(catalogPlan);

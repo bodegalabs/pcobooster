@@ -1,10 +1,8 @@
 /** Schedule procedures over Effect RPC. Ported from the zod schemas in `../schedule.ts`. */
-import { PlanningCenterSession } from "@pcobooster/contracts/rpc/planning-center-session";
+import { planningCenterGroup } from "@pcobooster/contracts/rpc/group";
 import { write } from "@pcobooster/contracts/rpc/procedure";
+import { requiredId } from "@pcobooster/contracts/rpc/schema";
 import { Effect, Schema } from "effect";
-import { RpcGroup } from "effect/unstable/rpc";
-
-const requiredId = Schema.Trim.check(Schema.isMinLength(1));
 
 export const scheduleAssignInputSchema = Schema.Struct({
   serviceTypeId: requiredId,
@@ -31,6 +29,4 @@ export const scheduleAssign = write("schedule.assign", {
   success: scheduleAssignOutputSchema,
 });
 
-export const scheduleRpc = RpcGroup.make(scheduleAssign).middleware(
-  PlanningCenterSession
-);
+export const scheduleRpc = planningCenterGroup(scheduleAssign);

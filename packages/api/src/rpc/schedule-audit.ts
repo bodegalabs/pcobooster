@@ -24,6 +24,11 @@ import { Effect, Exit } from "effect";
 
 const scheduleLog = moduleLog("schedule");
 
+export interface ScheduleAuditDependencies {
+  /** Writes one activity row; D1 through the request's server by default. */
+  readonly recordActivity?: (event: ActivityEventInput) => Promise<void>;
+}
+
 export interface ScheduleAssignAudit {
   readonly input: ScheduleAssignInput;
   readonly exit: Exit.Exit<ScheduleAssignOutput, unknown>;
@@ -83,7 +88,8 @@ export const scheduleActivityEvent = (
  */
 export const auditScheduleAssign = <Failure, Services>(
   input: ScheduleAssignInput,
-  program: Effect.Effect<ScheduleAssignOutput, Failure, Services>
+  program: Effect.Effect<ScheduleAssignOutput, Failure, Services>,
+  dependencies: ScheduleAuditDependencies = {}
 ): Effect.Effect<
   ScheduleAssignOutput,
   Failure,
@@ -102,8 +108,13 @@ export const auditScheduleAssign = <Failure, Services>(
         authentication,
         request
       );
+      const recordActivity =
+        dependencies.recordActivity ??
+        (async (row: ActivityEventInput) => {
+          await recordActivityEvent(server, row);
+        });
       return Effect.tryPromise(async () => {
-        await recordActivityEvent(server, event);
+        await recordActivity(event);
       }).pipe(
         Effect.catchCause((cause) =>
           scheduleLog.warn("Failed to record scheduling activity event", {

@@ -21,7 +21,12 @@ import { Database } from "./database";
 import { FeatureFlagApp } from "./feature-flags";
 import { apiWorkerObservability, apiWorkerTelemetry } from "./observability";
 import { PlanningCenterCache } from "./planning-center-cache";
-import { isRpcPath, makeRpcRoute, postHogProcedureReporter } from "./rpc-route";
+import {
+  isRpcPath,
+  makeRpcRoute,
+  postHogProcedureReporter,
+  waitUntilAfterDisconnect,
+} from "./rpc-route";
 import { cachedAcrossRequests } from "./shared-initialization";
 import { currentStageSettings } from "./stage";
 
@@ -206,6 +211,7 @@ export default class Api extends Cloudflare.Worker<Api>()(
           pacer,
           report: postHogProcedureReporter(config.postHogProjectKey),
           releaseVersion: config.releaseVersion,
+          afterDisconnect: waitUntilAfterDisconnect,
         }).pipe(Scope.provide(isolateScope));
         const hono = createServerApp({
           allowAuthWrite: async (clientIp) => {

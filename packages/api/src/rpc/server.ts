@@ -4,19 +4,16 @@
  * logging, and fault encoding come from the contract and its middleware.
  */
 import "@pcobooster/api/rpc/services";
-import { getCatalogPlan } from "@pcobooster/api/application/catalog";
-import {
-  commitScheduledPerson,
-  prepareScheduledPerson,
-} from "@pcobooster/api/application/schedule";
+import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
+import { CatalogHandlers } from "@pcobooster/api/rpc/handlers/catalog";
+import { HealthHandlers } from "@pcobooster/api/rpc/handlers/health";
+import { scheduleHandlers } from "@pcobooster/api/rpc/handlers/schedule";
 import { PlanningCenterSessionLive } from "@pcobooster/api/rpc/planning-center-session";
 import { ProcedureScopeLive } from "@pcobooster/api/rpc/procedure-scope";
 import type { ProcedureScopeOptions } from "@pcobooster/api/rpc/procedure-scope";
 import { classifyingProtocol } from "@pcobooster/api/rpc/protocol";
 import type { OutcomeLineOptions } from "@pcobooster/api/rpc/protocol";
-import { auditScheduleAssign } from "@pcobooster/api/rpc/schedule-audit";
-import { preparedWrite } from "@pcobooster/api/rpc/write";
-import { Server } from "@pcobooster/api/server";
+import type { ScheduleAuditDependencies } from "@pcobooster/api/rpc/schedule-audit";
 import { ProductRpc } from "@pcobooster/contracts/rpc/product";
 import { Effect, Layer } from "effect";
 import type { Scope } from "effect";
@@ -24,32 +21,27 @@ import type * as HttpServerRequest from "effect/unstable/http/HttpServerRequest"
 import type * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import { RpcSerialization, RpcServer } from "effect/unstable/rpc";
 
-export const ProductHandlersLive = ProductRpc.toLayer({
-  health: () =>
-    Server.pipe(
-      Effect.map(({ config }) => ({
-        status: "ok" as const,
-        version: config.releaseVersion,
-      }))
-    ),
-  "catalog.plan": (input) => getCatalogPlan(input),
-  "schedule.assign": (input) =>
-    auditScheduleAssign(
-      input,
-      preparedWrite(prepareScheduledPerson(input), (prepared) =>
-        commitScheduledPerson(input, prepared)
-      )
-    ),
-});
-
 export type ProductRpcServerOptions = ProcedureScopeOptions &
-  Omit<OutcomeLineOptions, "now">;
+  Omit<OutcomeLineOptions, "now"> & {
+    /** How procedures resolve Planning Center access; the Worker passes none. */
+    readonly access?: PlanningCenterAccessDependencies;
+    /** Where schedule writes are audited; the Worker passes none (D1). */
+    readonly scheduleAudit?: ScheduleAuditDependencies;
+  };
+
+/** Every namespace's handlers; one missing leaves `RpcServer.make` below unsatisfied. */
+export const productHandlers = (options: ProductRpcServerOptions) =>
+  Layer.mergeAll(
+    HealthHandlers,
+    CatalogHandlers,
+    scheduleHandlers(options.scheduleAudit)
+  );
 
 export const ProductRpcServerLive = (options: ProductRpcServerOptions) =>
   Layer.mergeAll(
-    ProductHandlersLive,
+    productHandlers(options),
     ProcedureScopeLive(options),
-    PlanningCenterSessionLive()
+    PlanningCenterSessionLive(options.access)
   );
 
 /** What each `/api/rpc` request runs: Effect's HTTP protocol over the shared server. */

@@ -4,8 +4,8 @@
  * A namespace merged here without its handler layer on the server is a type error.
  */
 import { catalogPlan, catalogRpc } from "@pcobooster/contracts/rpc/catalog";
+import { plainGroup } from "@pcobooster/contracts/rpc/group";
 import { read } from "@pcobooster/contracts/rpc/procedure";
-import { ProcedureScope } from "@pcobooster/contracts/rpc/procedure-scope";
 import {
   scheduleAssign,
   scheduleRpc,
@@ -24,11 +24,13 @@ export const health = read("health", {
   success: healthOutputSchema,
 });
 
-export const plainRpc = RpcGroup.make(health);
+export const healthRpc = plainGroup(health);
 
-export const ProductRpc = RpcGroup.make()
-  .merge(plainRpc, catalogRpc, scheduleRpc)
-  .middleware(ProcedureScope);
+export const ProductRpc = RpcGroup.make().merge(
+  healthRpc,
+  catalogRpc,
+  scheduleRpc
+);
 
 export type ProductRpcs = RpcGroup.Rpcs<typeof ProductRpc>;
 export type ProcedureTag = ProductRpcs["_tag"];
