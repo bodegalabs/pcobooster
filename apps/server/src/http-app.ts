@@ -9,7 +9,7 @@ import { NATIVE_SIGN_IN_START_PATH } from "@pcobooster/api/auth/native-sign-in";
 import { productApiLayer } from "@pcobooster/api/http/server";
 import type { ProductApiOptions } from "@pcobooster/api/http/server";
 import { SERVER_VERSION_HEADER } from "@pcobooster/contracts/rpc/procedure";
-import { Effect, Layer } from "effect";
+import { Context, Effect, Layer, Scope } from "effect";
 import * as HttpEffect from "effect/unstable/http/HttpEffect";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpRouter from "effect/unstable/http/HttpRouter";
@@ -86,29 +86,22 @@ const authRoute = ({
   });
 
 /**
- * `Cache-Control: private, no-store` on every response that does not set its own, and the API's
- * release on every response, applied as each response is sent (errors and 404s included).
+ * `Cache-Control: private, no-store` and the API's release on every response, applied as each is
+ * sent (errors, 404s, and Better Auth's answers included). Every answer is per caller, so this
+ * replaces whatever a route set, Better Auth's bare `no-store` among them.
  */
 const cachePolicy = (releaseVersion: string) =>
   HttpRouter.middleware(
     (httpApp) =>
       Effect.andThen(
-        HttpEffect.appendPreResponseHandler((_request, response) => {
-          const versioned = HttpServerResponse.setHeader(
-            response,
-            SERVER_VERSION_HEADER,
-            releaseVersion
-          );
-          return Effect.succeed(
-            response.headers["cache-control"] === undefined
-              ? HttpServerResponse.setHeader(
-                  versioned,
-                  "cache-control",
-                  "private, no-store"
-                )
-              : versioned
-          );
-        }),
+        HttpEffect.appendPreResponseHandler((_request, response) =>
+          Effect.succeed(
+            HttpServerResponse.setHeaders(response, {
+              "cache-control": "private, no-store",
+              [SERVER_VERSION_HEADER]: releaseVersion,
+            })
+          )
+        ),
         httpApp
       ),
     { global: true }
@@ -152,6 +145,18 @@ export const httpAppLayer = (options: HttpAppOptions) => {
 /** What the Worker runs for each request this router serves. */
 export type HttpApp = Effect.Success<ReturnType<typeof makeHttpApp>>;
 
-/** Builds the router in `scope` (the isolate's lifetime) and returns its per-request effect. */
+/**
+ * Builds the router in `scope` (the isolate's lifetime) and returns its per-request effect.
+ *
+ * The build sees only that scope. `HttpApiBuilder.group` captures every service of the fiber that
+ * builds it and provides them to each handler; the Worker builds the router inside its first
+ * request, whose services (Alchemy's HTTP client, tracer, and execution context) belong to that
+ * request's I/O context. Captured, they would serve every later request, which workerd answers by
+ * hanging. Each request supplies its own instead (`procedure-scope.ts` reads them).
+ */
 export const makeHttpApp = (options: HttpAppOptions) =>
-  HttpRouter.toHttpEffect(httpAppLayer(options));
+  Effect.updateContext(
+    HttpRouter.toHttpEffect(httpAppLayer(options)),
+    (context: Context.Context<Scope.Scope>) =>
+      Context.make(Scope.Scope, Context.get(context, Scope.Scope))
+  );
