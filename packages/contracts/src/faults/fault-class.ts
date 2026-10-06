@@ -2,9 +2,11 @@ import { Schema, SchemaGetter } from "effect";
 
 /**
  * `Schema.TaggedError` under a name that does not end in "Error": the lint fixer otherwise
- * rewrites each `TaggedError<Self>()(...)` call into `new`, which breaks the class.
+ * rewrites each `TaggedError<Self>()(...)` call into `new`, which breaks the class. A property
+ * read, not a destructure: destructuring the `Schema` namespace makes bundlers keep all of it,
+ * about 50 KB gzipped in the browser.
  */
-export const { TaggedError: faultClass } = Schema;
+export const faultClass = Schema.TaggedError;
 
 /**
  * A field the server sets, logs, and reports, but never encodes: encoding drops the key and
