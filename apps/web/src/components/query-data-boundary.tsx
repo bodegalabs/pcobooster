@@ -1,8 +1,7 @@
-import { messageErrorDataSchema } from "@pcobooster/contracts/errors";
+import { isProductFault } from "@pcobooster/contracts/faults";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { CircleAlert } from "lucide-react";
 import type { ReactNode } from "react";
-import { z } from "zod";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ export type ReadQueryState<T> = Pick<
   "data" | "error" | "isFetching" | "refetch"
 >;
 
-const errorWithDataSchema = z.object({ data: messageErrorDataSchema });
+const LOAD_FAILED_MESSAGE = "Couldn't load this data. Try again in a moment.";
 
 /** A failed refresh keeps its last data visible; a failed first read never looks empty. */
 export const QueryDataBoundary = ({
@@ -30,10 +29,11 @@ export const QueryDataBoundary = ({
   if (query.error === null) {
     return children;
   }
-  const parsed = errorWithDataSchema.safeParse(query.error);
-  const message = parsed.success
-    ? parsed.data.data.message
-    : "Couldn't load this data. Try again in a moment.";
+  // Faults carry a message written for people; anything else gets the generic one.
+  const message =
+    isProductFault(query.error) && query.error.message !== ""
+      ? query.error.message
+      : LOAD_FAILED_MESSAGE;
   return (
     <div className={cn("flex min-w-0 flex-col gap-3", className)}>
       <Alert>
