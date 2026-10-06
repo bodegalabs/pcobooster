@@ -21,7 +21,7 @@ import { classifyingProtocol } from "@pcobooster/api/rpc/protocol";
 import type { OutcomeLineOptions } from "@pcobooster/api/rpc/protocol";
 import type { ScheduleAuditDependencies } from "@pcobooster/api/rpc/schedule-audit";
 import { ProductRpc } from "@pcobooster/contracts/rpc/product";
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Tracer } from "effect";
 import type { Scope } from "effect";
 import type * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import type * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
@@ -89,6 +89,12 @@ export const makeProductRpcServer = (
         })
       ),
       Effect.provide(ProductRpcServerLive(options)),
+      // The server outlives the request that builds it. A Worker's tracer is bound to one
+      // invocation's async context (Alchemy's Cloudflare tracer runs every step inside it), so
+      // the server's own fibers would keep running in that finished request and hang later
+      // ones. Each procedure still traces with its own request's tracer: a handler runs in the
+      // context of the request fiber that wrote it.
+      Effect.withTracer(Tracer.nativeTracer),
       // Started now, so its receive loop is installed before the first request writes to it
       // and every request is handled on its own fiber, in its own workerd I/O context.
       Effect.forkScoped({ startImmediately: true })

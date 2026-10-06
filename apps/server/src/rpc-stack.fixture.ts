@@ -369,6 +369,8 @@ export default class RpcStackFixture extends Cloudflare.Worker<RpcStackFixture>(
     };
   }).pipe(
     Effect.provide(structuredLogging),
+    // As the API Worker traces: a tracer per invocation, bound to that invocation's context.
+    Effect.provide(Cloudflare.Telemetry({ headSamplingRate: 1 })),
     Effect.provide(Cloudflare.D1.QueryDatabaseBinding)
   )
 ) {}
