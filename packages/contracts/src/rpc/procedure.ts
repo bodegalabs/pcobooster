@@ -7,8 +7,7 @@ import { productFaultSchema } from "@pcobooster/contracts/faults";
 import type { FeatureFlagName } from "@pcobooster/contracts/features";
 import { REQUEST_PRIORITY_HEADER } from "@pcobooster/contracts/request-priority";
 import { RequiredFeature } from "@pcobooster/contracts/rpc/required-feature";
-import { Context } from "effect";
-import type { Schema } from "effect";
+import { Context, Schema } from "effect";
 import { Rpc } from "effect/unstable/rpc";
 
 /**
@@ -52,6 +51,17 @@ export type Procedure<
   typeof productFaultSchema
 > & {
   readonly kind: Kind;
+  /**
+   * The same procedure as clients send it: the payload schema reduced to its encoded side, so a
+   * client sends what the caller passed and the server's decode (trimming, checks) runs on the
+   * server, as main's did. Untrimmed or invalid input is the server's to accept or reject.
+   */
+  readonly wire: Rpc.Rpc<
+    Tag,
+    Schema.toEncoded<Payload>,
+    Success,
+    typeof productFaultSchema
+  >;
 };
 
 const procedure =
@@ -73,7 +83,14 @@ const procedure =
       feature === undefined
         ? declared
         : declared.annotate(RequiredFeature, feature),
-      { kind }
+      {
+        kind,
+        wire: Rpc.make(tag, {
+          payload: Schema.toEncoded(payload),
+          success,
+          error: productFaultSchema,
+        }),
+      }
     );
   };
 

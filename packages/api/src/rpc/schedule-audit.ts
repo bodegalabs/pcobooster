@@ -52,6 +52,13 @@ export interface ScheduleAuditDependencies {
   readonly recordActivity?: (event: ActivityEventInput) => Promise<void>;
 }
 
+/**
+ * The row's `path` names the procedure, as main's per-procedure oRPC URLs did
+ * (`/api/rpc/schedule/assign`); every Effect RPC call shares one URL, which says nothing.
+ */
+const procedurePath = (operation: ScheduleOperation): string =>
+  `/api/rpc/schedule/${operation}`;
+
 const decodeAssignOutput = Schema.decodeUnknownOption(
   scheduleAssignOutputSchema
 );
@@ -103,6 +110,7 @@ export const scheduleActivityEvent = (
   const { input } = attempt;
   return {
     ...getActivityRequestContext(request.request),
+    path: procedurePath(attempt.operation),
     requestId: request.requestId,
     eventType: eventTypes[attempt.operation],
     actorUserId: authentication.userId,
@@ -164,7 +172,7 @@ export const auditSchedule = <Value, Failure, Services>(
           scheduleLog.warn("Failed to record scheduling activity event", {
             requestId: request.requestId,
             method: request.method,
-            path: new URL(request.url).pathname,
+            path: procedurePath(operation),
             error: causeError(cause).message,
           })
         )

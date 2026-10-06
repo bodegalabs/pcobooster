@@ -1,6 +1,6 @@
 /**
  * The one product RPC client for web, SSR, Expo, and the deploy check. Each client builds one
- * `ManagedRuntime` holding `RpcClient.make(ProductRpc)`; every call is a lookup by tag on that
+ * `ManagedRuntime` holding `RpcClient.make(ProductWireRpc)`; every call is a lookup by tag on that
  * client, so a new procedure needs no client edit.
  */
 import { isProductFault } from "@pcobooster/contracts/faults";
@@ -9,10 +9,10 @@ import type { RequestPriority } from "@pcobooster/contracts/request-priority";
 import { formatClientHeader } from "@pcobooster/contracts/rpc/client-version";
 import type { ClientName } from "@pcobooster/contracts/rpc/client-version";
 import { RPC_HEADERS } from "@pcobooster/contracts/rpc/procedure";
-import { ProductRpc } from "@pcobooster/contracts/rpc/product";
+import { ProductWireRpc } from "@pcobooster/contracts/rpc/product";
 import type {
   ProcedureTag,
-  ProductRpcs,
+  ProductWireRpcs,
   ReadProcedureTag,
 } from "@pcobooster/contracts/rpc/product";
 import {
@@ -35,7 +35,14 @@ import {
 } from "effect/unstable/rpc";
 import type { Rpc } from "effect/unstable/rpc";
 
-type ProcedureOf<Tag extends ProcedureTag> = Rpc.ExtractTag<ProductRpcs, Tag>;
+type ProcedureOf<Tag extends ProcedureTag> = Rpc.ExtractTag<
+  ProductWireRpcs,
+  Tag
+>;
+/**
+ * The payload's encoded form: what the server decodes. Untrimmed text is accepted here and
+ * trimmed (or rejected) by the server, so the client never refuses input main's server took.
+ */
 export type ProcedureInput<Tag extends ProcedureTag> = Rpc.PayloadConstructor<
   ProcedureOf<Tag>
 >;
@@ -134,7 +141,7 @@ const withCallHeaders =
 
 const clientLayer = (config: ProductClientConfig) =>
   Layer.effect(ProductRpcClient)(
-    RpcClient.make(ProductRpc).pipe(Effect.map((client): Senders => client))
+    RpcClient.make(ProductWireRpc).pipe(Effect.map((client): Senders => client))
   ).pipe(
     Layer.provide(
       RpcClient.layerProtocolHttp({

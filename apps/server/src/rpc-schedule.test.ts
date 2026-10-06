@@ -268,8 +268,7 @@ describe("schedule writes over Effect RPC", () => {
     );
     expect(recordActivity).toHaveBeenNthCalledWith(1, {
       requestId: "request-1",
-      // Effect's HTTP client posts to the RPC URL with a trailing slash.
-      path: "/api/rpc/",
+      path: "/api/rpc/schedule/assign",
       method: "POST",
       ipAddress: "192.0.2.5",
       userAgent: "test-agent",
@@ -460,7 +459,7 @@ describe("schedule writes over Effect RPC", () => {
         procedure: "schedule.assign",
         requestId: "request-1",
         method: "POST",
-        path: "/api/rpc/",
+        path: "/api/rpc/schedule/assign",
         error: "database unavailable",
       },
     });

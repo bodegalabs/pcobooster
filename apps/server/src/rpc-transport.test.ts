@@ -16,6 +16,7 @@ import { httpClientFor } from "@pcobooster/api/testing/http-client";
 import { testServer } from "@pcobooster/api/testing/server";
 import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { InternalError } from "@pcobooster/contracts/faults/internal-error";
+import { RequestRejected } from "@pcobooster/contracts/faults/request-rejected";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import { Effect, Tracer } from "effect";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -81,6 +82,31 @@ const planningCenter = () => {
     );
   });
   return { requests, httpClient };
+};
+
+/** A Planning Center whose people search finds Ann, recording each search term it was sent. */
+const peopleDirectory = () => {
+  const searches: (string | null)[] = [];
+  const httpClient = httpClientFor(async (input) => {
+    searches.push(
+      new URL(new Request(input).url).searchParams.get("where[search_name]")
+    );
+    return await Promise.resolve(
+      Response.json({
+        data: [
+          {
+            type: "Person",
+            id: "person-1",
+            attributes: { first_name: "Ann", last_name: "Lee", avatar: null },
+            relationships: {},
+          },
+        ],
+        included: [],
+        meta: { total_count: 1 },
+      })
+    );
+  });
+  return { searches, httpClient };
 };
 
 const rawRpc = (
@@ -245,6 +271,40 @@ describe("faults on the Effect RPC route", () => {
       },
     ]);
     expect(reports).toStrictEqual([]);
+  });
+});
+
+describe("payload decoding", () => {
+  it("sends input as the caller wrote it, so the server trims a people search as main's did", async () => {
+    const { searches, httpClient } = peopleDirectory();
+    const route = serve({ httpClient });
+
+    const results = await route
+      .client()
+      .call("people.search", { query: " ann " });
+
+    expect({ results, searches }).toStrictEqual({
+      results: [
+        {
+          id: "person-1",
+          firstName: "Ann",
+          lastName: "Lee",
+          fullName: "Ann Lee",
+          photoThumbnailUrl: null,
+        },
+      ],
+      searches: ["ann"],
+    });
+  });
+
+  it("leaves rejecting input to the server, which answers RequestRejected", async () => {
+    const { searches, httpClient } = peopleDirectory();
+    const route = serve({ httpClient });
+
+    const call = route.client().call("people.search", { query: " a " });
+
+    await expect(call).rejects.toBeInstanceOf(RequestRejected);
+    expect(searches).toStrictEqual([]);
   });
 });
 
