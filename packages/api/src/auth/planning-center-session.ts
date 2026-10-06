@@ -64,10 +64,11 @@ export interface PlanningCenterUserAuthContext {
 }
 
 export const requirePlanningCenterAccessToken = async (
-  { auth, config }: Pick<ServerDependencies, "auth" | "config">,
+  server: Pick<ServerDependencies, "auth" | "config">,
   request: Request
 ): Promise<PlanningCenterUserAuthContext> => {
-  if (config.devAuthBypass) {
+  // The bypass never reads Better Auth, so it works where none is configured.
+  if (server.config.devAuthBypass) {
     return {
       session: getDevBypassSession(),
       accessToken: "",
@@ -77,6 +78,7 @@ export const requirePlanningCenterAccessToken = async (
     };
   }
 
+  const { auth } = server;
   const session = await auth.api.getSession({
     headers: request.headers,
   });
