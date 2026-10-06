@@ -820,7 +820,7 @@ test(
     );
     assert.deepStrictEqual(
       [wrongMethod.status, wrongMethod.headers.get("allow"), wrongMethod.tag],
-      [405, "DELETE, PATCH", null]
+      [405, "DELETE, PATCH", "RequestRejected"]
     );
     assert.deepStrictEqual(
       [...unknownState.logs, ...methodState.logs].map(({ level, fields }) => [
@@ -833,7 +833,7 @@ test(
       ]),
       [
         ["Info", null, "GET", "/api/v1/catalog/retired", 400, null],
-        ["Info", null, "GET", "/api/v1/plan-people/pp-1", 405, null],
+        ["Info", null, "GET", "/api/v1/plan-people/:planPersonId", 405, null],
       ]
     );
   }),

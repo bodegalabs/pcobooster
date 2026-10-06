@@ -49,7 +49,11 @@ export const matchRoutePath = (
   for (const [index, part] of template.entries()) {
     const value = actual[index] ?? "";
     if (part.startsWith(":")) {
-      params[part.slice(1)] = decodeURIComponent(value);
+      try {
+        params[part.slice(1)] = decodeURIComponent(value);
+      } catch {
+        return undefined;
+      }
     } else if (part !== value) {
       return undefined;
     }
@@ -71,6 +75,7 @@ export type RouteMatch =
   | {
       readonly kind: "wrong-method";
       readonly allow: readonly ProcedureMethod[];
+      readonly route: ProcedureRoute["path"];
     }
   | { readonly kind: "unknown" };
 
@@ -94,10 +99,14 @@ export const matchRoute = (
   if (found !== undefined) {
     return { kind: "found", ...found };
   }
-  if (matching.length > 0) {
+  const [firstMatch] = matching.toSorted(
+    (a, b) => staticSegments(b.route) - staticSegments(a.route)
+  );
+  if (firstMatch !== undefined) {
     return {
       kind: "wrong-method",
       allow: [...new Set(matching.map(({ route }) => route.method))],
+      route: firstMatch.route.path,
     };
   }
   return { kind: "unknown" };

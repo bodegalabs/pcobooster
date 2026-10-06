@@ -42,11 +42,15 @@ export const unmatchedProductRequest = (now: () => number = Date.now) =>
     const { requestId } = createRequestContext(request);
     const { pathname } = new URL(request.url);
     const match = matchRoute(procedureRoutes, request.method, pathname);
+    const fault = new RequestRejected({
+      message: REJECTED_MESSAGE,
+      reason: "unknown-endpoint",
+    });
     const call = {
       procedure: null,
       requestId,
       method: request.method,
-      route: pathname,
+      route: match.kind === "wrong-method" ? match.route : pathname,
       client: request.headers.get(CLIENT_HEADER),
       priority: parseRequestPriority(
         request.headers.get(REQUEST_PRIORITY_HEADER)
@@ -60,25 +64,19 @@ export const unmatchedProductRequest = (now: () => number = Date.now) =>
         kind: "fault",
         status: METHOD_NOT_ALLOWED,
         code: "METHOD_NOT_ALLOWED",
-        fault: new RequestRejected({
-          message: REJECTED_MESSAGE,
-          reason: "unknown-endpoint",
-        }),
+        fault,
       };
       yield* writeOutcome(
         null,
         procedureLogFields(call, outcome, now()),
         outcome
       );
-      return HttpServerResponse.empty({
+      return HttpServerResponse.jsonUnsafe(encodeRejected(fault), {
         status: METHOD_NOT_ALLOWED,
         headers: { allow: match.allow.join(", ") },
       });
     }
-    const fault = new RequestRejected({
-      message: REJECTED_MESSAGE,
-      reason: "unknown-endpoint",
-    });
+
     const outcome = faultOutcomeOf(fault);
     yield* writeOutcome(
       null,

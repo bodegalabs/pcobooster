@@ -202,7 +202,11 @@ describe(matchRoute, () => {
       matchRoute(procedureRoutes, "GET", "/api/v1/plan-people/pp-1"),
       matchRoute(procedureRoutes, "GET", "/api/v1/retired"),
     ]).toStrictEqual([
-      { kind: "wrong-method", allow: ["DELETE", "PATCH"] },
+      {
+        kind: "wrong-method",
+        allow: ["DELETE", "PATCH"],
+        route: "/api/v1/plan-people/:planPersonId",
+      },
       { kind: "unknown" },
     ]);
   });

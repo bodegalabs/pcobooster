@@ -11,8 +11,10 @@ import {
 } from "@pcobooster/api/planning-center/services/factory";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
+import { makeProductClient } from "@pcobooster/client/product-client";
 import { ClientOutdated } from "@pcobooster/contracts/faults/client-outdated";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
+import { RequestRejected } from "@pcobooster/contracts/faults/request-rejected";
 import { SERVER_VERSION_HEADER } from "@pcobooster/contracts/http/client-version";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
@@ -68,14 +70,14 @@ describe("health through the product API", () => {
     expect(outcomeLines(app)).toStrictEqual([
       {
         level: "info",
-        procedure: "health",
+        procedure: "health.get",
         status: 200,
         code: null,
         client: "deploy;api=1",
       },
       {
         level: "info",
-        procedure: "health",
+        procedure: "health.get",
         status: 200,
         code: null,
         client: "web;api=1",
@@ -94,7 +96,7 @@ describe("health through the product API", () => {
     expect(outcomeLines(app)).toStrictEqual([
       {
         level: "info",
-        procedure: "health",
+        procedure: "health.get",
         status: 426,
         code: "CLIENT_OUTDATED",
         client: null,
@@ -106,12 +108,19 @@ describe("health through the product API", () => {
     "answers ClientOutdated (426) to a caller announcing %s, without running the procedure",
     async (header) => {
       const app = serveHttpForTest({ server: testServer() });
-      const client = app.client({ client: "expo" });
+      const client = makeProductClient({
+        url: TEST_API_ORIGIN,
+        client: "expo",
+        // Simulate an old binary after its transport has added that binary's version header.
+        fetch: async (input, init) => {
+          const request = new Request(input, init);
+          request.headers.set("x-pcobooster-client", header);
+          return await app.fetch(request);
+        },
+      });
 
       await expect(
-        client.run((api) => api.health.get(), {
-          httpHeaders: { "x-pcobooster-client": header },
-        })
+        client.run((api) => api.health.get())
       ).rejects.toBeInstanceOf(ClientOutdated);
       const response = await app.fetch(
         raw("GET", "/api/v1/health", {
@@ -123,7 +132,7 @@ describe("health through the product API", () => {
       expect(response.headers.get("cache-control")).toBe(privateNoStore);
       expect(outcomeLines(app).at(-1)).toStrictEqual({
         level: "info",
-        procedure: "health",
+        procedure: "health.get",
         status: 426,
         code: "CLIENT_OUTDATED",
         client: header,
@@ -317,8 +326,49 @@ describe("requests that match no endpoint", () => {
           fields.code,
         ])
     ).toStrictEqual([
-      [null, "POST", `${ITEMS}/item-1`, 405, "METHOD_NOT_ALLOWED"],
+      [
+        null,
+        "POST",
+        "/api/v1/service-types/:serviceTypeId/plans/:planId/items/:itemId",
+        405,
+        "METHOD_NOT_ALLOWED",
+      ],
     ]);
+  });
+
+  it.each(["/api/v1", "/api/v1/plan-people/%E0%A4"])(
+    "rejects a router miss at %s with a readable fault and an outcome",
+    async (path) => {
+      const app = serveHttpForTest({ server: testServer() });
+      const reply = await app.fetch(raw("GET", path));
+      expect(reply.status).toBe(400);
+      await expect(reply.json()).resolves.toMatchObject({
+        _tag: "RequestRejected",
+        reason: "unknown-endpoint",
+      });
+      expect(outcomeLines(app)).toMatchObject([{ status: 400 }]);
+      expect(reply.headers.get("cache-control")).toBe(privateNoStore);
+    }
+  );
+
+  it("decodes a wrong-method response as RequestRejected with Allow", async () => {
+    const app = serveHttpForTest({ server: testServer() });
+    const client = makeProductClient({
+      url: TEST_API_ORIGIN,
+      client: "web",
+      fetch: async (input, init) =>
+        await app.fetch(
+          new Request(input, { ...init, method: "GET", body: undefined })
+        ),
+    });
+    await expect(
+      client.run((api) =>
+        api.schedule.updateStatus({
+          params: { planPersonId: "1" },
+          payload: { status: "C" },
+        })
+      )
+    ).rejects.toBeInstanceOf(RequestRejected);
   });
 
   it("answers an unknown /api/v1 path RequestRejected (unknown-endpoint), never NotFound", async () => {

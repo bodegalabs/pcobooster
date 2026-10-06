@@ -22,6 +22,7 @@ import * as HttpEffect from "effect/unstable/http/HttpEffect";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpRouter from "effect/unstable/http/HttpRouter";
 import * as HttpServer from "effect/unstable/http/HttpServer";
+import * as HttpServerError from "effect/unstable/http/HttpServerError";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
@@ -182,7 +183,31 @@ export const makeHttpApp = <Services>(options: HttpAppOptions<Services>) => {
       Context.make(Scope.Scope, Context.get(context, Scope.Scope))
   ).pipe(
     Effect.map((router) =>
-      cachePolicy(cors(surviveDisconnect(options.afterDisconnect)(router)))
+      cachePolicy(
+        cors(
+          surviveDisconnect(options.afterDisconnect)(
+            router.pipe(
+              Effect.catchIf(
+                (failure) =>
+                  HttpServerError.isHttpServerError(failure) &&
+                  failure.reason._tag === "RouteNotFound",
+                (failure) =>
+                  Effect.gen(function* rejectedRouterPath() {
+                    const request = yield* HttpServerRequest.HttpServerRequest;
+                    const { pathname } = new URL(request.url, "http://api");
+                    if (
+                      pathname === API_PREFIX ||
+                      pathname.startsWith(`${API_PREFIX}/`)
+                    ) {
+                      return yield* unmatchedProductRequest(options.now);
+                    }
+                    return yield* Effect.fail(failure);
+                  })
+              )
+            )
+          )
+        )
+      )
     )
   );
 };

@@ -1,7 +1,7 @@
 /**
  * What one procedure answered, and the one log line it writes. ProcedureScope classifies a
- * handler's Exit; the protocol (`protocol.ts`) classifies requests that never reached a handler
- * and successes that failed to encode. Both write the same line through `logProcedureOutcome`.
+ * handler's Exit, including successes that failed to encode; the router fallback classifies
+ * unmatched requests. Both write the same line through `logProcedureOutcome`.
  */
 import { moduleLog } from "@pcobooster/api/logging";
 import type { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
