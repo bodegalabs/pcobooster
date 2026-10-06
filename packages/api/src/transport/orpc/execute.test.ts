@@ -1,5 +1,4 @@
 import { RequestContext } from "@pcobooster/api/application/context";
-import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
 import { moduleLog } from "@pcobooster/api/logging";
 import { currentPlanningCenterRequestCount } from "@pcobooster/api/planning-center/accounting";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
@@ -7,6 +6,7 @@ import { recordLogs } from "@pcobooster/api/testing/logs";
 import { testRuntime } from "@pcobooster/api/testing/runtime";
 import { testServer } from "@pcobooster/api/testing/server";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
+import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 

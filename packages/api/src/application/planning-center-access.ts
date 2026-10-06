@@ -1,10 +1,5 @@
 import { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
-import { ExternalServiceFailure } from "@pcobooster/api/application/errors/external-service-failure";
-import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
-import { InvalidInput } from "@pcobooster/api/application/errors/invalid-input";
-import { RateLimited } from "@pcobooster/api/application/errors/rate-limited";
-import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
 import { planningCenterServicesContext } from "@pcobooster/api/application/planning-center/services";
 import type { PlanningCenterServices } from "@pcobooster/api/application/planning-center/services";
 import { resolveDemoSession } from "@pcobooster/api/auth/demo-access";
@@ -26,6 +21,11 @@ import {
 } from "@pcobooster/api/planning-center/services/factory";
 import { Server } from "@pcobooster/api/server";
 import type { ServerDependencies } from "@pcobooster/api/server";
+import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
+import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
+import { InvalidInput } from "@pcobooster/contracts/faults/invalid-input";
+import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
+import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import {
   getPresentationSeed,
   isPresentationMode,

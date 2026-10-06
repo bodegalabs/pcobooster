@@ -1,8 +1,5 @@
 import { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
-import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
-import { PersistenceFailure } from "@pcobooster/api/application/errors/persistence-failure";
-import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
 import { resolveDemoSession } from "@pcobooster/api/auth/demo-access";
 import { getDevBypassSession } from "@pcobooster/api/auth/dev-bypass";
 import { boundaryLog } from "@pcobooster/api/logging";
@@ -13,6 +10,9 @@ import { submitFeedback } from "@pcobooster/api/modules/feedback/submit-feedback
 import type { FeedbackDependencies } from "@pcobooster/api/modules/feedback/submit-feedback";
 import { Server } from "@pcobooster/api/server";
 import type { ServerDependencies } from "@pcobooster/api/server";
+import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
+import { PersistenceFailure } from "@pcobooster/contracts/faults/persistence-failure";
+import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import type { FeedbackSubmitInput } from "@pcobooster/contracts/feedback";
 import { Effect } from "effect";
 
@@ -57,7 +57,7 @@ export const createSubmitFeedbackDependencies = ({
 
 const persistenceFailure = (operation: string) => (cause: unknown) =>
   new PersistenceFailure({
-    message: "Could not send feedback.",
+    detail: "Could not send feedback.",
     operation,
     cause,
   });

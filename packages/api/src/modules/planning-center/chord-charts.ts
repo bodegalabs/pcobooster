@@ -1,5 +1,3 @@
-import { Conflict } from "@pcobooster/api/application/errors/conflict";
-import { ExternalServiceFailure } from "@pcobooster/api/application/errors/external-service-failure";
 import { normalizeKeyOption } from "@pcobooster/api/modules/planning-center/plan-items-shared";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type {
@@ -25,6 +23,8 @@ import type {
   ChordChartSongOutput,
   ChordChartUpdateInput,
 } from "@pcobooster/contracts/chord-charts";
+import { Conflict } from "@pcobooster/contracts/faults/conflict";
+import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
 import {
   isNonEmptyString,
   isNumber,

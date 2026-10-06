@@ -12,6 +12,8 @@
     "./chord-charts": "./src/chord-charts.ts",
     "./demo": "./src/demo.ts",
     "./errors": "./src/errors.ts",
+    "./faults": "./src/faults.ts",
+    "./faults/*": "./src/faults/*.ts",
     "./features": "./src/features.ts",
     "./feedback": "./src/feedback.ts",
     "./identity": "./src/identity.ts",
@@ -37,6 +39,7 @@
   "dependencies": {
     "@orpc/contract": "^1.15.0",
     "@pcobooster/planning-center-models": "workspace:*",
+    "effect": "4.0.0-rc.117",
     "zod": "^4.6.5"
   },
   "devDependencies": {

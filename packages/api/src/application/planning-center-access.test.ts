@@ -2,9 +2,6 @@ import {
   createRequestContext,
   RequestContext,
 } from "@pcobooster/api/application/context";
-import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
-import { InvalidInput } from "@pcobooster/api/application/errors/invalid-input";
-import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
 import {
   explainPlanningCenterDenial,
   planningCenterFault,
@@ -30,6 +27,9 @@ import {
 } from "@pcobooster/api/testing/http-client";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { DEMO_SESSION_COOKIE } from "@pcobooster/contracts/demo";
+import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
+import { InvalidInput } from "@pcobooster/contracts/faults/invalid-input";
+import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import { Cause, Effect, Exit } from "effect";
 import * as HttpClient from "effect/unstable/http/HttpClient";
 import { afterEach, describe, expect, it, vi } from "vitest";

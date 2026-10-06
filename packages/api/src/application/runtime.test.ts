@@ -2,8 +2,8 @@ import {
   createRequestContext,
   RequestContext,
 } from "@pcobooster/api/application/context";
-import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
 import { applicationRuntimeFor } from "@pcobooster/api/application/runtime";
+import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { Cause, Context, Deferred, Effect, Exit, Option } from "effect";
 import { describe, expect, it } from "vitest";
 

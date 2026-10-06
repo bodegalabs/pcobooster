@@ -234,6 +234,7 @@
       "dependencies": {
         "@orpc/contract": "^1.15.0",
         "@pcobooster/planning-center-models": "workspace:*",
+        "effect": "4.0.0-rc.117",
         "zod": "^4.6.5",
       },
       "devDependencies": {
