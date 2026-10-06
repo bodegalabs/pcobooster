@@ -1,7 +1,7 @@
 /**
  * The D1 audit of schedule writes over Effect RPC: the port of the oRPC transport's audited
  * middleware and `schedule-activity.ts`. A handler combinator, not middleware, because it needs
- * each procedure's exact payload and success types.
+ * each procedure's own input and answer.
  */
 import { RequestContext } from "@pcobooster/api/application/context";
 import type { RequestContextValue } from "@pcobooster/api/application/context";
@@ -15,30 +15,69 @@ import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
 import { moduleLog } from "@pcobooster/api/logging";
 import { causeError, procedureOutcome } from "@pcobooster/api/rpc/outcome";
 import { Server } from "@pcobooster/api/server";
-import type {
-  ScheduleAssignInput,
-  ScheduleAssignOutput,
-} from "@pcobooster/contracts/rpc/schedule";
+import { scheduleAssignOutputSchema } from "@pcobooster/contracts/rpc/schedule";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
-import { Effect, Exit } from "effect";
+import { Effect, Exit, Option, Schema } from "effect";
 
 const scheduleLog = moduleLog("schedule");
+
+export type ScheduleOperation = "assign" | "remove" | "updateStatus";
+
+const eventTypes = {
+  assign: "schedule_attempt",
+  remove: "schedule_remove",
+  updateStatus: "schedule_status_change",
+} as const satisfies Record<ScheduleOperation, string>;
+
+/** The input fields any schedule write may carry; each operation's payload is one of these. */
+export interface ScheduleActivityFields {
+  readonly planPersonId?: string;
+  readonly personId?: string;
+  readonly serviceTypeId?: string;
+  readonly planId?: string;
+  readonly teamId?: string;
+  readonly positionId?: string;
+  readonly status?: "C" | "U" | "D";
+  readonly oneOff?: boolean;
+}
+
+export interface ScheduleAttempt {
+  readonly operation: ScheduleOperation;
+  readonly input: ScheduleActivityFields;
+  readonly exit: Exit.Exit<unknown, unknown>;
+}
 
 export interface ScheduleAuditDependencies {
   /** Writes one activity row; D1 through the request's server by default. */
   readonly recordActivity?: (event: ActivityEventInput) => Promise<void>;
 }
 
-export interface ScheduleAssignAudit {
-  readonly input: ScheduleAssignInput;
-  readonly exit: Exit.Exit<ScheduleAssignOutput, unknown>;
-}
+const decodeAssignOutput = Schema.decodeUnknownOption(
+  scheduleAssignOutputSchema
+);
 
-const assignMetadata = ({ input, exit }: ScheduleAssignAudit): JsonObject => {
-  const metadata: JsonObject = { oneOff: input.oneOff };
-  if (Exit.isSuccess(exit)) {
-    metadata.planPersonId = exit.value.data.id;
-    return metadata;
+/** Main's metadata, field for field: the target, the status, and what an assignment made. */
+const activityMetadata = ({
+  operation,
+  input,
+  exit,
+}: ScheduleAttempt): JsonObject => {
+  const metadata: JsonObject = {};
+  if (input.planPersonId !== undefined) {
+    metadata.planPersonId = input.planPersonId;
+    metadata.personId = input.personId ?? null;
+    metadata.serviceTypeId = input.serviceTypeId ?? null;
+    metadata.planId = input.planId ?? null;
+  }
+  if (input.status !== undefined) {
+    metadata.status = input.status;
+  }
+  if (operation === "assign" && Exit.isSuccess(exit)) {
+    const output = decodeAssignOutput(exit.value);
+    if (Option.isSome(output)) {
+      metadata.planPersonId = output.value.data.id;
+    }
+    metadata.oneOff = input.oneOff ?? false;
   }
   const outcome = procedureOutcome(exit);
   if (outcome.kind === "fault" && outcome.fault._tag === "PositionMismatch") {
@@ -56,27 +95,27 @@ const assignMetadata = ({ input, exit }: ScheduleAssignAudit): JsonObject => {
  * prepare records 499 and a defect 500, as on main.
  */
 export const scheduleActivityEvent = (
-  audit: ScheduleAssignAudit,
+  attempt: ScheduleAttempt,
   authentication: AccountAuthentication,
   request: RequestContextValue
 ): ActivityEventInput => {
-  const outcome = procedureOutcome(audit.exit);
-  const { input } = audit;
+  const outcome = procedureOutcome(attempt.exit);
+  const { input } = attempt;
   return {
     ...getActivityRequestContext(request.request),
     requestId: request.requestId,
-    eventType: "schedule_attempt",
+    eventType: eventTypes[attempt.operation],
     actorUserId: authentication.userId,
     actorAccountId: authentication.accountId,
     success: outcome.kind === "success",
     statusCode: outcome.status,
     errorCode: outcome.code,
-    serviceTypeId: input.serviceTypeId,
-    personId: input.personId,
-    planId: input.planId,
-    teamId: input.teamId,
-    positionId: input.positionId,
-    metadata: assignMetadata(audit),
+    serviceTypeId: input.serviceTypeId ?? null,
+    personId: input.personId ?? null,
+    planId: input.planId ?? null,
+    teamId: input.teamId ?? null,
+    positionId: input.positionId ?? null,
+    metadata: activityMetadata(attempt),
   };
 };
 
@@ -86,39 +125,42 @@ export const scheduleActivityEvent = (
  * the result. Inside a `write` procedure this runs uninterruptibly, so the row always matches
  * what Planning Center did.
  */
-export const auditScheduleAssign = <Failure, Services>(
-  input: ScheduleAssignInput,
-  program: Effect.Effect<ScheduleAssignOutput, Failure, Services>,
+export const auditSchedule = <Value, Failure, Services>(
+  operation: ScheduleOperation,
+  input: ScheduleActivityFields,
+  program: Effect.Effect<Value, Failure, Services>,
   dependencies: ScheduleAuditDependencies = {}
 ): Effect.Effect<
-  ScheduleAssignOutput,
+  Value,
   Failure,
   Services | PlanningCenterAccess | RequestContext | Server
 > =>
-  Effect.gen(function* auditedAssign() {
+  Effect.gen(function* auditedScheduleWrite() {
     const { authentication } = yield* PlanningCenterAccess;
     const request = yield* RequestContext;
     const server = yield* Server;
+    const recordActivity =
+      dependencies.recordActivity ??
+      (async (event: ActivityEventInput) => {
+        await recordActivityEvent(server, event);
+      });
     return yield* Effect.onExit(program, (exit) => {
       if (authentication.kind === "demo") {
         return Effect.void;
       }
       const event = scheduleActivityEvent(
-        { input, exit },
+        { operation, input, exit },
         authentication,
         request
       );
-      const recordActivity =
-        dependencies.recordActivity ??
-        (async (row: ActivityEventInput) => {
-          await recordActivityEvent(server, row);
-        });
       return Effect.tryPromise(async () => {
         await recordActivity(event);
       }).pipe(
         Effect.catchCause((cause) =>
           scheduleLog.warn("Failed to record scheduling activity event", {
             requestId: request.requestId,
+            method: request.method,
+            path: new URL(request.url).pathname,
             error: causeError(cause).message,
           })
         )
