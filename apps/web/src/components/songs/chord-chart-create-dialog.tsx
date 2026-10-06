@@ -1,3 +1,4 @@
+import { failureMessage } from "@pcobooster/client/product-client";
 import type {
   ChordChartArrangement,
   ChordChartLayout,
@@ -17,10 +18,7 @@ import {
   ResponsiveDialogTitle,
 } from "@/components/ui/responsive-dialog";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  chordChartErrorMessage,
-  useCreateChordChart,
-} from "@/hooks/use-chord-chart-song";
+import { useCreateChordChart } from "@/hooks/use-chord-chart-song";
 
 /** What a new arrangement starts with. */
 export interface ChordChartCreateContent {
@@ -100,7 +98,7 @@ export const ChordChartCreateDialog = ({
         },
         onError: (error) => {
           toast.error(
-            chordChartErrorMessage(
+            failureMessage(
               error,
               "Planning Center didn’t create the arrangement. Try again."
             )

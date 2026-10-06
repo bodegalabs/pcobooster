@@ -1,11 +1,13 @@
 import {
   failureCode,
+  failureMessage,
   failureStatus,
   makeProductClient,
   TransportFailure,
 } from "@pcobooster/client/product-client";
 import type { ProductClient } from "@pcobooster/client/product-client";
 import { ClientOutdated } from "@pcobooster/contracts/faults/client-outdated";
+import { Conflict } from "@pcobooster/contracts/faults/conflict";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
 import { Schema } from "effect";
@@ -89,6 +91,26 @@ describe(makeProductClient, () => {
     await client.dispose();
   });
 
+  it("gives a network failure a message a person can act on", async () => {
+    const client = makeProductClient({
+      url: "https://api.example/api/rpc",
+      client: "web",
+      fetch: async () => {
+        await Promise.resolve();
+        throw new TypeError("Failed to fetch");
+      },
+    });
+    const call = client.call("health", {});
+
+    await expect(call).rejects.toBeInstanceOf(TransportFailure);
+    await expect(call).rejects.toMatchObject({
+      reason: "network",
+      message:
+        "Couldn't reach pcobooster. Check your connection and try again.",
+    });
+    await client.dispose();
+  });
+
   it("rejects with AbortError when the signal aborts", async () => {
     const { client, sent } = clientAnswering(() => Response.json([]));
     const controller = new AbortController();
@@ -142,5 +164,22 @@ describe(failureStatus, () => {
       status: failureStatus(failure),
       code: failureCode(failure),
     }).toStrictEqual({ status, code });
+  });
+});
+
+describe(failureMessage, () => {
+  it.each([
+    [
+      new Conflict({ message: "Someone else saved first", reason: "stale" }),
+      "Someone else saved first",
+    ],
+    [new Conflict({ message: "", reason: "stale" }), "Fallback"],
+    [
+      new TransportFailure({ tag: "health", reason: "network", cause: null }),
+      "Couldn't reach pcobooster. Check your connection and try again.",
+    ],
+    [new TypeError("private diagnostic"), "Fallback"],
+  ])("reads %o as %s", (failure, message) => {
+    expect(failureMessage(failure, "Fallback")).toBe(message);
   });
 });

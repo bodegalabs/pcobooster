@@ -1,3 +1,4 @@
+import { failureMessage } from "@pcobooster/client/product-client";
 import type { LyricsSearchResult } from "@pcobooster/contracts/chord-charts";
 import { Search } from "lucide-react";
 import { useState } from "react";
@@ -16,10 +17,7 @@ import {
 } from "@/components/ui/item";
 import { LoadingBar } from "@/components/ui/loading-bar";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  chordChartErrorMessage,
-  useLyricsSearch,
-} from "@/hooks/use-chord-chart-song";
+import { useLyricsSearch } from "@/hooks/use-chord-chart-song";
 
 const SECONDS_PER_MINUTE = 60;
 const SKELETON_ROWS = ["first", "second", "third"] as const;
@@ -102,7 +100,7 @@ export const LyricsSearchPanel = ({
         ) : null}
         {search.isError ? (
           <p className="text-muted-foreground p-2 text-sm">
-            {chordChartErrorMessage(
+            {failureMessage(
               search.error,
               "The lyrics search didn’t answer. Try again."
             )}

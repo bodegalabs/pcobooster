@@ -1,6 +1,6 @@
 import { BubbleChatEditIcon } from "@hugeicons/core-free-icons";
 import { getAnalyticsSessionId } from "@pcobooster/analytics/client";
-import { isProductFault } from "@pcobooster/contracts/faults";
+import { failureMessage } from "@pcobooster/client/product-client";
 import { FEEDBACK_MESSAGE_MAX_LENGTH } from "@pcobooster/contracts/feedback";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useState } from "react";
@@ -53,10 +53,9 @@ export const SidebarFeedback = () => {
       toast.success("Thanks! Your feedback was sent.");
     } catch (error) {
       setSending(false);
-      // Faults carry a message written for people; anything else gets the generic one.
       toast.error(
-        isProductFault(error) && error.message !== ""
-          ? error.message
+        error instanceof Error
+          ? failureMessage(error, SEND_FAILED_MESSAGE)
           : SEND_FAILED_MESSAGE
       );
     }

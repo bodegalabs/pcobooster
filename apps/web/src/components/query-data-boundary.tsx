@@ -1,4 +1,4 @@
-import { isProductFault } from "@pcobooster/contracts/faults";
+import { failureMessage } from "@pcobooster/client/product-client";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { CircleAlert } from "lucide-react";
 import type { ReactNode } from "react";
@@ -29,11 +29,7 @@ export const QueryDataBoundary = ({
   if (query.error === null) {
     return children;
   }
-  // Faults carry a message written for people; anything else gets the generic one.
-  const message =
-    isProductFault(query.error) && query.error.message !== ""
-      ? query.error.message
-      : LOAD_FAILED_MESSAGE;
+  const message = failureMessage(query.error, LOAD_FAILED_MESSAGE);
   return (
     <div className={cn("flex min-w-0 flex-col gap-3", className)}>
       <Alert>

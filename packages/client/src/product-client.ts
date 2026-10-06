@@ -89,15 +89,22 @@ export type CallArguments<Tag extends ProcedureTag> =
     ? [input?: ProcedureInput<Tag>, options?: CallOptions<Tag>]
     : [input: ProcedureInput<Tag>, options?: CallOptions<Tag>];
 
+/** What a person sees when a call never reached the API or its answer was unreadable. */
+export const TRANSPORT_FAILURE_MESSAGE =
+  "Couldn't reach pcobooster. Check your connection and try again.";
+
 /**
  * The call never produced a product answer: the network failed, or the response was not an RPC
  * response (a gateway's HTML page, a body that did not decode). Client-only; never on the wire.
+ * Its message is written for people, as a fault's is, so a failed write's toast is never blank.
  */
 export class TransportFailure extends Data.TaggedError("TransportFailure")<{
   readonly tag: ProcedureTag;
   readonly reason: "network" | "undecodable";
   readonly cause: unknown;
-}> {}
+}> {
+  override readonly message = TRANSPORT_FAILURE_MESSAGE;
+}
 
 /** What a call rejects with, besides an AbortError `DOMException` when its signal aborts. */
 export type CallFailure = ProductFault | TransportFailure;
@@ -131,6 +138,16 @@ export const failureStatus = (error: Error): number | undefined =>
 /** The failure's stable code (`NOT_FOUND`, `TOO_MANY_REQUESTS`), for analytics; never a message. */
 export const failureCode = (error: Error): string | undefined =>
   callFailureOutcome(error)?.code;
+
+/**
+ * What to tell a person about a failed call: a fault's or transport failure's own message, which
+ * is written for people, or `fallback` for anything else (a bug's message is never shown).
+ */
+export const failureMessage = (error: Error, fallback: string): string =>
+  (isProductFault(error) || error instanceof TransportFailure) &&
+  error.message !== ""
+    ? error.message
+    : fallback;
 
 export interface ProductClient {
   /** Resolves with the decoded success; rejects with a `CallFailure` or an AbortError. */

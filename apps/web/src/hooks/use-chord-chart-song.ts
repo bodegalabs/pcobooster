@@ -8,7 +8,6 @@ import type {
   ChordChartUpdateInput,
   LyricsSearchResult,
 } from "@pcobooster/contracts/chord-charts";
-import { isProductFault } from "@pcobooster/contracts/faults";
 import { Conflict } from "@pcobooster/contracts/faults/conflict";
 import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
@@ -112,13 +111,6 @@ const rememberWrittenArrangement = (
 
 export const isChordChartConflict = (error: Error): boolean =>
   error instanceof Conflict;
-
-/** The API's safe message, or `fallback` for network and unexpected failures. */
-export const chordChartErrorMessage = (
-  error: Error,
-  fallback: string
-): string =>
-  isProductFault(error) && error.message !== "" ? error.message : fallback;
 
 export type ChordChartLoadFailure = "not-found" | "no-access" | "failed";
 

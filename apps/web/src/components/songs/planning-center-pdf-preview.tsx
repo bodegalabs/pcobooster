@@ -1,3 +1,4 @@
+import { failureMessage } from "@pcobooster/client/product-client";
 import type { ChordChartArrangement } from "@pcobooster/contracts/chord-charts";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -9,10 +10,7 @@ import {
 } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  chordChartErrorMessage,
-  useChordChartPdf,
-} from "@/hooks/use-chord-chart-song";
+import { useChordChartPdf } from "@/hooks/use-chord-chart-song";
 import { renderPdfPages } from "@/lib/pdf-pages";
 
 const LYRICS_TARGET = "lyrics";
@@ -165,7 +163,7 @@ export const PlanningCenterPdfPreview = ({
         {pdf.isError ? (
           <div className="flex flex-col items-start gap-2 p-2">
             <p className="text-muted-foreground text-sm">
-              {chordChartErrorMessage(
+              {failureMessage(
                 pdf.error,
                 "Planning Center’s preview didn’t load."
               )}
