@@ -1,35 +1,43 @@
-/** Schedule endpoints. Spike scope: the audited status change only. */
+/** Scheduling people: every write here is audited in D1 with its real outcome. */
 import { write } from "@pcobooster/contracts/http/endpoint";
-import { PlanningCenterSession } from "@pcobooster/contracts/http/planning-center-session";
-import { ProcedureScope } from "@pcobooster/contracts/http/procedure-scope";
+import { planningCenterGroup } from "@pcobooster/contracts/http/group";
 import {
+  scheduleAssignInputSchema,
+  scheduleAssignOutputSchema,
   scheduleMutationOutputSchema,
+  scheduleRemoveInputSchema,
   scheduleUpdateStatusInputSchema,
 } from "@pcobooster/contracts/rpc/schedule";
 import { Struct } from "effect";
-import { HttpApiGroup } from "effect/unstable/httpapi";
 
-/** An audited write: the plan person's status in Planning Center. */
-export const scheduleUpdateStatus = write.patch(
-  "updateStatus",
-  "/plan-people/:planPersonId",
-  {
-    params: Struct.pick(scheduleUpdateStatusInputSchema.fields, [
-      "planPersonId",
-    ]),
-    payload: Struct.omit(scheduleUpdateStatusInputSchema.fields, [
-      "planPersonId",
-    ]),
+const PLAN = ["serviceTypeId", "planId"] as const;
+const PLAN_PERSON = ["planPersonId"] as const;
+
+export const schedule = planningCenterGroup(
+  "schedule",
+  /** An audited prepared write: the position check may stop; the create always finishes. */
+  write.post(
+    "schedule.assign",
+    "/service-types/:serviceTypeId/plans/:planId/team-members",
+    {
+      params: Struct.pick(scheduleAssignInputSchema.fields, PLAN),
+      payload: Struct.omit(scheduleAssignInputSchema.fields, PLAN),
+      success: scheduleAssignOutputSchema,
+    }
+  ),
+  /**
+   * An audited write. The optional context (service type, person, plan) is more than audit
+   * detail: it selects the upstream paths the removal uses and the caches it invalidates.
+   */
+  write.delete("schedule.remove", "/plan-people/:planPersonId", {
+    params: Struct.pick(scheduleRemoveInputSchema.fields, PLAN_PERSON),
+    query: Struct.omit(scheduleRemoveInputSchema.fields, PLAN_PERSON),
     success: scheduleMutationOutputSchema,
-  }
+  }),
+  /** An audited write, with the same optional context as `schedule.remove`. */
+  write.patch("schedule.updateStatus", "/plan-people/:planPersonId", {
+    params: Struct.pick(scheduleUpdateStatusInputSchema.fields, PLAN_PERSON),
+    payload: Struct.omit(scheduleUpdateStatusInputSchema.fields, PLAN_PERSON),
+    success: scheduleMutationOutputSchema,
+  })
 );
-
-export const scheduleApi = HttpApiGroup.make("schedule")
-  .add(scheduleUpdateStatus.endpoint)
-  .middleware(PlanningCenterSession)
-  .middleware(ProcedureScope);
-
-export const scheduleWireApi = HttpApiGroup.make("schedule")
-  .add(scheduleUpdateStatus.wire)
-  .middleware(PlanningCenterSession)
-  .middleware(ProcedureScope);

@@ -5,10 +5,10 @@
  * migration that fails to apply. It runs in the `test` stage, so it never touches `local`'s
  * data or ports, and needs no secrets.
  *
- * Beside it runs `TransportStackFixture`: the same Effect RPC route and HttpApi router over a
- * fake Planning Center, which proves both transports' runtime behavior in workerd (server reuse
- * across requests, cancellation, write completion, request rejection, defect isolation, outcome
- * lines, bearer and demo sessions, and every fault status the HttpApi spike endpoints answer).
+ * Beside it runs `TransportStackFixture`: the same router over a fake Planning Center, which
+ * proves the product API's runtime behavior in workerd (server reuse across requests,
+ * cancellation, write completion, request rejection, defect isolation, outcome lines, bearer and
+ * demo sessions, and every fault status the endpoints answer).
  */
 import path from "node:path";
 
@@ -16,18 +16,14 @@ import { assert } from "@effect/vitest";
 import { demoSessionToken } from "@pcobooster/api/auth/demo-access";
 import { resolveReleaseVersion } from "@pcobooster/api/config/release";
 import { testServerConfig } from "@pcobooster/api/testing/server";
-import {
-  failureStatus,
-  makeProductClient,
-} from "@pcobooster/client/product-client";
-import type { ProcedureInput } from "@pcobooster/client/product-client";
-import { makeProductHttpClient } from "@pcobooster/client/product-http-client";
+import { failureStatus } from "@pcobooster/client/product-client";
+import { makeProductClient } from "@pcobooster/client/product-http-client";
+import type { ProcedureInput } from "@pcobooster/client/product-http-client";
 import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
 import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { InternalError } from "@pcobooster/contracts/faults/internal-error";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
-import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import * as Drizzle from "alchemy/Drizzle";
@@ -71,7 +67,7 @@ const providers = Layer.mergeAll(Cloudflare.providers(), Drizzle.providers());
 const ApiStack = Alchemy.Stack(
   "pcobooster-api-test",
   { providers, state: State.inMemoryState() },
-  Effect.gen(function* apiAndRpcFixture() {
+  Effect.gen(function* apiAndFixture() {
     const api = yield* Api;
     const fixture = yield* TransportStackFixture;
     return { url: api.url, fixtureUrl: fixture.url };
@@ -150,7 +146,300 @@ test(
   requestTimeout
 );
 
-// ---- Effect RPC -----------------------------------------------------------------------------
+// ---- The API Worker's router ------------------------------------------------------------------
+
+/** The API Worker's browser origin in the `test` stage (`stage.ts`). */
+const TEST_STAGE_ORIGIN = "http://127.0.0.1:3010";
+/** The fixture serves `testServerConfig()`'s origin. */
+const FIXTURE_ORIGIN = "http://localhost:3000";
+
+const httpAnswerSchema = Schema.Struct({
+  _tag: Schema.optional(Schema.String),
+  message: Schema.optional(Schema.String),
+  reason: Schema.optional(Schema.String),
+});
+/** Better Auth answers some reads with a bare `null`. */
+const decodeHttpAnswer = Schema.decodeUnknownSync(
+  Schema.fromJsonString(Schema.NullOr(httpAnswerSchema))
+);
+
+interface HttpAnswer {
+  readonly status: number;
+  readonly headers: Headers;
+  /** The fault's tag, `ok` for another JSON body, or null for an empty one. */
+  readonly tag: string | null;
+  readonly message: string | undefined;
+  readonly reason: string | undefined;
+}
+
+/** One raw HTTP request, as a web client or the native app would send it. */
+const sendHttp = (
+  url: string,
+  route: string,
+  {
+    method = "GET",
+    headers = {},
+    body,
+  }: {
+    readonly method?: string;
+    readonly headers?: Record<string, string>;
+    readonly body?: string;
+  } = {}
+) =>
+  Effect.promise(async (): Promise<HttpAnswer> => {
+    const sent = new Headers({ "x-pcobooster-client": "web;api=1" });
+    if (body !== undefined) {
+      sent.set("content-type", "application/json");
+    }
+    for (const [name, value] of Object.entries(headers)) {
+      sent.set(name, value);
+    }
+    const response = await fetch(`${url}${route}`, {
+      method,
+      headers: sent,
+      body,
+    });
+    const text = await response.text();
+    const answer = text === "" ? null : decodeHttpAnswer(text);
+    return {
+      status: response.status,
+      headers: response.headers,
+      tag: answer === null ? null : (answer._tag ?? "ok"),
+      message: answer?.message,
+      reason: answer?.reason,
+    };
+  });
+
+const corsAndCache = (answer: HttpAnswer) => [
+  answer.headers.get("access-control-allow-origin"),
+  answer.headers.get("access-control-allow-credentials"),
+  answer.headers.get("cache-control"),
+];
+
+const decodeDemoSession = Schema.decodeUnknownSync(
+  Schema.fromJsonString(Schema.Struct({ demo: Schema.Boolean }))
+);
+
+const deployClient = (url: string) =>
+  makeProductClient({ url, client: "deploy", credentials: "omit" });
+
+test(
+  "serves health through the product client with the deployed version",
+  Effect.gen(function* apiHealth() {
+    const url = yield* apiUrl;
+    const client = deployClient(url);
+    const health = yield* Effect.promise(
+      async () => await client.call("health")
+    );
+    const raw = yield* sendHttp(url, "/api/v1/health");
+    yield* Effect.promise(async () => {
+      await client.dispose();
+    });
+
+    assert.deepStrictEqual(health, {
+      status: "ok",
+      version: resolveReleaseVersion(process.env.GITHUB_SHA),
+    });
+    assert.deepStrictEqual(
+      [raw.status, raw.headers.get("cache-control")],
+      [200, "private, no-store"]
+    );
+  }),
+  requestTimeout
+);
+
+test(
+  "answers ClientOutdated (426) to a client below the supported API version or without one",
+  Effect.gen(function* outdatedClient() {
+    const url = yield* apiUrl;
+    const answers = yield* Effect.all(
+      ["expo;api=0", "expo", "android;api=1"].map((client) =>
+        sendHttp(url, "/api/v1/health", {
+          headers: { "x-pcobooster-client": client },
+        })
+      )
+    );
+
+    assert.deepStrictEqual(
+      answers.map((answer) => [answer.status, answer.tag]),
+      [
+        [426, "ClientOutdated"],
+        [426, "ClientOutdated"],
+        [426, "ClientOutdated"],
+      ]
+    );
+  }),
+  requestTimeout
+);
+
+test(
+  "sets a procedure's cookie on the API Worker's response as its own Set-Cookie line",
+  Effect.gen(function* setCookieFromProcedure() {
+    const url = yield* apiUrl;
+    const response = yield* Effect.promise(
+      async () =>
+        await fetch(`${url}/api/v1/demo/session`, {
+          method: "DELETE",
+          headers: { "x-pcobooster-client": "web;api=1" },
+        })
+    );
+    const body = yield* Effect.promise(async () =>
+      decodeDemoSession(await response.text())
+    );
+
+    assert.deepStrictEqual(
+      [response.status, response.headers.get("cache-control"), body],
+      [200, "private, no-store", { demo: false }]
+    );
+    // Plain-HTTP local development, so not Secure.
+    assert.deepStrictEqual(response.headers.getSetCookie(), [
+      "pcobooster-demo=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax",
+    ]);
+  }),
+  requestTimeout
+);
+
+test(
+  "answers preflights and keeps CORS and no-store on successes, faults, unknown paths, and preflights",
+  Effect.gen(function* httpCors() {
+    const url = yield* apiUrl;
+    const origin = { origin: TEST_STAGE_ORIGIN };
+    const preflight = yield* sendHttp(url, "/api/v1/plan-people/pp-1", {
+      method: "OPTIONS",
+      headers: {
+        ...origin,
+        "access-control-request-method": "PATCH",
+        "access-control-request-headers":
+          "authorization,x-pcobooster-account,x-pcobooster-demo,x-pcobooster-client,x-pcobooster-priority",
+      },
+    });
+    const foreign = yield* sendHttp(url, "/api/v1/plan-people/pp-1", {
+      method: "OPTIONS",
+      headers: {
+        origin: "https://evil.example",
+        "access-control-request-method": "PATCH",
+      },
+    });
+    const answers = yield* Effect.all([
+      sendHttp(url, "/health", { headers: origin }),
+      sendHttp(url, "/api/v1/songs/song-1/chord-charts", { headers: origin }),
+      sendHttp(url, "/api/v1/retired-endpoint", { headers: origin }),
+    ]);
+
+    assert.deepStrictEqual(
+      [
+        preflight.status,
+        preflight.headers.get("access-control-allow-origin"),
+        preflight.headers.get("cache-control"),
+        preflight.headers.get("x-pcobooster-version") !== null,
+      ],
+      [204, TEST_STAGE_ORIGIN, "private, no-store", true]
+    );
+    assert.include(
+      preflight.headers.get("access-control-allow-methods") ?? "",
+      "PATCH"
+    );
+    assert.include(
+      preflight.headers.get("access-control-allow-headers") ?? "",
+      "x-pcobooster-priority"
+    );
+    assert.isNull(foreign.headers.get("access-control-allow-origin"));
+    assert.deepStrictEqual(
+      answers.map((answer) => [
+        answer.status,
+        answer.tag,
+        ...corsAndCache(answer),
+      ]),
+      [
+        [200, "ok", TEST_STAGE_ORIGIN, "true", "private, no-store"],
+        [
+          401,
+          "Unauthenticated",
+          TEST_STAGE_ORIGIN,
+          "true",
+          "private, no-store",
+        ],
+        [
+          400,
+          "RequestRejected",
+          TEST_STAGE_ORIGIN,
+          "true",
+          "private, no-store",
+        ],
+      ]
+    );
+    assert.strictEqual(answers[2]?.reason, "unknown-endpoint");
+    assert.include(
+      answers[1]?.headers.get("access-control-expose-headers") ?? "",
+      "Retry-After"
+    );
+  }),
+  requestTimeout
+);
+
+test(
+  "answers 401 without a session before reading input, and 426 to a client without a version",
+  Effect.gen(function* httpUnauthenticated() {
+    const url = yield* apiUrl;
+    const unauthenticated = yield* Effect.all([
+      sendHttp(url, "/api/v1/people/plan-window-history", {
+        method: "POST",
+        body: JSON.stringify({ date: "2026-10-11T17:00:00Z" }),
+      }),
+      sendHttp(url, "/api/v1/plan-people/pp-1", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "C" }),
+      }),
+      sendHttp(url, "/api/v1/songs/song-1/chord-charts"),
+      // Malformed input: auth runs before input validation (a documented exception).
+      sendHttp(url, "/api/v1/service-types/%20/plans/plan-1/team-members", {
+        method: "POST",
+        body: JSON.stringify({ personId: "" }),
+      }),
+    ]);
+    const outdated = yield* sendHttp(url, "/api/v1/songs/song-1/chord-charts", {
+      headers: { "x-pcobooster-client": "web" },
+    });
+
+    assert.deepStrictEqual(
+      unauthenticated.map((answer) => [answer.status, answer.tag]),
+      [
+        [401, "Unauthenticated"],
+        [401, "Unauthenticated"],
+        [401, "Unauthenticated"],
+        [401, "Unauthenticated"],
+      ]
+    );
+    assert.deepStrictEqual(
+      [outdated.status, outdated.tag],
+      [426, "ClientOutdated"]
+    );
+  }),
+  requestTimeout
+);
+
+test(
+  "still answers Better Auth on the Effect router: a session read and a sign-in start",
+  Effect.gen(function* betterAuthRoutes() {
+    const url = yield* apiUrl;
+    const sessionRead = yield* sendHttp(url, "/api/auth/get-session");
+    // Better Auth validates the native start's PKCE query before it does anything else.
+    const nativeStart = yield* sendHttp(url, "/api/auth/native/start");
+    const unknownAuthPath = yield* sendHttp(url, "/api/auth/no-such-route");
+
+    assert.strictEqual(sessionRead.status, 200);
+    assert.strictEqual(
+      sessionRead.headers.get("cache-control"),
+      "private, no-store"
+    );
+    assert.strictEqual(nativeStart.status, 400);
+    assert.notStrictEqual(nativeStart.tag, null);
+    assert.strictEqual(unknownAuthPath.status, 404);
+  }),
+  requestTimeout
+);
+
+// ---- The router over a fake Planning Center ---------------------------------------------------
 
 /** The transport fixture Worker's local URL, once it answers. */
 const fixtureUrl = stack.pipe(
@@ -188,13 +477,6 @@ const fixtureStateWhen = (
     Effect.orDie
   );
 
-const productClient = (url: string) =>
-  makeProductClient({
-    url: `${url}/api/rpc`,
-    client: "deploy",
-    credentials: "omit",
-  });
-
 /** A call's settled result, so a test can assert on rejections without throwing. */
 const settled = <Value>(call: () => Promise<Value>) =>
   Effect.result(Effect.tryPromise(call));
@@ -212,165 +494,72 @@ const isAbortError = <Value>(
   result.failure.cause instanceof DOMException &&
   result.failure.cause.name === "AbortError";
 
-/** The encoded RPC messages a server answers with; only an Exit's outline is read. */
-const rpcResponseSchema = Schema.Array(
-  Schema.Union([
-    Schema.Struct({
-      _tag: Schema.Literal("Exit"),
-      requestId: Schema.Union([Schema.String, Schema.Number]),
-      exit: Schema.Union([
-        Schema.Struct({ _tag: Schema.Literal("Success") }),
-        Schema.Struct({
-          _tag: Schema.Literal("Failure"),
-          cause: Schema.Array(
-            Schema.Struct({
-              _tag: Schema.String,
-              error: Schema.optional(
-                Schema.Struct({
-                  _tag: Schema.String,
-                  reason: Schema.optional(Schema.String),
-                })
-              ),
-            })
-          ),
-        }),
-      ]),
-    }),
-    Schema.Struct({ _tag: Schema.String }),
-  ])
-);
-const decodeRpcResponse = Schema.decodeUnknownSync(
-  Schema.fromJsonString(rpcResponseSchema)
-);
-
-interface RpcRequestMessage {
-  readonly _tag: "Request";
-  readonly id: string;
-  readonly tag: string;
-  readonly payload: JsonValue;
-  readonly headers: readonly [string, string][];
-}
-
-const rpcRequest = (
-  id: string,
-  tag: string,
-  payload: JsonValue
-): RpcRequestMessage => ({ _tag: "Request", id, tag, payload, headers: [] });
-
-/** Posts raw RPC messages as a web client (unless `headers` overrides) and decodes the reply. */
-const postRpc = (
-  url: string,
-  body: RpcRequestMessage | readonly RpcRequestMessage[],
-  requestId: string,
-  headers: Record<string, string> = {}
-) =>
-  Effect.promise(async () => {
-    const response = await fetch(`${url}/api/rpc`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-pcobooster-client": "web;rpc=1",
-        "x-request-id": requestId,
-        ...headers,
-      },
-      body: JSON.stringify(body),
-    });
-    return {
-      status: response.status,
-      cacheControl: response.headers.get("cache-control"),
-      setCookies: response.headers.getSetCookie(),
-      messages: decodeRpcResponse(await response.text()),
-    };
-  });
-
-interface ExitSummary {
-  readonly requestId: string;
-  /** The `_tag` of the error the Exit failed with, or "Success". */
-  readonly result: string;
-  readonly reason: string | undefined;
-}
-
-const exitTags = (messages: typeof rpcResponseSchema.Type): ExitSummary[] =>
-  messages.flatMap((message): ExitSummary[] => {
-    if (!("exit" in message)) {
-      return [];
-    }
-    const requestId = String(message.requestId);
-    if (message.exit._tag === "Success") {
-      return [{ requestId, result: "Success", reason: undefined }];
-    }
-    const [reason] = message.exit.cause;
-    return [
-      {
-        requestId,
-        result: reason?.error?._tag ?? reason?._tag ?? "unknown",
-        reason: reason?.error?.reason,
-      },
-    ];
-  });
-
 const decodeAuditMetadata = Schema.decodeUnknownSync(
   Schema.fromJsonString(Schema.Struct({ planPersonId: Schema.String }))
 );
 
 const uniqueId = (prefix: string) => `${prefix}-${crypto.randomUUID()}`;
 
-test(
-  "serves health through makeProductClient with the deployed version",
-  Effect.gen(function* rpcHealth() {
-    const url = yield* apiUrl;
-    const client = productClient(url);
-    const health = yield* Effect.promise(
-      async () => await client.call("health", {})
-    );
-    const raw = yield* postRpc(
-      url,
-      rpcRequest("1", "health", {}),
-      uniqueId("health")
-    );
-    yield* Effect.promise(async () => {
-      await client.dispose();
-    });
-
-    assert.deepStrictEqual(health, {
-      status: "ok",
-      version: resolveReleaseVersion(process.env.GITHUB_SHA),
-    });
-    assert.strictEqual(raw.status, 200);
-    assert.strictEqual(raw.cacheControl, "private, no-store");
-  }),
-  requestTimeout
+const decodeFixtureSession = Schema.decodeUnknownSync(
+  Schema.fromJsonString(fixtureSessionSchema)
 );
 
-test(
-  "rejects a bad schedule payload on the API Worker before its session middleware runs",
-  Effect.gen(function* apiRejectsPayload() {
-    const url = yield* apiUrl;
-    // Reaching the handler would answer 401: this request has no session.
-    const raw = yield* postRpc(
-      url,
-      rpcRequest("1", "schedule.assign", { serviceTypeId: "" }),
-      uniqueId("api-reject")
-    );
+/** A fresh user with its own credential, so a rate-limited answer never holds another test. */
+const nativeSession = (url: string) =>
+  Effect.promise(async () => {
+    const response = await fetch(`${url}${FIXTURE_SESSION_PATH}`, {
+      method: "POST",
+    });
+    return decodeFixtureSession(await response.text());
+  });
 
-    assert.strictEqual(raw.status, 400);
-    assert.deepStrictEqual(exitTags(raw.messages), [
-      { requestId: "1", result: "RequestRejected", reason: "invalid-payload" },
-    ]);
-  }),
-  requestTimeout
-);
+const bearerHeaders = (token: string, accountId: string) => ({
+  authorization: `Bearer ${token}`,
+  "x-pcobooster-account": accountId,
+});
+
+/** Headers for a fresh session acting as its account with every flag off. */
+const flagOffSession = (url: string) =>
+  Effect.map(nativeSession(url), (session) =>
+    bearerHeaders(session.token, session.flagOffAccountId)
+  );
+
+const fixtureDemoToken = (() => {
+  const { demo } = testServerConfig(FIXTURE_DEMO_SETTINGS);
+  if (demo === null) {
+    throw new Error("FIXTURE_DEMO_SETTINGS must configure a demo");
+  }
+  return demoSessionToken(demo);
+})();
+
+/** The product client as the native app builds it, sending `headers` on every call. */
+const nativeClient = (url: string, headers: Record<string, string>) =>
+  makeProductClient({
+    url,
+    client: "expo",
+    credentials: "omit",
+    httpHeaders: () => headers,
+  });
+
+const disposeAll = (...clients: { readonly dispose: () => Promise<void> }[]) =>
+  Effect.promise(async () => {
+    await Promise.all(
+      clients.map(async (client) => {
+        await client.dispose();
+      })
+    );
+  });
 
 test(
   "serves later and concurrent requests from the server the first request built",
   Effect.gen(function* serverReuse() {
     const url = yield* fixtureUrl;
-    const client = productClient(url);
+    const client = nativeClient(url, yield* flagOffSession(url));
     const first = yield* Effect.promise(
-      async () => await client.call("health", {})
+      async () => await client.call("health")
     );
     const second = yield* Effect.promise(
-      async () => await client.call("health", {})
+      async () => await client.call("health")
     );
     const concurrent = yield* Effect.promise(
       async () =>
@@ -386,9 +575,7 @@ test(
         ])
     );
     const state = yield* fixtureState(url);
-    yield* Effect.promise(async () => {
-      await client.dispose();
-    });
+    yield* disposeAll(client);
 
     assert.strictEqual(first.version, FIXTURE_RELEASE_VERSION);
     assert.strictEqual(second.version, FIXTURE_RELEASE_VERSION);
@@ -408,12 +595,13 @@ test(
  */
 const abandonedCall = <Tag extends "catalog.plan" | "schedule.assign">(
   url: string,
+  headers: Record<string, string>,
   tag: Tag,
   input: ProcedureInput<Tag>,
   requestId: string,
   abortAfterMs: number
 ) => {
-  const client = productClient(url);
+  const client = nativeClient(url, headers);
   const controller = new AbortController();
   const clientAbort = setTimeout(() => {
     controller.abort();
@@ -455,6 +643,7 @@ test(
     const planId = uniqueId("slow-read");
     const outcome = yield* abandonedCall(
       url,
+      yield* flagOffSession(url),
       "catalog.plan",
       { serviceTypeId: "st-abort", planId },
       requestId,
@@ -494,6 +683,7 @@ test(
     const serviceTypeId = uniqueId("slow-prepare");
     const outcome = yield* abandonedCall(
       url,
+      yield* flagOffSession(url),
       "schedule.assign",
       assignInput(serviceTypeId),
       requestId,
@@ -532,6 +722,7 @@ test(
     const serviceTypeId = uniqueId("slow-commit");
     const outcome = yield* abandonedCall(
       url,
+      yield* flagOffSession(url),
       "schedule.assign",
       assignInput(serviceTypeId),
       requestId,
@@ -553,12 +744,23 @@ test(
     assert.isTrue((commit?.finishedAt ?? 0) > abortedAt);
     assert.deepStrictEqual(
       state.audit.map((row) => [
+        row.method,
+        row.path,
         row.status_code,
         row.error_code,
         row.success,
         decodeAuditMetadata(row.metadata).planPersonId,
       ]),
-      [[200, null, 1, "plan-person-slow"]]
+      [
+        [
+          "POST",
+          `/api/v1/service-types/${serviceTypeId}/plans/plan-1/team-members`,
+          200,
+          null,
+          1,
+          "plan-person-slow",
+        ],
+      ]
     );
     assert.deepStrictEqual(
       state.logs.map(({ fields }) => [
@@ -573,61 +775,48 @@ test(
 );
 
 test(
-  "rejects unknown procedures and undecodable payloads with 400 before any handler",
-  Effect.gen(function* rejectRequests() {
+  "answers unknown endpoints 400, a known path's other methods 405 with Allow, and logs both",
+  Effect.gen(function* unmatchedRequests() {
     const url = yield* fixtureUrl;
-    const unknownId = uniqueId("unknown-tag");
-    const invalidId = uniqueId("invalid-payload");
-    const planId = uniqueId("never-read");
-    const unknown = yield* postRpc(
-      url,
-      rpcRequest("1", "catalog.retired", { planId }),
-      unknownId
-    );
-    const invalid = yield* postRpc(
-      url,
-      rpcRequest("1", "catalog.plan", { serviceTypeId: "", planId }),
-      invalidId
-    );
+    const unknownId = uniqueId("unknown-endpoint");
+    const methodId = uniqueId("wrong-method");
+    const unknown = yield* sendHttp(url, "/api/v1/catalog/retired", {
+      headers: { "x-request-id": unknownId },
+    });
+    const wrongMethod = yield* sendHttp(url, "/api/v1/plan-people/pp-1", {
+      headers: { "x-request-id": methodId },
+    });
     const unknownState = yield* fixtureStateWhen(
       url,
       unknownId,
       (state) => state.logs.length > 0
     );
-    const invalidState = yield* fixtureStateWhen(
+    const methodState = yield* fixtureStateWhen(
       url,
-      invalidId,
+      methodId,
       (state) => state.logs.length > 0
     );
 
-    assert.strictEqual(unknown.status, 400);
-    assert.deepStrictEqual(exitTags(unknown.messages), [
-      {
-        requestId: "1",
-        result: "RequestRejected",
-        reason: "unknown-procedure",
-      },
-    ]);
-    assert.strictEqual(invalid.status, 400);
-    assert.deepStrictEqual(exitTags(invalid.messages), [
-      { requestId: "1", result: "RequestRejected", reason: "invalid-payload" },
-    ]);
-    assert.isFalse(
-      invalidState.planningCenterCalls.some((entry) =>
-        entry.path.endsWith(planId)
-      )
+    assert.deepStrictEqual(
+      [unknown.status, unknown.tag, unknown.reason],
+      [400, "RequestRejected", "unknown-endpoint"]
     );
     assert.deepStrictEqual(
-      [...unknownState.logs, ...invalidState.logs].map(({ level, fields }) => [
+      [wrongMethod.status, wrongMethod.headers.get("allow"), wrongMethod.tag],
+      [405, "DELETE, PATCH", null]
+    );
+    assert.deepStrictEqual(
+      [...unknownState.logs, ...methodState.logs].map(({ level, fields }) => [
         level,
         fields.procedure,
+        fields.method,
+        fields.route,
         fields.status,
-        fields.code,
         fields.kind,
       ]),
       [
-        ["Info", "catalog.retired", 400, "BAD_REQUEST", null],
-        ["Info", "catalog.plan", 400, "BAD_REQUEST", null],
+        ["Info", null, "GET", "/api/v1/catalog/retired", 400, null],
+        ["Info", null, "GET", "/api/v1/plan-people/pp-1", 405, null],
       ]
     );
   }),
@@ -638,46 +827,42 @@ test(
   "answers a success that fails to encode with 500 InternalError",
   Effect.gen(function* encodeFailure() {
     const url = yield* fixtureUrl;
+    const headers = yield* flagOffSession(url);
     const requestId = uniqueId("unencodable");
-    const raw = yield* postRpc(
+    const raw = yield* sendHttp(
       url,
-      rpcRequest("1", "schedule.assign", {
-        serviceTypeId: uniqueId("unencodable"),
-        personId: "person-1",
-        planId: "plan-1",
-        teamId: "team-1",
-        positionId: "position-1",
-        positionName: "Vocals",
-        oneOff: true,
-      }),
-      requestId
-    );
-    const client = productClient(url);
-    const typed = yield* settled(
-      async () =>
-        await client.call("schedule.assign", {
-          serviceTypeId: uniqueId("unencodable"),
+      `/api/v1/service-types/${uniqueId("unencodable")}/plans/plan-1/team-members`,
+      {
+        method: "POST",
+        headers: { ...headers, "x-request-id": requestId },
+        body: JSON.stringify({
           personId: "person-1",
-          planId: "plan-1",
           teamId: "team-1",
           positionId: "position-1",
           positionName: "Vocals",
           oneOff: true,
-        })
+        }),
+      }
+    );
+    const client = nativeClient(url, headers);
+    const typed = yield* settled(
+      async () =>
+        await client.call(
+          "schedule.assign",
+          assignInput(uniqueId("unencodable"))
+        )
     );
     const state = yield* fixtureStateWhen(
       url,
       requestId,
       (current) => current.logs.length > 0
     );
-    yield* Effect.promise(async () => {
-      await client.dispose();
-    });
+    yield* disposeAll(client);
 
-    assert.strictEqual(raw.status, 500);
-    assert.deepStrictEqual(exitTags(raw.messages), [
-      { requestId: "1", result: "InternalError", reason: undefined },
-    ]);
+    assert.deepStrictEqual(
+      [raw.status, raw.tag, raw.message],
+      [500, "InternalError", "Internal server error"]
+    );
     assert.isTrue(rejectedWithInternalError(typed));
     assert.deepStrictEqual(
       state.logs.map(({ level, fields }) => [
@@ -696,7 +881,7 @@ test(
   "keeps a sibling call alive when another call's handler dies",
   Effect.gen(function* defectIsolation() {
     const url = yield* fixtureUrl;
-    const client = productClient(url);
+    const client = nativeClient(url, yield* flagOffSession(url));
     const [died, survived] = yield* Effect.all(
       [
         settled(
@@ -716,9 +901,7 @@ test(
       ],
       { concurrency: "unbounded" }
     );
-    yield* Effect.promise(async () => {
-      await client.dispose();
-    });
+    yield* disposeAll(client);
 
     assert.isTrue(rejectedWithInternalError(died));
     assert.strictEqual(
@@ -730,10 +913,10 @@ test(
 );
 
 test(
-  "writes one outcome line per call with its status, priority, and Planning Center requests",
+  "writes one outcome line per call with its route, status, priority, and Planning Center requests",
   Effect.gen(function* outcomeLine() {
     const url = yield* fixtureUrl;
-    const client = productClient(url);
+    const client = nativeClient(url, yield* flagOffSession(url));
     const requestId = uniqueId("outcome-line");
     yield* Effect.promise(
       async () =>
@@ -751,14 +934,14 @@ test(
       requestId,
       (current) => current.logs.length > 0
     );
-    yield* Effect.promise(async () => {
-      await client.dispose();
-    });
+    yield* disposeAll(client);
 
     assert.deepStrictEqual(
       state.logs.map(({ level, fields }) => ({
         level,
         procedure: fields.procedure,
+        method: fields.method,
+        route: fields.route,
         status: fields.status,
         code: fields.code,
         priority: fields.priority,
@@ -770,11 +953,13 @@ test(
         {
           level: "Info",
           procedure: "catalog.plan",
+          method: "GET",
+          route: "/api/v1/service-types/:serviceTypeId/plans/:planId",
           status: 200,
           code: null,
           priority: "speculative",
           kind: "read",
-          client: "deploy;rpc=1",
+          client: "expo;api=1",
           planningCenterRequests: 1,
         },
       ]
@@ -784,53 +969,11 @@ test(
 );
 
 test(
-  "sets a procedure's cookie on the API Worker's response as its own Set-Cookie line",
-  Effect.gen(function* setCookieFromProcedure() {
-    const url = yield* apiUrl;
-    const raw = yield* postRpc(
-      url,
-      rpcRequest("1", "demo.exit", {}),
-      uniqueId("demo-exit")
-    );
-
-    assert.strictEqual(raw.status, 200);
-    assert.strictEqual(raw.cacheControl, "private, no-store");
-    assert.deepStrictEqual(exitTags(raw.messages), [
-      { requestId: "1", result: "Success", reason: undefined },
-    ]);
-    // Plain-HTTP local development, so not Secure.
-    assert.deepStrictEqual(raw.setCookies, [
-      "pcobooster-demo=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax",
-    ]);
-  }),
-  requestTimeout
-);
-
-test(
-  "answers ClientOutdated (426) to a client below the supported RPC protocol",
-  Effect.gen(function* outdatedClient() {
-    const url = yield* apiUrl;
-    const raw = yield* postRpc(
-      url,
-      rpcRequest("1", "health", {}),
-      uniqueId("outdated"),
-      { "x-pcobooster-client": "expo;rpc=0" }
-    );
-
-    assert.strictEqual(raw.status, 426);
-    assert.deepStrictEqual(exitTags(raw.messages), [
-      { requestId: "1", result: "ClientOutdated", reason: undefined },
-    ]);
-  }),
-  requestTimeout
-);
-
-test(
   "answers a flagged read NotFound while its flag is off, before any Planning Center request",
   Effect.gen(function* flaggedReadOff() {
     const url = yield* fixtureUrl;
     const requestId = uniqueId("flag-off");
-    const client = productClient(url);
+    const client = nativeClient(url, yield* flagOffSession(url));
     const outcome = yield* settled(
       async () =>
         await client.call("people.dashboardRoster", undefined, {
@@ -842,9 +985,7 @@ test(
       requestId,
       (current) => current.logs.length > 0
     );
-    yield* Effect.promise(async () => {
-      await client.dispose();
-    });
+    yield* disposeAll(client);
 
     assert.isTrue(
       Result.isFailure(outcome) && outcome.failure.cause instanceof NotFound
@@ -863,103 +1004,6 @@ test(
   requestTimeout
 );
 
-// ---- Effect HttpApi (spike) -------------------------------------------------------------------
-
-/** The API Worker's browser origin in the `test` stage (`stage.ts`). */
-const TEST_STAGE_ORIGIN = "http://127.0.0.1:3010";
-/** The fixture's HttpApi server uses `testServerConfig()`'s origin. */
-const FIXTURE_ORIGIN = "http://localhost:3000";
-
-const httpAnswerSchema = Schema.Struct({
-  _tag: Schema.optional(Schema.String),
-  message: Schema.optional(Schema.String),
-  reason: Schema.optional(Schema.String),
-});
-/** Better Auth answers some reads with a bare `null`. */
-const decodeHttpAnswer = Schema.decodeUnknownSync(
-  Schema.fromJsonString(Schema.NullOr(httpAnswerSchema))
-);
-
-interface HttpAnswer {
-  readonly status: number;
-  readonly headers: Headers;
-  /** The fault's tag, `ok` for another JSON body, or null for an empty one. */
-  readonly tag: string | null;
-  readonly message: string | undefined;
-}
-
-/** One raw HTTP request, as a web client or the native app would send it. */
-const sendHttp = (
-  url: string,
-  route: string,
-  {
-    method = "GET",
-    headers = {},
-    body,
-  }: {
-    readonly method?: string;
-    readonly headers?: Record<string, string>;
-    readonly body?: string;
-  } = {}
-) =>
-  Effect.promise(async (): Promise<HttpAnswer> => {
-    const sent = new Headers({ "x-pcobooster-client": "web;api=1" });
-    if (body !== undefined) {
-      sent.set("content-type", "application/json");
-    }
-    for (const [name, value] of Object.entries(headers)) {
-      sent.set(name, value);
-    }
-    const response = await fetch(`${url}${route}`, {
-      method,
-      headers: sent,
-      body,
-    });
-    const text = await response.text();
-    const answer = text === "" ? null : decodeHttpAnswer(text);
-    return {
-      status: response.status,
-      headers: response.headers,
-      tag: answer === null ? null : (answer._tag ?? "ok"),
-      message: answer?.message,
-    };
-  });
-
-const decodeFixtureSession = Schema.decodeUnknownSync(
-  Schema.fromJsonString(fixtureSessionSchema)
-);
-
-/** A fresh user with its own credential, so a rate-limited answer never holds another test. */
-const nativeSession = (url: string) =>
-  Effect.promise(async () => {
-    const response = await fetch(`${url}${FIXTURE_SESSION_PATH}`, {
-      method: "POST",
-    });
-    return decodeFixtureSession(await response.text());
-  });
-
-const bearerHeaders = (token: string, accountId: string) => ({
-  authorization: `Bearer ${token}`,
-  "x-pcobooster-account": accountId,
-});
-
-const fixtureDemoToken = (() => {
-  const { demo } = testServerConfig(FIXTURE_DEMO_SETTINGS);
-  if (demo === null) {
-    throw new Error("FIXTURE_DEMO_SETTINGS must configure a demo");
-  }
-  return demoSessionToken(demo);
-})();
-
-/** The HttpApi client as the native app builds it, sending `headers` on every call. */
-const nativeHttpClient = (url: string, headers: Record<string, string>) =>
-  makeProductHttpClient({
-    url,
-    client: "expo",
-    credentials: "omit",
-    httpHeaders: () => headers,
-  });
-
 const STATUS_WRITE = (planPersonId: string) => ({
   planPersonId,
   status: "C" as const,
@@ -968,141 +1012,16 @@ const STATUS_WRITE = (planPersonId: string) => ({
   planId: "plan-1",
 });
 
-const corsAndCache = (answer: HttpAnswer) => [
-  answer.headers.get("access-control-allow-origin"),
-  answer.headers.get("access-control-allow-credentials"),
-  answer.headers.get("cache-control"),
-];
-
 test(
-  "answers HttpApi preflights and keeps CORS and no-store on successes, faults, and unknown paths",
-  Effect.gen(function* httpCors() {
-    const url = yield* apiUrl;
-    const origin = { origin: TEST_STAGE_ORIGIN };
-    const preflight = yield* sendHttp(url, "/api/v1/plan-people/pp-1", {
-      method: "OPTIONS",
-      headers: {
-        ...origin,
-        "access-control-request-method": "PATCH",
-        "access-control-request-headers":
-          "authorization,x-pcobooster-account,x-pcobooster-demo,x-pcobooster-client,x-pcobooster-priority",
-      },
-    });
-    const foreign = yield* sendHttp(url, "/api/v1/plan-people/pp-1", {
-      method: "OPTIONS",
-      headers: {
-        origin: "https://evil.example",
-        "access-control-request-method": "PATCH",
-      },
-    });
-    const answers = yield* Effect.all([
-      sendHttp(url, "/health", { headers: origin }),
-      sendHttp(url, "/api/v1/songs/song-1/chord-charts", { headers: origin }),
-      sendHttp(url, "/api/v1/retired-endpoint", { headers: origin }),
-    ]);
-
-    assert.strictEqual(preflight.status, 204);
-    assert.strictEqual(
-      preflight.headers.get("access-control-allow-origin"),
-      TEST_STAGE_ORIGIN
-    );
-    assert.include(
-      preflight.headers.get("access-control-allow-methods") ?? "",
-      "PATCH"
-    );
-    assert.include(
-      preflight.headers.get("access-control-allow-headers") ?? "",
-      "x-pcobooster-priority"
-    );
-    assert.isNull(foreign.headers.get("access-control-allow-origin"));
-    assert.deepStrictEqual(
-      answers.map((answer) => [
-        answer.status,
-        answer.tag,
-        ...corsAndCache(answer),
-      ]),
-      [
-        [200, "ok", TEST_STAGE_ORIGIN, "true", "private, no-store"],
-        [
-          401,
-          "Unauthenticated",
-          TEST_STAGE_ORIGIN,
-          "true",
-          "private, no-store",
-        ],
-        [404, null, TEST_STAGE_ORIGIN, "true", "private, no-store"],
-      ]
-    );
-  }),
-  requestTimeout
-);
-
-test(
-  "answers each HttpApi spike endpoint 401 without a session and 426 to an RPC-era client",
-  Effect.gen(function* httpUnauthenticated() {
-    const url = yield* apiUrl;
-    const unauthenticated = yield* Effect.all([
-      sendHttp(
-        url,
-        "/api/v1/people/plan-window-history?date=2026-10-11T17%3A00%3A00Z"
-      ),
-      sendHttp(url, "/api/v1/plan-people/pp-1", {
-        method: "PATCH",
-        body: JSON.stringify({ status: "C" }),
-      }),
-      sendHttp(url, "/api/v1/songs/song-1/chord-charts"),
-    ]);
-    const outdated = yield* sendHttp(url, "/api/v1/songs/song-1/chord-charts", {
-      headers: { "x-pcobooster-client": "web;rpc=1" },
-    });
-
-    assert.deepStrictEqual(
-      unauthenticated.map((answer) => [answer.status, answer.tag]),
-      [
-        [401, "Unauthenticated"],
-        [401, "Unauthenticated"],
-        [401, "Unauthenticated"],
-      ]
-    );
-    assert.deepStrictEqual(
-      [outdated.status, outdated.tag],
-      [426, "ClientOutdated"]
-    );
-  }),
-  requestTimeout
-);
-
-test(
-  "still answers Better Auth on the Effect router: a session read and a sign-in start",
-  Effect.gen(function* betterAuthRoutes() {
-    const url = yield* apiUrl;
-    const sessionRead = yield* sendHttp(url, "/api/auth/get-session");
-    // Better Auth validates the native start's PKCE query before it does anything else.
-    const nativeStart = yield* sendHttp(url, "/api/auth/native/start");
-    const unknownAuthPath = yield* sendHttp(url, "/api/auth/no-such-route");
-
-    assert.strictEqual(sessionRead.status, 200);
-    assert.strictEqual(
-      sessionRead.headers.get("cache-control"),
-      "private, no-store"
-    );
-    assert.strictEqual(nativeStart.status, 400);
-    assert.notStrictEqual(nativeStart.tag, null);
-    assert.strictEqual(unknownAuthPath.status, 404);
-  }),
-  requestTimeout
-);
-
-test(
-  "authenticates HttpApi calls by bearer token and picks the account the header names",
+  "authenticates calls by bearer token and picks the account the header names",
   Effect.gen(function* httpBearer() {
     const url = yield* fixtureUrl;
     const session = yield* nativeSession(url);
-    const onClient = nativeHttpClient(
+    const onClient = nativeClient(
       url,
       bearerHeaders(session.token, session.flagOnAccountId)
     );
-    const offClient = nativeHttpClient(
+    const offClient = nativeClient(
       url,
       bearerHeaders(session.token, session.flagOffAccountId)
     );
@@ -1113,10 +1032,7 @@ test(
     const flagOff = yield* settled(
       async () => await offClient.call("chordCharts.song", { songId: "song-1" })
     );
-    yield* Effect.promise(async () => {
-      await onClient.dispose();
-      await offClient.dispose();
-    });
+    yield* disposeAll(onClient, offClient);
 
     assert.deepStrictEqual(charts, {
       song: { id: "song-1", title: "Amazing Grace", author: "John Newton" },
@@ -1132,14 +1048,13 @@ test(
 );
 
 test(
-  "pages people.planWindowHistory with a continuation in the URL and logs its outcome line",
+  "pages people.planWindowHistory with a continuation in a POST body and logs its outcome line",
   Effect.gen(function* httpPagedRead() {
     const url = yield* fixtureUrl;
-    const session = yield* nativeSession(url);
     const requestId = uniqueId("http-paged");
     const since = Date.now();
-    const client = nativeHttpClient(url, {
-      ...bearerHeaders(session.token, session.flagOffAccountId),
+    const client = nativeClient(url, {
+      ...(yield* flagOffSession(url)),
       "x-request-id": requestId,
     });
     const batch = yield* Effect.promise(
@@ -1159,9 +1074,7 @@ test(
       requestId,
       (current) => current.logs.length > 0
     );
-    yield* Effect.promise(async () => {
-      await client.dispose();
-    });
+    yield* disposeAll(client);
 
     assert.deepStrictEqual(
       [
@@ -1182,12 +1095,22 @@ test(
     assert.deepStrictEqual(
       state.logs.map(({ fields }) => [
         fields.procedure,
+        fields.method,
         fields.status,
         fields.priority,
         fields.kind,
         fields.client,
       ]),
-      [["people.planWindowHistory", 200, "speculative", "read", "expo;api=1"]]
+      [
+        [
+          "people.planWindowHistory",
+          "POST",
+          200,
+          "speculative",
+          "read",
+          "expo;api=1",
+        ],
+      ]
     );
   }),
   requestTimeout
@@ -1197,11 +1120,10 @@ test(
   "PATCHes a plan person's status through the typed client and audits the real path",
   Effect.gen(function* httpWrite() {
     const url = yield* fixtureUrl;
-    const session = yield* nativeSession(url);
     const requestId = uniqueId("http-write");
     const planPersonId = uniqueId("plan-person");
-    const client = nativeHttpClient(url, {
-      ...bearerHeaders(session.token, session.flagOffAccountId),
+    const client = nativeClient(url, {
+      ...(yield* flagOffSession(url)),
       "x-request-id": requestId,
     });
     const updated = yield* Effect.promise(
@@ -1213,9 +1135,7 @@ test(
       requestId,
       (current) => current.logs.length > 0 && current.audit.length > 0
     );
-    yield* Effect.promise(async () => {
-      await client.dispose();
-    });
+    yield* disposeAll(client);
 
     assert.deepStrictEqual(updated, { success: true });
     assert.deepStrictEqual(
@@ -1247,27 +1167,20 @@ test(
       ["limited", "down", "missing", "refused"].map((script) =>
         Effect.gen(function* scriptedWrite() {
           // Each its own credential: a 429 holds back its credential's later requests.
-          const session = yield* nativeSession(url);
+          const headers = yield* flagOffSession(url);
           return yield* sendHttp(
             url,
             `/api/v1/plan-people/${uniqueId(script)}`,
             {
               method: "PATCH",
-              headers: {
-                origin: FIXTURE_ORIGIN,
-                ...bearerHeaders(session.token, session.flagOffAccountId),
-              },
+              headers: { origin: FIXTURE_ORIGIN, ...headers },
               body: JSON.stringify({ status: "D", planId: "plan-1" }),
             }
           );
         })
       )
     );
-    const session = yield* nativeSession(url);
-    const client = nativeHttpClient(
-      url,
-      bearerHeaders(session.token, session.flagOffAccountId)
-    );
+    const client = nativeClient(url, yield* flagOffSession(url));
     const typed = yield* Effect.all(
       ["limited", "down"].map((script) =>
         settled(
@@ -1279,9 +1192,7 @@ test(
         )
       )
     );
-    yield* Effect.promise(async () => {
-      await client.dispose();
-    });
+    yield* disposeAll(client);
 
     assert.deepStrictEqual(
       answers.map((answer) => [
@@ -1323,23 +1234,19 @@ test(
 );
 
 test(
-  "answers a defect behind an HttpApi endpoint with 500 InternalError and no detail",
+  "answers a defect behind an endpoint with 500 InternalError and no detail",
   Effect.gen(function* httpDefect() {
     const url = yield* fixtureUrl;
     const session = yield* nativeSession(url);
+    const headers = bearerHeaders(session.token, session.flagOnAccountId);
     const answer = yield* sendHttp(url, "/api/v1/songs/defect-1/chord-charts", {
-      headers: bearerHeaders(session.token, session.flagOnAccountId),
+      headers,
     });
-    const client = nativeHttpClient(
-      url,
-      bearerHeaders(session.token, session.flagOnAccountId)
-    );
+    const client = nativeClient(url, headers);
     const typed = yield* settled(
       async () => await client.call("chordCharts.song", { songId: "defect-2" })
     );
-    yield* Effect.promise(async () => {
-      await client.dispose();
-    });
+    yield* disposeAll(client);
 
     assert.deepStrictEqual(
       [answer.status, answer.tag, answer.message],
@@ -1351,7 +1258,7 @@ test(
 );
 
 test(
-  "rejects malformed HttpApi input with 400 before any Planning Center request",
+  "rejects malformed input with 400 before any Planning Center request",
   Effect.gen(function* httpMalformed() {
     const url = yield* fixtureUrl;
     const session = yield* nativeSession(url);
@@ -1361,15 +1268,21 @@ test(
       "x-request-id": requestId,
     };
     const planPersonId = uniqueId("never-written");
+    const history = "/api/v1/people/plan-window-history";
     const answers = yield* Effect.all([
-      sendHttp(url, "/api/v1/people/plan-window-history?date=next-sunday", {
+      sendHttp(url, history, {
+        method: "POST",
         headers,
+        body: JSON.stringify({ date: "next-sunday" }),
       }),
-      sendHttp(
-        url,
-        `/api/v1/people/plan-window-history?date=2026-10-11T17%3A00%3A00Z&continuation=${encodeURIComponent("{not json")}`,
-        { headers }
-      ),
+      sendHttp(url, history, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          date: "2026-10-11T17:00:00Z",
+          continuation: "{not json",
+        }),
+      }),
       sendHttp(url, "/api/v1/songs/%20/chord-charts", { headers }),
       sendHttp(url, `/api/v1/plan-people/${planPersonId}`, {
         method: "PATCH",
@@ -1381,6 +1294,11 @@ test(
         headers,
         body: "{",
       }),
+      sendHttp(url, `/api/v1/plan-people/${planPersonId}`, {
+        method: "PATCH",
+        headers: { ...headers, "content-type": "text/plain" },
+        body: "status=C",
+      }),
     ]);
     const state = yield* fixtureStateWhen(
       url,
@@ -1389,8 +1307,15 @@ test(
     );
 
     assert.deepStrictEqual(
-      answers.map((answer) => [answer.status, answer.tag]),
-      Array.from({ length: answers.length }, () => [400, "RequestRejected"])
+      answers.map((answer) => [answer.status, answer.tag, answer.reason]),
+      [
+        [400, "RequestRejected", "invalid-payload"],
+        [400, "RequestRejected", "invalid-payload"],
+        [400, "RequestRejected", "invalid-payload"],
+        [400, "RequestRejected", "invalid-payload"],
+        [400, "RequestRejected", "invalid-payload"],
+        [400, "RequestRejected", "malformed-request"],
+      ]
     );
     assert.isFalse(
       state.planningCenterCalls.some((entry) =>
@@ -1412,7 +1337,7 @@ test(
   "serves a demo session from the demo header: reads answer, writes are refused as read-only",
   Effect.gen(function* httpDemo() {
     const url = yield* fixtureUrl;
-    const client = nativeHttpClient(url, {
+    const client = nativeClient(url, {
       "x-pcobooster-demo": fixtureDemoToken,
     });
     const read = yield* Effect.promise(
@@ -1430,12 +1355,14 @@ test(
     );
     const unknownDemo = yield* sendHttp(
       url,
-      "/api/v1/people/plan-window-history?date=2026-10-11T17%3A00%3A00Z",
-      { headers: { "x-pcobooster-demo": "not-the-demo-token" } }
+      "/api/v1/people/plan-window-history",
+      {
+        method: "POST",
+        headers: { "x-pcobooster-demo": "not-the-demo-token" },
+        body: JSON.stringify({ date: "2026-10-11T17:00:00Z" }),
+      }
     );
-    yield* Effect.promise(async () => {
-      await client.dispose();
-    });
+    yield* disposeAll(client);
 
     assert.strictEqual(read.loadedPlanCount, 0);
     assert.isTrue(

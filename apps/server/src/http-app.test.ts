@@ -29,45 +29,47 @@ describe(makeHttpApp, () => {
     });
   });
 
-  it("no longer serves per-procedure RPC paths or the OpenAPI reference", async () => {
+  it("serves no OpenAPI reference", async () => {
     const app = createTestApp(() => new Response(null, { status: 501 }));
 
-    const responses = await Promise.all([
-      app.request("/api/rpc/health", { method: "POST" }),
-      app.request("/api/reference"),
-    ]);
+    const response = await app.request("/api/reference");
 
-    expect(responses.map((response) => response.status)).toStrictEqual([
-      404, 404,
-    ]);
+    expect(response.status).toBe(404);
   });
 
-  it("answers credentialed CORS preflight requests, allowing every header the clients send", async () => {
+  it("answers credentialed CORS preflight requests, allowing every header the clients send, privately", async () => {
     const app = createTestApp(() => new Response(null, { status: 501 }));
 
-    const response = await app.request("/api/rpc", {
+    const response = await app.request("/api/v1/plan-people/pp-1", {
       headers: {
         "Access-Control-Request-Headers":
           "content-type,authorization,x-pcobooster-client,x-pcobooster-priority",
-        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Method": "PATCH",
         Origin: allowedOrigin,
       },
       method: "OPTIONS",
     });
 
-    expect(response.status).toBe(204);
-    expect(response.headers.get("access-control-allow-origin")).toBe(
-      allowedOrigin
-    );
-    expect(response.headers.get("access-control-allow-credentials")).toBe(
-      "true"
-    );
-    expect(response.headers.get("access-control-allow-headers")).toBe(
-      "Content-Type,Authorization,x-pcobooster-client,x-request-id,x-pcobooster-account,x-pcobooster-demo,x-pcobooster-priority"
-    );
-    expect(response.headers.get("access-control-allow-methods")).toBe(
-      "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-    );
+    expect({
+      status: response.status,
+      cacheControl: response.headers.get("cache-control"),
+      version: response.headers.get("x-pcobooster-version"),
+      exposed: response.headers.get("access-control-expose-headers"),
+      origin: response.headers.get("access-control-allow-origin"),
+      credentials: response.headers.get("access-control-allow-credentials"),
+      headers: response.headers.get("access-control-allow-headers"),
+      methods: response.headers.get("access-control-allow-methods"),
+    }).toStrictEqual({
+      status: 204,
+      cacheControl: "private, no-store",
+      version: "development",
+      exposed: "Retry-After,x-pcobooster-version",
+      origin: allowedOrigin,
+      credentials: "true",
+      headers:
+        "Content-Type,Authorization,x-pcobooster-client,x-request-id,x-pcobooster-account,x-pcobooster-demo,x-pcobooster-priority",
+      methods: "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+    });
   });
 
   it("answers a preflight from another origin without allowing it", async () => {
@@ -105,13 +107,13 @@ describe(makeHttpApp, () => {
         response.headers.get("x-pcobooster-version"),
       ])
     ).toStrictEqual(
-      [200, 404, 501].map((status) => [
+      [200, 400, 501].map((status) => [
         status,
         allowedOrigin,
         "true",
         "Origin",
         "private, no-store",
-        "http-app-test",
+        "development",
       ])
     );
   });

@@ -1,6 +1,7 @@
 /**
- * The outermost middleware of every product endpoint over HttpApi: the same job ProcedureScope
- * does for RPC, around HttpApi's own decode, handler, and encode.
+ * The outermost middleware of every product endpoint: request identity, the client version gate,
+ * Planning Center accounting and priority, the outcome line, and fault encoding, around
+ * HttpApi's own decode, handler, and encode.
  */
 import "@pcobooster/api/rpc/services";
 import {
@@ -21,6 +22,8 @@ import {
 } from "@pcobooster/api/rpc/outcome";
 import type {
   ProcedureCall,
+  ProcedureLogFields,
+  ProcedureOutcome,
   ReportProcedureFailure,
 } from "@pcobooster/api/rpc/outcome";
 import { ResponseCookies } from "@pcobooster/api/rpc/response-cookies";
@@ -48,24 +51,35 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import { HttpApiSchemaError } from "effect/unstable/httpapi/HttpApiError";
 
+/**
+ * What the Worker hands each request: the isolate's server dependencies (built by the first
+ * request, since bindings are only readable inside one) and where 5xx outcomes are reported.
+ * The router is built before any request, so it reads these per request and never keeps them.
+ */
+export class IsolateServer extends Context.Service<
+  IsolateServer,
+  {
+    readonly server: ServerDependencies;
+    /** Sends 5xx outcomes to error tracking; null where the stage has none. */
+    readonly report: ReportProcedureFailure | null;
+  }
+>()("@pcobooster/api/IsolateServer") {}
+
 export interface ProcedureScopeOptions {
-  /** Built once per isolate; each call runs with `serverDependenciesForRequest`. */
-  readonly server: ServerDependencies;
   /** The isolate's pacer: every call shares each credential's Planning Center budget. */
   readonly pacer: PlanningCenterRatePacer;
-  /** Sends 5xx outcomes to error tracking; null where the stage has none. */
-  readonly report: ReportProcedureFailure | null;
   /** Defaults to `PLANNING_CENTER_REQUEST_CAP`. */
   readonly requestBudget?: number;
   readonly now?: () => number;
 }
 
 /**
- * Reads a service the Worker put on the request fiber (Alchemy provides each invocation's own
- * HTTP client there). HttpApi middleware cannot declare it, so this is the one untyped read.
- * Missing means the endpoint runs outside a Worker request, which only a wiring bug causes.
+ * Reads a service the Worker put on the request fiber: Alchemy's per-invocation HTTP client, and
+ * the isolate's server. HttpApi middleware cannot declare requirements, so these are the only
+ * untyped reads. Missing means the endpoint runs outside a Worker request, which only a wiring
+ * bug causes; it dies, and the die is answered as InternalError.
  */
-const fromRequestFiber = <Identifier, Service>(
+export const fromRequestFiber = <Identifier, Service>(
   key: Context.Key<Identifier, Service>
 ): Effect.Effect<Service> =>
   Effect.withFiber((fiber) =>
@@ -82,15 +96,21 @@ const OUTDATED_MESSAGE =
   "This version of pcobooster is out of date. Reload or update it to continue.";
 
 /**
- * A rejected request's person-facing message, as over RPC: a request this client's own contract
- * could not have produced usually means the client is older than the server.
+ * A rejected request's person-facing message: a request this client's own contract could not
+ * have produced usually means the client is older than the server.
  */
-const REJECTED_MESSAGE = OUTDATED_MESSAGE;
+export const REJECTED_MESSAGE = OUTDATED_MESSAGE;
 
 const clientOutdated = new ClientOutdated({
   message: OUTDATED_MESSAGE,
   minimumProtocolVersion: MINIMUM_API_VERSION,
 });
+
+/** Statuses from here up are errors. */
+const FIRST_ERROR_STATUS = 400;
+
+const rejected = (reason: RequestRejected["reason"]) =>
+  new RequestRejected({ message: REJECTED_MESSAGE, reason });
 
 /**
  * HttpApi fails with `HttpApiSchemaError` when params, query, headers, or payload do not decode
@@ -105,13 +125,20 @@ const classifySchemaError = <Failure>(
   }
   return failure.kind === "Body" || failure.kind === "ResponseHeaders"
     ? Effect.die(failure)
-    : Effect.fail(
-        new RequestRejected({
-          message: REJECTED_MESSAGE,
-          reason: "invalid-payload",
-        })
-      );
+    : Effect.fail(rejected("invalid-payload"));
 };
+
+/**
+ * HttpApi answers some requests itself, as a plain response, before any handler: a body that is
+ * not JSON (415). Those become `RequestRejected`, so every non-2xx answer is a declared fault
+ * the client decodes and the outcome line reports.
+ */
+const rejectFrameworkAnswer = (
+  response: HttpServerResponse.HttpServerResponse
+): Effect.Effect<HttpServerResponse.HttpServerResponse, RequestRejected> =>
+  response.status >= FIRST_ERROR_STATUS
+    ? Effect.fail(rejected("malformed-request"))
+    : Effect.succeed(response);
 
 /**
  * A defect, or any failure that is not exactly one fault, answers `InternalError`: what went
@@ -129,14 +156,12 @@ const hideUnexpected = <Value, Failure, Services>(
   );
 
 /** `Retry-After` for a rate-limited answer that knows when to retry. */
-const retryAfterSeconds = (exit: Exit.Exit<unknown, unknown>) => {
-  const outcome = procedureOutcome(exit);
-  return outcome.kind === "fault" &&
-    outcome.fault._tag === "RateLimited" &&
-    outcome.fault.retryAfterSeconds !== undefined
+const retryAfterSeconds = (outcome: ProcedureOutcome) =>
+  outcome.kind === "fault" &&
+  outcome.fault._tag === "RateLimited" &&
+  outcome.fault.retryAfterSeconds !== undefined
     ? Math.max(0, Math.ceil(outcome.fault.retryAfterSeconds))
     : undefined;
-};
 
 /**
  * What the endpoint's response carries beyond its body: each cookie a procedure set as its own
@@ -164,6 +189,18 @@ const responseExtras = (
     );
   });
 
+/** Writes the one outcome line and reports a 5xx; never fails. */
+export const writeOutcome = (
+  report: ReportProcedureFailure | null,
+  fields: ProcedureLogFields,
+  outcome: ProcedureOutcome
+): Effect.Effect<void> => {
+  const line = logProcedureOutcome(fields, outcome);
+  return report !== null && isReportable(outcome)
+    ? Effect.andThen(line, report({ fields, error: reportedError(outcome) }))
+    : line;
+};
+
 /**
  * The non-obvious parts:
  * - Identity comes from the workerd request's own headers (cookie, bearer, account, demo).
@@ -175,16 +212,17 @@ const responseExtras = (
 export const ProcedureScopeLive = (
   options: ProcedureScopeOptions
 ): Layer.Layer<ProcedureScope> =>
-  Layer.succeed(ProcedureScope)((httpEffect, { endpoint, group }) =>
+  Layer.succeed(ProcedureScope)((httpEffect, { endpoint }) =>
     Effect.gen(function* procedureScope() {
       const httpRequest = yield* HttpServerRequest.HttpServerRequest;
       const request = yield* HttpServerRequest.toWeb(httpRequest).pipe(
         Effect.orDie
       );
+      const isolate = yield* fromRequestFiber(IsolateServer);
       const httpClient = yield* fromRequestFiber(HttpClient.HttpClient);
       const now = options.now ?? Date.now;
       const context = createRequestContext(request);
-      const procedure = `${group.identifier}.${endpoint.identifier}`;
+      const procedure = endpoint.identifier;
       const kind = procedureKindOf(endpoint) ?? "read";
       const priority = parseRequestPriority(
         request.headers.get(REQUEST_PRIORITY_HEADER)
@@ -197,6 +235,8 @@ export const ProcedureScopeLive = (
       const call: ProcedureCall = {
         procedure,
         requestId: context.requestId,
+        method: request.method,
+        route: endpoint.path,
         client,
         priority,
         kind,
@@ -206,10 +246,6 @@ export const ProcedureScopeLive = (
       const cookies: Cookies.Cookie[] = [];
       let retryAfter: number | undefined;
       yield* responseExtras(cookies, () => retryAfter);
-      yield* Effect.annotateCurrentSpan({
-        "rpc.procedure": procedure,
-        "request.id": context.requestId,
-      });
       const gate = isSupportedApiClient(client)
         ? Effect.void
         : Effect.fail(clientOutdated);
@@ -219,13 +255,14 @@ export const ProcedureScopeLive = (
           Effect.catchIf(
             (failure) => HttpApiSchemaError.is(failure),
             (failure) => classifySchemaError(failure)
-          )
+          ),
+          Effect.flatMap(rejectFrameworkAnswer)
         )
       ).pipe(
         Effect.provideService(RequestContext, context),
         Effect.provideService(
           Server,
-          serverDependenciesForRequest(options.server)
+          serverDependenciesForRequest(isolate.server)
         ),
         Effect.provideService(PlanningCenterAccounting, accounting),
         Effect.provideService(HttpClient.HttpClient, httpClient),
@@ -236,18 +273,21 @@ export const ProcedureScopeLive = (
         }),
         Effect.provideService(PlanningCenterPacing, options.pacer),
         Effect.annotateLogs({ procedure, requestId: context.requestId }),
+        Effect.withSpan(`api.${procedure}`, {
+          attributes: {
+            "api.procedure": procedure,
+            "request.id": context.requestId,
+          },
+        }),
         Effect.onExit((exit) =>
           Effect.suspend(() => {
-            retryAfter = retryAfterSeconds(exit);
             const outcome = procedureOutcome(exit);
-            const fields = procedureLogFields(call, outcome, now());
-            const line = logProcedureOutcome(fields, outcome);
-            return options.report !== null && isReportable(outcome)
-              ? Effect.andThen(
-                  line,
-                  options.report({ fields, error: reportedError(outcome) })
-                )
-              : line;
+            retryAfter = retryAfterSeconds(outcome);
+            return writeOutcome(
+              isolate.report,
+              procedureLogFields(call, outcome, now()),
+              outcome
+            );
           })
         ),
         hideUnexpected

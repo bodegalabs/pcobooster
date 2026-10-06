@@ -1,15 +1,23 @@
 /**
- * The API Worker's one HTTP router, built once per isolate: the product API (`/api/v1`, Effect
- * HttpApi), Better Auth (`/api/auth/*`, with its per-IP write limit), liveness (`/`, `/health`),
- * and, for every route and every answer including errors and preflights, the CORS policy and
- * the cache policy. The RPC route (`/api/rpc`) is dispatched by the Worker before this router
- * until the port to HttpApi finishes.
+ * The API Worker's one HTTP router, built once per isolate before any request: the product API
+ * (`/api/v1`, Effect HttpApi), Better Auth (`/api/auth/*`, with its per-IP write limit), and
+ * liveness (`/`, `/health`). Around it, in this order from the outside in:
+ * - the cache policy: `Cache-Control: private, no-store` and the release header on every
+ *   response, preflights and unknown paths included;
+ * - CORS: only the product origin, with credentials;
+ * - disconnects: a product call whose caller leaves stops if it reads and finishes if it writes.
+ *
+ * Nothing request-scoped is built in: each request brings the isolate's server and error
+ * reporter (`IsolateServer`) and, in the Worker, its auth rate limit (`AuthWriteLimit`).
  */
 import { NATIVE_SIGN_IN_START_PATH } from "@pcobooster/api/auth/native-sign-in";
+import { IsolateServer } from "@pcobooster/api/http/procedure-scope";
 import { productApiLayer } from "@pcobooster/api/http/server";
 import type { ProductApiOptions } from "@pcobooster/api/http/server";
+import { unmatchedProductRequest } from "@pcobooster/api/http/unmatched";
+import { API_PREFIX } from "@pcobooster/contracts/http/route";
 import { SERVER_VERSION_HEADER } from "@pcobooster/contracts/rpc/procedure";
-import { Context, Effect, Layer, Scope } from "effect";
+import { Context, Effect, Layer, Option, Scope } from "effect";
 import * as HttpEffect from "effect/unstable/http/HttpEffect";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpRouter from "effect/unstable/http/HttpRouter";
@@ -18,11 +26,22 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import { corsPolicy } from "./cors";
+import { surviveDisconnect } from "./disconnect";
+import type { AfterDisconnect } from "./disconnect";
 
 type AuthHandler = (request: Request) => Promise<Response> | Response;
 
 /** Whether the client at this IP may make another auth write now (a Workers rate limit). */
 export type AuthWriteLimiter = (clientIp: string) => Promise<boolean>;
+
+/**
+ * The Worker's auth rate limit, read from its binding inside each request. Requests without it
+ * (tests, and wherever no limit applies) are never limited.
+ */
+export class AuthWriteLimit extends Context.Service<
+  AuthWriteLimit,
+  AuthWriteLimiter
+>()("@pcobooster/server/AuthWriteLimit") {}
 
 /** The window, in seconds, the API Worker's auth rate limit counts over. */
 export const AUTH_RATE_LIMIT_PERIOD_SECONDS = 60;
@@ -38,38 +57,39 @@ const isAuthWrite = (request: Request): boolean =>
   (request.method === "GET" &&
     new URL(request.url).pathname === NATIVE_SIGN_IN_START);
 
-export interface HttpAppOptions extends ProductApiOptions {
-  /** The API's release, sent on every response for version-skew handling. */
-  readonly releaseVersion: string;
-  /**
-   * Limits auth writes per client IP: every POST (sign-in, sign-out, the native sign-in
-   * exchange) and the native sign-in start. Session reads, which every page makes, and OAuth
-   * callbacks are never limited. Omitted in tests and wherever no limit applies.
-   */
-  readonly allowAuthWrite?: AuthWriteLimiter;
-  /** Defaults to Better Auth's handler; tests substitute their own. */
+export interface HttpAppOptions<
+  AfterDisconnectServices,
+> extends ProductApiOptions {
+  /** The API's origin for browsers: the one CORS allows. */
+  readonly publicOrigin: string;
+  /** Keeps a disconnected call's write alive; the Worker uses `waitUntil`. */
+  readonly afterDisconnect: AfterDisconnect<AfterDisconnectServices>;
+  /** Defaults to the request's Better Auth; tests substitute their own. */
   readonly authHandler?: AuthHandler;
 }
 
-const authRoute = ({
-  allowAuthWrite,
-  authHandler,
-}: {
-  readonly allowAuthWrite: AuthWriteLimiter | undefined;
-  readonly authHandler: AuthHandler;
-}) =>
+/**
+ * Better Auth, after the per-IP limit on auth writes: every POST (sign-in, sign-out, the native
+ * sign-in exchange) and the native sign-in start. Session reads, which every page makes, and
+ * OAuth callbacks are never limited.
+ */
+const authRoute = (authHandler: AuthHandler | undefined) =>
   Effect.gen(function* serveAuth() {
     const httpRequest = yield* HttpServerRequest.HttpServerRequest;
     const request = yield* HttpServerRequest.toWeb(httpRequest).pipe(
       Effect.orDie
     );
+    const { server } = yield* IsolateServer;
+    const allowAuthWrite = yield* Effect.serviceOption(AuthWriteLimit);
     // Set by Cloudflare at the edge and forwarded unchanged by the product Worker.
     const clientIp = request.headers.get("cf-connecting-ip");
     const limited =
       isAuthWrite(request) &&
-      allowAuthWrite !== undefined &&
+      Option.isSome(allowAuthWrite) &&
       clientIp !== null &&
-      !(yield* Effect.promise(async () => await allowAuthWrite(clientIp)));
+      !(yield* Effect.promise(
+        async () => await allowAuthWrite.value(clientIp)
+      ));
     if (limited) {
       return HttpServerResponse.jsonUnsafe(
         { error: "Too many requests" },
@@ -79,47 +99,23 @@ const authRoute = ({
         }
       );
     }
-    const response = yield* Effect.promise(
-      async () => await authHandler(request)
-    );
+    const handle =
+      authHandler ??
+      (async (input: Request) => await server.auth.handler(input));
+    const response = yield* Effect.promise(async () => await handle(request));
     return HttpServerResponse.fromWeb(response);
   });
 
-/**
- * `Cache-Control: private, no-store` and the API's release on every response, applied as each is
- * sent (errors, 404s, and Better Auth's answers included). Every answer is per caller, so this
- * replaces whatever a route set, Better Auth's bare `no-store` among them.
- */
-const cachePolicy = (releaseVersion: string) =>
-  HttpRouter.middleware(
-    (httpApp) =>
-      Effect.andThen(
-        HttpEffect.appendPreResponseHandler((_request, response) =>
-          Effect.succeed(
-            HttpServerResponse.setHeaders(response, {
-              "cache-control": "private, no-store",
-              [SERVER_VERSION_HEADER]: releaseVersion,
-            })
-          )
-        ),
-        httpApp
-      ),
-    { global: true }
-  );
-
-/** Every route the Worker serves through this router, with its global middleware. */
-export const httpAppLayer = (options: HttpAppOptions) => {
-  const { origin, allowMethods, allowHeaders } = corsPolicy(
-    options.server.config.publicOrigin
-  );
-  const auth = authRoute({
-    allowAuthWrite: options.allowAuthWrite,
-    authHandler:
-      options.authHandler ??
-      (async (request) => await options.server.auth.handler(request)),
-  });
+/** Every route the router serves. */
+const routesLayer = <Services>(options: HttpAppOptions<Services>) => {
+  const auth = authRoute(options.authHandler);
   return Layer.mergeAll(
     productApiLayer(options),
+    HttpRouter.add(
+      "*",
+      `${API_PREFIX}/*`,
+      unmatchedProductRequest(options.now)
+    ),
     HttpRouter.add("GET", "/api/auth/*", auth),
     HttpRouter.add("POST", "/api/auth/*", auth),
     HttpRouter.add("GET", "/", HttpServerResponse.text("OK")),
@@ -127,36 +123,66 @@ export const httpAppLayer = (options: HttpAppOptions) => {
       "GET",
       "/health",
       HttpServerResponse.jsonUnsafe({ status: "ok" })
-    ),
-    // Registered first, so it runs outermost and answers preflights before anything else.
-    HttpRouter.middleware(
-      HttpMiddleware.cors({
-        allowedOrigins: (requestOrigin) => requestOrigin === origin,
-        allowedMethods: allowMethods,
-        allowedHeaders: allowHeaders,
-        credentials: true,
-      }),
-      { global: true }
-    ),
-    cachePolicy(options.releaseVersion)
+    )
   ).pipe(Layer.provide(HttpServer.layerServices));
 };
 
+/**
+ * `Cache-Control: private, no-store` and the API's release on every response, applied as each is
+ * sent. Registered before CORS runs, so preflights CORS answers itself get it too. Every answer is
+ * per caller, so this replaces whatever a route set, Better Auth's bare `no-store` among them.
+ */
+const cachePolicy = <Failure, Requirements>(
+  app: Effect.Effect<
+    HttpServerResponse.HttpServerResponse,
+    Failure,
+    Requirements
+  >
+) =>
+  Effect.gen(function* applyCachePolicy() {
+    const { server } = yield* IsolateServer;
+    yield* HttpEffect.appendPreResponseHandler((_request, response) =>
+      Effect.succeed(
+        HttpServerResponse.setHeaders(response, {
+          "cache-control": "private, no-store",
+          [SERVER_VERSION_HEADER]: server.config.releaseVersion,
+        })
+      )
+    );
+    return yield* app;
+  });
+
 /** What the Worker runs for each request this router serves. */
-export type HttpApp = Effect.Success<ReturnType<typeof makeHttpApp>>;
+export type HttpApp<Services> = Effect.Success<
+  ReturnType<typeof makeHttpApp<Services>>
+>;
 
 /**
  * Builds the router in `scope` (the isolate's lifetime) and returns its per-request effect.
  *
  * The build sees only that scope. `HttpApiBuilder.group` captures every service of the fiber that
- * builds it and provides them to each handler; the Worker builds the router inside its first
- * request, whose services (Alchemy's HTTP client, tracer, and execution context) belong to that
- * request's I/O context. Captured, they would serve every later request, which workerd answers by
- * hanging. Each request supplies its own instead (`procedure-scope.ts` reads them).
+ * builds it and provides them to each handler, so a service the build could see would override
+ * the request's own (workerd hangs a request that uses another invocation's I/O). Each request
+ * supplies its own instead.
  */
-export const makeHttpApp = (options: HttpAppOptions) =>
-  Effect.updateContext(
-    HttpRouter.toHttpEffect(httpAppLayer(options)),
+export const makeHttpApp = <Services>(options: HttpAppOptions<Services>) => {
+  const { origin, allowMethods, allowHeaders, exposeHeaders } = corsPolicy(
+    options.publicOrigin
+  );
+  const cors = HttpMiddleware.cors({
+    allowedOrigins: (requestOrigin) => requestOrigin === origin,
+    allowedMethods: allowMethods,
+    allowedHeaders: allowHeaders,
+    exposedHeaders: exposeHeaders,
+    credentials: true,
+  });
+  return Effect.updateContext(
+    HttpRouter.toHttpEffect(routesLayer(options)),
     (context: Context.Context<Scope.Scope>) =>
       Context.make(Scope.Scope, Context.get(context, Scope.Scope))
+  ).pipe(
+    Effect.map((router) =>
+      cachePolicy(cors(surviveDisconnect(options.afterDisconnect)(router)))
+    )
   );
+};

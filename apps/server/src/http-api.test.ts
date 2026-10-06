@@ -1,7 +1,8 @@
 /**
- * The three spike endpoints over Effect HttpApi, served by the Worker's router in Node: success,
- * every fault each can answer with its status, malformed input, the outcome line, and the typed
- * client's unchanged `call` shape.
+ * Three endpoints that cover the hard cases, served by the Worker's router in Node: a paginated
+ * POST read (people.planWindowHistory), an audited write (schedule.updateStatus), and a flagged
+ * read with a path param (chordCharts.song). Success, every fault each can answer with its
+ * status, malformed input, the outcome line, and the client's `call` shape.
  */
 import type {
   PlanningCenterAccessDependencies,
@@ -132,7 +133,6 @@ const outcomeLines = (app: Setup["app"]) =>
       fields.kind,
     ]);
 
-/** A raw request as the web client sends it, to read what the client does not expose. */
 /** What a call rejected with; fails the test if it resolved. */
 const rejection = async (answer: Promise<unknown>): Promise<Error> => {
   try {
@@ -145,6 +145,7 @@ const rejection = async (answer: Promise<unknown>): Promise<Error> => {
   throw new Error("Expected the call to reject with an Error");
 };
 
+/** A raw request as the web client sends it, to read what the client does not expose. */
 const raw = async (
   app: Setup["app"],
   method: string,
@@ -166,8 +167,10 @@ const continuation = {
   serviceTypeIds: ["st-3"],
 };
 
-describe("people.planWindowHistory over HttpApi (a paginated read)", () => {
-  it("carries the continuation through the URL and answers the next batch", async () => {
+const HISTORY = "/api/v1/people/plan-window-history";
+
+describe("people.planWindowHistory (a paginated POST read)", () => {
+  it("carries the continuation in the body and answers the next batch", async () => {
     const { app, client, planRanges } = setup();
 
     const batch = await client.call(
@@ -199,14 +202,12 @@ describe("people.planWindowHistory over HttpApi (a paginated read)", () => {
     ]);
   });
 
-  it("answers GET with the cache policy and only the declared fields", async () => {
+  it("answers POST with the cache policy and only the declared fields", async () => {
     const { app } = setup();
 
-    const response = await raw(
-      app,
-      "GET",
-      "/api/v1/people/plan-window-history?date=2026-10-11T17%3A00%3A00Z"
-    );
+    const response = await raw(app, "POST", HISTORY, {
+      body: { date: "2026-10-11T17:00:00Z" },
+    });
 
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("private, no-store");
@@ -214,26 +215,22 @@ describe("people.planWindowHistory over HttpApi (a paginated read)", () => {
   });
 
   it.each([
-    ["a date that is not an instant", "date=next-sunday"],
+    ["a date that is not an instant", { date: "next-sunday" }],
     [
-      "a continuation that is not JSON",
-      "date=2026-10-11T17%3A00%3A00Z&continuation=%7Bnot",
+      "a continuation that is not an object",
+      { date: "2026-10-11T17:00:00Z", continuation: "{not" },
     ],
     [
       "a continuation of the wrong shape",
-      `date=2026-10-11T17%3A00%3A00Z&continuation=${encodeURIComponent('{"plans":[{}]}')}`,
+      { date: "2026-10-11T17:00:00Z", continuation: { plans: [{}] } },
     ],
-    ["no date at all", ""],
+    ["no date at all", {}],
   ])(
     "rejects %s with 400 before any Planning Center request",
-    async (_case, query) => {
+    async (_case, body) => {
       const { app, serviceTypes } = setup();
 
-      const response = await raw(
-        app,
-        "GET",
-        `/api/v1/people/plan-window-history?${query}`
-      );
+      const response = await raw(app, "POST", HISTORY, { body });
 
       expect(response.status).toBe(400);
       await expect(response.json()).resolves.toMatchObject({
@@ -272,11 +269,9 @@ describe("people.planWindowHistory over HttpApi (a paginated read)", () => {
       )
     );
 
-    const response = await raw(
-      app,
-      "GET",
-      "/api/v1/people/plan-window-history?date=2026-10-11T17%3A00%3A00Z"
-    );
+    const response = await raw(app, "POST", HISTORY, {
+      body: { date: "2026-10-11T17:00:00Z" },
+    });
     const answer = client.call("people.planWindowHistory", {
       date: "2026-10-11T17:00:00Z",
     });
@@ -295,11 +290,9 @@ describe("people.planWindowHistory over HttpApi (a paginated read)", () => {
       )
     );
 
-    const response = await raw(
-      app,
-      "GET",
-      "/api/v1/people/plan-window-history?date=2026-10-11T17%3A00%3A00Z"
-    );
+    const response = await raw(app, "POST", HISTORY, {
+      body: { date: "2026-10-11T17:00:00Z" },
+    });
     const answer = client.call("people.planWindowHistory", {
       date: "2026-10-11T17:00:00Z",
     });
@@ -319,11 +312,9 @@ describe("people.planWindowHistory over HttpApi (a paginated read)", () => {
       Effect.die(new Error("adapter crashed at /srv/secret/path"))
     );
 
-    const response = await raw(
-      app,
-      "GET",
-      "/api/v1/people/plan-window-history?date=2026-10-11T17%3A00%3A00Z"
-    );
+    const response = await raw(app, "POST", HISTORY, {
+      body: { date: "2026-10-11T17:00:00Z" },
+    });
     const answer = client.call("people.planWindowHistory", {
       date: "2026-10-11T17:00:00Z",
     });
@@ -346,16 +337,14 @@ describe("people.planWindowHistory over HttpApi (a paginated read)", () => {
 
   it.each([
     ["an older API version", "web;api=0"],
-    ["the RPC protocol's header", "web;rpc=1"],
+    ["a header without a version", "web"],
   ])("answers 426 ClientOutdated to %s", async (_case, header) => {
     const { app, serviceTypes } = setup();
 
-    const response = await raw(
-      app,
-      "GET",
-      "/api/v1/people/plan-window-history?date=2026-10-11T17%3A00%3A00Z",
-      { client: header }
-    );
+    const response = await raw(app, "POST", HISTORY, {
+      body: { date: "2026-10-11T17:00:00Z" },
+      client: header,
+    });
 
     expect(response.status).toBe(426);
     await expect(response.json()).resolves.toMatchObject({
@@ -366,7 +355,7 @@ describe("people.planWindowHistory over HttpApi (a paginated read)", () => {
   });
 });
 
-describe("schedule.updateStatus over HttpApi (an audited write)", () => {
+describe("schedule.updateStatus (an audited write)", () => {
   const target = {
     planPersonId: "plan-person-1",
     serviceTypeId: "service-1",
@@ -448,7 +437,7 @@ describe("schedule.updateStatus over HttpApi (an audited write)", () => {
     expect(recordActivity).not.toHaveBeenCalled();
   });
 
-  it("is reached only by PATCH", async () => {
+  it("is reached only by PATCH: another method answers 405 with what the path allows", async () => {
     const { app } = setup();
 
     const response = await raw(
@@ -460,11 +449,14 @@ describe("schedule.updateStatus over HttpApi (an audited write)", () => {
       }
     );
 
-    expect(response.status).toBe(404);
+    expect([response.status, response.headers.get("allow")]).toStrictEqual([
+      405,
+      "DELETE, PATCH",
+    ]);
   });
 });
 
-describe("chordCharts.song over HttpApi (a flagged read with a path param)", () => {
+describe("chordCharts.song (a flagged read with a path param)", () => {
   it("answers 404 NotFound while the flag is off, before any Planning Center request", async () => {
     const { app, client, getSong, featureFlags } = setup({
       chordCharts: false,
@@ -522,21 +514,24 @@ describe("chordCharts.song over HttpApi (a flagged read with a path param)", () 
 });
 
 describe("routes outside the API's endpoints", () => {
-  it("answer an unknown /api/v1 path with an empty 404 that keeps CORS and the cache policy", async () => {
+  it("answer an unknown /api/v1 path RequestRejected, keeping CORS and the cache policy", async () => {
     const { app } = setup();
 
     const response = await raw(app, "GET", "/api/v1/retired-endpoint");
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(400);
     expect(response.headers.get("access-control-allow-origin")).toBe(
       "http://localhost:3000"
     );
     expect(response.headers.get("cache-control")).toBe("private, no-store");
-    await expect(response.text()).resolves.toBe("");
+    await expect(response.json()).resolves.toMatchObject({
+      _tag: "RequestRejected",
+      reason: "unknown-endpoint",
+    });
   });
 });
 
-describe("demo sessions over HttpApi", () => {
+describe("demo sessions", () => {
   it("reads the demo header and refuses a write as read-only before Planning Center", async () => {
     const config = testServerConfig({
       DEMO_ACCESS_KEY: "http-demo-access-key-long-enough",

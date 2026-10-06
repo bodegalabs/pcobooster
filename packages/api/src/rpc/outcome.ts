@@ -96,8 +96,11 @@ export const isReportable = (outcome: ProcedureOutcome): boolean =>
 
 /** Who called and how; everything in the outcome line besides the outcome itself. */
 export interface ProcedureCall {
-  /** A known tag, or whatever an old client sent. */
-  readonly procedure: string;
+  /** A known tag, whatever an old client sent, or null when no procedure matched. */
+  readonly procedure: string | null;
+  /** The HTTP method and the matched route's path template (null when none matched). */
+  readonly method?: string;
+  readonly route?: string | null;
   readonly requestId: string;
   readonly client: string | null;
   readonly priority: RequestPriority;
@@ -109,8 +112,11 @@ export interface ProcedureCall {
 
 /** Fields of the one `rpc` line per procedure, which Workers Logs indexes. */
 export interface ProcedureLogFields {
-  readonly procedure: string;
+  readonly procedure: string | null;
   readonly requestId: string;
+  readonly method: string | null;
+  /** The route template, so one line groups every id; null when no route matched. */
+  readonly route: string | null;
   readonly status: number;
   readonly code: string | null;
   readonly durationMs: number;
@@ -139,6 +145,8 @@ export const procedureLogFields = (
   return {
     procedure: call.procedure,
     requestId: call.requestId,
+    method: call.method ?? null,
+    route: call.route ?? null,
     status: outcome.status,
     code: outcome.code,
     durationMs: now - call.startedAt,

@@ -1,7 +1,6 @@
 /**
- * What every procedure gets from the Effect RPC transport: the previous transport's tests
- * (fault mapping, procedure wiring, Planning Center accounting) and the RPC half of
- * `app.test.ts`, ported to run against the route.
+ * What every endpoint gets from the product API: fault mapping, input decoding on the server,
+ * per-call Planning Center accounting, and a span per call, through the Worker's router.
  */
 import type {
   PlanningCenterAccessDependencies,
@@ -17,14 +16,12 @@ import { testServer } from "@pcobooster/api/testing/server";
 import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { InternalError } from "@pcobooster/contracts/faults/internal-error";
 import { RequestRejected } from "@pcobooster/contracts/faults/request-rejected";
-import { RPC_HEADERS } from "@pcobooster/contracts/rpc/procedure";
-import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import { Effect, Tracer } from "effect";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { postHogProcedureReporter } from "./rpc-route";
-import { serveRpcForTest, TEST_RPC_URL } from "./test-rpc";
-import type { RpcRouteTestOptions } from "./test-rpc";
+import { postHogProcedureReporter } from "./procedure-reporting";
+import { serveHttpForTest, TEST_API_ORIGIN } from "./test-http";
+import type { HttpAppTestOptions } from "./test-http";
 
 const privateNoStore = "private, no-store";
 const PLAN_PATH = /\/plans\/(?<planId>[^/]+)$/u;
@@ -38,7 +35,7 @@ const accountAuthentication: RequestAuthentication = {
   account: { id: "account-1", accountId: "provider-account-1" },
 };
 
-/** Access that `authorize` decides; services send through the route's HTTP client. */
+/** Access that `authorize` decides; services send through the router's HTTP client. */
 const accessWith = (
   authorize: PlanningCenterAccessDependencies["authorize"]
 ): PlanningCenterAccessDependencies => ({
@@ -110,31 +107,16 @@ const peopleDirectory = () => {
   return { searches, httpClient };
 };
 
-const rawRpc = (
-  tag: string,
-  payload: JsonValue,
-  headers: Record<string, string> = {}
-) =>
-  new Request(TEST_RPC_URL, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      [RPC_HEADERS.client]: "web;rpc=1",
-      ...headers,
-    },
-    body: JSON.stringify({
-      _tag: "Request",
-      id: "1",
-      tag,
-      payload,
-      headers: [],
-    }),
+/** A raw GET from a current web client, to read what the client does not expose. */
+const rawGet = (path: string, headers: Record<string, string> = {}) =>
+  new Request(`${TEST_API_ORIGIN}${path}`, {
+    headers: { "x-pcobooster-client": "web;api=1", ...headers },
   });
 
-const serve = (options: Partial<RpcRouteTestOptions> = {}) =>
-  serveRpcForTest({ server: testServer(), access: signedIn, ...options });
+const serve = (options: Partial<HttpAppTestOptions> = {}) =>
+  serveHttpForTest({ server: testServer(), access: signedIn, ...options });
 
-const outcomeLines = (route: ReturnType<typeof serveRpcForTest>) =>
+const outcomeLines = (route: ReturnType<typeof serveHttpForTest>) =>
   route.logs.filter((line) => line.message === "rpc");
 
 const recordingReporter = () => {
@@ -146,7 +128,7 @@ const recordingReporter = () => {
   return { reports, report };
 };
 
-describe("faults on the Effect RPC route", () => {
+describe("faults", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
@@ -162,9 +144,9 @@ describe("faults on the Effect RPC route", () => {
     });
 
     const raw = await route.fetch(
-      rawRpc("access.me", {}, { "x-request-id": "request-403" })
+      rawGet("/api/v1/access/me", { "x-request-id": "request-403" })
     );
-    const answer = route.client().call("access.me", {});
+    const answer = route.client().call("access.me");
 
     await expect(answer).rejects.toBeInstanceOf(Forbidden);
     await expect(answer).rejects.toMatchObject({
@@ -197,11 +179,11 @@ describe("faults on the Effect RPC route", () => {
     });
 
     const raw = await route.fetch(
-      rawRpc("access.me", {}, { "x-request-id": "request-123" })
+      rawGet("/api/v1/access/me", { "x-request-id": "request-123" })
     );
     const body = await raw.text();
 
-    await expect(route.client().call("access.me", {})).rejects.toBeInstanceOf(
+    await expect(route.client().call("access.me")).rejects.toBeInstanceOf(
       InternalError
     );
     expect({
@@ -248,7 +230,7 @@ describe("faults on the Effect RPC route", () => {
       report: postHogProcedureReporter("phc_test_key"),
     });
 
-    const raw = await route.fetch(rawRpc("access.me", {}));
+    const raw = await route.fetch(rawGet("/api/v1/access/me"));
 
     expect(raw.status).toBe(500);
     expect(
@@ -258,21 +240,30 @@ describe("faults on the Effect RPC route", () => {
     ).toMatchObject({ level: "error", fields: { procedure: "access.me" } });
   });
 
-  it("answers an unknown procedure with 400 RequestRejected before any handler", async () => {
+  it("answers an unknown endpoint with 400 RequestRejected, logged and never reported", async () => {
     const { reports, report } = recordingReporter();
     const route = serve({ report });
 
-    const raw = await route.fetch(rawRpc("access.missing", {}));
+    const raw = await route.fetch(rawGet("/api/v1/access/missing"));
 
     expect([raw.status, raw.headers.get("cache-control")]).toStrictEqual([
       400,
       privateNoStore,
     ]);
-    await expect(raw.text()).resolves.toContain("unknown-procedure");
+    await expect(raw.json()).resolves.toMatchObject({
+      _tag: "RequestRejected",
+      reason: "unknown-endpoint",
+    });
     expect(outcomeLines(route)).toMatchObject([
       {
         level: "info",
-        fields: { procedure: "access.missing", status: 400, kind: null },
+        fields: {
+          procedure: null,
+          method: "GET",
+          route: "/api/v1/access/missing",
+          status: 400,
+          kind: null,
+        },
       },
     ]);
     expect(reports).toStrictEqual([]);
@@ -313,8 +304,8 @@ describe("payload decoding", () => {
   });
 });
 
-describe("what each procedure runs with", () => {
-  it("carries Dates through the transport as ISO strings, decoded back into Dates", async () => {
+describe("what each call runs with", () => {
+  it("carries Dates over the wire as ISO strings, decoded back into Dates", async () => {
     const { httpClient } = planningCenter();
     const route = serve({ httpClient });
 
@@ -322,7 +313,7 @@ describe("what each procedure runs with", () => {
       .client()
       .call("catalog.plan", { serviceTypeId: "st-1", planId: "plan-1" });
     const raw = await route.fetch(
-      rawRpc("catalog.plan", { serviceTypeId: "st-1", planId: "plan-1" })
+      rawGet("/api/v1/service-types/st-1/plans/plan-1")
     );
 
     expect(plan?.createdAt).toStrictEqual(new Date("2026-09-01T00:00:00Z"));
@@ -331,7 +322,7 @@ describe("what each procedure runs with", () => {
     );
   });
 
-  it("gives every procedure its own Planning Center accounting under the 40-request cap", async () => {
+  it("gives every call its own Planning Center accounting under the 40-request cap", async () => {
     const { httpClient, requests } = planningCenter();
     const route = serve({ httpClient });
     const client = route.client();
@@ -370,7 +361,7 @@ describe("what each procedure runs with", () => {
     ]);
   });
 
-  it("runs each procedure in a span named after it, with its procedure and request id", async () => {
+  it("runs each call in a span named after its procedure, with its request id", async () => {
     const spans: Tracer.NativeSpan[] = [];
     const tracer = Tracer.make({
       span: (options) => {
@@ -383,18 +374,16 @@ describe("what each procedure runs with", () => {
     const route = serve({ httpClient, tracer });
 
     await route.fetch(
-      rawRpc(
-        "catalog.plan",
-        { serviceTypeId: "st-1", planId: "plan-1" },
-        { "x-request-id": "request-span" }
-      )
+      rawGet("/api/v1/service-types/st-1/plans/plan-1", {
+        "x-request-id": "request-span",
+      })
     );
     const procedureSpan = spans.find(
-      (span) => span.name === "rpc.catalog.plan"
+      (span) => span.name === "api.catalog.plan"
     );
 
     expect({
-      procedure: procedureSpan?.attributes.get("rpc.procedure"),
+      procedure: procedureSpan?.attributes.get("api.procedure"),
       requestId: procedureSpan?.attributes.get("request.id"),
     }).toStrictEqual({ procedure: "catalog.plan", requestId: "request-span" });
   });

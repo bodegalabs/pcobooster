@@ -3,9 +3,10 @@ import { faultStatus } from "@pcobooster/contracts/faults/outcome";
 import { Schema } from "effect";
 
 /**
- * The request never reached a handler: its procedure is unknown, its payload did not decode, or
- * the message itself was not a well-formed RPC request. Almost always version skew (an old tab or
- * app build) or a hand-written caller. Only the RPC protocol produces it.
+ * The request never reached a handler: it names no endpoint (`unknown-endpoint`), its input did
+ * not decode (`invalid-payload`), or its body was not JSON (`malformed-request`). Almost always
+ * version skew (an old tab or app build) or a hand-written caller. Only the transport produces
+ * it, never a program.
  */
 export class RequestRejected extends faultClass<RequestRejected>()(
   "RequestRejected",
@@ -13,6 +14,7 @@ export class RequestRejected extends faultClass<RequestRejected>()(
     message: Schema.String,
     reason: Schema.Literals([
       "unknown-procedure",
+      "unknown-endpoint",
       "invalid-payload",
       "malformed-request",
     ]),

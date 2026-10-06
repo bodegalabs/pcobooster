@@ -1,16 +1,15 @@
 /**
- * A Worker that serves both product transports exactly as the API Worker builds them, the RPC
- * route and the HttpApi router (Better Auth, liveness, CORS, `/api/v1`), against a fake Planning
- * Center, so `worker.stack.test.ts` can prove their runtime behavior in workerd without reaching
- * a Planning Center account. It differs from the API Worker in these ways:
+ * A Worker that serves the API Worker's router exactly as the API Worker builds it (Better Auth,
+ * liveness, CORS, the cache policy, disconnects, `/api/v1`) against a fake Planning Center, so
+ * `worker.stack.test.ts` can prove its runtime behavior in workerd without reaching a Planning
+ * Center account. It differs from the API Worker in these ways:
  * - Planning Center is `fakePlanningCenter`: an HTTP client that answers from fixtures, scripted
  *   by id prefix (`slow-read`, `defect`, `slow-prepare`, `slow-commit`, `unencodable`,
  *   `limited`, `down`, `missing`, `refused`), and records every request it receives.
- * - RPC requests act as the dev auth bypass account, so no session is needed. HttpApi requests
- *   resolve real sessions: `POST /__fixture/session` seeds a user with two Planning Center
- *   accounts and answers the user's signed bearer token, and the demo header works with
- *   `FIXTURE_DEMO_SETTINGS`. The `chordCharts` flag is on only for accounts whose id ends in
- *   `-flag-on`.
+ * - Requests resolve real sessions: `POST /__fixture/session` seeds a user with two Planning
+ *   Center accounts and answers the user's signed bearer token, and the demo header works with
+ *   `FIXTURE_DEMO_SETTINGS`. The `chordCharts` and `people` flags are on only for accounts whose
+ *   id ends in `-flag-on`.
  * - `GET /__fixture/state` reports what the isolate saw: server builds, Planning Center requests,
  *   outcome log lines, scripted disconnects, and D1 schedule audit rows.
  * - A request with `x-fixture-abort-after-ms` gets a signal that aborts after that many
@@ -21,6 +20,7 @@
 import { createAuth } from "@pcobooster/api/auth";
 import { createDatabase } from "@pcobooster/api/db/client";
 import { account, session, user } from "@pcobooster/api/db/schema";
+import { IsolateServer } from "@pcobooster/api/http/procedure-scope";
 import { structuredLogging } from "@pcobooster/api/logging";
 import type { FeatureFlags } from "@pcobooster/api/modules/feature-flags/feature-flags";
 import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
@@ -47,8 +47,8 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import { Database } from "./database";
+import { waitUntilAfterDisconnect } from "./disconnect";
 import { makeHttpApp } from "./http-app";
-import { isRpcPath, makeRpcRoute, waitUntilAfterDisconnect } from "./rpc-route";
 import { cachedAcrossRequests } from "./shared-initialization";
 
 export const FIXTURE_STATE_PATH = "/__fixture/state";
@@ -87,7 +87,9 @@ type PlanningCenterCall = Types.Mutable<typeof planningCenterCallSchema.Type>;
 
 /** The fields of an outcome line the stack test reads. */
 const outcomeLineSchema = Schema.Struct({
-  procedure: Schema.String,
+  procedure: Schema.NullOr(Schema.String),
+  method: Schema.NullOr(Schema.String),
+  route: Schema.NullOr(Schema.String),
   requestId: Schema.String,
   status: Schema.Number,
   code: Schema.NullOr(Schema.String),
@@ -425,12 +427,11 @@ const withScriptedDisconnect = (
     );
   });
 
-/** `chordCharts` is on only for accounts whose id ends in `-flag-on`. */
+/** Every flag is on only for accounts whose id ends in `-flag-on`. */
 const fixtureFeatureFlags: FeatureFlags = {
-  isEnabled: (flag, subject) =>
+  isEnabled: (_flag, subject) =>
     Effect.succeed(
-      flag === "chordCharts" &&
-        (subject.planningCenterAccountId?.endsWith("-flag-on") ?? false)
+      subject.planningCenterAccountId?.endsWith("-flag-on") ?? false
     ),
 };
 
@@ -455,37 +456,20 @@ export default class TransportStackFixture extends Cloudflare.Worker<TransportSt
   }),
   Effect.gen(function* fixture() {
     const database = yield* Cloudflare.D1.QueryDatabase(yield* Database);
-    const pacer = new PlanningCenterRatePacer();
-    const isolateScope = Scope.makeUnsafe();
-    const route = yield* cachedAcrossRequests(
-      Effect.gen(function* buildRoute() {
-        seen.serverBuilds += 1;
-        const server = testServer({
-          database: createDatabase(yield* database.raw),
-          config: testServerConfig({
-            PCOBOOSTER_VERSION: FIXTURE_RELEASE_VERSION,
-            DEV_AUTH_BYPASS: "true",
-            PLANNING_CENTER_CLIENT: "fixture-client",
-            PLANNING_CENTER_PAT: "fixture-pat",
-          }),
-        });
-        return yield* makeRpcRoute({
-          server,
-          pacer,
-          report: null,
-          releaseVersion: server.config.releaseVersion,
-          afterDisconnect: waitUntilAfterDisconnect,
-        }).pipe(Scope.provide(isolateScope));
-      })
-    );
-    // The HttpApi side resolves real sessions, so it has its own server without the bypass.
+    const config = testServerConfig({
+      PCOBOOSTER_VERSION: FIXTURE_RELEASE_VERSION,
+      ...FIXTURE_DEMO_SETTINGS,
+    });
+    // As the API Worker builds it: once, here, before any request.
+    const app = yield* makeHttpApp({
+      publicOrigin: config.publicOrigin,
+      pacer: new PlanningCenterRatePacer(),
+      afterDisconnect: waitUntilAfterDisconnect,
+    }).pipe(Scope.provide(Scope.makeUnsafe()));
     const http = yield* cachedAcrossRequests(
-      Effect.gen(function* buildHttpApp() {
+      Effect.gen(function* buildServer() {
+        seen.serverBuilds += 1;
         const db = createDatabase(yield* database.raw);
-        const config = testServerConfig({
-          PCOBOOSTER_VERSION: FIXTURE_RELEASE_VERSION,
-          ...FIXTURE_DEMO_SETTINGS,
-        });
         const auth = createAuth(config, db);
         const authContext = yield* Effect.promise(
           async () => await auth.$context
@@ -496,13 +480,7 @@ export default class TransportStackFixture extends Cloudflare.Worker<TransportSt
           auth,
           featureFlags: fixtureFeatureFlags,
         });
-        const app = yield* makeHttpApp({
-          server,
-          pacer,
-          report: null,
-          releaseVersion: config.releaseVersion,
-        }).pipe(Scope.provide(isolateScope));
-        return { app, db, secret: authContext.secret };
+        return { server, db, secret: authContext.secret };
       })
     );
     /** A user with two Planning Center accounts and a session, as native sign-in leaves them. */
@@ -590,14 +568,13 @@ export default class TransportStackFixture extends Cloudflare.Worker<TransportSt
         if (url.pathname === FIXTURE_SESSION_PATH) {
           return yield* seedSession;
         }
-        if (httpRequest.method === "OPTIONS" || !isRpcPath(url.pathname)) {
-          const { app } = yield* http;
-          return yield* app.pipe(
-            Effect.provideService(HttpClient.HttpClient, fakePlanningCenter)
-          );
-        }
-        const rpc = yield* route;
-        return yield* rpc(yield* withScriptedDisconnect(httpRequest)).pipe(
+        const { server } = yield* http;
+        return yield* app.pipe(
+          Effect.provideService(
+            HttpServerRequest.HttpServerRequest,
+            yield* withScriptedDisconnect(httpRequest)
+          ),
+          Effect.provideService(IsolateServer, { server, report: null }),
           Effect.provideService(HttpClient.HttpClient, fakePlanningCenter)
         );
       }).pipe(Effect.provide(fixtureLogging)),

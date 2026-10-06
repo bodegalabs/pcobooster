@@ -26,8 +26,6 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { createLocalD1 } from "../../../scripts/database/local-d1";
 import { serveHttpForTest } from "./test-http";
 import type { HttpAppTest } from "./test-http";
-import { serveRpcForTest } from "./test-rpc";
-import type { RpcRouteTest } from "./test-rpc";
 
 const { runtime, binding } = await createLocalD1("native-sign-in-app");
 const database = createDatabase(binding);
@@ -36,7 +34,6 @@ const origin = config.publicOrigin;
 const planningCenter = createPlanningCenterStub(globalThis.fetch);
 
 let app: HttpAppTest;
-let rpcRoute: RpcRouteTest;
 let server: ServerDependencies;
 const featureFlags = testFeatureFlags();
 const handler = async (request: Request): Promise<Response> =>
@@ -55,9 +52,9 @@ const profile = (
 /** One product call as a native client makes it: identity only in HTTP headers. */
 const callAs = async <Result>(
   headers: Readonly<Record<string, string>>,
-  call: (client: ReturnType<RpcRouteTest["client"]>) => Promise<Result>
+  call: (client: ReturnType<HttpAppTest["client"]>) => Promise<Result>
 ): Promise<Result> => {
-  const client = rpcRoute.client({
+  const client = app.client({
     client: "expo",
     httpHeaders: () => headers,
   });
@@ -73,16 +70,13 @@ const isAuthenticated = async (
 ): Promise<boolean> => {
   const status = await callAs(
     headers,
-    async (client) => await client.call("session.status", {})
+    async (client) => await client.call("session.status")
   );
   return status.authenticated;
 };
 
 const listAccounts = async (headers: Readonly<Record<string, string>>) =>
-  await callAs(
-    headers,
-    async (client) => await client.call("accounts.list", {})
-  );
+  await callAs(headers, async (client) => await client.call("accounts.list"));
 
 const accountIdFor = async (person: PlanningCenterProfile): Promise<string> => {
   const [row] = await database
@@ -99,7 +93,6 @@ describe("native sign-in through the API Worker", () => {
     await auth.$context;
     server = testServer({ config, database, auth, featureFlags });
     app = serveHttpForTest({ server });
-    rpcRoute = serveRpcForTest({ server });
   });
 
   afterAll(async () => {
@@ -122,8 +115,8 @@ describe("native sign-in through the API Worker", () => {
     await expect(parseExchange(exchanged)).resolves.toHaveProperty("token");
   });
 
-  it("authenticates RPC calls with the bearer token", async () => {
-    const person = profile("rpc");
+  it("authenticates identity calls with the bearer token", async () => {
+    const person = profile("identity");
     planningCenter.signInAs(person);
     const { token, user, selectedAccountId } = await signInNatively(
       handler,
@@ -190,7 +183,7 @@ describe("native sign-in through the API Worker", () => {
     expect(selected).toStrictEqual([first, second, first]);
   });
 
-  it("authenticates HttpApi calls with the bearer token and selects the account the header names", async () => {
+  it("authenticates Planning Center calls with the bearer token and selects the account the header names", async () => {
     const graceChurch = profile("http-a", "http-select@example.com");
     const hopeChapel = profile("http-b", "http-select@example.com");
     planningCenter.signInAs(graceChurch);

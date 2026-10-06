@@ -15,7 +15,7 @@ export interface ReportedRequestError {
   readonly error: Error;
   /** The answer's code (`BAD_GATEWAY`), or `UNHANDLED` for a defect. */
   readonly code: string;
-  /** Names the procedure as a path, such as `/api/rpc/planItems/create`, so issues group by it. */
+  /** The endpoint's route template, such as `/api/v1/plan-people/:planPersonId`, so issues group by it. */
   readonly path: string;
   readonly method: string;
   readonly requestId: string;

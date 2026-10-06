@@ -1,6 +1,7 @@
 import { deploymentTier } from "@pcobooster/api/config/feature-flags";
 import type { ServerEnvironment } from "@pcobooster/api/config/server-config";
 import { resolveServerConfig } from "@pcobooster/api/config/server-config";
+import { IsolateServer } from "@pcobooster/api/http/procedure-scope";
 import { structuredLogging } from "@pcobooster/api/logging";
 import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
 import type { SharedReadStore } from "@pcobooster/api/planning-center/services/shared-read-store";
@@ -12,16 +13,18 @@ import { Config, Effect, Layer, Redacted, Scope } from "effect";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 
 import { Database } from "./database";
+import { waitUntilAfterDisconnect } from "./disconnect";
 import { FeatureFlagApp } from "./feature-flags";
-import { AUTH_RATE_LIMIT_PERIOD_SECONDS, makeHttpApp } from "./http-app";
+import {
+  AUTH_RATE_LIMIT_PERIOD_SECONDS,
+  AuthWriteLimit,
+  makeHttpApp,
+} from "./http-app";
+import type { AuthWriteLimiter } from "./http-app";
 import { apiWorkerObservability, apiWorkerTelemetry } from "./observability";
 import { PlanningCenterCache } from "./planning-center-cache";
-import {
-  isRpcPath,
-  makeRpcRoute,
-  postHogProcedureReporter,
-  waitUntilAfterDisconnect,
-} from "./rpc-route";
+import { postHogProcedureReporter } from "./procedure-reporting";
+import { isRpcPath, makeRpcRoute } from "./rpc-route";
 import { cachedAcrossRequests } from "./shared-initialization";
 import { currentStageSettings } from "./stage";
 
@@ -165,16 +168,23 @@ export default class Api extends Cloudflare.Worker<Api>()(
       },
     });
     const resolveEnvironment = yield* readEnvironment;
+    const { publicOrigin } = yield* currentStageSettings;
     // One pacer per isolate shares each credential's Planning Center budget across requests.
     const pacer = new PlanningCenterRatePacer();
     // The RPC server and the router live as long as the isolate, so this scope is never closed.
     const isolateScope = Scope.makeUnsafe();
+    // Built once, here, before any request: nothing request-scoped can reach it.
+    const http = yield* makeHttpApp({
+      publicOrigin,
+      pacer,
+      afterDisconnect: waitUntilAfterDisconnect,
+    }).pipe(Scope.provide(isolateScope));
     // The D1, KV, and Flagship bindings and a runtime-minted secret are only readable inside a
-    // request, so the app is built by the first one and shared by the rest of the isolate's
+    // request, so the server is built by the first one and shared by the rest of the isolate's
     // lifetime. Not `Effect.cached`: requests that arrive while the first one builds must not
     // resume inside it; see `cachedAcrossRequests`.
-    const app = yield* cachedAcrossRequests(
-      Effect.gen(function* buildApp() {
+    const isolate = yield* cachedAcrossRequests(
+      Effect.gen(function* buildServer() {
         const config = resolveServerConfig(yield* resolveEnvironment);
         const binding = yield* database.raw;
         const featureFlagSource: FeatureFlagSource =
@@ -209,30 +219,27 @@ export default class Api extends Cloudflare.Worker<Api>()(
           releaseVersion: config.releaseVersion,
           afterDisconnect: waitUntilAfterDisconnect,
         }).pipe(Scope.provide(isolateScope));
-        const http = yield* makeHttpApp({
-          server,
-          pacer,
-          report,
-          releaseVersion: config.releaseVersion,
-          allowAuthWrite: async (clientIp) => {
-            const outcome = await rateLimit.limit({ key: clientIp });
-            return outcome.success;
-          },
-        }).pipe(Scope.provide(isolateScope));
-        return { http, rpc };
+        const allowAuthWrite: AuthWriteLimiter = async (clientIp) => {
+          const outcome = await rateLimit.limit({ key: clientIp });
+          return outcome.success;
+        };
+        return { server, report, allowAuthWrite, rpc };
       })
     );
     return {
       fetch: Effect.gen(function* fetch() {
         const httpRequest = yield* HttpServerRequest.HttpServerRequest;
-        const { http, rpc } = yield* app;
+        const { server, report, allowAuthWrite, rpc } = yield* isolate;
         if (
           httpRequest.method !== "OPTIONS" &&
           isRpcPath(new URL(httpRequest.url, "http://api").pathname)
         ) {
           return yield* rpc(httpRequest);
         }
-        return yield* http;
+        return yield* http.pipe(
+          Effect.provideService(IsolateServer, { server, report }),
+          Effect.provideService(AuthWriteLimit, allowAuthWrite)
+        );
       }),
     };
   }).pipe(

@@ -5,10 +5,6 @@
  * once, by the RPC protocol.
  */
 import { createRequestContext } from "@pcobooster/api/application/context";
-import { moduleLog } from "@pcobooster/api/logging";
-import { createPostHogExceptionReporter } from "@pcobooster/api/modules/analytics/posthog-exception";
-import { causeError } from "@pcobooster/api/rpc/outcome";
-import type { ReportProcedureFailure } from "@pcobooster/api/rpc/outcome";
 import { writeProcedureOutcome } from "@pcobooster/api/rpc/protocol";
 import { makeProductRpcServer } from "@pcobooster/api/rpc/server";
 import type {
@@ -57,39 +53,6 @@ export interface RpcRouteOptions<Services> extends ProductRpcServerOptions {
   readonly releaseVersion: string;
   readonly afterDisconnect: AfterDisconnect<Services>;
 }
-
-const routeLog = moduleLog("rpc");
-
-/** Sends 5xx procedures to PostHog; null where the stage has no project (all but production). */
-export const postHogProcedureReporter = (
-  apiKey: string | null
-): ReportProcedureFailure | null => {
-  const report = createPostHogExceptionReporter({
-    apiKey,
-    fetch: globalThis.fetch,
-  });
-  if (report === null) {
-    return null;
-  }
-  return ({ fields, error }) =>
-    Effect.tryPromise(async () => {
-      await report({
-        error,
-        code: fields.code ?? "UNHANDLED",
-        path: `${RPC_PATH}/${fields.procedure.replaceAll(".", "/")}`,
-        method: "POST",
-        requestId: fields.requestId,
-      });
-    }).pipe(
-      Effect.catchCause((cause) =>
-        routeLog.error(
-          "Failed to report exception to PostHog",
-          { procedure: fields.procedure, requestId: fields.requestId },
-          causeError(cause)
-        )
-      )
-    );
-};
 
 /** Completes when the workerd request's signal aborts: the caller disconnected. */
 const disconnected = (signal: AbortSignal): Effect.Effect<boolean> =>

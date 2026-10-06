@@ -2,12 +2,20 @@
  * The product API over HttpApi: every group's handlers and both middlewares, as one layer that
  * adds the API's routes to the Worker's HttpRouter. A group without its handlers fails when the
  * router is built; a handler whose services the middlewares do not provide fails to typecheck.
+ * Nothing here is per request: the server and error reporter arrive with each request
+ * (`IsolateServer`).
  */
 import "@pcobooster/api/rpc/services";
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
-import { ChordChartsHttpHandlers } from "@pcobooster/api/http/handlers/chord-charts";
-import { PeopleHttpHandlers } from "@pcobooster/api/http/handlers/people";
-import { scheduleHttpHandlers } from "@pcobooster/api/http/handlers/schedule";
+import { CatalogHandlers } from "@pcobooster/api/http/handlers/catalog";
+import { DemoHandlers } from "@pcobooster/api/http/handlers/demo";
+import { FeedbackHandlers } from "@pcobooster/api/http/handlers/feedback";
+import { HealthHandlers } from "@pcobooster/api/http/handlers/health";
+import { IdentityHandlers } from "@pcobooster/api/http/handlers/identity";
+import { PeopleHandlers } from "@pcobooster/api/http/handlers/people";
+import { RunSheetHandlers } from "@pcobooster/api/http/handlers/run-sheet";
+import { scheduleHandlers } from "@pcobooster/api/http/handlers/schedule";
+import { SongHandlers } from "@pcobooster/api/http/handlers/songs";
 import { PlanningCenterSessionLive } from "@pcobooster/api/http/planning-center-session";
 import { ProcedureScopeLive } from "@pcobooster/api/http/procedure-scope";
 import type { ProcedureScopeOptions } from "@pcobooster/api/http/procedure-scope";
@@ -27,9 +35,15 @@ export const productApiLayer = (options: ProductApiOptions) =>
   HttpApiBuilder.layer(ProductApi).pipe(
     Layer.provide(
       Layer.mergeAll(
-        PeopleHttpHandlers,
-        scheduleHttpHandlers(options.scheduleAudit),
-        ChordChartsHttpHandlers
+        HealthHandlers,
+        IdentityHandlers,
+        DemoHandlers,
+        FeedbackHandlers,
+        CatalogHandlers,
+        PeopleHandlers,
+        SongHandlers,
+        RunSheetHandlers,
+        scheduleHandlers(options.scheduleAudit)
       )
     ),
     Layer.provide(

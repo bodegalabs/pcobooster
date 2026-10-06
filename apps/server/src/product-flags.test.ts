@@ -11,12 +11,12 @@ import {
   testPlanningCenterToken,
   testServer,
 } from "@pcobooster/api/testing/server";
-import type { ProductClient } from "@pcobooster/client/product-client";
+import type { ProductClient } from "@pcobooster/client/product-http-client";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import type { FeatureFlagName } from "@pcobooster/contracts/features";
 import { describe, expect, it } from "vitest";
 
-import { serveRpcForTest } from "./test-rpc";
+import { serveHttpForTest } from "./test-http";
 
 const accountAuthentication: RequestAuthentication = {
   kind: "account",
@@ -32,7 +32,7 @@ const demoAuthentication: RequestAuthentication = {
   planningCenter: testPlanningCenterToken,
 };
 
-/** Access as `authentication`; no request reaches Planning Center (the route's client fails). */
+/** Access as `authentication`; no request reaches Planning Center (the router's client fails). */
 const accessAs = (
   authentication: RequestAuthentication
 ): PlanningCenterAccessDependencies => ({
@@ -53,7 +53,7 @@ const flagOff = (
   authentication: RequestAuthentication
 ) => {
   const featureFlags = testFeatureFlags({ [flag]: false });
-  const route = serveRpcForTest({
+  const route = serveHttpForTest({
     server: testServer({ featureFlags }),
     access: accessAs(authentication),
   });
@@ -64,7 +64,7 @@ const flagOff = (
   };
 };
 
-const outcomeLines = (route: ReturnType<typeof serveRpcForTest>) =>
+const outcomeLines = (route: ReturnType<typeof serveHttpForTest>) =>
   route.logs
     .filter((line) => line.message === "rpc")
     .map(({ fields }) => [
@@ -81,7 +81,7 @@ const accountEvaluation = (flag: FeatureFlagName) => [
   },
 ];
 
-describe("procedures behind the people flag", () => {
+describe("endpoints behind the people flag", () => {
   it.each([
     [
       "people.dashboardRoster",
@@ -132,7 +132,7 @@ describe("procedures behind the people flag", () => {
     });
   });
 
-  it("evaluates no flag for a procedure declared without one", async () => {
+  it("evaluates no flag for an endpoint declared without one", async () => {
     const { client, evaluations } = flagOff("people", accountAuthentication);
 
     await client.call("people.search", { query: "ann" }).catch(() => null);
@@ -141,7 +141,7 @@ describe("procedures behind the people flag", () => {
   });
 });
 
-describe("procedures behind the chordCharts flag", () => {
+describe("endpoints behind the chordCharts flag", () => {
   it.each([
     [
       "songs.library",

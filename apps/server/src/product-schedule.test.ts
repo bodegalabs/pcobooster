@@ -1,6 +1,6 @@
 /**
- * Schedule writes over the Effect RPC route: the previous transport's schedule tests, ported
- * with the same services and assertions.
+ * Schedule writes through the API Worker's router: assignment, removal, and status changes, each
+ * audited with the request's real method and path, including after a disconnect.
  */
 import {
   createRequestContext,
@@ -32,7 +32,7 @@ import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
-import { serveRpcForTest, TEST_RPC_URL } from "./test-rpc";
+import { serveHttpForTest, TEST_API_ORIGIN } from "./test-http";
 
 const input: ScheduleAssignInput = {
   serviceTypeId: "service-1",
@@ -128,7 +128,7 @@ const setup = () => {
   const recordActivity = vi
     .fn<(event: ActivityEventInput) => Promise<void>>()
     .mockResolvedValue();
-  const route = serveRpcForTest({
+  const route = serveHttpForTest({
     server: testServer(),
     access: {
       authorize,
@@ -156,28 +156,26 @@ const setup = () => {
 const missingPlanPerson = () =>
   Effect.fail(new PlanningCenterApiError({ status: 404, message: "" }));
 
-/** A raw call, to read the HTTP response the client does not expose. */
+const ASSIGN_PATH = "/api/v1/service-types/service-1/plans/plan-1/team-members";
+
+/** A raw assignment, to read the HTTP response the client does not expose. */
 const rawAssign = (payload: JsonValue) =>
-  new Request(TEST_RPC_URL, {
+  new Request(`${TEST_API_ORIGIN}${ASSIGN_PATH}`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "x-pcobooster-client": "web;rpc=1",
+      "x-pcobooster-client": "web;api=1",
       ...callerHeaders,
     },
-    body: JSON.stringify({
-      _tag: "Request",
-      id: "1",
-      tag: "schedule.assign",
-      payload,
-      headers: [],
-    }),
+    body: JSON.stringify(payload),
   });
 
-describe("schedule writes over Effect RPC", () => {
+describe("schedule writes", () => {
   it("uses the request cache scope for each mutation and hides duplicate details in presentation mode", async () => {
     const { services, authorize, create } = setup();
-    const request = new Request(TEST_RPC_URL, { method: "POST" });
+    const request = new Request(`${TEST_API_ORIGIN}${ASSIGN_PATH}`, {
+      method: "POST",
+    });
     const authentication = await authorize(request);
     const access = {
       authentication,
@@ -272,7 +270,7 @@ describe("schedule writes over Effect RPC", () => {
     );
     expect(recordActivity).toHaveBeenNthCalledWith(1, {
       requestId: "request-1",
-      path: "/api/rpc/schedule/assign",
+      path: ASSIGN_PATH,
       method: "POST",
       ipAddress: "192.0.2.5",
       userAgent: "test-agent",
@@ -305,14 +303,15 @@ describe("schedule writes over Effect RPC", () => {
     );
   });
 
-  it("rejects invalid input before access, a provider mutation, or an audit row", async () => {
+  it("rejects invalid input before a provider mutation or an audit row, after access resolves", async () => {
     const { route, recordActivity, create, authorize } = setup();
 
-    const raw = await route.fetch(rawAssign({ ...input, planId: "" }));
+    const raw = await route.fetch(rawAssign({ ...input, teamId: " " }));
 
     expect(raw.status).toBe(400);
     expect(create).not.toHaveBeenCalled();
-    expect(authorize).not.toHaveBeenCalled();
+    // HttpApi decodes inside its middleware, so the session resolves first (accepted).
+    expect(authorize).toHaveBeenCalledOnce();
     expect(recordActivity).not.toHaveBeenCalled();
   });
 
@@ -463,7 +462,7 @@ describe("schedule writes over Effect RPC", () => {
         procedure: "schedule.assign",
         requestId: "request-1",
         method: "POST",
-        path: "/api/rpc/schedule/assign",
+        path: ASSIGN_PATH,
         error: "database unavailable",
       },
     });
