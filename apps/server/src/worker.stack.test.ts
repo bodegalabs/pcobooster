@@ -16,6 +16,7 @@ import { resolveReleaseVersion } from "@pcobooster/api/config/release";
 import { makeProductClient } from "@pcobooster/client/product-client";
 import type { ProcedureInput } from "@pcobooster/client/product-client";
 import { InternalError } from "@pcobooster/contracts/faults/internal-error";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
@@ -264,7 +265,8 @@ const rpcRequest = (
 const postRpc = (
   url: string,
   body: RpcRequestMessage | readonly RpcRequestMessage[],
-  requestId: string
+  requestId: string,
+  headers: Record<string, string> = {}
 ) =>
   Effect.promise(async () => {
     const response = await fetch(`${url}/api/rpc`, {
@@ -272,12 +274,14 @@ const postRpc = (
       headers: {
         "content-type": "application/json",
         "x-request-id": requestId,
+        ...headers,
       },
       body: JSON.stringify(body),
     });
     return {
       status: response.status,
       cacheControl: response.headers.get("cache-control"),
+      setCookies: response.headers.getSetCookie(),
       messages: decodeRpcResponse(await response.text()),
     };
   });
@@ -802,6 +806,86 @@ test(
           planningCenterRequests: 1,
         },
       ]
+    );
+  }),
+  requestTimeout
+);
+
+test(
+  "sets a procedure's cookie on the API Worker's response as its own Set-Cookie line",
+  Effect.gen(function* setCookieFromProcedure() {
+    const url = yield* apiUrl;
+    const raw = yield* postRpc(
+      url,
+      rpcRequest("1", "demo.exit", {}),
+      uniqueId("demo-exit")
+    );
+
+    assert.strictEqual(raw.status, 200);
+    assert.strictEqual(raw.cacheControl, "private, no-store");
+    assert.deepStrictEqual(exitTags(raw.messages), [
+      { requestId: "1", result: "Success", reason: undefined },
+    ]);
+    // Plain-HTTP local development, so not Secure.
+    assert.deepStrictEqual(raw.setCookies, [
+      "pcobooster-demo=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax",
+    ]);
+  }),
+  requestTimeout
+);
+
+test(
+  "answers ClientOutdated (426) to a client below the supported RPC protocol",
+  Effect.gen(function* outdatedClient() {
+    const url = yield* apiUrl;
+    const raw = yield* postRpc(
+      url,
+      rpcRequest("1", "health", {}),
+      uniqueId("outdated"),
+      { "x-pcobooster-client": "expo;rpc=0" }
+    );
+
+    assert.strictEqual(raw.status, 426);
+    assert.deepStrictEqual(exitTags(raw.messages), [
+      { requestId: "1", result: "ClientOutdated", reason: undefined },
+    ]);
+  }),
+  requestTimeout
+);
+
+test(
+  "answers a flagged read NotFound while its flag is off, before any Planning Center request",
+  Effect.gen(function* flaggedReadOff() {
+    const url = yield* fixtureUrl;
+    const requestId = uniqueId("flag-off");
+    const client = productClient(url);
+    const outcome = yield* settled(
+      async () =>
+        await client.call("people.dashboardRoster", undefined, {
+          httpHeaders: { "x-request-id": requestId },
+        })
+    );
+    const state = yield* fixtureStateWhen(
+      url,
+      requestId,
+      (current) => current.logs.length > 0
+    );
+    yield* Effect.promise(async () => {
+      await client.dispose();
+    });
+
+    assert.isTrue(
+      Result.isFailure(outcome) && outcome.failure.cause instanceof NotFound
+    );
+    assert.deepStrictEqual(
+      state.logs.map(({ level, fields }) => [
+        level,
+        fields.procedure,
+        fields.status,
+        fields.code,
+        fields.planningCenterRequests,
+      ]),
+      [["Info", "people.dashboardRoster", 404, "NOT_FOUND", 0]]
     );
   }),
   requestTimeout
