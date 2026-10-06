@@ -1,4 +1,6 @@
+import { callForQuery } from "@pcobooster/client/query";
 import { buildServicePlanRows } from "@pcobooster/planning-center-models/service-plans";
+import type { QueryFunctionContext } from "@tanstack/react-query";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 
@@ -10,29 +12,31 @@ import type { ServicesWindow } from "./agenda";
 /** Service types and past plans change rarely. */
 const SLOW_STALE_MS = 600_000;
 
-interface QueryContext {
-  readonly signal: AbortSignal;
-}
-
 const reads = {
   serviceTypes: ({ client, scope }: ProductClientContextValue) => ({
     queryKey: [scope, "catalog.serviceTypes"] as const,
-    queryFn: async ({ signal }: QueryContext) =>
-      await client.call("catalog.serviceTypes", {}, { signal }),
+    queryFn: async (context: QueryFunctionContext) =>
+      await callForQuery(context, client, (api) => api.catalog.serviceTypes()),
     staleTime: SLOW_STALE_MS,
   }),
   myPlans: ({ client, scope }: ProductClientContextValue) => ({
     queryKey: [scope, "people.myScheduledPlans"] as const,
-    queryFn: async ({ signal }: QueryContext) =>
-      await client.call("people.myScheduledPlans", {}, { signal }),
+    queryFn: async (context: QueryFunctionContext) =>
+      await callForQuery(context, client, (api) =>
+        api.people.myScheduledPlans()
+      ),
   }),
   plans: (
     { client, scope }: ProductClientContextValue,
     serviceTypeId: string
   ) => ({
     queryKey: [scope, "catalog.plans", serviceTypeId] as const,
-    queryFn: async ({ signal }: QueryContext) =>
-      await client.call("catalog.plans", { serviceTypeId }, { signal }),
+    queryFn: async (context: QueryFunctionContext) => {
+      const input = { serviceTypeId };
+      return await callForQuery(context, client, (api) =>
+        api.catalog.plans({ params: input })
+      );
+    },
   }),
   previousPlans: (
     { client, scope }: ProductClientContextValue,
@@ -40,12 +44,12 @@ const reads = {
     planId: string
   ) => ({
     queryKey: [scope, "catalog.adjacentPlans", serviceTypeId, planId] as const,
-    queryFn: async ({ signal }: QueryContext) =>
-      await client.call(
-        "catalog.adjacentPlans",
-        { serviceTypeId, planId, direction: "previous" },
-        { signal }
-      ),
+    queryFn: async (context: QueryFunctionContext) => {
+      const input = { serviceTypeId, planId, direction: "previous" as const };
+      return await callForQuery(context, client, (api) =>
+        api.catalog.adjacentPlans({ params: input, query: input })
+      );
+    },
     staleTime: SLOW_STALE_MS,
   }),
 };

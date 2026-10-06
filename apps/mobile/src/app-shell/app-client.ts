@@ -23,7 +23,7 @@ const featureOverrides: Record<FeatureOverride, Json> = {
 /**
  * The product client: the fixture transport behind `-PCOBMock YES` (development builds only),
  * else the API at `API_ORIGIN` with the session's bearer token. Screens see only the client's
- * call shape either way.
+ * typed HTTP API either way.
  */
 export const makeAppClient = (
   options: LaunchOptions,
@@ -32,7 +32,7 @@ export const makeAppClient = (
 ): ProductClient => {
   if (options.mock) {
     return makeProductClient({
-      url: "https://fixtures.invalid/api/rpc",
+      url: "https://fixtures.invalid",
       client: "expo",
       credentials: "omit",
       fetch: makeFixtureFetch({
@@ -45,7 +45,7 @@ export const makeAppClient = (
     });
   }
   return makeProductClient({
-    url: `${API_ORIGIN}/api/rpc`,
+    url: API_ORIGIN,
     client: "expo",
     credentials: "omit",
     httpHeaders: (): Record<string, string> =>

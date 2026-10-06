@@ -3,7 +3,7 @@ import {
   QueryClientProvider,
   useQuery,
 } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { ErrorToastProvider } from "../components/error-toast";
@@ -70,12 +70,6 @@ const SessionProvider = ({ children }: { children: ReactNode }) => {
   const token = active?.token ?? null;
   // One client per signed-in token: switching accounts builds a new one.
   const client = useMemo(() => makeAppClient(launchOptions, token), [token]);
-  useEffect(
-    () => () => {
-      void client.dispose();
-    },
-    [client]
-  );
 
   const continueAs = useCallback(
     (account: DeviceAccount) => {

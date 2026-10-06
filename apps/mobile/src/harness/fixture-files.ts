@@ -74,7 +74,7 @@ export const fixtureFiles = {
   "demo.start": demoStart,
   "features.status": featuresStatus,
   "feedback.submit": feedbackSubmit,
-  health,
+  "health.get": health,
   "neededPositions.adjust": neededPositionsAdjust,
   "people.blockouts": peopleBlockouts,
   "people.candidateDetails": peopleCandidateDetails,

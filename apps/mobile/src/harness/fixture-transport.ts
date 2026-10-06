@@ -1,11 +1,14 @@
-/**
- * The development fixture transport: a `fetch` for `makeProductClient` that answers every RPC
- * from the bundled fixtures, so screens run on the real client, its decoding, and its typed
- * faults with nothing leaving the device (the Swift app's `MockTransport`).
- *
- * A fixture's first case whose `match` is a JSON subset of the call's payload answers, else its
- * default. A procedure without a fixture answers `NotFound`, as a missing route would.
- */
+/** Development-only HTTP transport for the copied Swift scenarios. */
+import { faultOutcome, productFaultSchema } from "@pcobooster/contracts/faults";
+import type { ProductFault } from "@pcobooster/contracts/faults";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
+import { RequestRejected } from "@pcobooster/contracts/faults/request-rejected";
+import { procedureRoutes } from "@pcobooster/contracts/http/api";
+import {
+  API_VERSION,
+  SERVER_VERSION_HEADER,
+} from "@pcobooster/contracts/http/client-version";
+import { matchRoute } from "@pcobooster/contracts/http/route";
 import { Effect, Schema } from "effect";
 import type { Json } from "effect/Schema";
 
@@ -18,17 +21,6 @@ const FixtureFileSchema = Schema.Struct({
   ),
 });
 type FixtureFile = typeof FixtureFileSchema.Type;
-
-/** The parts of an RPC request message the transport reads. */
-const decodeRequest = Schema.decodeUnknownSync(
-  Schema.fromJsonString(
-    Schema.Struct({
-      id: Schema.Union([Schema.String, Schema.Number]),
-      tag: Schema.String,
-      payload: Schema.optional(Schema.Json),
-    })
-  )
-);
 
 /** Each procedure's parsed fixture, by tag. */
 export const fixtures: ReadonlyMap<string, FixtureFile> = new Map(
@@ -98,32 +90,46 @@ export const fixtureAnswer = (tag: string, payload: Json): FixtureAnswer => {
   };
 };
 
-const exitFor = (
-  tag: string,
-  payload: Json,
-  overrides: Readonly<Record<string, Json>>
-) => {
-  const override = overrides[tag];
-  const answer: FixtureAnswer =
-    override === undefined
-      ? fixtureAnswer(tag, payload)
-      : { found: true, value: override };
-  if (!answer.found) {
-    return {
-      _tag: "Failure",
-      cause: [
-        {
-          _tag: "Fail",
-          error: {
-            _tag: "NotFound",
-            message: `No fixture for ${tag}`,
-            resource: tag,
-          },
-        },
-      ],
-    };
+const jsonResponse = (
+  value: Json,
+  status = 200,
+  headers: Record<string, string> = {}
+): Response =>
+  // React Native's fetch polyfill has no static Response.json.
+  // eslint-disable-next-line unicorn/prefer-response-static-json
+  new Response(JSON.stringify(value), {
+    status,
+    headers: {
+      "content-type": "application/json",
+      "cache-control": "private, no-store",
+      [SERVER_VERSION_HEADER]: String(API_VERSION),
+      ...headers,
+    },
+  });
+
+const faultResponse = (
+  fault: ProductFault,
+  status: number = faultOutcome[fault._tag].status,
+  headers: Record<string, string> = {}
+): Response => {
+  const responseHeaders = { ...headers };
+  if (fault._tag === "RateLimited" && fault.retryAfterSeconds !== undefined) {
+    responseHeaders["retry-after"] = String(fault.retryAfterSeconds);
   }
-  return { _tag: "Success", value: answer.value };
+  return jsonResponse(
+    Schema.encodeSync(Schema.toCodecJson(productFaultSchema))(fault),
+    status,
+    responseHeaders
+  );
+};
+
+const queryInput = (url: URL) => {
+  const input: Record<string, Json> = {};
+  for (const key of new Set(url.searchParams.keys())) {
+    const values = url.searchParams.getAll(key);
+    input[key] = values.length === 1 ? (values[0] ?? "") : values;
+  }
+  return input;
 };
 
 export interface FixtureFetchOptions {
@@ -133,26 +139,73 @@ export interface FixtureFetchOptions {
   readonly overrides?: Readonly<Record<string, Json>>;
 }
 
-/** A `fetch` that answers RPC calls from the fixtures. */
+/** Answers declared HTTP endpoints without leaving the device. */
 export const makeFixtureFetch =
   ({
     latencyMs,
     overrides = {},
   }: FixtureFetchOptions): typeof globalThis.fetch =>
   async (input, init) => {
-    const request = decodeRequest(await new Request(input, init).text());
+    const request = new Request(input, init);
+    const url = new URL(request.url);
+    const match = matchRoute(procedureRoutes, request.method, url.pathname);
     if (latencyMs > 0) {
       await Effect.runPromise(Effect.sleep(latencyMs), {
-        signal: init?.signal ?? undefined,
+        signal: request.signal,
       });
     }
-    const exit = exitFor(request.tag, request.payload ?? {}, overrides);
-    // React Native's fetch polyfill has no static `Response.json`.
-    const body = JSON.stringify([
-      { _tag: "Exit", requestId: request.id, exit },
-    ]);
-    return new Response(body, {
-      headers: { "content-type": "application/json" },
-      status: 200,
-    });
+    if (match.kind !== "found") {
+      return faultResponse(
+        new RequestRejected({
+          message: "Unknown fixture endpoint.",
+          reason: "unknown-endpoint",
+        }),
+        match.kind === "wrong-method" ? 405 : 400,
+        match.kind === "wrong-method" ? { allow: match.allow.join(", ") } : {}
+      );
+    }
+    let payload: Json = match.params;
+    if (match.route.input === "query") {
+      payload = { ...queryInput(url), ...match.params };
+    } else if (match.route.input === "body") {
+      try {
+        const body = Schema.decodeUnknownSync(Schema.Json)(
+          await request.json()
+        );
+        if (!isJsonObject(body)) {
+          return faultResponse(
+            new RequestRejected({
+              message: "Expected a JSON object.",
+              reason: "invalid-payload",
+            })
+          );
+        }
+        payload = {
+          ...Schema.decodeUnknownSync(
+            Schema.Record(Schema.String, Schema.Json)
+          )(body),
+          ...match.params,
+        };
+      } catch {
+        return faultResponse(
+          new RequestRejected({
+            message: "Malformed JSON body.",
+            reason: "malformed-request",
+          })
+        );
+      }
+    }
+    const override = overrides[match.route.tag];
+    const answer =
+      override === undefined
+        ? fixtureAnswer(match.route.tag, payload)
+        : { found: true, value: override };
+    return answer.found
+      ? jsonResponse(answer.value)
+      : faultResponse(
+          new NotFound({
+            message: `No fixture for ${match.route.tag}`,
+            resource: match.route.tag,
+          })
+        );
   };

@@ -1,5 +1,6 @@
 import { TransportFailure } from "@pcobooster/client/product-client";
 import type { ProductClient } from "@pcobooster/client/product-client";
+import { callForQuery } from "@pcobooster/client/query";
 import { isProductFault } from "@pcobooster/contracts/faults";
 import { queryOptions } from "@tanstack/react-query";
 import { createContext, useContext } from "react";
@@ -26,21 +27,23 @@ export const sharedReads = {
   organization: ({ client, scope }: ProductClientContextValue) =>
     queryOptions({
       queryKey: [scope, "catalog.organization"] as const,
-      queryFn: async ({ signal }) =>
-        await client.call("catalog.organization", {}, { signal }),
+      queryFn: async (context) =>
+        await callForQuery(context, client, (api) =>
+          api.catalog.organization()
+        ),
       staleTime: Number.POSITIVE_INFINITY,
     }),
   features: ({ client, scope }: ProductClientContextValue) =>
     queryOptions({
       queryKey: [scope, "features.status"] as const,
-      queryFn: async ({ signal }) =>
-        await client.call("features.status", undefined, { signal }),
+      queryFn: async (context) =>
+        await callForQuery(context, client, (api) => api.features.status()),
     }),
   accounts: ({ client, scope }: ProductClientContextValue) =>
     queryOptions({
       queryKey: [scope, "accounts.list"] as const,
-      queryFn: async ({ signal }) =>
-        await client.call("accounts.list", {}, { signal }),
+      queryFn: async (context) =>
+        await callForQuery(context, client, (api) => api.accounts.list()),
     }),
 };
 
