@@ -9,13 +9,16 @@ import {
 } from "@pcobooster/api/application/chord-charts";
 import { withPlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
+import { requireFeature } from "@pcobooster/api/transport/orpc/feature-gate";
 import { rpc } from "@pcobooster/api/transport/orpc/implementation";
 import { executePreparedPlanningCenterWrite } from "@pcobooster/api/transport/orpc/planning-center-write";
 
 const song = rpc.chordCharts.song.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
-      withPlanningCenterAccess(readChordChartSong(input)),
+      withPlanningCenterAccess(
+        requireFeature("chordCharts", readChordChartSong(input))
+      ),
       context,
       signal
     )
@@ -26,7 +29,7 @@ const update = rpc.chordCharts.update.handler(
     await executePreparedPlanningCenterWrite(
       context,
       signal,
-      prepareChordChartSave(input),
+      requireFeature("chordCharts", prepareChordChartSave(input)),
       commitChordChartSave
     )
 );
@@ -34,7 +37,9 @@ const update = rpc.chordCharts.update.handler(
 const create = rpc.chordCharts.create.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
-      withPlanningCenterAccess(createChordChart(input)),
+      withPlanningCenterAccess(
+        requireFeature("chordCharts", createChordChart(input))
+      ),
       context,
       signal,
       { interruptOnAbort: false }
@@ -44,7 +49,9 @@ const create = rpc.chordCharts.create.handler(
 const lyricsSearch = rpc.chordCharts.lyricsSearch.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
-      withPlanningCenterAccess(searchChordChartLyrics(input)),
+      withPlanningCenterAccess(
+        requireFeature("chordCharts", searchChordChartLyrics(input))
+      ),
       context,
       signal
     )
@@ -53,7 +60,9 @@ const lyricsSearch = rpc.chordCharts.lyricsSearch.handler(
 const pdf = rpc.chordCharts.pdf.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
-      withPlanningCenterAccess(readChordChartPdf(input)),
+      withPlanningCenterAccess(
+        requireFeature("chordCharts", readChordChartPdf(input))
+      ),
       context,
       signal
     )
@@ -62,7 +71,9 @@ const pdf = rpc.chordCharts.pdf.handler(
 const createSong = rpc.chordCharts.createSong.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
-      withPlanningCenterAccess(addChordChartSong(input)),
+      withPlanningCenterAccess(
+        requireFeature("chordCharts", addChordChartSong(input))
+      ),
       context,
       signal,
       { interruptOnAbort: false }

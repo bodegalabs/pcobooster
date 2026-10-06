@@ -140,3 +140,43 @@ describe("procedures behind the people flag", () => {
     expect(evaluations).toStrictEqual([]);
   });
 });
+
+describe("procedures behind the chordCharts flag", () => {
+  it.each([
+    [
+      "songs.library",
+      async (client: ProductClient) => await client.call("songs.library"),
+    ],
+    [
+      "chordCharts.update",
+      async (client: ProductClient) =>
+        await client.call("chordCharts.update", {
+          songId: "song-1",
+          arrangementId: "arrangement-1",
+          chordChart: "[C]Amazing grace",
+          chordChartKey: "C",
+          baseUpdatedAt: null,
+        }),
+    ],
+    [
+      "chordCharts.lyricsSearch",
+      async (client: ProductClient) =>
+        await client.call("chordCharts.lyricsSearch", { query: "grace" }),
+    ],
+  ] as const)(
+    "answer %s with NotFound while the flag is off, songs.library included",
+    async (tag, call) => {
+      const { route, client, evaluations } = flagOff(
+        "chordCharts",
+        accountAuthentication
+      );
+
+      const answer = call(client);
+
+      await expect(answer).rejects.toBeInstanceOf(NotFound);
+      await expect(answer).rejects.toMatchObject({ resource: "songs" });
+      expect(evaluations).toStrictEqual(accountEvaluation("chordCharts"));
+      expect(outcomeLines(route)).toStrictEqual([[tag, 404, "NOT_FOUND", 0]]);
+    }
+  );
+});

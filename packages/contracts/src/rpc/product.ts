@@ -13,6 +13,10 @@ import {
   catalogProcedures,
   catalogRpc,
 } from "@pcobooster/contracts/rpc/catalog";
+import {
+  chordChartsProcedures,
+  chordChartsRpc,
+} from "@pcobooster/contracts/rpc/chord-charts";
 import { demoProcedures, demoRpc } from "@pcobooster/contracts/rpc/demo";
 import {
   featuresProcedures,
@@ -33,6 +37,7 @@ import {
   sessionProcedures,
   sessionRpc,
 } from "@pcobooster/contracts/rpc/session";
+import { songsProcedures, songsRpc } from "@pcobooster/contracts/rpc/songs";
 import { Schema } from "effect";
 import { RpcGroup } from "effect/unstable/rpc";
 
@@ -59,6 +64,8 @@ export const ProductRpc = RpcGroup.make().merge(
   accessRpc,
   catalogRpc,
   peopleRpc,
+  songsRpc,
+  chordChartsRpc,
   scheduleRpc
 );
 
@@ -76,6 +83,8 @@ const declarations = [
   ...accessProcedures,
   ...catalogProcedures,
   ...peopleProcedures,
+  ...songsProcedures,
+  ...chordChartsProcedures,
   scheduleAssign,
 ] as const;
 type Declaration = (typeof declarations)[number];
