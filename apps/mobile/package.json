@@ -7,6 +7,7 @@
     "dev": "expo start",
     "ios": "expo run:ios",
     "native:generate": "expo prebuild --no-install --platform ios",
+    "tokens": "bun run scripts/generate-tokens.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --root ../.. apps/mobile/src",
     "ios:build": "bash scripts/build-ios.sh"
