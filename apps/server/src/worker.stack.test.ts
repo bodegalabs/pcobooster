@@ -10,6 +10,7 @@
  * cancellation, write completion, request rejection, defect isolation, outcome lines, bearer and
  * demo sessions, and every fault status the endpoints answer).
  */
+import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import path from "node:path";
 
 import { assert } from "@effect/vitest";
@@ -85,7 +86,30 @@ const { test, beforeAll, deploy } = Test.make({
 
 // State is in memory and the resources are local, so there is nothing to destroy: the harness
 // stops workerd when the file finishes.
-const stack = beforeAll(deploy(ApiStack), { timeout: 180_000 });
+const stack = beforeAll(
+  Effect.gen(function* isolatedStack() {
+    const directory = yield* Effect.acquireRelease(
+      Effect.sync(() => {
+        const parent = path.resolve(".alchemy/tests");
+        mkdirSync(parent, { recursive: true });
+        return mkdtempSync(path.join(parent, "api-stack-"));
+      }),
+      (root) =>
+        Effect.sync(() => {
+          rmSync(root, { recursive: true, force: true });
+        })
+    );
+    // The sidecar reads this context too. Its D1/KV/workflow SQLite files cannot share the
+    // main checkout's local state or the independently running read-cache fixture's state.
+    return yield* deploy(ApiStack).pipe(
+      Effect.updateService(Alchemy.AlchemyContext, (context) => ({
+        ...context,
+        dotAlchemy: directory,
+      }))
+    );
+  }),
+  { timeout: 180_000 }
+);
 
 /**
  * The first request waits for workerd to finish starting (the harness retries until it answers),

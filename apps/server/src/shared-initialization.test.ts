@@ -2,10 +2,11 @@ import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { Data, Effect } from "effect";
-import { convertV4MiniflareOptions, Miniflare } from "miniflare";
+import { convertV4MiniflareOptions } from "miniflare";
 import { build } from "rolldown";
 import { beforeAll, describe, expect, it } from "vitest";
 
+import { createIsolatedMiniflare } from "../../../scripts/testing/miniflare";
 import { cachedAcrossRequests } from "./shared-initialization";
 
 const CONCURRENT_REQUESTS = 6;
@@ -16,7 +17,8 @@ let script = "";
 
 /** Starts concurrent requests on a cold isolate; each reads its own body after the shared wait. */
 const coldStartBodies = async (share: string): Promise<string[]> => {
-  const worker = new Miniflare(
+  const worker = await createIsolatedMiniflare(
+    "shared-initialization",
     convertV4MiniflareOptions({
       modules: true,
       compatibilityDate: "2026-09-01",

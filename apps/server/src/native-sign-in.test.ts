@@ -24,6 +24,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { createLocalD1 } from "../../../scripts/database/local-d1";
+import { LOCAL_WORKER_TEST_TIMEOUT_MS } from "../../../scripts/testing/miniflare";
 import { serveHttpForTest } from "./test-http";
 import type { HttpAppTest } from "./test-http";
 
@@ -85,195 +86,202 @@ const accountIdFor = async (person: PlanningCenterProfile): Promise<string> => {
   return row?.id ?? "";
 };
 
-describe("native sign-in through the API Worker", () => {
-  beforeAll(async () => {
-    vi.stubGlobal("fetch", planningCenter.fetch);
-    const auth = createAuth(config, database);
-    await auth.$context;
-    server = testServer({ config, database, auth, featureFlags });
-    app = serveHttpForTest({ server });
-  });
-
-  afterAll(async () => {
-    vi.unstubAllGlobals();
-    await runtime.dispose();
-  });
-
-  it("hands the app a code through the Worker's auth routes", async () => {
-    planningCenter.signInAs(profile("round-trip"));
-    const run = await runNativeSignIn(handler, origin);
-    const exchanged = await exchangeRun(handler, origin, run);
-
-    expect([
-      run.start.status,
-      run.callback.status,
-      exchanged.status,
-    ]).toStrictEqual([302, 302, 200]);
-    expect(run.redirect.protocol).toBe("pcobooster:");
-    expect(run.redirect.searchParams.get("state")).toBe(run.appState);
-    await expect(parseExchange(exchanged)).resolves.toHaveProperty("token");
-  });
-
-  it("authenticates identity calls with the bearer token", async () => {
-    const person = profile("identity");
-    planningCenter.signInAs(person);
-    const { token, user, selectedAccountId } = await signInNatively(
-      handler,
-      origin
-    );
-    const authorization = `Bearer ${token}`;
-    const listed = await listAccounts({ authorization });
-
-    await expect(isAuthenticated({ authorization })).resolves.toBeTruthy();
-    await expect(isAuthenticated({})).resolves.toBeFalsy();
-    expect(listed.session).toStrictEqual({
-      userId: user.id,
-      name: "Jordan Example",
-      email: person.email,
-      image: null,
+describe(
+  "native sign-in through the API Worker",
+  { timeout: LOCAL_WORKER_TEST_TIMEOUT_MS },
+  () => {
+    beforeAll(async () => {
+      vi.stubGlobal("fetch", planningCenter.fetch);
+      const auth = createAuth(config, database);
+      await auth.$context;
+      server = testServer({ config, database, auth, featureFlags });
+      app = serveHttpForTest({ server });
     });
-    expect({
-      selectedAccountId: listed.selectedAccountId,
-      accounts: listed.accounts.map(({ id, identity }) => ({
-        id,
-        identity:
-          identity === null
-            ? null
-            : { organizationName: identity.organizationName },
-      })),
-      demo: listed.demo,
-    }).toStrictEqual({
-      selectedAccountId,
-      accounts: [
-        {
-          id: await accountIdFor(person),
-          identity: { organizationName: person.organizationName },
-        },
-      ],
-      demo: false,
+
+    afterAll(async () => {
+      vi.unstubAllGlobals();
+      await runtime.dispose();
     });
-  });
 
-  it("selects the organization the account header names, and only the caller's own", async () => {
-    const graceChurch = profile("header-a", "header-select@example.com");
-    const hopeChapel = profile("header-b", "header-select@example.com");
-    const stranger = profile("someone-else");
-    planningCenter.signInAs(graceChurch);
-    await signInNatively(handler, origin);
-    planningCenter.signInAs(hopeChapel);
-    const { token } = await signInNatively(handler, origin);
-    planningCenter.signInAs(stranger);
-    await signInNatively(handler, origin);
-    const [first, second, foreign] = await Promise.all(
-      [graceChurch, hopeChapel, stranger].map(accountIdFor)
-    );
+    it("hands the app a code through the Worker's auth routes", async () => {
+      planningCenter.signInAs(profile("round-trip"));
+      const run = await runNativeSignIn(handler, origin);
+      const exchanged = await exchangeRun(handler, origin, run);
 
-    const selected = await Promise.all(
-      [first, second, foreign].map(async (accountId) => {
-        const listed = await listAccounts({
-          authorization: `Bearer ${token}`,
-          [PLANNING_CENTER_SELECTED_ACCOUNT_HEADER]: accountId ?? "",
-        });
-        return listed.selectedAccountId;
-      })
-    );
+      expect([
+        run.start.status,
+        run.callback.status,
+        exchanged.status,
+      ]).toStrictEqual([302, 302, 200]);
+      expect(run.redirect.protocol).toBe("pcobooster:");
+      expect(run.redirect.searchParams.get("state")).toBe(run.appState);
+      await expect(parseExchange(exchanged)).resolves.toHaveProperty("token");
+    });
 
-    // Another user's account is never selected: the caller falls back to their first one.
-    expect(selected).toStrictEqual([first, second, first]);
-  });
-
-  it("authenticates Planning Center calls with the bearer token and selects the account the header names", async () => {
-    const graceChurch = profile("http-a", "http-select@example.com");
-    const hopeChapel = profile("http-b", "http-select@example.com");
-    planningCenter.signInAs(graceChurch);
-    await signInNatively(handler, origin);
-    planningCenter.signInAs(hopeChapel);
-    const { token } = await signInNatively(handler, origin);
-    const [first, second] = await Promise.all(
-      [graceChurch, hopeChapel].map(accountIdFor)
-    );
-    const callAsAccount = async (headers: Record<string, string>) => {
-      const client = app.client({ client: "expo", httpHeaders: () => headers });
-      return await client.run((api) =>
-        api.chordCharts.song({ params: { songId: "song-1" } })
+    it("authenticates identity calls with the bearer token", async () => {
+      const person = profile("identity");
+      planningCenter.signInAs(person);
+      const { token, user, selectedAccountId } = await signInNatively(
+        handler,
+        origin
       );
-    };
-    featureFlags.evaluations.length = 0;
+      const authorization = `Bearer ${token}`;
+      const listed = await listAccounts({ authorization });
 
-    // The flag is off for everyone, so a signed-in caller gets NotFound after its flag check.
-    await expect(
-      callAsAccount({
-        authorization: `Bearer ${token}`,
-        [PLANNING_CENTER_SELECTED_ACCOUNT_HEADER]: first ?? "",
-      })
-    ).rejects.toBeInstanceOf(NotFound);
-    await expect(
-      callAsAccount({
-        authorization: `Bearer ${token}`,
-        [PLANNING_CENTER_SELECTED_ACCOUNT_HEADER]: second ?? "",
-      })
-    ).rejects.toBeInstanceOf(NotFound);
-    await expect(callAsAccount({})).rejects.toBeInstanceOf(Unauthenticated);
-    expect(
-      featureFlags.evaluations.map(
-        ({ subject }) => subject.planningCenterAccountId
-      )
-    ).toStrictEqual([first, second]);
-  });
-
-  it("limits the native start on every path Better Auth would serve it", async () => {
-    const limitedApp = serveHttpForTest({
-      server,
-      allowAuthWrite: async () => await Promise.resolve(false),
+      await expect(isAuthenticated({ authorization })).resolves.toBeTruthy();
+      await expect(isAuthenticated({})).resolves.toBeFalsy();
+      expect(listed.session).toStrictEqual({
+        userId: user.id,
+        name: "Jordan Example",
+        email: person.email,
+        image: null,
+      });
+      expect({
+        selectedAccountId: listed.selectedAccountId,
+        accounts: listed.accounts.map(({ id, identity }) => ({
+          id,
+          identity:
+            identity === null
+              ? null
+              : { organizationName: identity.organizationName },
+        })),
+        demo: listed.demo,
+      }).toStrictEqual({
+        selectedAccountId,
+        accounts: [
+          {
+            id: await accountIdFor(person),
+            identity: { organizationName: person.organizationName },
+          },
+        ],
+        demo: false,
+      });
     });
-    const query = new URLSearchParams({
-      code_challenge: createPkcePair().challenge,
-      code_challenge_method: "S256",
-      state: createAppState(),
-      redirect_uri: "pcobooster://auth/callback",
-    }).toString();
-    const attempts = [
-      ["GET", "/api/auth/native/start"],
-      ["GET", "/api/auth/native/start/"],
-      ["GET", "/api/auth//native/start"],
-      ["GET", "/api/auth/native/%73tart"],
-      ["GET", "/api/auth/Native/Start"],
-      ["HEAD", "/api/auth/native/start"],
-    ] as const;
 
-    const statuses = await Promise.all(
-      attempts.map(async ([method, path]) => {
-        const response = await limitedApp.fetch(
-          new Request(`${origin}${path}?${query}`, {
-            method,
-            headers: { "cf-connecting-ip": "203.0.113.7" },
-          })
+    it("selects the organization the account header names, and only the caller's own", async () => {
+      const graceChurch = profile("header-a", "header-select@example.com");
+      const hopeChapel = profile("header-b", "header-select@example.com");
+      const stranger = profile("someone-else");
+      planningCenter.signInAs(graceChurch);
+      await signInNatively(handler, origin);
+      planningCenter.signInAs(hopeChapel);
+      const { token } = await signInNatively(handler, origin);
+      planningCenter.signInAs(stranger);
+      await signInNatively(handler, origin);
+      const [first, second, foreign] = await Promise.all(
+        [graceChurch, hopeChapel, stranger].map(accountIdFor)
+      );
+
+      const selected = await Promise.all(
+        [first, second, foreign].map(async (accountId) => {
+          const listed = await listAccounts({
+            authorization: `Bearer ${token}`,
+            [PLANNING_CENTER_SELECTED_ACCOUNT_HEADER]: accountId ?? "",
+          });
+          return listed.selectedAccountId;
+        })
+      );
+
+      // Another user's account is never selected: the caller falls back to their first one.
+      expect(selected).toStrictEqual([first, second, first]);
+    });
+
+    it("authenticates Planning Center calls with the bearer token and selects the account the header names", async () => {
+      const graceChurch = profile("http-a", "http-select@example.com");
+      const hopeChapel = profile("http-b", "http-select@example.com");
+      planningCenter.signInAs(graceChurch);
+      await signInNatively(handler, origin);
+      planningCenter.signInAs(hopeChapel);
+      const { token } = await signInNatively(handler, origin);
+      const [first, second] = await Promise.all(
+        [graceChurch, hopeChapel].map(accountIdFor)
+      );
+      const callAsAccount = async (headers: Record<string, string>) => {
+        const client = app.client({
+          client: "expo",
+          httpHeaders: () => headers,
+        });
+        return await client.run((api) =>
+          api.chordCharts.song({ params: { songId: "song-1" } })
         );
-        return response.status;
-      })
-    );
+      };
+      featureFlags.evaluations.length = 0;
 
-    // The limiter counts the exact path; Better Auth's router serves no other spelling of it.
-    expect(statuses).toStrictEqual([429, 404, 404, 404, 404, 404]);
-  });
+      // The flag is off for everyone, so a signed-in caller gets NotFound after its flag check.
+      await expect(
+        callAsAccount({
+          authorization: `Bearer ${token}`,
+          [PLANNING_CENTER_SELECTED_ACCOUNT_HEADER]: first ?? "",
+        })
+      ).rejects.toBeInstanceOf(NotFound);
+      await expect(
+        callAsAccount({
+          authorization: `Bearer ${token}`,
+          [PLANNING_CENTER_SELECTED_ACCOUNT_HEADER]: second ?? "",
+        })
+      ).rejects.toBeInstanceOf(NotFound);
+      await expect(callAsAccount({})).rejects.toBeInstanceOf(Unauthenticated);
+      expect(
+        featureFlags.evaluations.map(
+          ({ subject }) => subject.planningCenterAccountId
+        )
+      ).toStrictEqual([first, second]);
+    });
 
-  it("revokes the bearer token on sign-out", async () => {
-    planningCenter.signInAs(profile("sign-out"));
-    const { token } = await signInNatively(handler, origin);
-    const authorization = `Bearer ${token}`;
+    it("limits the native start on every path Better Auth would serve it", async () => {
+      const limitedApp = serveHttpForTest({
+        server,
+        allowAuthWrite: async () => await Promise.resolve(false),
+      });
+      const query = new URLSearchParams({
+        code_challenge: createPkcePair().challenge,
+        code_challenge_method: "S256",
+        state: createAppState(),
+        redirect_uri: "pcobooster://auth/callback",
+      }).toString();
+      const attempts = [
+        ["GET", "/api/auth/native/start"],
+        ["GET", "/api/auth/native/start/"],
+        ["GET", "/api/auth//native/start"],
+        ["GET", "/api/auth/native/%73tart"],
+        ["GET", "/api/auth/Native/Start"],
+        ["HEAD", "/api/auth/native/start"],
+      ] as const;
 
-    const signOut = await app.fetch(
-      new Request(`${origin}/api/auth/sign-out`, {
-        method: "POST",
-        headers: { authorization, "content-type": "application/json" },
-        body: "{}",
-      })
-    );
+      const statuses = await Promise.all(
+        attempts.map(async ([method, path]) => {
+          const response = await limitedApp.fetch(
+            new Request(`${origin}${path}?${query}`, {
+              method,
+              headers: { "cf-connecting-ip": "203.0.113.7" },
+            })
+          );
+          return response.status;
+        })
+      );
 
-    expect(signOut.status).toBe(200);
-    await expect(isAuthenticated({ authorization })).resolves.toBeFalsy();
-    await expect(listAccounts({ authorization })).rejects.toBeInstanceOf(
-      Unauthenticated
-    );
-  });
-});
+      // The limiter counts the exact path; Better Auth's router serves no other spelling of it.
+      expect(statuses).toStrictEqual([429, 404, 404, 404, 404, 404]);
+    });
+
+    it("revokes the bearer token on sign-out", async () => {
+      planningCenter.signInAs(profile("sign-out"));
+      const { token } = await signInNatively(handler, origin);
+      const authorization = `Bearer ${token}`;
+
+      const signOut = await app.fetch(
+        new Request(`${origin}/api/auth/sign-out`, {
+          method: "POST",
+          headers: { authorization, "content-type": "application/json" },
+          body: "{}",
+        })
+      );
+
+      expect(signOut.status).toBe(200);
+      await expect(isAuthenticated({ authorization })).resolves.toBeFalsy();
+      await expect(listAccounts({ authorization })).rejects.toBeInstanceOf(
+        Unauthenticated
+      );
+    });
+  }
+);

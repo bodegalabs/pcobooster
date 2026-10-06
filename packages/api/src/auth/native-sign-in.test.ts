@@ -44,6 +44,7 @@ import {
 import { z } from "zod";
 
 import { createLocalD1 } from "../../../../scripts/database/local-d1";
+import { LOCAL_WORKER_TEST_TIMEOUT_MS } from "../../../../scripts/testing/miniflare";
 
 const { runtime, binding } = await createLocalD1("native-sign-in");
 const database = createDatabase(binding);
@@ -185,7 +186,7 @@ const authorizationUrlOf = async (response: Response): Promise<string> => {
   return url;
 };
 
-describe("native sign-in", () => {
+describe("native sign-in", { timeout: LOCAL_WORKER_TEST_TIMEOUT_MS }, () => {
   beforeAll(async () => {
     vi.stubGlobal("fetch", planningCenter.fetch);
     auth = createAuth(config, database);
