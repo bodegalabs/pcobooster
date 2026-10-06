@@ -120,6 +120,7 @@
         "zod": "^4.6.5",
       },
       "devDependencies": {
+        "@pcobooster/client": "workspace:*",
         "@types/bun": "^1.3.9",
         "rolldown": "1.2.5",
         "typescript": "^7.0.2",
