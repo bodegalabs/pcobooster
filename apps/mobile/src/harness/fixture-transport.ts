@@ -98,8 +98,16 @@ export const fixtureAnswer = (tag: string, payload: Json): FixtureAnswer => {
   };
 };
 
-const exitFor = (tag: string, payload: Json) => {
-  const answer = fixtureAnswer(tag, payload);
+const exitFor = (
+  tag: string,
+  payload: Json,
+  overrides: Readonly<Record<string, Json>>
+) => {
+  const override = overrides[tag];
+  const answer: FixtureAnswer =
+    override === undefined
+      ? fixtureAnswer(tag, payload)
+      : { found: true, value: override };
   if (!answer.found) {
     return {
       _tag: "Failure",
@@ -121,11 +129,16 @@ const exitFor = (tag: string, payload: Json) => {
 export interface FixtureFetchOptions {
   /** Delay before every reply, so loading states show (Swift `-PCOBMockLatency`, default 250). */
   readonly latencyMs: number;
+  /** Outputs that replace a procedure's fixture, such as `features.status` (`-PCOBFeatures`). */
+  readonly overrides?: Readonly<Record<string, Json>>;
 }
 
 /** A `fetch` that answers RPC calls from the fixtures. */
 export const makeFixtureFetch =
-  ({ latencyMs }: FixtureFetchOptions): typeof globalThis.fetch =>
+  ({
+    latencyMs,
+    overrides = {},
+  }: FixtureFetchOptions): typeof globalThis.fetch =>
   async (input, init) => {
     const request = decodeRequest(await new Request(input, init).text());
     if (latencyMs > 0) {
@@ -133,7 +146,7 @@ export const makeFixtureFetch =
         signal: init?.signal ?? undefined,
       });
     }
-    const exit = exitFor(request.tag, request.payload ?? {});
+    const exit = exitFor(request.tag, request.payload ?? {}, overrides);
     // React Native's fetch polyfill has no static `Response.json`.
     const body = JSON.stringify([
       { _tag: "Exit", requestId: request.id, exit },
