@@ -1,3 +1,4 @@
+import { accessProcedures, accessRpc } from "@pcobooster/contracts/rpc/access";
 /**
  * Every product procedure over Effect RPC. Web, SSR, Expo, the deploy check, and the API Worker
  * all use this one value. Each namespace is declared with `planningCenterGroup` or `plainGroup`,
@@ -8,7 +9,10 @@ import {
   accountsProcedures,
   accountsRpc,
 } from "@pcobooster/contracts/rpc/accounts";
-import { catalogPlan, catalogRpc } from "@pcobooster/contracts/rpc/catalog";
+import {
+  catalogProcedures,
+  catalogRpc,
+} from "@pcobooster/contracts/rpc/catalog";
 import { demoProcedures, demoRpc } from "@pcobooster/contracts/rpc/demo";
 import {
   featuresProcedures,
@@ -51,6 +55,7 @@ export const ProductRpc = RpcGroup.make().merge(
   featuresRpc,
   demoRpc,
   feedbackRpc,
+  accessRpc,
   catalogRpc,
   scheduleRpc
 );
@@ -66,7 +71,8 @@ const declarations = [
   ...featuresProcedures,
   ...demoProcedures,
   ...feedbackProcedures,
-  catalogPlan,
+  ...accessProcedures,
+  ...catalogProcedures,
   scheduleAssign,
 ] as const;
 type Declaration = (typeof declarations)[number];
