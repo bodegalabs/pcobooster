@@ -10,23 +10,68 @@ import {
 const respondWith =
   (response: Response): typeof fetch =>
   async () =>
-    await Promise.resolve(response);
+    await Promise.resolve(response.clone());
+
+const hasRequestId = (body: unknown): body is { readonly id: unknown } =>
+  typeof body === "object" && body !== null && "id" in body;
+
+/** The API's RPC answer to a `health` call, echoing the call's request id. */
+interface HealthValue {
+  readonly status: string;
+  readonly version?: string;
+}
+
+const healthReply = async (
+  request: Request,
+  value: HealthValue
+): Promise<Response> => {
+  const body: unknown = await request.json();
+  return Response.json([
+    {
+      _tag: "Exit",
+      requestId: hasRequestId(body) ? body.id : null,
+      exit: { _tag: "Success", value },
+    },
+  ]);
+};
+
+const answeringHealth =
+  (value: HealthValue): typeof fetch =>
+  async (input, init) =>
+    await healthReply(new Request(input, init), value);
 
 describe(readVersion, () => {
-  it("reads the version from a healthy oRPC reply", async () => {
+  it("reads the version from the API's health procedure, announced as the deploy check", async () => {
+    const seen: Request[] = [];
+    const fetchImpl: typeof fetch = async (input, init) => {
+      const request = new Request(input, init);
+      seen.push(request.clone());
+      return await healthReply(request, { status: "ok", version: "b57ca91" });
+    };
+
+    await expect(readVersion("https://example.test", fetchImpl)).resolves.toBe(
+      "b57ca91"
+    );
+    expect({
+      url: seen[0]?.url,
+      client: seen[0]?.headers.get("x-pcobooster-client"),
+    }).toStrictEqual({
+      url: "https://example.test/api/rpc/",
+      client: "deploy;rpc=1",
+    });
+  });
+
+  it("treats an unversioned reply as not yet deployed", async () => {
     await expect(
-      readVersion(
-        "https://example.test",
-        respondWith(
-          Response.json({ json: { status: "ok", version: "b57ca91" } })
-        )
-      )
-    ).resolves.toBe("b57ca91");
+      readVersion("https://example.test", answeringHealth({ status: "ok" }))
+    ).resolves.toBeUndefined();
   });
 
   it.each([
-    ["an unversioned reply", Response.json({ json: { status: "ok" } })],
-    ["an unwrapped reply", Response.json({ status: "ok", version: "b57ca91" })],
+    [
+      "an oRPC reply",
+      Response.json({ json: { status: "ok", version: "b57ca91" } }),
+    ],
     ["an HTML page", new Response("<html>", { status: 200 })],
     ["a server error", new Response("down", { status: 503 })],
   ])("treats %s as not yet deployed", async (_label, response) => {
@@ -65,13 +110,14 @@ interface Deployed {
 
 const deployedOrigin = (deployed: Deployed) => {
   const requested: string[] = [];
-  const fetchImpl: typeof fetch = async (input) => {
+  const fetchImpl: typeof fetch = async (input, init) => {
     const url = input instanceof Request ? input.url : input.toString();
     requested.push(url);
-    if (url.endsWith("/api/rpc/health")) {
-      return await Promise.resolve(
-        Response.json({ json: { status: "ok", version: deployed.api } })
-      );
+    if (url.endsWith("/api/rpc/")) {
+      return await healthReply(new Request(input, init), {
+        status: "ok",
+        version: deployed.api,
+      });
     }
     if (url.endsWith("/version")) {
       return await Promise.resolve(Response.json({ version: deployed.web }));

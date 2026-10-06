@@ -15,6 +15,7 @@
         "@effect/vitest": "4.0.0-rc.117",
         "@pcobooster/analytics": "workspace:*",
         "@pcobooster/api": "workspace:*",
+        "@pcobooster/client": "workspace:*",
         "@pcobooster/config": "workspace:*",
         "@pcobooster/planning-center-models": "workspace:*",
         "@shadcn/lint": "^0.1.2",
