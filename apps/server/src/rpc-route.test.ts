@@ -23,7 +23,7 @@ import {
 
 const privateNoStore = "private, no-store";
 
-/** One raw RPC request, as an old or hand-written client sends it. */
+/** One raw RPC request from a current web client, unless `headers` says otherwise. */
 const rawRpc = (
   tag: string,
   payload: JsonValue,
@@ -31,7 +31,11 @@ const rawRpc = (
 ) =>
   new Request(TEST_RPC_URL, {
     method: "POST",
-    headers: { "content-type": "application/json", ...headers },
+    headers: {
+      "content-type": "application/json",
+      [RPC_HEADERS.client]: "web;rpc=1",
+      ...headers,
+    },
     body: JSON.stringify({
       _tag: "Request",
       id: "1",
@@ -79,6 +83,35 @@ describe("the /api/rpc route", () => {
         procedure: "health",
         status: 200,
         code: null,
+        client: "web;rpc=1",
+      },
+    ]);
+  });
+
+  it("answers ClientOutdated (426) to a caller that does not name itself", async () => {
+    const route = serveRpcForTest({ server: testServer() });
+
+    const raw = await route.fetch(
+      new Request(TEST_RPC_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          _tag: "Request",
+          id: "1",
+          tag: "health",
+          payload: {},
+          headers: [],
+        }),
+      })
+    );
+
+    expect(raw.status).toBe(426);
+    expect(outcomeLines(route)).toStrictEqual([
+      {
+        level: "info",
+        procedure: "health",
+        status: 426,
+        code: "CLIENT_OUTDATED",
         client: null,
       },
     ]);

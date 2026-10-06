@@ -160,7 +160,11 @@ const missingPlanPerson = () =>
 const rawAssign = (payload: JsonValue) =>
   new Request(TEST_RPC_URL, {
     method: "POST",
-    headers: { "content-type": "application/json", ...callerHeaders },
+    headers: {
+      "content-type": "application/json",
+      "x-pcobooster-client": "web;rpc=1",
+      ...callerHeaders,
+    },
     body: JSON.stringify({
       _tag: "Request",
       id: "1",

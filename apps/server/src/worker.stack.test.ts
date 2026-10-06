@@ -243,7 +243,7 @@ const rpcRequest = (
   payload: JsonValue
 ): RpcRequestMessage => ({ _tag: "Request", id, tag, payload, headers: [] });
 
-/** Posts raw RPC messages, as an old or hostile client could, and decodes the reply. */
+/** Posts raw RPC messages as a web client (unless `headers` overrides) and decodes the reply. */
 const postRpc = (
   url: string,
   body: RpcRequestMessage | readonly RpcRequestMessage[],
@@ -255,6 +255,7 @@ const postRpc = (
       method: "POST",
       headers: {
         "content-type": "application/json",
+        "x-pcobooster-client": "web;rpc=1",
         "x-request-id": requestId,
         ...headers,
       },

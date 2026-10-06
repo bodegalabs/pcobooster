@@ -17,6 +17,7 @@ import { testServer } from "@pcobooster/api/testing/server";
 import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { InternalError } from "@pcobooster/contracts/faults/internal-error";
 import { RequestRejected } from "@pcobooster/contracts/faults/request-rejected";
+import { RPC_HEADERS } from "@pcobooster/contracts/rpc/procedure";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import { Effect, Tracer } from "effect";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -116,7 +117,11 @@ const rawRpc = (
 ) =>
   new Request(TEST_RPC_URL, {
     method: "POST",
-    headers: { "content-type": "application/json", ...headers },
+    headers: {
+      "content-type": "application/json",
+      [RPC_HEADERS.client]: "web;rpc=1",
+      ...headers,
+    },
     body: JSON.stringify({
       _tag: "Request",
       id: "1",

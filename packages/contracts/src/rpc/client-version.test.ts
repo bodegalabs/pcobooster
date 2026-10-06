@@ -24,7 +24,7 @@ describe(parseClientHeader, () => {
 });
 
 describe(isSupportedClient, () => {
-  it("answers no header (the same deploy's web app), the floor and above, and nothing below it or unreadable", () => {
+  it("answers the floor and above, and no caller that is below it, unreadable, or unnamed", () => {
     expect(
       [
         null,
@@ -33,6 +33,6 @@ describe(isSupportedClient, () => {
         `expo;rpc=${MINIMUM_RPC_PROTOCOL_VERSION - 1}`,
         "expo",
       ].map(isSupportedClient)
-    ).toStrictEqual([true, true, true, false, false]);
+    ).toStrictEqual([false, true, true, false, false]);
   });
 });

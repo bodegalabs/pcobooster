@@ -40,15 +40,9 @@ export const parseClientHeader = (value: string): ClientVersion | null => {
   return { name, protocolVersion: Number(groups?.version) };
 };
 
-/**
- * Whether the server answers this caller. A missing header is the web app served by the same
- * deploy as the API (its bundle predates the header); any other caller must announce itself.
- */
+/** Whether the server answers this caller: every caller must announce itself. */
 export const isSupportedClient = (header: string | null): boolean => {
-  if (header === null) {
-    return true;
-  }
-  const client = parseClientHeader(header);
+  const client = header === null ? null : parseClientHeader(header);
   return (
     client !== null && client.protocolVersion >= MINIMUM_RPC_PROTOCOL_VERSION
   );
