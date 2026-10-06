@@ -1,0 +1,299 @@
+{
+  "source": "main@5f5eec65: packages/contracts/src/router.ts, packages/api/src/transport/orpc/*.ts, packages/api/src/orpc.ts",
+  "procedures": [
+    {
+      "tag": "access.me",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "accounts.list",
+      "wrapper": "plain",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "accounts.select",
+      "wrapper": "plain",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "catalog.adjacentPlans",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "catalog.organization",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "catalog.plan",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "catalog.plans",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "catalog.serviceTypes",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "catalog.teamPositions",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "chordCharts.create",
+      "wrapper": "committed-write",
+      "kind": "write",
+      "feature": "chordCharts"
+    },
+    {
+      "tag": "chordCharts.createSong",
+      "wrapper": "committed-write",
+      "kind": "write",
+      "feature": "chordCharts"
+    },
+    {
+      "tag": "chordCharts.lyricsSearch",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": "chordCharts"
+    },
+    {
+      "tag": "chordCharts.pdf",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": "chordCharts"
+    },
+    {
+      "tag": "chordCharts.song",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": "chordCharts"
+    },
+    {
+      "tag": "chordCharts.update",
+      "wrapper": "prepared-write",
+      "kind": "write",
+      "feature": "chordCharts"
+    },
+    {
+      "tag": "demo.exit",
+      "wrapper": "plain",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "demo.start",
+      "wrapper": "plain",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "features.status",
+      "wrapper": "plain",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "feedback.submit",
+      "wrapper": "plain",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "health",
+      "wrapper": "plain",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "neededPositions.adjust",
+      "wrapper": "committed-write",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "people.blockouts",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "people.candidateDetails",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "people.dashboardActivity",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": "people"
+    },
+    {
+      "tag": "people.dashboardPerson",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": "people"
+    },
+    {
+      "tag": "people.dashboardRoster",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": "people"
+    },
+    {
+      "tag": "people.myScheduledPlans",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "people.planWindowHistory",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "people.positionCandidates",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "people.search",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "planItems.create",
+      "wrapper": "prepared-write",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "planItems.delete",
+      "wrapper": "committed-write",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "planItems.list",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "planItems.reorder",
+      "wrapper": "committed-write",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "planItems.update",
+      "wrapper": "prepared-write",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "planPeople.updateTimes",
+      "wrapper": "committed-write",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "planTimes.create",
+      "wrapper": "committed-write",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "planTimes.delete",
+      "wrapper": "committed-write",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "planTimes.list",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "planTimes.update",
+      "wrapper": "committed-write",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "schedule.assign",
+      "wrapper": "audited-schedule-write",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "schedule.remove",
+      "wrapper": "audited-schedule-write",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "schedule.updateStatus",
+      "wrapper": "audited-schedule-write",
+      "kind": "write",
+      "feature": null
+    },
+    {
+      "tag": "session.status",
+      "wrapper": "plain",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "songs.history",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "songs.library",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": "chordCharts"
+    },
+    {
+      "tag": "songs.options",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "songs.search",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    },
+    {
+      "tag": "songs.suggestions",
+      "wrapper": "read",
+      "kind": "read",
+      "feature": null
+    }
+  ]
+}
