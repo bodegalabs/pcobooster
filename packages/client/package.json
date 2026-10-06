@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./product-client": "./src/product-client.ts"
+    "./product-client": "./src/product-client.ts",
+    "./query": "./src/query.ts",
+    "./request-scheduler": "./src/request-scheduler.ts"
   },
   "scripts": {
     "test": "vitest run --root ../.. packages/client/src",
@@ -12,6 +14,7 @@
   },
   "dependencies": {
     "@pcobooster/contracts": "workspace:*",
+    "@tanstack/query-core": "^5.103.1",
     "effect": "4.0.0-rc.117"
   },
   "devDependencies": {

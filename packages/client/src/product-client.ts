@@ -3,7 +3,7 @@
  * `ManagedRuntime` holding `RpcClient.make(ProductWireRpc)`; every call is a lookup by tag on that
  * client, so a new procedure needs no client edit.
  */
-import { isProductFault } from "@pcobooster/contracts/faults";
+import { faultOutcome, isProductFault } from "@pcobooster/contracts/faults";
 import type { ProductFault } from "@pcobooster/contracts/faults";
 import type { RequestPriority } from "@pcobooster/contracts/request-priority";
 import { formatClientHeader } from "@pcobooster/contracts/rpc/client-version";
@@ -55,10 +55,16 @@ export interface ProductClientConfig {
   readonly url: string;
   /** Sent as `x-pcobooster-client` with the RPC protocol version. */
   readonly client: ClientName;
-  /** Web: "include" (cookies). SSR, Expo, and the deploy check: "omit". */
-  readonly credentials: RequestCredentials;
+  /**
+   * Web: "include" (cookies). Expo and the deploy check: "omit". SSR leaves it unset: workerd
+   * fetches carry no ambient credentials, and its service binding forwards the cookie header.
+   */
+  readonly credentials?: RequestCredentials;
   /** SSR passes the API service binding's fetch; others use the global one. */
-  readonly fetch?: typeof globalThis.fetch;
+  readonly fetch?: (
+    input: RequestInfo | URL,
+    init?: RequestInit
+  ) => Promise<Response>;
   /**
    * HTTP headers read when each call is sent, for credentials that change while the client
    * lives (Expo: bearer token, account, demo). The server reads identity from HTTP headers only.
@@ -95,6 +101,36 @@ export class TransportFailure extends Data.TaggedError("TransportFailure")<{
 
 /** What a call rejects with, besides an AbortError `DOMException` when its signal aborts. */
 export type CallFailure = ProductFault | TransportFailure;
+
+/** A transport failure counts as the gateway being unavailable: worth one retry, never a 4xx. */
+const transportFailureOutcome = {
+  status: 503,
+  code: "SERVICE_UNAVAILABLE",
+} as const;
+
+const callFailureOutcome = (
+  error: Error
+): { readonly status: number; readonly code: string } | undefined => {
+  if (isProductFault(error)) {
+    return faultOutcome[error._tag];
+  }
+  if (error instanceof TransportFailure) {
+    return transportFailureOutcome;
+  }
+  return undefined;
+};
+
+/**
+ * The HTTP status a failed call stands for (main's table, `faultOutcome`), or undefined for
+ * anything that is not a call failure (an abort, a bug in the caller). The one status read for
+ * retries and navigation.
+ */
+export const failureStatus = (error: Error): number | undefined =>
+  callFailureOutcome(error)?.status;
+
+/** The failure's stable code (`NOT_FOUND`, `TOO_MANY_REQUESTS`), for analytics; never a message. */
+export const failureCode = (error: Error): string | undefined =>
+  callFailureOutcome(error)?.code;
 
 export interface ProductClient {
   /** Resolves with the decoded success; rejects with a `CallFailure` or an AbortError. */
@@ -139,6 +175,16 @@ const withCallHeaders =
       return HttpClientRequest.setHeaders(request, headers);
     });
 
+/** Config's fetch, carrying the global fetch's runtime extras (Bun's `preconnect`). */
+const fetchFor = ({ fetch }: ProductClientConfig): typeof globalThis.fetch => {
+  if (fetch === undefined) {
+    return globalThis.fetch;
+  }
+  const send = async (input: RequestInfo | URL, init?: RequestInit) =>
+    await fetch(input, init);
+  return Object.assign(send, globalThis.fetch);
+};
+
 const clientLayer = (config: ProductClientConfig) =>
   Layer.effect(ProductRpcClient)(
     RpcClient.make(ProductWireRpc).pipe(Effect.map((client): Senders => client))
@@ -152,13 +198,13 @@ const clientLayer = (config: ProductClientConfig) =>
     Layer.provide(RpcSerialization.layerJson),
     Layer.provide(FetchHttpClient.layer),
     Layer.provide(
-      Layer.succeed(FetchHttpClient.RequestInit)({
-        credentials: config.credentials,
-      })
+      Layer.succeed(FetchHttpClient.RequestInit)(
+        config.credentials === undefined
+          ? {}
+          : { credentials: config.credentials }
+      )
     ),
-    Layer.provide(
-      Layer.succeed(FetchHttpClient.Fetch)(config.fetch ?? globalThis.fetch)
-    )
+    Layer.provide(Layer.succeed(FetchHttpClient.Fetch)(fetchFor(config)))
   );
 
 const abortError = (): DOMException =>

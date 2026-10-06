@@ -1,8 +1,13 @@
 import {
+  failureCode,
+  failureStatus,
   makeProductClient,
   TransportFailure,
 } from "@pcobooster/client/product-client";
+import type { ProductClient } from "@pcobooster/client/product-client";
+import { ClientOutdated } from "@pcobooster/contracts/faults/client-outdated";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
+import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
 import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
 
@@ -27,6 +32,15 @@ const clientAnswering = (respond: (requestId: string | number) => Response) => {
   });
   return { client, sent };
 };
+
+/** Never called: it only has to compile, with the expected error. */
+const speculativeWrite = async (typed: ProductClient) =>
+  await typed.call(
+    "schedule.remove",
+    { planPersonId: "1", serviceTypeId: "2", planId: "3" },
+    // @ts-expect-error A write always goes out interactive.
+    { priority: "speculative" }
+  );
 
 describe(makeProductClient, () => {
   it("rejects with the fault class the server answered with", async () => {
@@ -85,5 +99,48 @@ describe(makeProductClient, () => {
     ).rejects.toMatchObject({ name: "AbortError" });
     expect(sent).toStrictEqual([]);
     await client.dispose();
+  });
+
+  it("sends reads at speculative priority, and refuses that priority for writes at compile time", async () => {
+    const { client, sent } = clientAnswering((requestId) =>
+      Response.json([
+        { _tag: "Exit", requestId, exit: { _tag: "Success", value: [] } },
+      ])
+    );
+
+    await client.call("catalog.serviceTypes", {}, { priority: "speculative" });
+
+    expect(speculativeWrite).toBeTypeOf("function");
+    await expect(sent[0]?.clone().text()).resolves.toContain(
+      '"headers":[["x-pcobooster-priority","speculative"]]'
+    );
+    await client.dispose();
+  });
+});
+
+describe(failureStatus, () => {
+  it.each([
+    [new NotFound({ message: "No plan", resource: "plan" }), 404, "NOT_FOUND"],
+    [
+      new RateLimited({ message: "held back", service: "planning-center" }),
+      429,
+      "TOO_MANY_REQUESTS",
+    ],
+    [
+      new ClientOutdated({ message: "Reload", minimumProtocolVersion: 2 }),
+      426,
+      "CLIENT_OUTDATED",
+    ],
+    [
+      new TransportFailure({ tag: "health", reason: "network", cause: null }),
+      503,
+      "SERVICE_UNAVAILABLE",
+    ],
+    [new TypeError("not a call failure"), undefined, undefined],
+  ])("reads %o as %s", (failure, status, code) => {
+    expect({
+      status: failureStatus(failure),
+      code: failureCode(failure),
+    }).toStrictEqual({ status, code });
   });
 });
