@@ -183,8 +183,8 @@ type HttpEffect<Services> = Effect.Effect<
 export interface ClassifyingProtocol {
   readonly protocol: RpcServer.Protocol["Service"];
   /**
-   * Answers a body that is not one well-formed Request or a non-empty array of them with a
-   * sanitized 400, logged per message, before RpcServer reads it: `RequestRejected` for each
+   * Answers a body that is not exactly one well-formed Request with a sanitized 400, logged
+   * per message, before RpcServer reads it: `RequestRejected` for each
    * message with a usable request id, one generic `Defect` if any has none. The body is read
    * once; the stock protocol reads the same cached text.
    */

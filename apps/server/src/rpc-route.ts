@@ -108,8 +108,8 @@ const disconnected = (signal: AbortSignal): Effect.Effect<boolean> =>
 /**
  * The one writer of RPC response headers: `Cache-Control: private, no-store` and the server
  * version on every response, each cookie a procedure set as its own `Set-Cookie` line (beside
- * any the response already had), and an HTTP status mirrored from a lone procedure's outcome
- * (batches stay 200). The Effect client decodes the body whatever the status, so mirroring only
+ * any the response already had), and an HTTP status mirrored from the procedure's outcome.
+ * The Effect client decodes the body whatever the status, so mirroring only
  * gives Workers Logs and Cloudflare analytics a truthful status column.
  */
 export const finishResponse = (
