@@ -70,6 +70,12 @@ export interface CallOptions<Tag extends ProcedureTag> {
   readonly httpHeaders?: HeadersInit;
 }
 
+/** A procedure that takes no input (`Schema.Void`) may be called without one. */
+export type CallArguments<Tag extends ProcedureTag> =
+  undefined extends ProcedureInput<Tag>
+    ? [input?: ProcedureInput<Tag>, options?: CallOptions<Tag>]
+    : [input: ProcedureInput<Tag>, options?: CallOptions<Tag>];
+
 /**
  * The call never produced a product answer: the network failed, or the response was not an RPC
  * response (a gateway's HTML page, a body that did not decode). Client-only; never on the wire.
@@ -87,8 +93,7 @@ export interface ProductClient {
   /** Resolves with the decoded success; rejects with a `CallFailure` or an AbortError. */
   readonly call: <Tag extends ProcedureTag>(
     tag: Tag,
-    input: ProcedureInput<Tag>,
-    options?: CallOptions<Tag>
+    ...[input, options]: CallArguments<Tag>
   ) => Promise<ProcedureOutput<Tag>>;
   readonly dispose: () => Promise<void>;
 }
@@ -96,7 +101,7 @@ export interface ProductClient {
 /** One sender per procedure, keyed by tag, so a call by tag keeps its own types. */
 type Senders = {
   readonly [Tag in ProcedureTag]: (
-    input: ProcedureInput<Tag>,
+    input: CallArguments<Tag>[0],
     options: { readonly headers: Record<string, string> }
   ) => Effect.Effect<
     ProcedureOutput<Tag>,
@@ -183,7 +188,7 @@ export const makeProductClient = (
 ): ProductClient => {
   const runtime = ManagedRuntime.make(clientLayer(config));
   return {
-    call: async (tag, input, options = {}) => {
+    call: async (tag, ...[input, options = {}]) => {
       if (options.signal?.aborted === true) {
         throw abortError();
       }

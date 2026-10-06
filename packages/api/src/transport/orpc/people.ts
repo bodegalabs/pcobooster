@@ -9,6 +9,7 @@ import {
   getPeopleDashboardRoster,
   getPeopleSearch,
 } from "@pcobooster/api/application/people";
+import { requireFeature } from "@pcobooster/api/transport/orpc/feature-gate";
 import { rpc } from "@pcobooster/api/transport/orpc/implementation";
 import { readWithPlanningCenter } from "@pcobooster/api/transport/orpc/planning-center-procedure";
 
@@ -38,17 +39,27 @@ const blockouts = rpc.people.blockouts.handler(
 );
 
 const dashboardRoster = rpc.people.dashboardRoster.handler(
-  async (call) => await readWithPlanningCenter(getPeopleDashboardRoster(), call)
+  async (call) =>
+    await readWithPlanningCenter(
+      requireFeature("people", getPeopleDashboardRoster()),
+      call
+    )
 );
 
 const dashboardActivity = rpc.people.dashboardActivity.handler(
   async ({ input, ...call }) =>
-    await readWithPlanningCenter(getPeopleDashboardActivity(input), call)
+    await readWithPlanningCenter(
+      requireFeature("people", getPeopleDashboardActivity(input)),
+      call
+    )
 );
 
 const dashboardPerson = rpc.people.dashboardPerson.handler(
   async ({ input, ...call }) =>
-    await readWithPlanningCenter(getPeopleDashboardPerson(input), call)
+    await readWithPlanningCenter(
+      requireFeature("people", getPeopleDashboardPerson(input)),
+      call
+    )
 );
 
 const myScheduledPlans = rpc.people.myScheduledPlans.handler(

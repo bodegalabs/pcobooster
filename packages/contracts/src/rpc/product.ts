@@ -23,6 +23,7 @@ import {
   feedbackRpc,
 } from "@pcobooster/contracts/rpc/feedback";
 import { plainGroup } from "@pcobooster/contracts/rpc/group";
+import { peopleProcedures, peopleRpc } from "@pcobooster/contracts/rpc/people";
 import { read } from "@pcobooster/contracts/rpc/procedure";
 import {
   scheduleAssign,
@@ -57,6 +58,7 @@ export const ProductRpc = RpcGroup.make().merge(
   feedbackRpc,
   accessRpc,
   catalogRpc,
+  peopleRpc,
   scheduleRpc
 );
 
@@ -73,6 +75,7 @@ const declarations = [
   ...feedbackProcedures,
   ...accessProcedures,
   ...catalogProcedures,
+  ...peopleProcedures,
   scheduleAssign,
 ] as const;
 type Declaration = (typeof declarations)[number];

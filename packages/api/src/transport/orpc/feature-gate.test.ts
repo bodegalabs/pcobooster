@@ -24,6 +24,7 @@ import {
   testPlanningCenterToken,
   testServer,
 } from "@pcobooster/api/testing/server";
+import { requireFeature } from "@pcobooster/api/transport/orpc/feature-gate";
 import { Effect, Result } from "effect";
 import { describe, expect, it } from "vitest";
 
@@ -66,7 +67,7 @@ const runWithFlagOff = async <Value, Failure>(
   const featureFlags = testFeatureFlags({ people: false });
   const result = await Effect.runPromise(
     Effect.result(
-      program.pipe(
+      requireFeature("people", program).pipe(
         (withRequest) => provideAccess(withRequest, access(authentication)),
         Effect.provideService(
           RequestContext,
@@ -93,7 +94,7 @@ const accountEvaluation = [
   },
 ];
 
-describe("People dashboard flag", () => {
+describe("People dashboard flag on oRPC", () => {
   it("hides the dashboard roster when the flag is off for the signed-in account", async () => {
     const { result, evaluations } = await runWithFlagOff(
       getPeopleDashboardRoster(),

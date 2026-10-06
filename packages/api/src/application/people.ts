@@ -1,6 +1,5 @@
 import { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
-import { requireFeatureFlag } from "@pcobooster/api/application/feature-flags";
 import {
   PlanningCenterAccess,
   withPlanningCenterFaults,
@@ -203,7 +202,6 @@ export const getPeopleDashboardRoster = (): Effect.Effect<
     const access = yield* PlanningCenterAccess;
     const peopleService = yield* PlanningCenterPeople;
     const organizationTimeZone = yield* OrganizationTimeZone;
-    yield* requireFeatureFlag(access, "people");
     const roster = yield* getPeopleDashboardRosterData({
       peopleService,
       resolveTimeZone: organizationTimeZone,
@@ -220,18 +218,12 @@ export const getPeopleDashboardActivity = (input: {
 }): Effect.Effect<
   PeopleDashboardActivityBatch,
   ApplicationFault,
-  | OrganizationTimeZone
-  | PlanningCenterAccess
-  | PlanningCenterPeople
-  | PlanningCenterPlans
-  | Server
+  OrganizationTimeZone | PlanningCenterPeople | PlanningCenterPlans
 > =>
   Effect.gen(function* readPeopleDashboardActivity() {
-    const access = yield* PlanningCenterAccess;
     const peopleService = yield* PlanningCenterPeople;
     const plansService = yield* PlanningCenterPlans;
     const organizationTimeZone = yield* OrganizationTimeZone;
-    yield* requireFeatureFlag(access, "people");
     return yield* getPeopleDashboardActivityData({
       personIds: input.personIds,
       dependencies: {
@@ -256,12 +248,10 @@ export const getPeopleDashboardPerson = (input: {
   | Server
 > =>
   Effect.gen(function* readPeopleDashboardPerson() {
-    const access = yield* PlanningCenterAccess;
     const peopleService = yield* PlanningCenterPeople;
     const catalogService = yield* PlanningCenterCatalog;
     const plansService = yield* PlanningCenterPlans;
     const organizationTimeZone = yield* OrganizationTimeZone;
-    yield* requireFeatureFlag(access, "people");
     const detail = yield* getPeopleDashboardPersonDetail({
       personId: input.personId,
       month: input.month,

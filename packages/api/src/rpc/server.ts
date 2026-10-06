@@ -10,6 +10,7 @@ import { DemoHandlers } from "@pcobooster/api/rpc/handlers/demo";
 import { FeedbackHandlers } from "@pcobooster/api/rpc/handlers/feedback";
 import { HealthHandlers } from "@pcobooster/api/rpc/handlers/health";
 import { IdentityHandlers } from "@pcobooster/api/rpc/handlers/identity";
+import { PeopleHandlers } from "@pcobooster/api/rpc/handlers/people";
 import { scheduleHandlers } from "@pcobooster/api/rpc/handlers/schedule";
 import { PlanningCenterSessionLive } from "@pcobooster/api/rpc/planning-center-session";
 import { ProcedureScopeLive } from "@pcobooster/api/rpc/procedure-scope";
@@ -40,6 +41,7 @@ export const productHandlers = (options: ProductRpcServerOptions) =>
     DemoHandlers,
     FeedbackHandlers,
     CatalogHandlers,
+    PeopleHandlers,
     scheduleHandlers(options.scheduleAudit)
   );
 
