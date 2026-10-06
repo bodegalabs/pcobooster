@@ -251,7 +251,11 @@ describe("schedule writes", () => {
   it("assigns with the authorized services and records complete activity context", async () => {
     const { route, client, recordActivity, create, authorize } = setup();
 
-    await expect(client.call("schedule.assign", input)).resolves.toStrictEqual({
+    await expect(
+      client.run((api) =>
+        api.schedule.assign({ params: input, payload: input })
+      )
+    ).resolves.toStrictEqual({
       success: true,
       data: { id: "plan-person-1" },
     });
@@ -326,7 +330,9 @@ describe("schedule writes", () => {
       )
     );
 
-    const assignment = client.call("schedule.assign", input);
+    const assignment = client.run((api) =>
+      api.schedule.assign({ params: input, payload: input })
+    );
 
     await expect(assignment).rejects.toBeInstanceOf(AlreadyScheduled);
     await expect(assignment).rejects.toMatchObject({
@@ -352,7 +358,9 @@ describe("schedule writes", () => {
       })
     );
 
-    const assignment = client.call("schedule.assign", input);
+    const assignment = client.run((api) =>
+      api.schedule.assign({ params: input, payload: input })
+    );
 
     await expect(assignment).rejects.toBeInstanceOf(PositionMismatch);
     await expect(assignment).rejects.toMatchObject({
@@ -387,11 +395,15 @@ describe("schedule writes", () => {
   it("removes and changes status with request-owned services and audit metadata", async () => {
     const { client, recordActivity, remove, update } = setup();
 
-    const removed = await client.call("schedule.remove", removalInput);
-    const updated = await client.call("schedule.updateStatus", {
-      ...removalInput,
-      status: "D",
-    });
+    const removed = await client.run((api) =>
+      api.schedule.remove({ params: removalInput, query: removalInput })
+    );
+    const updated = await client.run((api) =>
+      api.schedule.updateStatus({
+        params: { ...removalInput },
+        payload: { ...removalInput, status: "D" },
+      })
+    );
 
     expect({ removed, updated }).toStrictEqual({
       removed: { success: true },
@@ -429,11 +441,15 @@ describe("schedule writes", () => {
     update.mockReturnValueOnce(missingPlanPerson());
     const target = { planPersonId: "plan-person-1", planId: "plan-1" };
 
-    const removal = client.call("schedule.remove", target);
-    const statusChange = client.call("schedule.updateStatus", {
-      ...target,
-      status: "C",
-    });
+    const removal = client.run((api) =>
+      api.schedule.remove({ params: target, query: target })
+    );
+    const statusChange = client.run((api) =>
+      api.schedule.updateStatus({
+        params: { ...target },
+        payload: { ...target, status: "C" },
+      })
+    );
 
     await expect(removal).rejects.toBeInstanceOf(NotFound);
     await expect(removal).rejects.toMatchObject({ resource: "plan-person" });
@@ -450,7 +466,9 @@ describe("schedule writes", () => {
     const { route, client, recordActivity } = setup();
     recordActivity.mockRejectedValueOnce(new Error("database unavailable"));
 
-    await client.call("schedule.assign", input);
+    await client.run((api) =>
+      api.schedule.assign({ params: input, payload: input })
+    );
 
     expect(
       route.logs.find(
@@ -480,7 +498,9 @@ describe("schedule writes", () => {
       )
     );
 
-    const limited = client.call("schedule.assign", input);
+    const limited = client.run((api) =>
+      api.schedule.assign({ params: input, payload: input })
+    );
 
     await expect(limited).rejects.toBeInstanceOf(RateLimited);
     await expect(limited).rejects.toMatchObject({ retryAfterSeconds: 5 });
@@ -493,7 +513,11 @@ describe("schedule writes", () => {
       })
     );
     recordActivity.mockRejectedValueOnce(new Error("database unavailable"));
-    await expect(client.call("schedule.assign", input)).resolves.toMatchObject({
+    await expect(
+      client.run((api) =>
+        api.schedule.assign({ params: input, payload: input })
+      )
+    ).resolves.toMatchObject({
       success: true,
     });
     expect(create).toHaveBeenCalledTimes(2);
@@ -508,9 +532,12 @@ describe("schedule writes", () => {
       Effect.promise(async () => await preflight.promise)
     );
 
-    const pending = client.call("schedule.assign", input, {
-      signal: controller.signal,
-    });
+    const pending = client.run(
+      (api) => api.schedule.assign({ params: input, payload: input }),
+      {
+        signal: controller.signal,
+      }
+    );
     await vi.waitFor(() => {
       expect(getTeamPositions).toHaveBeenCalledOnce();
     });
@@ -535,19 +562,29 @@ describe("schedule writes", () => {
     [
       "assignment",
       async (client: ReturnType<typeof setup>["client"], signal: AbortSignal) =>
-        await client.call("schedule.assign", input, { signal }),
+        await client.run(
+          (api) => api.schedule.assign({ params: input, payload: input }),
+          { signal }
+        ),
     ],
     [
       "removal",
       async (client: ReturnType<typeof setup>["client"], signal: AbortSignal) =>
-        await client.call("schedule.remove", removalInput, { signal }),
+        await client.run(
+          (api) =>
+            api.schedule.remove({ params: removalInput, query: removalInput }),
+          { signal }
+        ),
     ],
     [
       "status update",
       async (client: ReturnType<typeof setup>["client"], signal: AbortSignal) =>
-        await client.call(
-          "schedule.updateStatus",
-          { ...removalInput, status: "C" },
+        await client.run(
+          (api) =>
+            api.schedule.updateStatus({
+              params: { ...removalInput },
+              payload: { ...removalInput, status: "C" },
+            }),
           { signal }
         ),
     ],

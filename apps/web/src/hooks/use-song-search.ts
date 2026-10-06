@@ -30,9 +30,8 @@ export const useSongSearch = (query: string) => {
         return [];
       }
 
-      const songs = await productClient.call(
-        "songs.search",
-        { query: trimmedQuery },
+      const songs = await productClient.run(
+        (api) => api.songs.search({ query: { query: trimmedQuery } }),
         { signal }
       );
       writeCachedSongSearch(trimmedQuery, songs);

@@ -22,32 +22,28 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 export const SongHandlers = Layer.mergeAll(
   HttpApiBuilder.group(ProductApi, "songs", (handlers) =>
     handlers
-      .handle("songs.search", ({ query }) => searchRunSheetSongs(query))
-      .handle("songs.suggestions", () => suggestRunSheetSongs())
-      .handle("songs.library", () => readSongLibrary())
-      .handle("songs.history", ({ params }) => getRunSheetSongHistory(params))
-      .handle("songs.options", ({ params }) => getRunSheetSongOptions(params))
+      .handle("search", ({ query }) => searchRunSheetSongs(query))
+      .handle("suggestions", () => suggestRunSheetSongs())
+      .handle("library", () => readSongLibrary())
+      .handle("history", ({ params }) => getRunSheetSongHistory(params))
+      .handle("options", ({ params }) => getRunSheetSongOptions(params))
   ),
   HttpApiBuilder.group(ProductApi, "chordCharts", (handlers) =>
     handlers
-      .handle("chordCharts.song", ({ params }) => readChordChartSong(params))
-      .handle("chordCharts.update", ({ params, payload }) =>
+      .handle("song", ({ params }) => readChordChartSong(params))
+      .handle("update", ({ params, payload }) =>
         preparedWrite(
           prepareChordChartSave({ ...params, ...payload }),
           commitChordChartSave
         )
       )
-      .handle("chordCharts.create", ({ params, payload }) =>
+      .handle("create", ({ params, payload }) =>
         createChordChart({ ...params, ...payload })
       )
-      .handle("chordCharts.createSong", ({ payload }) =>
-        addChordChartSong(payload)
-      )
-      .handle("chordCharts.pdf", ({ params, query }) =>
+      .handle("createSong", ({ payload }) => addChordChartSong(payload))
+      .handle("pdf", ({ params, query }) =>
         readChordChartPdf({ ...params, ...query })
       )
-      .handle("chordCharts.lyricsSearch", ({ query }) =>
-        searchChordChartLyrics(query)
-      )
+      .handle("lyricsSearch", ({ query }) => searchChordChartLyrics(query))
   )
 );

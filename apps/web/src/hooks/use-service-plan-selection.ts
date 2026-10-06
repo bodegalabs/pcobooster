@@ -123,9 +123,9 @@ export const useServicePlanSelection = ({
       (serviceTypes ?? []).map((serviceType) => ({
         queryKey: queryKeys.plans(serviceType.id),
         queryFn: async ({ signal }: QueryFunctionContext) =>
-          await productClient.call(
-            "catalog.plans",
-            { serviceTypeId: serviceType.id },
+          await productClient.run(
+            (api) =>
+              api.catalog.plans({ params: { serviceTypeId: serviceType.id } }),
             { signal }
           ),
         staleTime: 5 * 60 * 1000,

@@ -245,13 +245,12 @@ const PlanPersonEditDialogBody = ({
       return;
     }
 
-    await productClient.call("planPeople.updateTimes", {
-      planPersonId: person.planPersonId,
-      serviceTypeId,
-      planId,
-      personId,
-      planTimeIds: timeIds,
-    });
+    await productClient.run((api) =>
+      api.planPeople.updateTimes({
+        params: { planPersonId: person.planPersonId, serviceTypeId, planId },
+        payload: { personId, planTimeIds: timeIds },
+      })
+    );
 
     await Promise.all([
       queryClient.invalidateQueries({

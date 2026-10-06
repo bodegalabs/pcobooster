@@ -25,14 +25,8 @@ export const createPlanItemsQueryOptions = (
       return [];
     }
 
-    const items = await callForQuery(
-      context,
-      async (options) =>
-        await productClient.call(
-          "planItems.list",
-          { serviceTypeId, planId },
-          options
-        )
+    const items = await callForQuery(context, productClient, (api) =>
+      api.planItems.list({ params: { serviceTypeId, planId } })
     );
     writeCachedPlanItems(serviceTypeId, planId, items);
     return items;

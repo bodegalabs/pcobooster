@@ -21,7 +21,9 @@ const createFixture = (body: JsonObject, status = 200) => {
 };
 
 const sessionStatus = async (api: ServiceFetcher, cookie = staleCookie) =>
-  await serverCall({ api, cookie, productOrigin }, "session.status");
+  await serverCall({ api, cookie, productOrigin }, (client) =>
+    client.session.status()
+  );
 
 describe(serverCall, () => {
   it("reads the session through the private API at the configured origin, forwarding the cookie as an HTTP header", async () => {
@@ -53,9 +55,8 @@ describe(serverCall, () => {
 
   it("sends no cookie header when the request has none", async () => {
     const { api, requests } = createFixture({ authenticated: false });
-    await serverCall(
-      { api, cookie: undefined, productOrigin },
-      "session.status"
+    await serverCall({ api, cookie: undefined, productOrigin }, (client) =>
+      client.session.status()
     );
     expect(requests[0]?.headers.get("cookie")).toBeNull();
   });

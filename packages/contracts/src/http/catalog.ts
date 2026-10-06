@@ -93,30 +93,24 @@ const PLAN = ["serviceTypeId", "planId"] as const;
 
 export const catalog = planningCenterGroup(
   "catalog",
-  read("catalog.serviceTypes", "/service-types", {
-    params: {},
-    query: {},
+  read("serviceTypes", "/service-types", {
     success: mutableArray(serviceTypeSchema),
   }),
-  read("catalog.organization", "/organization", {
-    params: {},
-    query: {},
+  read("organization", "/organization", {
     success: Schema.Struct({ timeZone: Schema.String }),
   }),
-  read("catalog.plans", "/service-types/:serviceTypeId/plans", {
+  read("plans", "/service-types/:serviceTypeId/plans", {
     params: plansInputSchema.fields,
-    query: {},
     success: mutableArray(planSchema),
   }),
   /** Null when the plan doesn't exist. */
-  read("catalog.plan", "/service-types/:serviceTypeId/plans/:planId", {
+  read("plan", "/service-types/:serviceTypeId/plans/:planId", {
     params: planInputSchema.fields,
-    query: {},
     success: Schema.NullOr(planSchema),
   }),
   /** Nearest first; empty when the plan doesn't exist or nothing is on that side. */
   read(
-    "catalog.adjacentPlans",
+    "adjacentPlans",
     "/service-types/:serviceTypeId/plans/:planId/adjacent",
     {
       params: Struct.pick(adjacentPlansInputSchema.fields, PLAN),
@@ -125,7 +119,7 @@ export const catalog = planningCenterGroup(
     }
   ),
   read(
-    "catalog.teamPositions",
+    "teamPositions",
     "/service-types/:serviceTypeId/plans/:planId/team-positions",
     {
       params: Struct.pick(teamPositionsInputSchema.fields, PLAN),

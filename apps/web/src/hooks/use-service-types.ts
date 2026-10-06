@@ -21,7 +21,7 @@ export const useServiceTypes = () => {
   const query = useQuery<ServiceType[]>({
     queryKey,
     queryFn: async ({ signal }) =>
-      await productClient.call("catalog.serviceTypes", {}, { signal }),
+      await productClient.run((api) => api.catalog.serviceTypes(), { signal }),
     // 10 minutes
     staleTime: 10 * 60 * 1000,
   });

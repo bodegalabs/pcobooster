@@ -95,16 +95,19 @@ export const useSchedulePlanPerson = ({
         throw new Error("Missing schedule assignment details");
       }
 
-      return await productClient.call("schedule.assign", {
-        serviceTypeId,
-        personId: person.id,
-        planId,
-        teamId,
-        positionId,
-        teamName: teamName ?? undefined,
-        positionName: positionName ?? undefined,
-        oneOff,
-      });
+      return await productClient.run((api) =>
+        api.schedule.assign({
+          params: { serviceTypeId, planId },
+          payload: {
+            personId: person.id,
+            teamId,
+            positionId,
+            teamName: teamName ?? undefined,
+            positionName: positionName ?? undefined,
+            oneOff,
+          },
+        })
+      );
     },
     onMutate: async ({ person }) => {
       if (

@@ -16,10 +16,8 @@ export const useSongHistory = (songId: string | null) =>
       if (!isNonEmptyString(songId)) {
         throw new Error("A song is required.");
       }
-      return await callForQuery(
-        context,
-        async (options) =>
-          await productClient.call("songs.history", { songId }, options)
+      return await callForQuery(context, productClient, (api) =>
+        api.songs.history({ params: { songId } })
       );
     },
     enabled: isNonEmptyString(songId),

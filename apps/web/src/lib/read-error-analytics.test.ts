@@ -151,7 +151,7 @@ describe("read error reporting", () => {
     await failObservedRead(
       client,
       new TransportFailure({
-        tag: "planTimes.list",
+        procedure: "planTimes.list",
         reason: "network",
         cause: null,
       }),

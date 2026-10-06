@@ -34,12 +34,16 @@ export const useUnschedulePlanPerson = ({
         personId?: string | null;
       };
     }) =>
-      await productClient.call("schedule.remove", {
-        planPersonId,
-        serviceTypeId: context?.serviceTypeId ?? undefined,
-        personId: context?.personId ?? undefined,
-        planId: context?.planId ?? undefined,
-      }),
+      await productClient.run((api) =>
+        api.schedule.remove({
+          params: { planPersonId },
+          query: {
+            serviceTypeId: context?.serviceTypeId ?? undefined,
+            personId: context?.personId ?? undefined,
+            planId: context?.planId ?? undefined,
+          },
+        })
+      ),
     onMutate: async ({ planPersonId, context }) => {
       await cancelScheduleMutationQueries(queryClient, context ?? {});
       return {

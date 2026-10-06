@@ -28,19 +28,10 @@ const clientAnswering = (respond: (request: Request) => Response) => {
   return { client, sent };
 };
 
-/** Never called: it only has to compile, with the expected error. */
-const speculativeWrite = async (typed: ProductClient) =>
-  await typed.call(
-    "schedule.remove",
-    { planPersonId: "1", serviceTypeId: "2", planId: "3" },
-    // @ts-expect-error A write always goes out interactive.
-    { priority: "speculative" }
-  );
-
 /** Never called: a procedure that takes input cannot be called without it. */
 const missingInput = async (typed: ProductClient) =>
   // @ts-expect-error catalog.plan needs its service type and plan.
-  await typed.call("catalog.plan");
+  await typed.run((api) => api.catalog.plan());
 
 describe(makeProductClient, () => {
   it("sends each part of the input where its route puts it", async () => {
@@ -68,20 +59,26 @@ describe(makeProductClient, () => {
         : Response.json({ success: true });
     });
 
-    await client.call("catalog.adjacentPlans", {
-      serviceTypeId: "st 1",
-      planId: "plan-1",
-      direction: "next",
-    });
-    await client.call("people.planWindowHistory", {
-      date: "2026-10-11T17:00:00Z",
-      continuation: { plans: [], serviceTypeIds: ["st-2"] },
-    });
-    await client.call("schedule.remove", {
-      planPersonId: "pp-1",
-      serviceTypeId: "st-1",
-      planId: "plan-1",
-    });
+    await client.run((api) =>
+      api.catalog.adjacentPlans({
+        params: { serviceTypeId: "st 1", planId: "plan-1" },
+        query: { direction: "next" },
+      })
+    );
+    await client.run((api) =>
+      api.people.planWindowHistory({
+        payload: {
+          date: "2026-10-11T17:00:00Z",
+          continuation: { plans: [], serviceTypeIds: ["st-2"] },
+        },
+      })
+    );
+    await client.run((api) =>
+      api.schedule.remove({
+        params: { planPersonId: "pp-1" },
+        query: { serviceTypeId: "st-1", planId: "plan-1" },
+      })
+    );
     const requests = await Promise.all(
       sent.map(async (request) => [
         request.method,
@@ -110,7 +107,6 @@ describe(makeProductClient, () => {
         "",
       ],
     ]);
-    await client.dispose();
   });
 
   it("calls a procedure that takes no input without one", async () => {
@@ -118,7 +114,9 @@ describe(makeProductClient, () => {
       Response.json({ people: true, chordCharts: false })
     );
 
-    await expect(client.call("features.status")).resolves.toStrictEqual({
+    await expect(
+      client.run((api) => api.features.status())
+    ).resolves.toStrictEqual({
       people: true,
       chordCharts: false,
     });
@@ -126,7 +124,6 @@ describe(makeProductClient, () => {
     expect(sent.map((request) => request.url)).toStrictEqual([
       "https://api.example/api/v1/features",
     ]);
-    await client.dispose();
   });
 
   it("rejects with the fault class the server answered with, decoded by status", async () => {
@@ -138,26 +135,26 @@ describe(makeProductClient, () => {
     );
 
     await expect(
-      client.call("catalog.plan", { serviceTypeId: "1", planId: "2" })
+      client.run((api) =>
+        api.catalog.plan({ params: { serviceTypeId: "1", planId: "2" } })
+      )
     ).rejects.toBeInstanceOf(NotFound);
     expect(
       sent.map((request) => request.headers.get("x-pcobooster-client"))
     ).toStrictEqual(["web;api=1"]);
-    await client.dispose();
   });
 
   it("reports a response the API does not declare as a transport failure", async () => {
     const { client } = clientAnswering(
       () => new Response("<html>Bad gateway</html>", { status: 502 })
     );
-    const call = client.call("health");
+    const call = client.run((api) => api.health.get());
 
     await expect(call).rejects.toBeInstanceOf(TransportFailure);
     await expect(call).rejects.toMatchObject({
-      tag: "health",
+      procedure: "health.get",
       reason: "undecodable",
     });
-    await client.dispose();
   });
 
   it("gives a network failure a message a person can act on", async () => {
@@ -169,7 +166,7 @@ describe(makeProductClient, () => {
         throw new TypeError("Failed to fetch");
       },
     });
-    const call = client.call("health");
+    const call = client.run((api) => api.health.get());
 
     await expect(call).rejects.toBeInstanceOf(TransportFailure);
     await expect(call).rejects.toMatchObject({
@@ -177,7 +174,6 @@ describe(makeProductClient, () => {
       message:
         "Couldn't reach pcobooster. Check your connection and try again.",
     });
-    await client.dispose();
   });
 
   it("rejects with AbortError when the signal aborts", async () => {
@@ -186,22 +182,44 @@ describe(makeProductClient, () => {
     controller.abort();
 
     await expect(
-      client.call("health", undefined, { signal: controller.signal })
+      client.run((api) => api.health.get(), { signal: controller.signal })
     ).rejects.toMatchObject({ name: "AbortError" });
     expect(sent).toStrictEqual([]);
-    await client.dispose();
   });
 
-  it("sends reads at speculative priority, and refuses that priority for writes at compile time", async () => {
-    const { client, sent } = clientAnswering(() => Response.json([]));
+  it("sends reads at speculative priority, writes always interactive, and names each procedure", async () => {
+    const { client, sent } = clientAnswering((request) =>
+      Response.json(request.method === "GET" ? [] : { success: true })
+    );
+    const named: string[] = [];
+    const onProcedure = (procedure: string) => {
+      named.push(procedure);
+    };
 
-    await client.call("catalog.serviceTypes", undefined, {
+    await client.run((api) => api.catalog.serviceTypes(), {
       priority: "speculative",
+      onProcedure,
     });
+    await client.run(
+      (api) =>
+        api.schedule.remove({ params: { planPersonId: "1" }, query: {} }),
+      {
+        priority: "speculative",
+        onProcedure,
+        httpHeaders: {
+          "x-pcobooster-priority": "speculative",
+          "x-pcobooster-client": "obsolete",
+        },
+      }
+    );
 
-    expect(speculativeWrite).toBeTypeOf("function");
-    expect(sent[0]?.headers.get("x-pcobooster-priority")).toBe("speculative");
-    await client.dispose();
+    expect(
+      sent.map((request) => request.headers.get("x-pcobooster-priority"))
+    ).toStrictEqual(["speculative", "interactive"]);
+    expect(named).toStrictEqual(["catalog.serviceTypes", "schedule.remove"]);
+    expect(
+      sent.map((request) => request.headers.get("x-pcobooster-client"))
+    ).toStrictEqual(["web;api=1", "web;api=1"]);
   });
 });
 
@@ -219,7 +237,11 @@ describe(failureStatus, () => {
       "CLIENT_OUTDATED",
     ],
     [
-      new TransportFailure({ tag: "health", reason: "network", cause: null }),
+      new TransportFailure({
+        procedure: "health.get",
+        reason: "network",
+        cause: null,
+      }),
       503,
       "NETWORK_ERROR",
     ],
@@ -240,7 +262,11 @@ describe(failureMessage, () => {
     ],
     [new Conflict({ message: "", reason: "stale" }), "Fallback"],
     [
-      new TransportFailure({ tag: "health", reason: "network", cause: null }),
+      new TransportFailure({
+        procedure: "health.get",
+        reason: "network",
+        cause: null,
+      }),
       "Couldn't reach pcobooster. Check your connection and try again.",
     ],
     [new TypeError("private diagnostic"), "Fallback"],

@@ -25,17 +25,13 @@ export const createPeopleDashboardPersonQueryOptions = (
 ) => ({
   queryKey: queryKeys.peopleDashboardPerson(personId, month),
   queryFn: async (context: QueryFunctionContext) => {
-    const detail = await callForQuery(
-      context,
-      async (options) =>
-        await productClient.call(
-          "people.dashboardPerson",
-          {
-            personId,
-            month: month !== null && month !== "" ? month : undefined,
-          },
-          options
-        )
+    const detail = await callForQuery(context, productClient, (api) =>
+      api.people.dashboardPerson({
+        params: { personId },
+        query: {
+          month: month !== null && month !== "" ? month : undefined,
+        },
+      })
     );
     writeCachedPeopleDashboardPerson(personId, month, detail);
     return detail;

@@ -7,15 +7,14 @@
  * (trimming, lengths, patterns) runs once, on the server. Both carry the `ProcedureKind`
  * annotation and, when flagged, `RequiredFeature`.
  *
- * An endpoint's identifier is its procedure tag (`people.planWindowHistory`), the name callers,
- * handlers, and outcome lines use. Query and payload are declared only when they have fields: an
- * empty struct would pass a whole caller input through unchanged. Each wire part also accepts
- * `undefined`, which is what a call that takes no input sends.
+ * An endpoint's name is its method on the client (`api.people.search`); its group adds the
+ * namespace to make the procedure's tag (`people.search`), which outcome lines and the route
+ * table use. A part with no fields is left out entirely, so an endpoint that takes nothing is
+ * called with no argument (`api.health.get()`).
  */
 import type { FeatureFlagName } from "@pcobooster/contracts/features";
 import { ProcedureKind } from "@pcobooster/contracts/http/procedure-kind";
 import type { ProcedureKindValue } from "@pcobooster/contracts/http/procedure-kind";
-import { urlQuery } from "@pcobooster/contracts/http/query";
 import { RequiredFeature } from "@pcobooster/contracts/http/required-feature";
 import { API_PREFIX } from "@pcobooster/contracts/http/route";
 import type {
@@ -27,13 +26,18 @@ import { HttpApiEndpoint } from "effect/unstable/httpapi";
 
 type Path = `/${string}`;
 
+type Fields = Schema.Struct.Fields;
+
+/** What a declaration that leaves a part out has for it. */
+type NoFields = Record<never, never>;
+
 const PATH_PARAM = /:(?<name>[A-Za-z]+)/gu;
 
 const paramNames = (path: Path): string[] =>
   [...path.matchAll(PATH_PARAM)].map((match) => match.groups?.name ?? "");
 
 /** Fails at module load when the declared params and the path's `:names` differ. */
-const checkParams = (path: Path, params: Schema.Struct.Fields): void => {
+const checkParams = (path: Path, params: Fields): void => {
   const inPath = paramNames(path).toSorted();
   const declared = Object.keys(params).toSorted();
   if (inPath.join(",") !== declared.join(",")) {
@@ -54,22 +58,55 @@ const annotations = (
     : Context.add(withKind, RequiredFeature, feature);
 };
 
-const hasFields = (fields: Schema.Struct.Fields): boolean =>
-  Object.keys(fields).length > 0;
+const hasFields = (fields: Fields): boolean => Object.keys(fields).length > 0;
+
+/**
+ * A part's fields; a part the declaration left out defaults to no fields, which is what its type
+ * parameter defaults to as well.
+ */
+function declared<Part extends Fields>(fields: Part | undefined): Part;
+function declared(fields: Fields | undefined): Fields {
+  return fields ?? {};
+}
+
+/**
+ * A part with fields, or none. HttpApi leaves out a part whose schema type is `never`, so a part
+ * with no fields is typed `never` and is absent (`undefined`) at runtime.
+ */
+type PartOf<Part extends Fields> = [keyof Part] extends [never]
+  ? never
+  : Schema.Struct<Part>;
+type EncodedPartOf<Part extends Fields> = [keyof Part] extends [never]
+  ? never
+  : Schema.toEncoded<Schema.Struct<Part>>;
+
+function partOf<Part extends Fields>(fields: Part): PartOf<Part>;
+function partOf(fields: Fields): Schema.Struct<Fields> | undefined {
+  return hasFields(fields) ? Schema.Struct(fields) : undefined;
+}
+
+function encodedPartOf<Part extends Fields>(fields: Part): EncodedPartOf<Part>;
+function encodedPartOf(
+  fields: Fields
+): Schema.toEncoded<Schema.Struct<Fields>> | undefined {
+  return hasFields(fields)
+    ? Schema.toEncoded(Schema.Struct(fields))
+    : undefined;
+}
 
 /** A declared endpoint: what the server serves, what clients send, and its route. */
 export interface Declaration<
-  Tag extends string,
+  Name extends string,
   Kind extends ProcedureKindValue,
   Endpoint extends HttpApiEndpoint.Constraint,
   Wire extends HttpApiEndpoint.Constraint,
 > {
-  readonly tag: Tag;
+  readonly name: Name;
   readonly kind: Kind;
   readonly endpoint: Endpoint;
   readonly wire: Wire;
-  /** The route, before its group says whether it acts on Planning Center. */
-  readonly route: Omit<ProcedureRoute, "planningCenter">;
+  /** The route, before its group names the procedure and its Planning Center access. */
+  readonly route: Omit<ProcedureRoute, "tag" | "planningCenter">;
 }
 
 export type AnyDeclaration = Declaration<
@@ -80,14 +117,12 @@ export type AnyDeclaration = Declaration<
 >;
 
 const routeOf = (
-  tag: string,
   method: ProcedureMethod,
   path: Path,
   kind: ProcedureKindValue,
   input: ProcedureRoute["input"],
   feature: FeatureFlagName | undefined
-): Omit<ProcedureRoute, "planningCenter"> => ({
-  tag,
+): Omit<ProcedureRoute, "tag" | "planningCenter"> => ({
   method,
   path: `${API_PREFIX}${path}`,
   params: paramNames(path),
@@ -97,27 +132,27 @@ const routeOf = (
 });
 
 export interface EndpointOptions<
-  Params extends Schema.Struct.Fields,
+  Params extends Fields,
   Success extends Schema.Top,
 > {
-  /** Path params, each named in the path as `:name`; `{}` for none. */
-  readonly params: Params;
+  /** Path params, each named in the path as `:name`; leave out for none. */
+  readonly params?: Params;
   readonly success: Success;
   readonly feature?: FeatureFlagName;
 }
 
 export interface QueryOptions<
-  Params extends Schema.Struct.Fields,
-  Query extends Schema.Struct.Fields,
+  Params extends Fields,
+  Query extends Fields,
   Success extends Schema.Top,
 > extends EndpointOptions<Params, Success> {
-  /** Everything else the endpoint takes, sent as URL query params; `{}` for none. */
-  readonly query: Query;
+  /** Everything else the endpoint takes, as URL query params (scalars or arrays of them). */
+  readonly query?: Query;
 }
 
 export interface BodyOptions<
-  Params extends Schema.Struct.Fields,
-  Payload extends Schema.Struct.Fields,
+  Params extends Fields,
+  Payload extends Fields,
   Success extends Schema.Top,
 > extends EndpointOptions<Params, Success> {
   /** Everything else the endpoint takes, sent as a JSON body. */
@@ -134,42 +169,38 @@ const queryEndpoint =
     method: Method
   ) =>
   <
-    const Tag extends string,
+    const Name extends string,
     const EndpointPath extends Path,
-    Params extends Schema.Struct.Fields,
-    Query extends Schema.Struct.Fields,
     Success extends Schema.Top,
+    Params extends Fields = NoFields,
+    Query extends Fields = NoFields,
   >(
-    tag: Tag,
+    name: Name,
     path: EndpointPath,
     { params, query, success, feature }: QueryOptions<Params, Query, Success>
   ) => {
-    checkParams(path, params);
+    const pathFields = declared<Params>(params);
+    const queryFields = declared<Query>(query);
+    checkParams(path, pathFields);
     const make = HttpApiEndpoint.make(method);
-    const paramsSchema = Schema.Struct(params);
-    const querySchema = Schema.Struct(query);
-    const sendsQuery = hasFields(query);
     return {
-      tag,
+      name,
       kind,
-      endpoint: make(tag, path, {
-        params: paramsSchema,
-        query: sendsQuery ? urlQuery(querySchema) : undefined,
+      endpoint: make(name, path, {
+        params: partOf(pathFields),
+        query: partOf(queryFields),
         success,
       }).annotateMerge(annotations(kind, feature)),
-      wire: make(tag, path, {
-        params: Schema.UndefinedOr(Schema.toEncoded(paramsSchema)),
-        query: sendsQuery
-          ? Schema.UndefinedOr(urlQuery(Schema.toEncoded(querySchema)))
-          : undefined,
+      wire: make(name, path, {
+        params: encodedPartOf(pathFields),
+        query: encodedPartOf(queryFields),
         success,
       }),
       route: routeOf(
-        tag,
         method,
         path,
         kind,
-        sendsQuery ? "query" : "none",
+        hasFields(queryFields) ? "query" : "none",
         feature
       ),
     };
@@ -186,44 +217,33 @@ const bodyEndpoint =
     method: "POST" | "PUT" | "PATCH"
   ) =>
   <
-    const Tag extends string,
+    const Name extends string,
     const EndpointPath extends Path,
-    Params extends Schema.Struct.Fields,
-    Payload extends Schema.Struct.Fields,
+    Payload extends Fields,
     Success extends Schema.Top,
+    Params extends Fields = NoFields,
   >(
-    tag: Tag,
+    name: Name,
     path: EndpointPath,
     { params, payload, success, feature }: BodyOptions<Params, Payload, Success>
   ) => {
-    checkParams(path, params);
+    const pathFields = declared<Params>(params);
+    checkParams(path, pathFields);
     const make = HttpApiEndpoint.make(method);
-    const paramsSchema = Schema.Struct(params);
-    const payloadSchema = Schema.Struct(payload);
-    const sendsBody = hasFields(payload);
     return {
-      tag,
+      name,
       kind,
-      endpoint: make(tag, path, {
-        params: paramsSchema,
-        payload: sendsBody ? payloadSchema : undefined,
+      endpoint: make(name, path, {
+        params: partOf(pathFields),
+        payload: Schema.Struct(payload),
         success,
       }).annotateMerge(annotations(kind, feature)),
-      wire: make(tag, path, {
-        params: Schema.UndefinedOr(Schema.toEncoded(paramsSchema)),
-        payload: sendsBody
-          ? Schema.UndefinedOr(Schema.toEncoded(payloadSchema))
-          : undefined,
+      wire: make(name, path, {
+        params: encodedPartOf(pathFields),
+        payload: Schema.toEncoded(Schema.Struct(payload)),
         success,
       }),
-      route: routeOf(
-        tag,
-        method,
-        path,
-        kind,
-        sendsBody ? "body" : "none",
-        feature
-      ),
+      route: routeOf(method, path, kind, "body", feature),
     };
   };
 

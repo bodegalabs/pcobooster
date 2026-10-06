@@ -146,7 +146,7 @@ describe("faults", () => {
     const raw = await route.fetch(
       rawGet("/api/v1/access/me", { "x-request-id": "request-403" })
     );
-    const answer = route.client().call("access.me");
+    const answer = route.client().run((api) => api.access.me());
 
     await expect(answer).rejects.toBeInstanceOf(Forbidden);
     await expect(answer).rejects.toMatchObject({
@@ -183,9 +183,9 @@ describe("faults", () => {
     );
     const body = await raw.text();
 
-    await expect(route.client().call("access.me")).rejects.toBeInstanceOf(
-      InternalError
-    );
+    await expect(
+      route.client().run((api) => api.access.me())
+    ).rejects.toBeInstanceOf(InternalError);
     expect({
       status: raw.status,
       cacheControl: raw.headers.get("cache-control"),
@@ -277,7 +277,7 @@ describe("payload decoding", () => {
 
     const results = await route
       .client()
-      .call("people.search", { query: " ann " });
+      .run((api) => api.people.search({ query: { query: " ann " } }));
 
     expect({ results, searches }).toStrictEqual({
       results: [
@@ -297,7 +297,9 @@ describe("payload decoding", () => {
     const { searches, httpClient } = peopleDirectory();
     const route = serve({ httpClient });
 
-    const call = route.client().call("people.search", { query: " a " });
+    const call = route
+      .client()
+      .run((api) => api.people.search({ query: { query: " a " } }));
 
     await expect(call).rejects.toBeInstanceOf(RequestRejected);
     expect(searches).toStrictEqual([]);
@@ -309,9 +311,11 @@ describe("what each call runs with", () => {
     const { httpClient } = planningCenter();
     const route = serve({ httpClient });
 
-    const plan = await route
-      .client()
-      .call("catalog.plan", { serviceTypeId: "st-1", planId: "plan-1" });
+    const plan = await route.client().run((api) =>
+      api.catalog.plan({
+        params: { serviceTypeId: "st-1", planId: "plan-1" },
+      })
+    );
     const raw = await route.fetch(
       rawGet("/api/v1/service-types/st-1/plans/plan-1")
     );
@@ -327,10 +331,12 @@ describe("what each call runs with", () => {
     const route = serve({ httpClient });
     const client = route.client();
 
-    await client.call("catalog.plan", { serviceTypeId: "st-1", planId: "a" });
-    await client.call(
-      "catalog.plan",
-      { serviceTypeId: "st-1", planId: "b" },
+    await client.run((api) =>
+      api.catalog.plan({ params: { serviceTypeId: "st-1", planId: "a" } })
+    );
+    await client.run(
+      (api) =>
+        api.catalog.plan({ params: { serviceTypeId: "st-1", planId: "b" } }),
       { priority: "speculative" }
     );
 

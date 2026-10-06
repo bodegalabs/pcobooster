@@ -10,9 +10,7 @@ export const healthOutputSchema = Schema.Struct({
 
 export const health = plainGroup(
   "health",
-  read("health", "/health", {
-    params: {},
-    query: {},
+  read("get", "/health", {
     success: healthOutputSchema,
   })
 );

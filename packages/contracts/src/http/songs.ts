@@ -57,35 +57,28 @@ export const songsSuggestionsOutputSchema = Schema.Struct({
 
 export const songs = planningCenterGroup(
   "songs",
-  read("songs.search", "/songs", {
-    params: {},
+  read("search", "/songs", {
     query: songsSearchInputSchema.fields,
     success: mutableArray(songCatalogEntrySchema),
   }),
-  read("songs.suggestions", "/songs/suggestions", {
-    params: {},
-    query: {},
+  read("suggestions", "/songs/suggestions", {
     success: songsSuggestionsOutputSchema,
   }),
   /**
    * The Songs page's library: behind the `chordCharts` flag, though it lives in this namespace.
    * Partial without a cursor (`truncated`).
    */
-  read("songs.library", "/songs/library", {
-    params: {},
-    query: {},
+  read("library", "/songs/library", {
     success: songLibrarySchema,
     feature: "chordCharts",
   }),
   /** Every plan in any service type that scheduled the song over the past year, newest first. */
-  read("songs.history", "/songs/:songId/history", {
+  read("history", "/songs/:songId/history", {
     params: songsHistoryInputSchema.fields,
-    query: {},
     success: mutableArray(songHistoryEntrySchema),
   }),
-  read("songs.options", "/service-types/:serviceTypeId/songs/:songId/options", {
+  read("options", "/service-types/:serviceTypeId/songs/:songId/options", {
     params: songsOptionsInputSchema.fields,
-    query: {},
     success: songOptionSetSchema,
   })
 );

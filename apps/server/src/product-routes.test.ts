@@ -56,7 +56,7 @@ describe("health through the product API", () => {
     const app = serveHttpForTest({ server: testServer() });
     const client = app.client({ client: "deploy" });
 
-    await expect(client.call("health")).resolves.toStrictEqual({
+    await expect(client.run((api) => api.health.get())).resolves.toStrictEqual({
       status: "ok",
       version: "development",
     });
@@ -109,7 +109,7 @@ describe("health through the product API", () => {
       const client = app.client({ client: "expo" });
 
       await expect(
-        client.call("health", undefined, {
+        client.run((api) => api.health.get(), {
           httpHeaders: { "x-pcobooster-client": header },
         })
       ).rejects.toBeInstanceOf(ClientOutdated);
@@ -385,7 +385,7 @@ describe("cookies set by procedures", () => {
     const app = serveHttpForTest({ server: demoServer });
 
     await expect(
-      app.client().call("demo.start", { key: "guessed" })
+      app.client().run((api) => api.demo.start({ payload: { key: "guessed" } }))
     ).rejects.toBeInstanceOf(NotFound);
     const response = await app.fetch(
       raw("POST", "/api/v1/demo/session", {

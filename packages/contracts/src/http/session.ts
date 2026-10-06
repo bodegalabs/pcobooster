@@ -9,9 +9,7 @@ export const sessionStatusSchema = Schema.Struct({
 
 export const session = plainGroup(
   "session",
-  read("session.status", "/session", {
-    params: {},
-    query: {},
+  read("status", "/session", {
     success: sessionStatusSchema,
   })
 );

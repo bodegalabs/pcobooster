@@ -48,9 +48,12 @@ const NO_BATCHES: readonly string[][] = [];
 const fetchRoster = async ({
   signal,
 }: QueryFunctionContext): Promise<PeopleDashboardRoster> => {
-  const roster = await productClient.call("people.dashboardRoster", undefined, {
-    signal,
-  });
+  const roster = await productClient.run(
+    (api) => api.people.dashboardRoster(),
+    {
+      signal,
+    }
+  );
   writeCachedPeopleDashboardRoster(roster);
   return roster;
 };
@@ -63,9 +66,9 @@ const fetchActivity = async (
   personIds: readonly string[],
   signal: AbortSignal
 ): Promise<PeopleDashboardActivity[]> => {
-  const batch = await productClient.call(
-    "people.dashboardActivity",
-    { personIds: [...personIds] },
+  const batch = await productClient.run(
+    (api) =>
+      api.people.dashboardActivity({ query: { personIds: [...personIds] } }),
     { signal }
   );
   const deferred = batch.deferredPersonIds;

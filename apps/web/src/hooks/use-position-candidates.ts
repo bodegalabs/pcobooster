@@ -1,5 +1,5 @@
-import type { ProcedureInput } from "@pcobooster/client/product-client";
 import { callForQuery, speculativeQuery } from "@pcobooster/client/query";
+import type { peoplePlanWindowHistoryInputSchema } from "@pcobooster/contracts/http/people";
 import { PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE } from "@pcobooster/contracts/people";
 import type {
   CandidateDetailsBatch,
@@ -88,19 +88,11 @@ export const createPositionCandidatesQueryOptions = ({
   queryFn: async (
     context: QueryFunctionContext
   ): Promise<PositionCandidates> => {
-    const candidates = await callForQuery(
-      context,
-      async (options) =>
-        await productClient.call(
-          "people.positionCandidates",
-          {
-            serviceTypeId,
-            positionId,
-            planId,
-            teamId: isNonEmptyString(teamId) ? teamId : undefined,
-          },
-          options
-        )
+    const candidates = await callForQuery(context, productClient, (api) =>
+      api.people.positionCandidates({
+        params: { serviceTypeId, positionId, planId },
+        query: { teamId: isNonEmptyString(teamId) ? teamId : undefined },
+      })
     );
     writeCachedPositionCandidates(
       serviceTypeId,
@@ -114,9 +106,8 @@ export const createPositionCandidatesQueryOptions = ({
   staleTime: CANDIDATE_LIST_STALE_TIME_MS,
 });
 
-type WindowContinuation = NonNullable<
-  ProcedureInput<"people.planWindowHistory">
->["continuation"];
+type WindowContinuation =
+  (typeof peoplePlanWindowHistoryInputSchema.Encoded)["continuation"];
 
 /**
  * Follows the window's continuation until every roster is read. Each call is its own Worker
@@ -128,14 +119,10 @@ const fetchPlanWindowHistory = async (
   context: QueryFunctionContext,
   continuation?: WindowContinuation
 ): Promise<PlanWindowHistoryBatch[]> => {
-  const batch = await callForQuery(
-    context,
-    async (options) =>
-      await productClient.call(
-        "people.planWindowHistory",
-        { date: dateKey, continuation },
-        options
-      )
+  const batch = await callForQuery(context, productClient, (api) =>
+    api.people.planWindowHistory({
+      payload: { date: dateKey, continuation },
+    })
   );
   const { deferredPlans, deferredServiceTypeIds } = batch;
   if (deferredPlans.length === 0 && deferredServiceTypeIds.length === 0) {
@@ -185,20 +172,16 @@ const fetchCandidateDetails = async (
   context: QueryFunctionContext,
   blockoutProgress?: CandidateDetailsBatch["blockoutProgress"]
 ): Promise<CandidateDetail[]> => {
-  const batch = await callForQuery(
-    context,
-    async (options) =>
-      await productClient.call(
-        "people.candidateDetails",
-        {
-          personIds: [...personIds],
-          planId,
-          date: dateKey,
-          scheduleHistory,
-          blockoutProgress,
-        },
-        options
-      )
+  const batch = await callForQuery(context, productClient, (api) =>
+    api.people.candidateDetails({
+      params: { planId },
+      payload: {
+        personIds: [...personIds],
+        date: dateKey,
+        scheduleHistory,
+        blockoutProgress,
+      },
+    })
   );
   const deferred = batch.deferredPersonIds;
   if (deferred.length === 0) {

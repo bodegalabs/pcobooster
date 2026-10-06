@@ -57,13 +57,16 @@ export const useAdjustNeededPositions = (
       position: Pick<TeamPosition, "id" | "teamId" | "name">;
       change: NeededPositionChange;
     }) =>
-      await productClient.call("neededPositions.adjust", {
-        serviceTypeId,
-        planId,
-        teamId: position.teamId,
-        positionName: position.name,
-        change,
-      }),
+      await productClient.run((api) =>
+        api.neededPositions.adjust({
+          params: { serviceTypeId, planId },
+          payload: {
+            teamId: position.teamId,
+            positionName: position.name,
+            change,
+          },
+        })
+      ),
     onError: () => {
       toast.error("Couldn't update open slots.");
     },

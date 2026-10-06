@@ -17,23 +17,23 @@ export const PeopleHandlers = HttpApiBuilder.group(
   "people",
   (handlers) =>
     handlers
-      .handle("people.positionCandidates", ({ params, query }) =>
+      .handle("positionCandidates", ({ params, query }) =>
         getPeoplePositionCandidates({ ...params, ...query })
       )
-      .handle("people.planWindowHistory", ({ payload }) =>
+      .handle("planWindowHistory", ({ payload }) =>
         getPeoplePlanWindowHistory(payload)
       )
-      .handle("people.candidateDetails", ({ params, payload }) =>
+      .handle("candidateDetails", ({ params, payload }) =>
         getPeopleCandidateDetails({ ...params, ...payload })
       )
-      .handle("people.search", ({ query }) => getPeopleSearch(query))
-      .handle("people.blockouts", ({ params }) => getPeopleBlockouts(params))
-      .handle("people.dashboardRoster", () => getPeopleDashboardRoster())
-      .handle("people.dashboardActivity", ({ query }) =>
+      .handle("search", ({ query }) => getPeopleSearch(query))
+      .handle("blockouts", ({ params }) => getPeopleBlockouts(params))
+      .handle("dashboardRoster", () => getPeopleDashboardRoster())
+      .handle("dashboardActivity", ({ query }) =>
         getPeopleDashboardActivity(query)
       )
-      .handle("people.dashboardPerson", ({ params, query }) =>
+      .handle("dashboardPerson", ({ params, query }) =>
         getPeopleDashboardPerson({ ...params, ...query })
       )
-      .handle("people.myScheduledPlans", () => getMyScheduledPlans())
+      .handle("myScheduledPlans", () => getMyScheduledPlans())
 );

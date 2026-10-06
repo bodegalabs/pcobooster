@@ -20,7 +20,7 @@ import {
   failureStatus,
   makeProductClient,
 } from "@pcobooster/client/product-client";
-import type { ProcedureInput } from "@pcobooster/client/product-client";
+import type { ProductApi } from "@pcobooster/client/product-client";
 import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
 import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { InternalError } from "@pcobooster/contracts/faults/internal-error";
@@ -231,12 +231,9 @@ test(
     const url = yield* apiUrl;
     const client = deployClient(url);
     const health = yield* Effect.promise(
-      async () => await client.call("health")
+      async () => await client.run((api) => api.health.get())
     );
     const raw = yield* sendHttp(url, "/api/v1/health");
-    yield* Effect.promise(async () => {
-      await client.dispose();
-    });
 
     assert.deepStrictEqual(health, {
       status: "ok",
@@ -543,41 +540,33 @@ const nativeClient = (url: string, headers: Record<string, string>) =>
     httpHeaders: () => headers,
   });
 
-const disposeAll = (...clients: { readonly dispose: () => Promise<void> }[]) =>
-  Effect.promise(async () => {
-    await Promise.all(
-      clients.map(async (client) => {
-        await client.dispose();
-      })
-    );
-  });
-
 test(
   "serves later and concurrent requests from the server the first request built",
   Effect.gen(function* serverReuse() {
     const url = yield* fixtureUrl;
     const client = nativeClient(url, yield* flagOffSession(url));
     const first = yield* Effect.promise(
-      async () => await client.call("health")
+      async () => await client.run((api) => api.health.get())
     );
     const second = yield* Effect.promise(
-      async () => await client.call("health")
+      async () => await client.run((api) => api.health.get())
     );
     const concurrent = yield* Effect.promise(
       async () =>
         await Promise.all([
-          client.call("catalog.plan", {
-            serviceTypeId: "st-reuse",
-            planId: "plan-a",
-          }),
-          client.call("catalog.plan", {
-            serviceTypeId: "st-reuse",
-            planId: "plan-b",
-          }),
+          client.run((api) =>
+            api.catalog.plan({
+              params: { serviceTypeId: "st-reuse", planId: "plan-a" },
+            })
+          ),
+          client.run((api) =>
+            api.catalog.plan({
+              params: { serviceTypeId: "st-reuse", planId: "plan-b" },
+            })
+          ),
         ])
     );
     const state = yield* fixtureState(url);
-    yield* disposeAll(client);
 
     assert.strictEqual(first.version, FIXTURE_RELEASE_VERSION);
     assert.strictEqual(second.version, FIXTURE_RELEASE_VERSION);
@@ -595,11 +584,10 @@ test(
  * aborts the request's signal at the same moment (local workerd never reports the disconnect
  * itself; see `transport-stack.fixture.ts`). Resolves with how the call settled.
  */
-const abandonedCall = <Tag extends "catalog.plan" | "schedule.assign">(
+const abandonedCall = <Value, Failure>(
   url: string,
   headers: Record<string, string>,
-  tag: Tag,
-  input: ProcedureInput<Tag>,
+  call: (api: ProductApi) => Effect.Effect<Value, Failure>,
   requestId: string,
   abortAfterMs: number
 ) => {
@@ -610,7 +598,7 @@ const abandonedCall = <Tag extends "catalog.plan" | "schedule.assign">(
   }, abortAfterMs);
   return settled(
     async () =>
-      await client.call(tag, input, {
+      await client.run(call, {
         signal: controller.signal,
         httpHeaders: {
           "x-request-id": requestId,
@@ -619,9 +607,8 @@ const abandonedCall = <Tag extends "catalog.plan" | "schedule.assign">(
       })
   ).pipe(
     Effect.ensuring(
-      Effect.promise(async () => {
+      Effect.sync(() => {
         clearTimeout(clientAbort);
-        await client.dispose();
       })
     )
   );
@@ -646,8 +633,8 @@ test(
     const outcome = yield* abandonedCall(
       url,
       yield* flagOffSession(url),
-      "catalog.plan",
-      { serviceTypeId: "st-abort", planId },
+      (api) =>
+        api.catalog.plan({ params: { serviceTypeId: "st-abort", planId } }),
       requestId,
       400
     );
@@ -686,8 +673,10 @@ test(
     const outcome = yield* abandonedCall(
       url,
       yield* flagOffSession(url),
-      "schedule.assign",
-      assignInput(serviceTypeId),
+      (api) => {
+        const input = assignInput(serviceTypeId);
+        return api.schedule.assign({ params: input, payload: input });
+      },
       requestId,
       400
     );
@@ -725,8 +714,10 @@ test(
     const outcome = yield* abandonedCall(
       url,
       yield* flagOffSession(url),
-      "schedule.assign",
-      assignInput(serviceTypeId),
+      (api) => {
+        const input = assignInput(serviceTypeId);
+        return api.schedule.assign({ params: input, payload: input });
+      },
       requestId,
       600
     );
@@ -849,9 +840,11 @@ test(
     const client = nativeClient(url, headers);
     const typed = yield* settled(
       async () =>
-        await client.call(
-          "schedule.assign",
-          assignInput(uniqueId("unencodable"))
+        await client.run((api) =>
+          api.schedule.assign({
+            params: assignInput(uniqueId("unencodable")),
+            payload: assignInput(uniqueId("unencodable")),
+          })
         )
     );
     const state = yield* fixtureStateWhen(
@@ -859,7 +852,6 @@ test(
       requestId,
       (current) => current.logs.length > 0
     );
-    yield* disposeAll(client);
 
     assert.deepStrictEqual(
       [raw.status, raw.tag, raw.message],
@@ -888,22 +880,26 @@ test(
       [
         settled(
           async () =>
-            await client.call("catalog.plan", {
-              serviceTypeId: "st-defect",
-              planId: uniqueId("defect"),
-            })
+            await client.run((api) =>
+              api.catalog.plan({
+                params: {
+                  serviceTypeId: "st-defect",
+                  planId: uniqueId("defect"),
+                },
+              })
+            )
         ),
         settled(
           async () =>
-            await client.call("catalog.plan", {
-              serviceTypeId: "st-defect",
-              planId: "plan-ok",
-            })
+            await client.run((api) =>
+              api.catalog.plan({
+                params: { serviceTypeId: "st-defect", planId: "plan-ok" },
+              })
+            )
         ),
       ],
       { concurrency: "unbounded" }
     );
-    yield* disposeAll(client);
 
     assert.isTrue(rejectedWithInternalError(died));
     assert.strictEqual(
@@ -922,9 +918,11 @@ test(
     const requestId = uniqueId("outcome-line");
     yield* Effect.promise(
       async () =>
-        await client.call(
-          "catalog.plan",
-          { serviceTypeId: "st-outcome", planId: "plan-outcome" },
+        await client.run(
+          (api) =>
+            api.catalog.plan({
+              params: { serviceTypeId: "st-outcome", planId: "plan-outcome" },
+            }),
           {
             priority: "speculative",
             httpHeaders: { "x-request-id": requestId },
@@ -936,7 +934,6 @@ test(
       requestId,
       (current) => current.logs.length > 0
     );
-    yield* disposeAll(client);
 
     assert.deepStrictEqual(
       state.logs.map(({ level, fields }) => ({
@@ -978,7 +975,7 @@ test(
     const client = nativeClient(url, yield* flagOffSession(url));
     const outcome = yield* settled(
       async () =>
-        await client.call("people.dashboardRoster", undefined, {
+        await client.run((api) => api.people.dashboardRoster(), {
           httpHeaders: { "x-request-id": requestId },
         })
     );
@@ -987,7 +984,6 @@ test(
       requestId,
       (current) => current.logs.length > 0
     );
-    yield* disposeAll(client);
 
     assert.isTrue(
       Result.isFailure(outcome) && outcome.failure.cause instanceof NotFound
@@ -1029,12 +1025,16 @@ test(
     );
     const charts = yield* Effect.promise(
       async () =>
-        await onClient.call("chordCharts.song", { songId: " song-1 " })
+        await onClient.run((api) =>
+          api.chordCharts.song({ params: { songId: " song-1 " } })
+        )
     );
     const flagOff = yield* settled(
-      async () => await offClient.call("chordCharts.song", { songId: "song-1" })
+      async () =>
+        await offClient.run((api) =>
+          api.chordCharts.song({ params: { songId: "song-1" } })
+        )
     );
-    yield* disposeAll(onClient, offClient);
 
     assert.deepStrictEqual(charts, {
       song: { id: "song-1", title: "Amazing Grace", author: "John Newton" },
@@ -1061,13 +1061,14 @@ test(
     });
     const batch = yield* Effect.promise(
       async () =>
-        await client.call(
-          "people.planWindowHistory",
-          {
-            date: "2026-10-11T10:00:00-07:00",
-            // The organization has st-1 and st-2; the cursor says only st-2 is left.
-            continuation: { plans: [], serviceTypeIds: ["st-2"] },
-          },
+        await client.run(
+          (api) =>
+            api.people.planWindowHistory({
+              payload: {
+                date: "2026-10-11T10:00:00-07:00",
+                continuation: { plans: [], serviceTypeIds: ["st-2"] },
+              },
+            }),
           { priority: "speculative" }
         )
     );
@@ -1076,7 +1077,6 @@ test(
       requestId,
       (current) => current.logs.length > 0
     );
-    yield* disposeAll(client);
 
     assert.deepStrictEqual(
       [
@@ -1130,14 +1130,18 @@ test(
     });
     const updated = yield* Effect.promise(
       async () =>
-        await client.call("schedule.updateStatus", STATUS_WRITE(planPersonId))
+        await client.run((api) =>
+          api.schedule.updateStatus({
+            params: STATUS_WRITE(planPersonId),
+            payload: STATUS_WRITE(planPersonId),
+          })
+        )
     );
     const state = yield* fixtureStateWhen(
       url,
       requestId,
       (current) => current.logs.length > 0 && current.audit.length > 0
     );
-    yield* disposeAll(client);
 
     assert.deepStrictEqual(updated, { success: true });
     assert.deepStrictEqual(
@@ -1187,14 +1191,15 @@ test(
       ["limited", "down"].map((script) =>
         settled(
           async () =>
-            await client.call(
-              "schedule.updateStatus",
-              STATUS_WRITE(uniqueId(script))
+            await client.run((api) =>
+              api.schedule.updateStatus({
+                params: STATUS_WRITE(uniqueId(script)),
+                payload: STATUS_WRITE(uniqueId(script)),
+              })
             )
         )
       )
     );
-    yield* disposeAll(client);
 
     assert.deepStrictEqual(
       answers.map((answer) => [
@@ -1246,9 +1251,11 @@ test(
     });
     const client = nativeClient(url, headers);
     const typed = yield* settled(
-      async () => await client.call("chordCharts.song", { songId: "defect-2" })
+      async () =>
+        await client.run((api) =>
+          api.chordCharts.song({ params: { songId: "defect-2" } })
+        )
     );
-    yield* disposeAll(client);
 
     assert.deepStrictEqual(
       [answer.status, answer.tag, answer.message],
@@ -1344,15 +1351,19 @@ test(
     });
     const read = yield* Effect.promise(
       async () =>
-        await client.call("people.planWindowHistory", {
-          date: "2026-10-11T17:00:00Z",
-        })
+        await client.run((api) =>
+          api.people.planWindowHistory({
+            payload: { date: "2026-10-11T17:00:00Z" },
+          })
+        )
     );
     const write = yield* settled(
       async () =>
-        await client.call(
-          "schedule.updateStatus",
-          STATUS_WRITE(uniqueId("demo"))
+        await client.run((api) =>
+          api.schedule.updateStatus({
+            params: STATUS_WRITE(uniqueId("demo")),
+            payload: STATUS_WRITE(uniqueId("demo")),
+          })
         )
     );
     const unknownDemo = yield* sendHttp(
@@ -1364,7 +1375,6 @@ test(
         body: JSON.stringify({ date: "2026-10-11T17:00:00Z" }),
       }
     );
-    yield* disposeAll(client);
 
     assert.strictEqual(read.loadedPlanCount, 0);
     assert.isTrue(

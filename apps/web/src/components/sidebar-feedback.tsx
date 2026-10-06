@@ -42,11 +42,15 @@ export const SidebarFeedback = () => {
     }
     setSending(true);
     try {
-      await productClient.call("feedback.submit", {
-        message,
-        path: window.location.pathname,
-        sessionId: getAnalyticsSessionId(),
-      });
+      await productClient.run((api) =>
+        api.feedback.submit({
+          payload: {
+            message,
+            path: window.location.pathname,
+            sessionId: getAnalyticsSessionId(),
+          },
+        })
+      );
       setSending(false);
       setDraft("");
       setOpen(false);

@@ -38,13 +38,17 @@ export const useUpdatePlanPersonStatus = ({
       status: PlanPersonStatusCode;
       context?: ScheduleMutationInvalidateContext;
     }) =>
-      await productClient.call("schedule.updateStatus", {
-        planPersonId,
-        status,
-        serviceTypeId: context?.serviceTypeId ?? undefined,
-        personId: context?.personId ?? undefined,
-        planId: context?.planId ?? undefined,
-      }),
+      await productClient.run((api) =>
+        api.schedule.updateStatus({
+          params: { planPersonId },
+          payload: {
+            status,
+            serviceTypeId: context?.serviceTypeId ?? undefined,
+            personId: context?.personId ?? undefined,
+            planId: context?.planId ?? undefined,
+          },
+        })
+      ),
     onMutate: async ({ planPersonId, status, context }) => {
       await cancelScheduleMutationQueries(queryClient, context ?? {});
       return {

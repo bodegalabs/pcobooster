@@ -59,7 +59,7 @@ export const schedule = planningCenterGroup(
   "schedule",
   /** An audited prepared write: the position check may stop; the create always finishes. */
   write.post(
-    "schedule.assign",
+    "assign",
     "/service-types/:serviceTypeId/plans/:planId/team-members",
     {
       params: Struct.pick(scheduleAssignInputSchema.fields, PLAN),
@@ -71,13 +71,13 @@ export const schedule = planningCenterGroup(
    * An audited write. The optional context (service type, person, plan) is more than audit
    * detail: it selects the upstream paths the removal uses and the caches it invalidates.
    */
-  write.delete("schedule.remove", "/plan-people/:planPersonId", {
+  write.delete("remove", "/plan-people/:planPersonId", {
     params: Struct.pick(scheduleRemoveInputSchema.fields, PLAN_PERSON),
     query: Struct.omit(scheduleRemoveInputSchema.fields, PLAN_PERSON),
     success: scheduleMutationOutputSchema,
   }),
   /** An audited write, with the same optional context as `schedule.remove`. */
-  write.patch("schedule.updateStatus", "/plan-people/:planPersonId", {
+  write.patch("updateStatus", "/plan-people/:planPersonId", {
     params: Struct.pick(scheduleUpdateStatusInputSchema.fields, PLAN_PERSON),
     payload: Struct.omit(scheduleUpdateStatusInputSchema.fields, PLAN_PERSON),
     success: scheduleMutationOutputSchema,

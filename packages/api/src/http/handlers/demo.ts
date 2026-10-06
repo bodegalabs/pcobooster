@@ -12,7 +12,7 @@ export const DemoHandlers = HttpApiBuilder.group(
   "demo",
   (handlers) =>
     handlers
-      .handle("demo.start", ({ payload }) =>
+      .handle("start", ({ payload }) =>
         Effect.gen(function* startDemo() {
           const { sessionToken } = yield* startDemoSession(payload);
           yield* setResponseCookie((secure) =>
@@ -21,7 +21,7 @@ export const DemoHandlers = HttpApiBuilder.group(
           return { demo: true };
         })
       )
-      .handle("demo.exit", () =>
+      .handle("exit", () =>
         Effect.as(
           setResponseCookie((secure) => demoSessionCookie(null, secure)),
           { demo: false }

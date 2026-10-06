@@ -18,7 +18,7 @@ export const planPeople = planningCenterGroup(
   "planPeople",
   /** Sets the person's times to exactly `planTimeIds`. */
   write.put(
-    "planPeople.updateTimes",
+    "updateTimes",
     "/service-types/:serviceTypeId/plans/:planId/people/:planPersonId/times",
     {
       params: Struct.pick(planPeopleUpdateTimesInputSchema.fields, PLAN_PERSON),

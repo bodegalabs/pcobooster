@@ -37,12 +37,10 @@ export const readVersion = async (
     fetch: fetchImpl,
   });
   try {
-    const { version } = await client.call("health");
+    const { version } = await client.run((api) => api.health.get());
     return version;
   } catch {
     return undefined;
-  } finally {
-    await client.dispose();
   }
 };
 

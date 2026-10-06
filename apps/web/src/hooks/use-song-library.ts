@@ -12,11 +12,7 @@ const SONG_LIBRARY_STALE_TIME_MS = 10 * 60 * 1000;
 export const songLibraryQueryOptions = {
   queryKey: queryKeys.songLibrary(),
   queryFn: async (context: QueryFunctionContext): Promise<SongLibrary> =>
-    await callForQuery(
-      context,
-      async (options) =>
-        await productClient.call("songs.library", undefined, options)
-    ),
+    await callForQuery(context, productClient, (api) => api.songs.library()),
   staleTime: SONG_LIBRARY_STALE_TIME_MS,
 };
 

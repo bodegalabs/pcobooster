@@ -36,14 +36,11 @@ export const accountSwitchSchema = Schema.Struct({
 
 export const accounts = plainGroup(
   "accounts",
-  read("accounts.list", "/accounts", {
-    params: {},
-    query: {},
+  read("list", "/accounts", {
     success: planningCenterAccountsSchema,
   }),
   /** Also sets the selected-account cookie (except under the dev auth bypass). */
-  write.put("accounts.select", "/accounts/selected", {
-    params: {},
+  write.put("select", "/accounts/selected", {
     payload: accountsSelectInputSchema.fields,
     success: accountSwitchSchema,
   })

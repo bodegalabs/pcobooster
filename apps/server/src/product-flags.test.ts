@@ -86,19 +86,24 @@ describe("endpoints behind the people flag", () => {
     [
       "people.dashboardRoster",
       async (client: ProductClient) =>
-        await client.call("people.dashboardRoster"),
+        await client.run((api) => api.people.dashboardRoster()),
     ],
     [
       "people.dashboardActivity",
       async (client: ProductClient) =>
-        await client.call("people.dashboardActivity", {
-          personIds: ["person-1"],
-        }),
+        await client.run((api) =>
+          api.people.dashboardActivity({ query: { personIds: ["person-1"] } })
+        ),
     ],
     [
       "people.dashboardPerson",
       async (client: ProductClient) =>
-        await client.call("people.dashboardPerson", { personId: "person-1" }),
+        await client.run((api) =>
+          api.people.dashboardPerson({
+            params: { personId: "person-1" },
+            query: {},
+          })
+        ),
     ],
   ] as const)(
     "answer %s with NotFound before any Planning Center request while the flag is off",
@@ -122,9 +127,9 @@ describe("endpoints behind the people flag", () => {
   it("evaluates a demo visitor anonymously", async () => {
     const { client, evaluations } = flagOff("people", demoAuthentication);
 
-    await expect(client.call("people.dashboardRoster")).rejects.toBeInstanceOf(
-      NotFound
-    );
+    await expect(
+      client.run((api) => api.people.dashboardRoster())
+    ).rejects.toBeInstanceOf(NotFound);
 
     expect(evaluations[0]?.subject).toStrictEqual({
       userId: null,
@@ -135,7 +140,9 @@ describe("endpoints behind the people flag", () => {
   it("evaluates no flag for an endpoint declared without one", async () => {
     const { client, evaluations } = flagOff("people", accountAuthentication);
 
-    await client.call("people.search", { query: "ann" }).catch(() => null);
+    await client
+      .run((api) => api.people.search({ query: { query: "ann" } }))
+      .catch(() => null);
 
     expect(evaluations).toStrictEqual([]);
   });
@@ -145,23 +152,29 @@ describe("endpoints behind the chordCharts flag", () => {
   it.each([
     [
       "songs.library",
-      async (client: ProductClient) => await client.call("songs.library"),
+      async (client: ProductClient) =>
+        await client.run((api) => api.songs.library()),
     ],
     [
       "chordCharts.update",
       async (client: ProductClient) =>
-        await client.call("chordCharts.update", {
-          songId: "song-1",
-          arrangementId: "arrangement-1",
-          chordChart: "[C]Amazing grace",
-          chordChartKey: "C",
-          baseUpdatedAt: null,
-        }),
+        await client.run((api) =>
+          api.chordCharts.update({
+            params: { songId: "song-1", arrangementId: "arrangement-1" },
+            payload: {
+              chordChart: "[C]Amazing grace",
+              chordChartKey: "C",
+              baseUpdatedAt: null,
+            },
+          })
+        ),
     ],
     [
       "chordCharts.lyricsSearch",
       async (client: ProductClient) =>
-        await client.call("chordCharts.lyricsSearch", { query: "grace" }),
+        await client.run((api) =>
+          api.chordCharts.lyricsSearch({ query: { query: "grace" } })
+        ),
     ],
   ] as const)(
     "answer %s with NotFound while the flag is off, songs.library included",

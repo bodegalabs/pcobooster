@@ -22,10 +22,8 @@ import { productClient } from "@/product-client";
 export const createChordChartSongQueryOptions = (songId: string) => ({
   queryKey: queryKeys.chordChartSong(songId),
   queryFn: async (context: QueryFunctionContext) =>
-    await callForQuery(
-      context,
-      async (options) =>
-        await productClient.call("chordCharts.song", { songId }, options)
+    await callForQuery(context, productClient, (api) =>
+      api.chordCharts.song({ params: { songId } })
     ),
   staleTime: 30 * 1000,
 });
@@ -129,7 +127,9 @@ export const useSaveChordChart = (songId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: ChordChartUpdateInput) =>
-      await productClient.call("chordCharts.update", input),
+      await productClient.run((api) =>
+        api.chordCharts.update({ params: input, payload: input })
+      ),
     onSuccess: (arrangement) => {
       rememberWrittenArrangement(queryClient, songId, arrangement);
     },
@@ -140,7 +140,9 @@ export const useCreateChordChart = (songId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: ChordChartCreateInput) =>
-      await productClient.call("chordCharts.create", input),
+      await productClient.run((api) =>
+        api.chordCharts.create({ params: input, payload: input })
+      ),
     onSuccess: (arrangement) => {
       rememberWrittenArrangement(queryClient, songId, arrangement);
     },
@@ -155,14 +157,8 @@ export const useLyricsSearch = (query: string) =>
   useQuery<LyricsSearchResult[]>({
     queryKey: queryKeys.lyricsSearch(query),
     queryFn: async (context: QueryFunctionContext) =>
-      await callForQuery(
-        context,
-        async (options) =>
-          await productClient.call(
-            "chordCharts.lyricsSearch",
-            { query },
-            options
-          )
+      await callForQuery(context, productClient, (api) =>
+        api.chordCharts.lyricsSearch({ query: { query } })
       ),
     enabled: query.length >= 2,
     staleTime: 60 * 60 * 1000,
@@ -174,7 +170,9 @@ export const useCreateSong = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: ChordChartSongCreateInput) =>
-      await productClient.call("chordCharts.createSong", input),
+      await productClient.run((api) =>
+        api.chordCharts.createSong({ payload: input })
+      ),
     onSuccess: (created) => {
       queryClient.setQueryData(
         queryKeys.chordChartSong(created.song.id),
@@ -202,18 +200,14 @@ export const useChordChartPdf = (target: ChordChartPdfTarget) =>
       target.updatedAt
     ),
     queryFn: async (context: QueryFunctionContext) =>
-      await callForQuery(
-        context,
-        async (options) =>
-          await productClient.call(
-            "chordCharts.pdf",
-            {
-              songId: target.songId,
-              arrangementId: target.arrangementId,
-              keyId: target.keyId ?? undefined,
-            },
-            options
-          )
+      await callForQuery(context, productClient, (api) =>
+        api.chordCharts.pdf({
+          params: {
+            songId: target.songId,
+            arrangementId: target.arrangementId,
+          },
+          query: { keyId: target.keyId ?? undefined },
+        })
       ),
     staleTime: Number.POSITIVE_INFINITY,
     // The last render stays up while the next save renders.

@@ -25,9 +25,8 @@ export const usePeopleSearch = (query: string) => {
   return useQuery<PeopleSearchResult[]>({
     queryKey,
     queryFn: async ({ signal }) => {
-      const results = await productClient.call(
-        "people.search",
-        { query: normalizedQuery },
+      const results = await productClient.run(
+        (api) => api.people.search({ query: { query: normalizedQuery } }),
         { signal }
       );
       writeCachedPeopleSearch(normalizedQuery, results);

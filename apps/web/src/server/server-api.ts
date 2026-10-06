@@ -2,12 +2,9 @@ import {
   failureStatus,
   makeProductClient,
 } from "@pcobooster/client/product-client";
-import type {
-  CallArguments,
-  ProcedureOutput,
-  ProcedureTag,
-} from "@pcobooster/client/product-client";
+import type { ProductApi } from "@pcobooster/client/product-client";
 import { notFound, redirect } from "@tanstack/react-router";
+import type { Effect } from "effect";
 
 /** A Worker service binding, or a test double. */
 export interface ServiceFetcher {
@@ -41,15 +38,15 @@ const navigateOnFault = (failure: Error): void => {
 };
 
 /**
- * One product call from SSR, through the API service binding. Each call gets its own client,
- * disposed when it settles, so one render request's cookie never reaches another's. The
- * cookie travels as an HTTP header, the only place the API reads identity from.
+ * One product call from SSR, through the API service binding:
+ * `serverCall(options, (api) => api.session.status())`. Each call gets its own client, so one
+ * render request's cookie never reaches another's. The cookie travels as an HTTP header, the
+ * only place the API reads identity from.
  */
-export const serverCall = async <Tag extends ProcedureTag>(
+export const serverCall = async <Value, Failure>(
   { api, cookie, productOrigin }: ServerApiOptions,
-  tag: Tag,
-  ...args: CallArguments<Tag>
-): Promise<ProcedureOutput<Tag>> => {
+  call: (client: ProductApi) => Effect.Effect<Value, Failure>
+): Promise<Value> => {
   const client = makeProductClient({
     url: productOrigin,
     client: "ssr",
@@ -59,13 +56,11 @@ export const serverCall = async <Tag extends ProcedureTag>(
       cookie === undefined || cookie === "" ? [] : [["cookie", cookie]],
   });
   try {
-    return await client.call(tag, ...args);
+    return await client.run(call);
   } catch (error) {
     if (error instanceof Error) {
       navigateOnFault(error);
     }
     throw error;
-  } finally {
-    await client.dispose();
   }
 };

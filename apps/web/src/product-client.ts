@@ -22,17 +22,24 @@ const sharedClient = (): ProductClient => {
 };
 
 /**
- * Every browser call to the API. Interactive calls hold speculative work back until they
- * settle, and writes are measured for workflow analytics.
+ * Every browser call to the API: `productClient.run((api) => api.people.search(...), options)`.
+ * Interactive calls hold speculative work back until they settle, and writes are measured for
+ * workflow analytics under the procedure the client names from the route table.
  */
-export const productClient: Pick<ProductClient, "call"> = {
-  call: async (tag, ...args) =>
+export const productClient: Pick<ProductClient, "run"> = {
+  run: async (call, options = {}) =>
     await requestScheduler.track(
-      args[1]?.priority ?? "interactive",
+      options.priority ?? "interactive",
       async () =>
         await measureWorkflow(
-          tag,
-          async () => await sharedClient().call(tag, ...args),
+          async (named) =>
+            await sharedClient().run(call, {
+              ...options,
+              onProcedure: (procedure) => {
+                named(procedure);
+                options.onProcedure?.(procedure);
+              },
+            }),
           captureAnalytics
         )
     ),

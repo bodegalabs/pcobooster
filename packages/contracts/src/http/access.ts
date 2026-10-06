@@ -43,9 +43,7 @@ export const accessSnapshotSchema = Schema.Struct({
 
 export const access = planningCenterGroup(
   "access",
-  read("access.me", "/access/me", {
-    params: {},
-    query: {},
+  read("me", "/access/me", {
     success: accessSnapshotSchema,
   })
 );

@@ -30,10 +30,7 @@ const usePlanningCenterAccessQuery = () => {
       accounts?.selectedAccountId ?? null
     ),
     queryFn: async (context) =>
-      await callForQuery(
-        context,
-        async (options) => await productClient.call("access.me", {}, options)
-      ),
+      await callForQuery(context, productClient, (api) => api.access.me()),
     enabled: accounts !== undefined,
     staleTime: ACCESS_STALE_TIME_MS,
   });

@@ -15,9 +15,7 @@ export const enabledFeaturesSchema = Schema.Struct({
 
 export const features = plainGroup(
   "features",
-  read("features.status", "/features", {
-    params: {},
-    query: {},
+  read("status", "/features", {
     success: enabledFeaturesSchema,
   })
 );

@@ -55,24 +55,22 @@ const TIME = ["serviceTypeId", "planId", "planTimeId"] as const;
 
 export const planTimes = planningCenterGroup(
   "planTimes",
-  read("planTimes.list", TIMES, {
+  read("list", TIMES, {
     params: planTimesListInputSchema.fields,
-    query: {},
     success: mutableArray(planTimeSchema),
   }),
-  write.post("planTimes.create", TIMES, {
+  write.post("create", TIMES, {
     params: Struct.pick(planTimesCreateInputSchema.fields, PLAN),
     payload: Struct.omit(planTimesCreateInputSchema.fields, PLAN),
     success: planTimeSchema,
   }),
-  write.patch("planTimes.update", `${TIMES}/:planTimeId`, {
+  write.patch("update", `${TIMES}/:planTimeId`, {
     params: Struct.pick(planTimesUpdateInputSchema.fields, TIME),
     payload: Struct.omit(planTimesUpdateInputSchema.fields, TIME),
     success: planTimeSchema,
   }),
-  write.delete("planTimes.delete", `${TIMES}/:planTimeId`, {
+  write.delete("delete", `${TIMES}/:planTimeId`, {
     params: planTimesDeleteInputSchema.fields,
-    query: {},
     success: Schema.Void,
   })
 );

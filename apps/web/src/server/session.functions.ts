@@ -23,8 +23,7 @@ export const getSessionStatus = createServerFn({ method: "GET" }).handler(
         cookie: headers.get("cookie") ?? undefined,
         productOrigin: env.PRODUCT_ORIGIN,
       },
-      "session.status",
-      {}
+      (api) => api.session.status()
     );
   }
 );

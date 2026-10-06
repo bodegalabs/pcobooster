@@ -38,7 +38,11 @@ const fixtureSchema = Schema.Struct({
 });
 const main = Schema.decodeUnknownSync(fixtureSchema)(mainProcedures);
 
+/** Main called liveness `health`; the API names it `health.get` (`api.health.get()`). */
+const mainTag = (tag: string) => (tag === "health" ? "health.get" : tag);
+
 interface Reflected {
+  readonly tag: string;
   readonly endpoint: HttpApiEndpoint.Top;
   readonly middleware: readonly string[];
 }
@@ -49,8 +53,9 @@ const reflect = <Groups extends HttpApiGroup.Constraint>(
   const endpoints: Reflected[] = [];
   HttpApi.reflect(api, {
     onGroup: Function.constVoid,
-    onEndpoint: ({ endpoint }) => {
+    onEndpoint: ({ group, endpoint }) => {
       endpoints.push({
+        tag: `${group.identifier}.${endpoint.identifier}`,
         endpoint,
         middleware: [...endpoint.middlewares].map((service) => service.key),
       });
@@ -60,8 +65,8 @@ const reflect = <Groups extends HttpApiGroup.Constraint>(
 };
 
 const served = reflect(ProductApi);
-const routeOf = (endpoint: HttpApiEndpoint.Top) => ({
-  tag: endpoint.identifier,
+const routeOf = ({ tag, endpoint }: Reflected) => ({
+  tag,
   method: endpoint.method,
   path: endpoint.path,
 });
@@ -77,9 +82,7 @@ describe("the procedures route table", () => {
       procedureRoutes
         .map(({ tag, method, path }) => ({ tag, method, path }))
         .toSorted(byTag)
-    ).toStrictEqual(
-      served.map(({ endpoint }) => routeOf(endpoint)).toSorted(byTag)
-    );
+    ).toStrictEqual(served.map(routeOf).toSorted(byTag));
   });
 
   it("lists each route's path params in path order, and its kind and flag as annotated", () => {
@@ -88,7 +91,7 @@ describe("the procedures route table", () => {
         (match) => match.groups?.name
       );
       const endpoint = served.find(
-        (entry) => entry.endpoint.identifier === route.tag
+        (entry) => entry.tag === route.tag
       )?.endpoint;
 
       expect({ tag: route.tag, params: route.params }).toStrictEqual({
@@ -120,13 +123,9 @@ describe("the procedures route table", () => {
     ).toBeTruthy();
   });
 
-  it("gives clients the same endpoints, top level by tag", () => {
-    expect(
-      reflect(ProductWireApi)
-        .map(({ endpoint }) => routeOf(endpoint))
-        .toSorted(byTag)
-    ).toStrictEqual(
-      served.map(({ endpoint }) => routeOf(endpoint)).toSorted(byTag)
+  it("gives clients the same endpoints, by group and name", () => {
+    expect(reflect(ProductWireApi).map(routeOf).toSorted(byTag)).toStrictEqual(
+      served.map(routeOf).toSorted(byTag)
     );
   });
 
@@ -151,7 +150,9 @@ describe("parity with the procedures main served before the cutover", () => {
         .map(({ tag, kind, feature }) => ({ tag, kind, feature }))
         .toSorted(byTag)
     ).toStrictEqual(
-      main.procedures.map(({ tag, kind, feature }) => ({ tag, kind, feature }))
+      main.procedures
+        .map(({ tag, kind, feature }) => ({ tag: mainTag(tag), kind, feature }))
+        .toSorted(byTag)
     );
   });
 
@@ -164,7 +165,8 @@ describe("parity with the procedures main served before the cutover", () => {
     ).toStrictEqual(
       main.procedures
         .filter(({ wrapper }) => wrapper === "plain")
-        .map(({ tag }) => tag)
+        .map(({ tag }) => mainTag(tag))
+        .toSorted((left, right) => left.localeCompare(right))
     );
   });
 });

@@ -14,7 +14,7 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 export const scheduleHandlers = (audit: ScheduleAuditDependencies = {}) =>
   HttpApiBuilder.group(ProductApi, "schedule", (handlers) =>
     handlers
-      .handle("schedule.assign", ({ params, payload }) => {
+      .handle("assign", ({ params, payload }) => {
         const input = { ...params, ...payload };
         return auditSchedule(
           "assign",
@@ -25,7 +25,7 @@ export const scheduleHandlers = (audit: ScheduleAuditDependencies = {}) =>
           audit
         );
       })
-      .handle("schedule.remove", ({ params, query }) => {
+      .handle("remove", ({ params, query }) => {
         const input = { ...params, ...query };
         return auditSchedule(
           "remove",
@@ -34,7 +34,7 @@ export const scheduleHandlers = (audit: ScheduleAuditDependencies = {}) =>
           audit
         );
       })
-      .handle("schedule.updateStatus", ({ params, payload }) => {
+      .handle("updateStatus", ({ params, payload }) => {
         const input = { ...params, ...payload };
         return auditSchedule(
           "updateStatus",

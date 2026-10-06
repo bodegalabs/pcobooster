@@ -1,4 +1,8 @@
-import { TransportFailure } from "@pcobooster/client/product-client";
+import {
+  makeProductClient,
+  TransportFailure,
+} from "@pcobooster/client/product-client";
+import type { ProductReadApi } from "@pcobooster/client/product-client";
 import {
   callForQuery,
   queryCallPriority,
@@ -14,7 +18,7 @@ import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
 import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import { QueryClient, QueryObserver } from "@tanstack/query-core";
 import type { QueryFunctionContext } from "@tanstack/query-core";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 
 const deferred = () => Promise.withResolvers<null>();
 
@@ -28,13 +32,38 @@ const setupQuery = (
     defaultOptions: { queries: { retry: false } },
   });
   const priorities: (string | undefined)[] = [];
+  const client = makeProductClient({
+    url: "https://api.test",
+    client: "web",
+    fetch: async (input, init) => {
+      const request = new Request(input, init);
+      const priority =
+        request.headers.get("x-pcobooster-priority") === "speculative"
+          ? "speculative"
+          : "interactive";
+      priorities.push(priority);
+      try {
+        const value = await respond({ signal: request.signal, priority });
+        return Response.json([{ id: "st-1", name: value, sequence: 1 }]);
+      } catch (error) {
+        if (error instanceof RateLimited) {
+          return Response.json(error, { status: 429 });
+        }
+        if (error instanceof ExternalServiceFailure) {
+          return Response.json(error, { status: 502 });
+        }
+        throw error;
+      }
+    },
+  });
   const options = {
     queryKey,
-    queryFn: async (context: QueryFunctionContext) =>
-      await callForQuery(context, async (callOptions) => {
-        priorities.push(callOptions.priority);
-        return await respond(callOptions);
-      }),
+    queryFn: async (context: QueryFunctionContext) => {
+      const result = await callForQuery(context, client, (api) =>
+        api.catalog.serviceTypes()
+      );
+      return result[0]?.name;
+    },
   };
   return { queryClient, options, priorities };
 };
@@ -43,6 +72,21 @@ const rateLimited = () =>
   new RateLimited({ message: "held back", service: "planning-center" });
 
 describe(callForQuery, () => {
+  it("exposes reads from the declarations and excludes writes", () => {
+    expectTypeOf<keyof ProductReadApi["schedule"]>().toEqualTypeOf<never>();
+    expectTypeOf<keyof ProductReadApi["people"]>().toEqualTypeOf<
+      | "positionCandidates"
+      | "planWindowHistory"
+      | "candidateDetails"
+      | "search"
+      | "blockouts"
+      | "dashboardRoster"
+      | "dashboardActivity"
+      | "dashboardPerson"
+      | "myScheduledPlans"
+    >();
+  });
+
   it("sends a query on screen as interactive", async () => {
     const { queryClient, options, priorities } = setupQuery(
       async () => await Promise.resolve("items")
@@ -112,7 +156,7 @@ describe(callForQuery, () => {
     });
     response.resolve(null);
 
-    await expect(prefetch).rejects.toBe(failure);
+    await expect(prefetch).rejects.toStrictEqual(failure);
     expect(priorities).toStrictEqual(["speculative"]);
     unsubscribe();
   });
@@ -160,7 +204,11 @@ describe(retryTransientReadFailure, () => {
     ["an internal error", new InternalError({})],
     [
       "a transport failure",
-      new TransportFailure({ tag: "health", reason: "network", cause: null }),
+      new TransportFailure({
+        procedure: "health.get",
+        reason: "network",
+        cause: null,
+      }),
     ],
     ["a failure that is not a call failure", new TypeError("Load failed")],
   ])("retries %s once", (_name, error) => {

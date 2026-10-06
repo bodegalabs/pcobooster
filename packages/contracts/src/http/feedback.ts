@@ -32,8 +32,7 @@ export const feedbackSubmitOutputSchema = Schema.Struct({ id: integer });
 export const feedback = plainGroup(
   "feedback",
   /** Writes the report to D1. */
-  write.post("feedback.submit", "/feedback", {
-    params: {},
+  write.post("submit", "/feedback", {
     payload: feedbackSubmitInputSchema.fields,
     success: feedbackSubmitOutputSchema,
   })

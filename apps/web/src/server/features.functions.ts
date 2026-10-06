@@ -17,7 +17,7 @@ export const getEnabledFeatures = createServerFn({ method: "GET" }).handler(
         cookie: getRequest().headers.get("cookie") ?? undefined,
         productOrigin: env.PRODUCT_ORIGIN,
       },
-      "features.status"
+      (api) => api.features.status()
     );
   }
 );

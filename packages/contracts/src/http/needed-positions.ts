@@ -26,7 +26,7 @@ export const neededPositions = planningCenterGroup(
   "neededPositions",
   /** One slot more or fewer: an action, so each call is its own adjustment. */
   write.post(
-    "neededPositions.adjust",
+    "adjust",
     "/service-types/:serviceTypeId/plans/:planId/needed-positions/adjustments",
     {
       params: Struct.pick(neededPositionsAdjustInputSchema.fields, PLAN),

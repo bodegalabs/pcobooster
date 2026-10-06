@@ -23,14 +23,8 @@ export const createSongOptionsQueryOptions = (
       return null;
     }
 
-    const optionSet = await callForQuery(
-      context,
-      async (options) =>
-        await productClient.call(
-          "songs.options",
-          { songId, serviceTypeId },
-          options
-        )
+    const optionSet = await callForQuery(context, productClient, (api) =>
+      api.songs.options({ params: { songId, serviceTypeId } })
     );
     writeCachedSongOptions(songId, serviceTypeId, optionSet);
     return optionSet;

@@ -8,14 +8,11 @@ import { measureWorkflow } from "./workflow-analytics";
 describe("workflow analytics", () => {
   it("records success only after the real operation resolves and preserves its result", async () => {
     const capture = vi.fn<typeof captureAnalytics>();
-    const result = await measureWorkflow(
-      "schedule.assign",
-      async () => {
-        expect(capture).not.toHaveBeenCalled();
-        return await Promise.resolve("saved");
-      },
-      capture
-    );
+    const result = await measureWorkflow(async (named) => {
+      named("schedule.assign");
+      expect(capture).not.toHaveBeenCalled();
+      return await Promise.resolve("saved");
+    }, capture);
     expect(result).toBe("saved");
     expect(capture).toHaveBeenCalledOnce();
     expect(capture.mock.calls[0]?.[0]).toBe("workflow completed");
@@ -38,11 +35,10 @@ describe("workflow analytics", () => {
       },
     });
     await expect(
-      measureWorkflow(
-        "schedule.assign",
-        async () => await Promise.reject(error),
-        capture
-      )
+      measureWorkflow(async (named) => {
+        named("schedule.assign");
+        return await Promise.reject(error);
+      }, capture)
     ).rejects.toBe(error);
     expect(capture).toHaveBeenCalledExactlyOnceWith("workflow failed", {
       operation: "schedule.assign",
@@ -52,19 +48,17 @@ describe("workflow analytics", () => {
 
   it("does not count reads as writes and reports rejected write cancellations", async () => {
     const capture = vi.fn<typeof captureAnalytics>();
-    await measureWorkflow(
-      "people.list",
-      async () => await Promise.resolve("data"),
-      capture
-    );
+    await measureWorkflow(async (named) => {
+      named("people.list");
+      return await Promise.resolve("data");
+    }, capture);
     const error = new Error("Aborted", { cause: "navigation" });
     error.name = "AbortError";
     await expect(
-      measureWorkflow(
-        "planItems.update",
-        async () => await Promise.reject(error),
-        capture
-      )
+      measureWorkflow(async (named) => {
+        named("planItems.update");
+        return await Promise.reject(error);
+      }, capture)
     ).rejects.toBe(error);
     expect(capture).toHaveBeenCalledExactlyOnceWith("workflow failed", {
       operation: "planItems.update",
@@ -75,17 +69,16 @@ describe("workflow analytics", () => {
   it("reports a write that never reached the API as a network error", async () => {
     const capture = vi.fn<typeof captureAnalytics>();
     const error = new TransportFailure({
-      tag: "schedule.assign",
+      procedure: "schedule.assign",
       reason: "network",
       cause: null,
     });
 
     await expect(
-      measureWorkflow(
-        "schedule.assign",
-        async () => await Promise.reject(error),
-        capture
-      )
+      measureWorkflow(async (named) => {
+        named("schedule.assign");
+        return await Promise.reject(error);
+      }, capture)
     ).rejects.toBe(error);
 
     expect(capture).toHaveBeenCalledExactlyOnceWith("workflow failed", {

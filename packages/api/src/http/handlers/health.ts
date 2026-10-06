@@ -7,7 +7,7 @@ export const HealthHandlers = HttpApiBuilder.group(
   ProductApi,
   "health",
   (handlers) =>
-    handlers.handle("health", () =>
+    handlers.handle("get", () =>
       Server.pipe(
         Effect.map(({ config }) => ({
           status: "ok" as const,

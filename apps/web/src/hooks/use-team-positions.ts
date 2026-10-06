@@ -25,14 +25,11 @@ export const createTeamPositionsQueryOptions = (
     if (!isNonEmptyString(serviceTypeId) || !isNonEmptyString(planId)) {
       return [];
     }
-    const groups = await callForQuery(
-      context,
-      async (options) =>
-        await productClient.call(
-          "catalog.teamPositions",
-          { serviceTypeId, planId, seriesId: seriesId ?? undefined },
-          options
-        )
+    const groups = await callForQuery(context, productClient, (api) =>
+      api.catalog.teamPositions({
+        params: { serviceTypeId, planId },
+        query: { seriesId: seriesId ?? undefined },
+      })
     );
     writeCachedTeamPositions(serviceTypeId, planId, seriesId, groups);
     return groups;

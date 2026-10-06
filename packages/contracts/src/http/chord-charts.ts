@@ -156,15 +156,14 @@ const ARRANGEMENT = ["songId", "arrangementId"] as const;
 
 export const chordCharts = planningCenterGroup(
   "chordCharts",
-  read("chordCharts.song", "/songs/:songId/chord-charts", {
+  read("song", "/songs/:songId/chord-charts", {
     params: chordChartSongInputSchema.fields,
-    query: {},
     success: chordChartSongOutputSchema,
     feature: "chordCharts",
   }),
   /** A prepared write: the conflict check may stop on disconnect; the save always finishes. */
   write.patch(
-    "chordCharts.update",
+    "update",
     "/songs/:songId/arrangements/:arrangementId/chord-chart",
     {
       params: Struct.pick(chordChartUpdateInputSchema.fields, ARRANGEMENT),
@@ -173,26 +172,24 @@ export const chordCharts = planningCenterGroup(
       feature: "chordCharts",
     }
   ),
-  write.post("chordCharts.create", "/songs/:songId/arrangements", {
+  write.post("create", "/songs/:songId/arrangements", {
     params: Struct.pick(chordChartCreateInputSchema.fields, ["songId"]),
     payload: Struct.omit(chordChartCreateInputSchema.fields, ["songId"]),
     success: chordChartArrangementSchema,
     feature: "chordCharts",
   }),
-  write.post("chordCharts.createSong", "/songs", {
-    params: {},
+  write.post("createSong", "/songs", {
     payload: chordChartSongCreateInputSchema.fields,
     success: chordChartSongOutputSchema,
     feature: "chordCharts",
   }),
-  read("chordCharts.pdf", "/songs/:songId/arrangements/:arrangementId/pdf", {
+  read("pdf", "/songs/:songId/arrangements/:arrangementId/pdf", {
     params: Struct.pick(chordChartPdfInputSchema.fields, ARRANGEMENT),
     query: Struct.omit(chordChartPdfInputSchema.fields, ARRANGEMENT),
     success: chordChartPdfOutputSchema,
     feature: "chordCharts",
   }),
-  read("chordCharts.lyricsSearch", "/lyrics", {
-    params: {},
+  read("lyricsSearch", "/lyrics", {
     query: lyricsSearchInputSchema.fields,
     success: mutableArray(lyricsSearchResultSchema),
     feature: "chordCharts",

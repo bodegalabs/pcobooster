@@ -154,7 +154,9 @@ export const DemoEntry = ({ demoKey }: { demoKey: string }) => {
     let active = true;
     const start = async () => {
       try {
-        await productClient.call("demo.start", { key: demoKey });
+        await productClient.run((api) =>
+          api.demo.start({ payload: { key: demoKey } })
+        );
       } catch {
         if (active) {
           setState("inactive");

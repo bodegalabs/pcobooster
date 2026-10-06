@@ -18,9 +18,8 @@ export const useMyScheduledPlans = () => {
   return useQuery<MyScheduledPlansData>({
     queryKey,
     queryFn: async ({ signal }) => {
-      const scheduledPlans = await productClient.call(
-        "people.myScheduledPlans",
-        {},
+      const scheduledPlans = await productClient.run(
+        (api) => api.people.myScheduledPlans(),
         { signal }
       );
       writeCachedMyScheduledPlans(scheduledPlans);

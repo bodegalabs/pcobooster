@@ -101,7 +101,7 @@ const CANDIDATE_POSITION = ["serviceTypeId", "planId", "positionId"] as const;
 export const people = planningCenterGroup(
   "people",
   read(
-    "people.positionCandidates",
+    "positionCandidates",
     "/service-types/:serviceTypeId/plans/:planId/positions/:positionId/candidates",
     {
       params: Struct.pick(
@@ -119,8 +119,7 @@ export const people = planningCenterGroup(
    * Partial with a continuation cursor: pass `deferredPlans` and the ids back as `continuation`.
    * A POST read: the cursor can outgrow a URL.
    */
-  read.post("people.planWindowHistory", "/people/plan-window-history", {
-    params: {},
+  read.post("planWindowHistory", "/people/plan-window-history", {
     payload: peoplePlanWindowHistoryInputSchema.fields,
     success: planWindowHistoryBatchSchema,
   }),
@@ -128,44 +127,37 @@ export const people = planningCenterGroup(
    * Partial with a continuation cursor: `deferredPersonIds` and `blockoutProgress`. A POST read:
    * the people and their blockout progress can outgrow a URL.
    */
-  read.post("people.candidateDetails", "/plans/:planId/candidate-details", {
+  read.post("candidateDetails", "/plans/:planId/candidate-details", {
     params: Struct.pick(peopleCandidateDetailsInputSchema.fields, ["planId"]),
     payload: Struct.omit(peopleCandidateDetailsInputSchema.fields, ["planId"]),
     success: candidateDetailsBatchSchema,
   }),
-  read("people.search", "/people", {
-    params: {},
+  read("search", "/people", {
     query: peopleSearchInputSchema.fields,
     success: mutableArray(peopleSearchResultSchema),
   }),
-  read("people.blockouts", "/people/:personId/blockouts", {
+  read("blockouts", "/people/:personId/blockouts", {
     params: peopleBlockoutsInputSchema.fields,
-    query: {},
     success: mutableArray(blockoutSchema),
   }),
-  read("people.dashboardRoster", "/people/roster", {
-    params: {},
-    query: {},
+  read("dashboardRoster", "/people/roster", {
     success: peopleDashboardRosterSchema,
     feature: "people",
   }),
   /** Partial with a continuation cursor: `deferredPersonIds`. */
-  read("people.dashboardActivity", "/people/activity", {
-    params: {},
+  read("dashboardActivity", "/people/activity", {
     query: peopleDashboardActivityInputSchema.fields,
     success: peopleDashboardActivityBatchSchema,
     feature: "people",
   }),
   /** Partial without a cursor: `requestBudget.unresolvedRehearsalTimes` says what is missing. */
-  read("people.dashboardPerson", "/people/:personId/dashboard", {
+  read("dashboardPerson", "/people/:personId/dashboard", {
     params: Struct.pick(peopleDashboardPersonInputSchema.fields, ["personId"]),
     query: Struct.omit(peopleDashboardPersonInputSchema.fields, ["personId"]),
     success: peopleDashboardPersonDetailSchema,
     feature: "people",
   }),
-  read("people.myScheduledPlans", "/me/scheduled-plans", {
-    params: {},
-    query: {},
+  read("myScheduledPlans", "/me/scheduled-plans", {
     success: myScheduledPlansDataSchema,
   })
 );

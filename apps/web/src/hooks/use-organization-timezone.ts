@@ -26,9 +26,8 @@ export const useOrganizationTimeZone = (): string => {
   const { data } = useQuery({
     queryKey,
     queryFn: async ({ signal }) => {
-      const response = await productClient.call(
-        "catalog.organization",
-        {},
+      const response = await productClient.run(
+        (api) => api.catalog.organization(),
         { signal }
       );
       writeCachedOrganizationTimeZone(response.timeZone);

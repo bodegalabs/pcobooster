@@ -19,14 +19,8 @@ export const createPlanTimesQueryOptions = (
       return [];
     }
 
-    return await callForQuery(
-      context,
-      async (options) =>
-        await productClient.call(
-          "planTimes.list",
-          { serviceTypeId, planId },
-          options
-        )
+    return await callForQuery(context, productClient, (api) =>
+      api.planTimes.list({ params: { serviceTypeId, planId } })
     );
   },
   staleTime: PLAN_TIMES_STALE_TIME_MS,

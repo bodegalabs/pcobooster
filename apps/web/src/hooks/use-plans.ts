@@ -27,9 +27,8 @@ export const usePlans = (serviceTypeId: string | null) => {
       if (!isNonEmptyString(serviceTypeId)) {
         return [];
       }
-      return await productClient.call(
-        "catalog.plans",
-        { serviceTypeId },
+      return await productClient.run(
+        (api) => api.catalog.plans({ params: { serviceTypeId } }),
         { signal }
       );
     },
@@ -62,14 +61,8 @@ export const usePlanDetails = (
   useQuery<Plan | null>({
     queryKey: queryKeys.planDetails(serviceTypeId, planId),
     queryFn: async (context) =>
-      await callForQuery(
-        context,
-        async (options) =>
-          await productClient.call(
-            "catalog.plan",
-            { serviceTypeId, planId },
-            options
-          )
+      await callForQuery(context, productClient, (api) =>
+        api.catalog.plan({ params: { serviceTypeId, planId } })
       ),
     enabled,
     staleTime: PLAN_DETAILS_STALE_TIME_MS,
@@ -83,14 +76,11 @@ export const createAdjacentPlansQueryOptions = (
 ) => ({
   queryKey: queryKeys.adjacentPlans(serviceTypeId, planId, direction),
   queryFn: async (context: QueryFunctionContext): Promise<Plan[]> =>
-    await callForQuery(
-      context,
-      async (options) =>
-        await productClient.call(
-          "catalog.adjacentPlans",
-          { serviceTypeId, planId, direction },
-          options
-        )
+    await callForQuery(context, productClient, (api) =>
+      api.catalog.adjacentPlans({
+        params: { serviceTypeId, planId },
+        query: { direction },
+      })
     ),
   staleTime: PLAN_DETAILS_STALE_TIME_MS,
 });

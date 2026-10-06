@@ -6,7 +6,5 @@ export const FeedbackHandlers = HttpApiBuilder.group(
   ProductApi,
   "feedback",
   (handlers) =>
-    handlers.handle("feedback.submit", ({ payload }) =>
-      submitUserFeedback(payload)
-    )
+    handlers.handle("submit", ({ payload }) => submitUserFeedback(payload))
 );

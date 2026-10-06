@@ -67,30 +67,28 @@ const ITEM = ["serviceTypeId", "planId", "itemId"] as const;
 
 export const planItems = planningCenterGroup(
   "planItems",
-  read("planItems.list", ITEMS, {
+  read("list", ITEMS, {
     params: planItemsListInputSchema.fields,
-    query: {},
     success: mutableArray(planItemSchema),
   }),
   /** A prepared write: reading the song and arrangement may stop; the create always finishes. */
-  write.post("planItems.create", ITEMS, {
+  write.post("create", ITEMS, {
     params: Struct.pick(planItemsCreateInputSchema.fields, PLAN),
     payload: Struct.omit(planItemsCreateInputSchema.fields, PLAN),
     success: planItemSchema,
   }),
   /** A prepared write, as `planItems.create`. */
-  write.patch("planItems.update", `${ITEMS}/:itemId`, {
+  write.patch("update", `${ITEMS}/:itemId`, {
     params: Struct.pick(planItemsUpdateInputSchema.fields, ITEM),
     payload: Struct.omit(planItemsUpdateInputSchema.fields, ITEM),
     success: planItemSchema,
   }),
-  write.delete("planItems.delete", `${ITEMS}/:itemId`, {
+  write.delete("delete", `${ITEMS}/:itemId`, {
     params: planItemsDeleteInputSchema.fields,
-    query: {},
     success: planItemsSuccessSchema,
   }),
   /** Sets the whole order; `order` is fixed text, never an item id. */
-  write.put("planItems.reorder", `${ITEMS}/order`, {
+  write.put("reorder", `${ITEMS}/order`, {
     params: Struct.pick(planItemsReorderInputSchema.fields, PLAN),
     payload: Struct.omit(planItemsReorderInputSchema.fields, PLAN),
     success: planItemsSuccessSchema,

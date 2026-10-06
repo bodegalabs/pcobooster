@@ -2,10 +2,15 @@
  * TanStack Query glue for product calls, shared by web and Expo: which lane a query's call goes
  * out in (`speculativeQuery`, `callForQuery`) and which read failures are worth one retry.
  */
+import type {
+  ProductClient,
+  ProductReadApi,
+} from "@pcobooster/client/product-client";
 import { failureStatus } from "@pcobooster/client/product-client";
 import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
 import type { RequestPriority } from "@pcobooster/contracts/request-priority";
 import type { QueryFunctionContext, QueryMeta } from "@tanstack/query-core";
+import type { Effect } from "effect";
 
 const SPECULATIVE_META: QueryMeta = { requestPriority: "speculative" };
 
@@ -40,37 +45,33 @@ export const queryCallPriority = ({
   return observers > 0 ? "interactive" : "speculative";
 };
 
-/**
- * What each product call from a query function passes as its call options. `priority` may be
- * speculative, which `ProductClient.call` accepts for read procedures only, so a query function
- * cannot call a write through `callForQuery`.
- */
+/** Abort signal and read priority supplied by TanStack Query. */
 export interface QueryCallOptions {
   readonly signal: AbortSignal;
   readonly priority: RequestPriority;
 }
 
 /**
- * Makes one product call for a query with the priority it has right now. The API holds back
- * speculative reads when the user's Planning Center budget is mostly spent; if the user opened
- * what was being prefetched in the meantime, the call is sent again as interactive instead of
- * failing on screen.
+ * Runs a native HttpApi read with the query's signal and current priority. A held-back
+ * speculative call is sent again as interactive when the user opens the prefetched data.
+ * Writes are absent from the API this callback receives.
  */
-export const callForQuery = async <Result>(
+export const callForQuery = async <Result, Failure>(
   context: QueryFunctionContext,
-  call: (options: QueryCallOptions) => Promise<Result>
+  client: Pick<ProductClient, "run">,
+  call: (api: ProductReadApi) => Effect.Effect<Result, Failure>
 ): Promise<Result> => {
   const { signal } = context;
   const priority = queryCallPriority(context);
   try {
-    return await call({ signal, priority });
+    return await client.run(call, { signal, priority });
   } catch (error) {
     if (
       priority === "speculative" &&
       error instanceof RateLimited &&
       queryCallPriority(context) === "interactive"
     ) {
-      return await call({ signal, priority: "interactive" });
+      return await client.run(call, { signal, priority: "interactive" });
     }
     throw error;
   }

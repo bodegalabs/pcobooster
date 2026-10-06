@@ -58,11 +58,7 @@ const callAs = async <Result>(
     client: "expo",
     httpHeaders: () => headers,
   });
-  try {
-    return await call(client);
-  } finally {
-    await client.dispose();
-  }
+  return await call(client);
 };
 
 const isAuthenticated = async (
@@ -70,13 +66,16 @@ const isAuthenticated = async (
 ): Promise<boolean> => {
   const status = await callAs(
     headers,
-    async (client) => await client.call("session.status")
+    async (client) => await client.run((api) => api.session.status())
   );
   return status.authenticated;
 };
 
 const listAccounts = async (headers: Readonly<Record<string, string>>) =>
-  await callAs(headers, async (client) => await client.call("accounts.list"));
+  await callAs(
+    headers,
+    async (client) => await client.run((api) => api.accounts.list())
+  );
 
 const accountIdFor = async (person: PlanningCenterProfile): Promise<string> => {
   const [row] = await database
@@ -195,11 +194,9 @@ describe("native sign-in through the API Worker", () => {
     );
     const callAsAccount = async (headers: Record<string, string>) => {
       const client = app.client({ client: "expo", httpHeaders: () => headers });
-      try {
-        return await client.call("chordCharts.song", { songId: "song-1" });
-      } finally {
-        await client.dispose();
-      }
+      return await client.run((api) =>
+        api.chordCharts.song({ params: { songId: "song-1" } })
+      );
     };
     featureFlags.evaluations.length = 0;
 

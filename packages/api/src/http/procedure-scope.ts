@@ -212,7 +212,7 @@ export const writeOutcome = (
 export const ProcedureScopeLive = (
   options: ProcedureScopeOptions
 ): Layer.Layer<ProcedureScope> =>
-  Layer.succeed(ProcedureScope)((httpEffect, { endpoint }) =>
+  Layer.succeed(ProcedureScope)((httpEffect, { endpoint, group }) =>
     Effect.gen(function* procedureScope() {
       const httpRequest = yield* HttpServerRequest.HttpServerRequest;
       const request = yield* HttpServerRequest.toWeb(httpRequest).pipe(
@@ -222,11 +222,13 @@ export const ProcedureScopeLive = (
       const httpClient = yield* fromRequestFiber(HttpClient.HttpClient);
       const now = options.now ?? Date.now;
       const context = createRequestContext(request);
-      const procedure = endpoint.identifier;
+      const procedure = `${group.identifier}.${endpoint.identifier}`;
       const kind = procedureKindOf(endpoint) ?? "read";
-      const priority = parseRequestPriority(
-        request.headers.get(REQUEST_PRIORITY_HEADER)
-      );
+      // Only reads may wait behind the user's own calls; a write is always interactive.
+      const priority =
+        kind === "read"
+          ? parseRequestPriority(request.headers.get(REQUEST_PRIORITY_HEADER))
+          : "interactive";
       const client = request.headers.get(CLIENT_HEADER);
       const accounting = new PlanningCenterRequestAccounting({
         requestBudget: options.requestBudget ?? PLANNING_CENTER_REQUEST_CAP,

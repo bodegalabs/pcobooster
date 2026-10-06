@@ -12,10 +12,8 @@ export const useSongSuggestions = () =>
   useQuery<SongsSuggestions>({
     queryKey: queryKeys.songSuggestions(),
     queryFn: async (context) =>
-      await callForQuery(
-        context,
-        async (options) =>
-          await productClient.call("songs.suggestions", {}, options)
+      await callForQuery(context, productClient, (api) =>
+        api.songs.suggestions()
       ),
     staleTime: SONG_SUGGESTIONS_STALE_TIME_MS,
   });

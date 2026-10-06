@@ -15,12 +15,12 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 export const IdentityHandlers = Layer.mergeAll(
   HttpApiBuilder.group(ProductApi, "session", (handlers) =>
-    handlers.handle("session.status", () => getSessionStatus())
+    handlers.handle("status", () => getSessionStatus())
   ),
   HttpApiBuilder.group(ProductApi, "accounts", (handlers) =>
     handlers
-      .handle("accounts.list", () => getPlanningCenterAccounts())
-      .handle("accounts.select", ({ payload }) =>
+      .handle("list", () => getPlanningCenterAccounts())
+      .handle("select", ({ payload }) =>
         Effect.gen(function* selectAccount() {
           const result = yield* selectPlanningCenterAccount(payload);
           // The dev auth bypass always acts as its one account, so there is nothing to remember.
@@ -34,6 +34,6 @@ export const IdentityHandlers = Layer.mergeAll(
       )
   ),
   HttpApiBuilder.group(ProductApi, "features", (handlers) =>
-    handlers.handle("features.status", () => getEnabledFeatures())
+    handlers.handle("status", () => getEnabledFeatures())
   )
 );

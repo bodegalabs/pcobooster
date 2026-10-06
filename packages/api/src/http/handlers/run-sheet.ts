@@ -22,42 +22,42 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 export const RunSheetHandlers = Layer.mergeAll(
   HttpApiBuilder.group(ProductApi, "planItems", (handlers) =>
     handlers
-      .handle("planItems.list", ({ params }) => listPlanItems(params))
-      .handle("planItems.create", ({ params, payload }) =>
+      .handle("list", ({ params }) => listPlanItems(params))
+      .handle("create", ({ params, payload }) =>
         preparedWrite(
           prepareRunSheetItemCreate({ ...params, ...payload }),
           commitRunSheetItemCreate
         )
       )
-      .handle("planItems.update", ({ params, payload }) =>
+      .handle("update", ({ params, payload }) =>
         preparedWrite(
           prepareRunSheetItemUpdate({ ...params, ...payload }),
           commitRunSheetItemUpdate
         )
       )
-      .handle("planItems.delete", ({ params }) => deleteRunSheetItem(params))
-      .handle("planItems.reorder", ({ params, payload }) =>
+      .handle("delete", ({ params }) => deleteRunSheetItem(params))
+      .handle("reorder", ({ params, payload }) =>
         reorderRunSheetItems({ ...params, ...payload })
       )
   ),
   HttpApiBuilder.group(ProductApi, "planTimes", (handlers) =>
     handlers
-      .handle("planTimes.list", ({ params }) => listPlanTimes(params))
-      .handle("planTimes.create", ({ params, payload }) =>
+      .handle("list", ({ params }) => listPlanTimes(params))
+      .handle("create", ({ params, payload }) =>
         createRunSheetTime({ ...params, ...payload })
       )
-      .handle("planTimes.update", ({ params, payload }) =>
+      .handle("update", ({ params, payload }) =>
         updateRunSheetTime({ ...params, ...payload })
       )
-      .handle("planTimes.delete", ({ params }) => deleteRunSheetTime(params))
+      .handle("delete", ({ params }) => deleteRunSheetTime(params))
   ),
   HttpApiBuilder.group(ProductApi, "planPeople", (handlers) =>
-    handlers.handle("planPeople.updateTimes", ({ params, payload }) =>
+    handlers.handle("updateTimes", ({ params, payload }) =>
       updateRunSheetPersonTimes({ ...params, ...payload })
     )
   ),
   HttpApiBuilder.group(ProductApi, "neededPositions", (handlers) =>
-    handlers.handle("neededPositions.adjust", ({ params, payload }) =>
+    handlers.handle("adjust", ({ params, payload }) =>
       adjustPlanNeededPositions({ ...params, ...payload })
     )
   )

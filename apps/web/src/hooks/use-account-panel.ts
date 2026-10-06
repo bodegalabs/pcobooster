@@ -25,7 +25,9 @@ import { productClient } from "@/product-client";
 export const fetchAccounts = async ({
   signal,
 }: QueryFunctionContext): Promise<PlanningCenterAccountsResponse> => {
-  const response = await productClient.call("accounts.list", {}, { signal });
+  const response = await productClient.run((api) => api.accounts.list(), {
+    signal,
+  });
   if (response.demo) {
     resetAnalytics();
   } else {
@@ -65,7 +67,7 @@ const leaveSession = async () => {
 };
 
 const exitDemoSession = async () => {
-  await productClient.call("demo.exit", {});
+  await productClient.run((api) => api.demo.exit());
 };
 
 export const signOutLabel = (demo: boolean, pending: boolean): string => {

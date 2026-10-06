@@ -173,9 +173,11 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
   it("carries the continuation in the body and answers the next batch", async () => {
     const { app, client, planRanges } = setup();
 
-    const batch = await client.call(
-      "people.planWindowHistory",
-      { date: "2026-10-11T10:00:00-07:00", continuation },
+    const batch = await client.run(
+      (api) =>
+        api.people.planWindowHistory({
+          payload: { date: "2026-10-11T10:00:00-07:00", continuation },
+        }),
       { priority: "speculative" }
     );
 
@@ -250,9 +252,11 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
         await Promise.reject(new Unauthenticated({ message: "Sign in" })),
     });
 
-    const answer = client.call("people.planWindowHistory", {
-      date: "2026-10-11T17:00:00Z",
-    });
+    const answer = client.run((api) =>
+      api.people.planWindowHistory({
+        payload: { date: "2026-10-11T17:00:00Z" },
+      })
+    );
 
     await expect(answer).rejects.toBeInstanceOf(Unauthenticated);
   });
@@ -272,9 +276,11 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
     const response = await raw(app, "POST", HISTORY, {
       body: { date: "2026-10-11T17:00:00Z" },
     });
-    const answer = client.call("people.planWindowHistory", {
-      date: "2026-10-11T17:00:00Z",
-    });
+    const answer = client.run((api) =>
+      api.people.planWindowHistory({
+        payload: { date: "2026-10-11T17:00:00Z" },
+      })
+    );
 
     expect(response.status).toBe(429);
     expect(response.headers.get("retry-after")).toBe("7");
@@ -293,9 +299,11 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
     const response = await raw(app, "POST", HISTORY, {
       body: { date: "2026-10-11T17:00:00Z" },
     });
-    const answer = client.call("people.planWindowHistory", {
-      date: "2026-10-11T17:00:00Z",
-    });
+    const answer = client.run((api) =>
+      api.people.planWindowHistory({
+        payload: { date: "2026-10-11T17:00:00Z" },
+      })
+    );
 
     expect(response.status).toBe(502);
     await expect(response.json()).resolves.toStrictEqual({
@@ -315,9 +323,11 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
     const response = await raw(app, "POST", HISTORY, {
       body: { date: "2026-10-11T17:00:00Z" },
     });
-    const answer = client.call("people.planWindowHistory", {
-      date: "2026-10-11T17:00:00Z",
-    });
+    const answer = client.run((api) =>
+      api.people.planWindowHistory({
+        payload: { date: "2026-10-11T17:00:00Z" },
+      })
+    );
 
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toStrictEqual({
@@ -366,10 +376,12 @@ describe("schedule.updateStatus (an audited write)", () => {
   it("PATCHes the plan person and audits the real method and path", async () => {
     const { client, updateStatus, recordActivity } = setup();
 
-    const updated = await client.call("schedule.updateStatus", {
-      ...target,
-      status: "C",
-    });
+    const updated = await client.run((api) =>
+      api.schedule.updateStatus({
+        params: { ...target },
+        payload: { ...target, status: "C" },
+      })
+    );
 
     expect(updated).toStrictEqual({ success: true });
     expect(updateStatus).toHaveBeenCalledExactlyOnceWith("plan-person-1", "C", {
@@ -401,10 +413,12 @@ describe("schedule.updateStatus (an audited write)", () => {
         )
       );
 
-      const answer = client.call("schedule.updateStatus", {
-        ...target,
-        status: "D",
-      });
+      const answer = client.run((api) =>
+        api.schedule.updateStatus({
+          params: { ...target },
+          payload: { ...target, status: "D" },
+        })
+      );
 
       await expect(answer).rejects.toBeInstanceOf(Fault);
       expect(recordActivity).toHaveBeenCalledWith(
@@ -462,7 +476,9 @@ describe("chordCharts.song (a flagged read with a path param)", () => {
       chordCharts: false,
     });
 
-    const answer = client.call("chordCharts.song", { songId: "song-1" });
+    const answer = client.run((api) =>
+      api.chordCharts.song({ params: { songId: "song-1" } })
+    );
 
     const failure = await rejection(answer);
 
@@ -484,9 +500,9 @@ describe("chordCharts.song (a flagged read with a path param)", () => {
   it("serves the song's charts while the flag is on, the id decoded from the path", async () => {
     const { client, getSong } = setup({ chordCharts: true });
 
-    const charts = await client.call("chordCharts.song", {
-      songId: " song-1 ",
-    });
+    const charts = await client.run((api) =>
+      api.chordCharts.song({ params: { songId: " song-1 " } })
+    );
 
     expect(getSong).toHaveBeenCalledExactlyOnceWith("song-1");
     expect(charts).toStrictEqual({
@@ -548,15 +564,16 @@ describe("demo sessions", () => {
       httpHeaders: () => ({ "x-pcobooster-demo": demoToken }),
     });
 
-    const answer = client.call("schedule.updateStatus", {
-      planPersonId: "plan-person-1",
-      status: "C",
-    });
+    const answer = client.run((api) =>
+      api.schedule.updateStatus({
+        params: { planPersonId: "plan-person-1" },
+        payload: { status: "C" },
+      })
+    );
 
     await expect(answer).rejects.toBeInstanceOf(Forbidden);
     await expect(answer).rejects.toMatchObject({
       message: "This demo is read-only, so changes aren't saved.",
     });
-    await client.dispose();
   });
 });

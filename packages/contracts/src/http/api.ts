@@ -26,88 +26,43 @@ import { session } from "@pcobooster/contracts/http/session";
 import { songs } from "@pcobooster/contracts/http/songs";
 import { HttpApi } from "effect/unstable/httpapi";
 
+const groups = [
+  health,
+  session,
+  accounts,
+  features,
+  demo,
+  feedback,
+  access,
+  catalog,
+  people,
+  songs,
+  chordCharts,
+  planItems,
+  planTimes,
+  planPeople,
+  neededPositions,
+  schedule,
+] as const;
+const [first, ...rest] = groups;
+
 export const ProductApi = HttpApi.make("pcobooster")
-  .add(
-    health.api,
-    session.api,
-    accounts.api,
-    features.api,
-    demo.api,
-    feedback.api,
-    access.api,
-    catalog.api,
-    people.api,
-    songs.api,
-    chordCharts.api,
-    planItems.api,
-    planTimes.api,
-    planPeople.api,
-    neededPositions.api,
-    schedule.api
-  )
+  .add(first.api, ...rest.map((group) => group.api))
   .prefix(API_PREFIX);
 
 export const ProductWireApi = HttpApi.make("pcobooster")
-  .add(
-    health.wire,
-    session.wire,
-    accounts.wire,
-    features.wire,
-    demo.wire,
-    feedback.wire,
-    access.wire,
-    catalog.wire,
-    people.wire,
-    songs.wire,
-    chordCharts.wire,
-    planItems.wire,
-    planTimes.wire,
-    planPeople.wire,
-    neededPositions.wire,
-    schedule.wire
-  )
+  .add(first.wire, ...rest.map((group) => group.wire))
   .prefix(API_PREFIX);
 
+/** Read endpoint names derived from the declarations, including POST reads. */
+export type ReadEndpointNames = {
+  [Group in (typeof groups)[number] as Group["wire"]["identifier"]]: Extract<
+    Group["declarations"][number],
+    { readonly kind: "read" }
+  >["name"];
+};
+
 /** Every procedure's method, path, param placement, kind, flag, and Planning Center access. */
-export const procedureRoutes: readonly ProcedureRoute[] = [
-  ...health.routes,
-  ...session.routes,
-  ...accounts.routes,
-  ...features.routes,
-  ...demo.routes,
-  ...feedback.routes,
-  ...access.routes,
-  ...catalog.routes,
-  ...people.routes,
-  ...songs.routes,
-  ...chordCharts.routes,
-  ...planItems.routes,
-  ...planTimes.routes,
-  ...planPeople.routes,
-  ...neededPositions.routes,
-  ...schedule.routes,
-];
-
-type Declarations =
-  | (typeof health.declarations)[number]
-  | (typeof session.declarations)[number]
-  | (typeof accounts.declarations)[number]
-  | (typeof features.declarations)[number]
-  | (typeof demo.declarations)[number]
-  | (typeof feedback.declarations)[number]
-  | (typeof access.declarations)[number]
-  | (typeof catalog.declarations)[number]
-  | (typeof people.declarations)[number]
-  | (typeof songs.declarations)[number]
-  | (typeof chordCharts.declarations)[number]
-  | (typeof planItems.declarations)[number]
-  | (typeof planTimes.declarations)[number]
-  | (typeof planPeople.declarations)[number]
-  | (typeof neededPositions.declarations)[number]
-  | (typeof schedule.declarations)[number];
-
-/** Every procedure's tag, as callers name it. */
-export type ProcedureTag = Declarations["tag"];
-
-/** Tags of reads: the only procedures a caller may send at speculative priority. */
-export type ReadProcedureTag = Extract<Declarations, { kind: "read" }>["tag"];
+export const procedureRoutes: readonly ProcedureRoute[] = groups.flatMap(
+  (group) => group.routes
+);
