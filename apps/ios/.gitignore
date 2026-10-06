@@ -1,9 +1,0 @@
-build/
-DerivedData/
-xcuserdata/
-*.xcarchive
-*.ipa
-*.p8
-*.mobileprovision
-.build/
-.swiftpm/
