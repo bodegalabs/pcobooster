@@ -1,0 +1,185 @@
+/**
+ * What one procedure answered, and the one log line it writes. ProcedureScope classifies a
+ * handler's Exit; the protocol (`protocol.ts`) classifies requests that never reached a handler
+ * and successes that failed to encode. Both write the same line through `logProcedureOutcome`.
+ */
+import { moduleLog } from "@pcobooster/api/logging";
+import type { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
+import {
+  clientClosedOutcome,
+  faultOutcome,
+  isProductFault,
+} from "@pcobooster/contracts/faults";
+import type { ProductFault } from "@pcobooster/contracts/faults";
+import type { RequestPriority } from "@pcobooster/contracts/request-priority";
+import type { ProcedureKindValue } from "@pcobooster/contracts/rpc/procedure";
+import type { Effect } from "effect";
+import { Cause, Exit } from "effect";
+
+export type ProcedureOutcome =
+  | { readonly kind: "success"; readonly status: 200; readonly code: null }
+  | {
+      readonly kind: "fault";
+      readonly status: number;
+      readonly code: string;
+      readonly fault: ProductFault;
+    }
+  | {
+      readonly kind: "interrupted";
+      readonly status: typeof clientClosedOutcome.status;
+      readonly code: typeof clientClosedOutcome.code;
+    }
+  /** A defect, several failures, a failure that is not a ProductFault, or an encode failure. */
+  | {
+      readonly kind: "unexpected";
+      readonly status: 500;
+      readonly code: "INTERNAL_SERVER_ERROR";
+      readonly cause: Cause.Cause<unknown>;
+    };
+
+/** The single error a cause stands for, for logs and error reports. */
+export const causeError = (cause: Cause.Cause<unknown>): Error => {
+  const squashed = Cause.squash(cause);
+  return squashed instanceof Error ? squashed : new Error(String(squashed));
+};
+
+export const successOutcome: ProcedureOutcome = {
+  kind: "success",
+  status: 200,
+  code: null,
+};
+
+export const unexpectedOutcome = (
+  cause: Cause.Cause<unknown>
+): ProcedureOutcome => ({
+  kind: "unexpected",
+  status: 500,
+  code: "INTERNAL_SERVER_ERROR",
+  cause,
+});
+
+export const faultOutcomeOf = (fault: ProductFault): ProcedureOutcome => ({
+  kind: "fault",
+  ...faultOutcome[fault._tag],
+  fault,
+});
+
+/**
+ * Exactly one ProductFault and nothing else is a fault (status from `faultOutcome`); only
+ * interrupts is 499; anything else is unexpected (500).
+ */
+export const procedureOutcome = (
+  exit: Exit.Exit<unknown, unknown>
+): ProcedureOutcome => {
+  if (Exit.isSuccess(exit)) {
+    return successOutcome;
+  }
+  const { cause } = exit;
+  if (Cause.hasInterruptsOnly(cause)) {
+    return { kind: "interrupted", ...clientClosedOutcome };
+  }
+  const [only, ...others] = cause.reasons;
+  if (
+    only !== undefined &&
+    others.length === 0 &&
+    Cause.isFailReason(only) &&
+    isProductFault(only.error)
+  ) {
+    return faultOutcomeOf(only.error);
+  }
+  return unexpectedOutcome(cause);
+};
+
+/** Only 5xx is reported to error tracking; 4xx and 499 are ordinary outcomes. */
+export const isReportable = (outcome: ProcedureOutcome): boolean =>
+  outcome.status >= 500;
+
+/** Who called and how; everything in the outcome line besides the outcome itself. */
+export interface ProcedureCall {
+  /** A known tag, or whatever an old client sent. */
+  readonly procedure: string;
+  readonly requestId: string;
+  readonly client: string | null;
+  readonly priority: RequestPriority;
+  /** Null when the request never reached a handler. */
+  readonly kind: ProcedureKindValue | null;
+  readonly startedAt: number;
+  readonly accounting: PlanningCenterRequestAccounting | null;
+}
+
+/** Fields of the one `rpc` line per procedure, which Workers Logs indexes. */
+export interface ProcedureLogFields {
+  readonly procedure: string;
+  readonly requestId: string;
+  readonly status: number;
+  readonly code: string | null;
+  readonly durationMs: number;
+  readonly priority: RequestPriority;
+  readonly client: string | null;
+  readonly kind: ProcedureKindValue | null;
+  readonly planningCenterRequests: number;
+  readonly rateLimitPauses: number;
+  readonly rateLimited429s: number;
+  readonly budgetExhausted: boolean;
+}
+
+export const procedureLogFields = (
+  call: ProcedureCall,
+  outcome: ProcedureOutcome,
+  now: number
+): ProcedureLogFields => {
+  const totals = call.accounting?.totals;
+  return {
+    procedure: call.procedure,
+    requestId: call.requestId,
+    status: outcome.status,
+    code: outcome.code,
+    durationMs: now - call.startedAt,
+    priority: call.priority,
+    client: call.client,
+    kind: call.kind,
+    planningCenterRequests: totals?.requests ?? 0,
+    rateLimitPauses: totals?.pacedRequests ?? 0,
+    rateLimited429s: totals?.rateLimited ?? 0,
+    budgetExhausted: (totals?.subrequestLimitHits ?? 0) > 0,
+  };
+};
+
+const rpcLog = moduleLog("rpc");
+
+/** The message of the outcome line, so log queries and tests can find it. */
+export const PROCEDURE_LOG_MESSAGE = "rpc";
+
+/** Status below 500 (4xx, 499) logs at info; 500 and above at error, with the cause. */
+export const logProcedureOutcome = (
+  fields: ProcedureLogFields,
+  outcome: ProcedureOutcome
+): Effect.Effect<void> => {
+  if (outcome.kind === "unexpected") {
+    return rpcLog.error(
+      PROCEDURE_LOG_MESSAGE,
+      fields,
+      causeError(outcome.cause)
+    );
+  }
+  return outcome.status >= 500
+    ? rpcLog.error(PROCEDURE_LOG_MESSAGE, fields)
+    : rpcLog.info(PROCEDURE_LOG_MESSAGE, fields);
+};
+
+/** What error tracking receives for a 5xx procedure; never fails. */
+export type ReportProcedureFailure = (report: {
+  readonly fields: ProcedureLogFields;
+  readonly error: Error;
+}) => Effect.Effect<void>;
+
+/** The underlying error of a 5xx outcome, with its cause when a fault carries one. */
+export const reportedError = (outcome: ProcedureOutcome): Error => {
+  if (outcome.kind === "unexpected") {
+    return causeError(outcome.cause);
+  }
+  if (outcome.kind === "fault") {
+    return outcome.fault;
+  }
+  return new Error(`Procedure ended with status ${outcome.status}`);
+};
