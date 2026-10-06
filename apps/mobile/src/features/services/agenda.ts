@@ -22,6 +22,12 @@ export type ServicesWindow =
 /** The web's default window. */
 export const DEFAULT_WINDOW: ServicesWindow = "next60Days";
 
+/** A debug launch restriction starts selected; ordinary launches select every service type. */
+export const initialServiceTypeSelection = (
+  serviceTypeId: string | null
+): readonly string[] | null =>
+  serviceTypeId === null ? null : [serviceTypeId];
+
 export const upcomingWindows = [
   "next14Days",
   "next30Days",
