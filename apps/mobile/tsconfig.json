@@ -5,5 +5,5 @@
     "allowImportingTsExtensions": true,
     "types": ["node"]
   },
-  "include": ["app", "src", "scripts", "app.config.ts"]
+  "include": ["index.ts", "app", "src", "scripts", "app.config.ts"]
 }

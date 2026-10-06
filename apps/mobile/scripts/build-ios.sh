@@ -11,7 +11,8 @@
 #   compiler wrapper (scripts/xcode/ccache-clang.sh) runs `$CCACHE_BINARY clang`, but Xcode does
 #   not pass build settings to compiler processes, so the binary is exported here; without it the
 #   wrapper silently runs plain clang.
-# - METRO_PORT (default 8081) is the bundler port a Debug build loads JavaScript from.
+# - A Debug build loads JavaScript from Metro on this checkout's port (scripts/metro-port.sh:
+#   METRO_PORT, 8081 in the main checkout, a path-derived port in a worktree).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -34,12 +35,14 @@ if [ "$clean" = 1 ]; then
 fi
 
 # Prebuild rewrites the Xcode project from its template and drops what CocoaPods added to it,
-# which forces a full recompile, so it runs only when its inputs change: the app config, the
-# package manifest and lockfile, the native assets, and whether ccache is installed.
+# which forces a full recompile, so it runs only when native inputs change. Expo's fingerprint
+# covers the evaluated app config (plugins, build properties, and whether ccache is installed),
+# the app icon, and the autolinked native modules, so a JavaScript-only dependency does not count.
+# The asset catalog files the config plugin copies are hashed beside it.
 prebuild_stamp="$(
   {
-    find app.config.ts package.json assets ../../bun.lock -type f -print0 | sort -z | xargs -0 shasum
-    command -v ccache || true
+    bunx fingerprint fingerprint:generate --platform ios
+    find assets/catalog -type f -print0 | sort -z | xargs -0 shasum
   } | shasum | cut -d' ' -f1
 )"
 if [ ! -d ios ] || [ "$(cat build/prebuild.stamp 2>/dev/null)" != "$prebuild_stamp" ]; then
@@ -66,6 +69,6 @@ xcodebuild \
   -configuration "$configuration" \
   -destination "$destination" \
   -derivedDataPath build/derived \
-  RCT_METRO_PORT="${METRO_PORT:-8081}" \
+  RCT_METRO_PORT="$(bash scripts/metro-port.sh)" \
   build
 echo "build/derived/Build/Products/$configuration-iphonesimulator/PCOBooster.app"

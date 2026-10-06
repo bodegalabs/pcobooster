@@ -2,21 +2,25 @@
   "name": "@pcobooster/mobile",
   "version": "0.1.0",
   "private": true,
-  "main": "expo-router/entry",
+  "main": "./index.ts",
   "scripts": {
-    "dev": "expo start",
+    "dev": "expo start --port $(bash scripts/metro-port.sh)",
     "ios": "expo run:ios",
     "native:generate": "expo prebuild --no-install --platform ios",
     "tokens": "bun run scripts/generate-tokens.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --root ../.. apps/mobile/src",
-    "ios:build": "bash scripts/build-ios.sh"
+    "ios:build": "bash scripts/build-ios.sh",
+    "ios:capture": "bash scripts/capture.sh",
+    "ios:compare": "bash scripts/compare.sh"
   },
   "dependencies": {
     "@expo/ui": "57.0.21",
     "@pcobooster/client": "workspace:*",
     "@pcobooster/contracts": "workspace:*",
     "@pcobooster/planning-center-models": "workspace:*",
+    "@tanstack/react-query": "^5.103.1",
+    "core-js": "3.50.0",
     "effect": "4.0.0-rc.117",
     "expo": "57.0.26",
     "expo-build-properties": "57.0.22",
@@ -39,6 +43,7 @@
     "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
+    "@expo/fingerprint": "0.20.13",
     "@pcobooster/config": "workspace:*",
     "@types/react": "19.2.14",
     "sf-symbols-typescript": "2.2.0",
