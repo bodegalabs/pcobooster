@@ -1,4 +1,4 @@
-import { useRootNavigationState, useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import type { Href } from "expo-router";
 import { useEffect, useRef } from "react";
 
@@ -20,15 +20,16 @@ const launchHref = (isSignedIn: boolean): Href | null => {
 };
 
 /**
- * Opens `-PCOBGallery`, `-PCOBRoute`, or `-PCOBTab` once, after the root navigator is ready
- * (development builds only; Release launch options are empty).
+ * Opens `-PCOBGallery`, `-PCOBRoute`, or `-PCOBTab` once (development builds only; Release
+ * launch options are empty). It waits until the root index has redirected to its first screen,
+ * so that redirect does not replace the launch route.
  */
 export const LaunchRoute = ({ isSignedIn }: { isSignedIn: boolean }) => {
   const router = useRouter();
-  const navigationKey = useRootNavigationState()?.key;
+  const pathname = usePathname();
   const hasOpened = useRef(false);
   useEffect(() => {
-    if (hasOpened.current || navigationKey === undefined) {
+    if (hasOpened.current || pathname === "/") {
       return;
     }
     hasOpened.current = true;
@@ -36,6 +37,6 @@ export const LaunchRoute = ({ isSignedIn }: { isSignedIn: boolean }) => {
     if (href !== null) {
       router.push(href);
     }
-  }, [isSignedIn, navigationKey, router]);
+  }, [isSignedIn, pathname, router]);
   return null;
 };

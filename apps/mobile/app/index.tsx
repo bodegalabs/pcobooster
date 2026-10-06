@@ -1,6 +1,10 @@
 import { Redirect } from "expo-router";
 
-/** The app opens on the Services tab. */
-const Index = () => <Redirect href="/services" />;
+import { useSession } from "../src/app-shell/session";
+
+/** The app opens on the Services tab, or on sign-in when nobody is signed in. */
+const Index = () => (
+  <Redirect href={useSession().active === null ? "/sign-in" : "/services"} />
+);
 
 export default Index;
