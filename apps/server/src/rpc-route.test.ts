@@ -114,6 +114,115 @@ describe("the /api/rpc route", () => {
   );
 });
 
+/** A POST to the route with this exact body, from a current web client. */
+const rawBody = (body: string) =>
+  new Request(TEST_RPC_URL, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      [RPC_HEADERS.client]: "web;rpc=1",
+    },
+    body,
+  });
+
+const malformedDefect = {
+  _tag: "Defect",
+  defect: "The request is not a valid RPC request.",
+};
+
+const rejectedExit = (requestId: string) => ({
+  _tag: "Exit",
+  requestId,
+  exit: {
+    _tag: "Failure",
+    cause: [
+      {
+        _tag: "Fail",
+        error: {
+          _tag: "RequestRejected",
+          message:
+            "This version of pcobooster is out of date. Reload or update it to continue.",
+          reason: "malformed-request",
+        },
+      },
+    ],
+  },
+});
+
+describe("malformed RPC bodies", () => {
+  it.each([
+    {
+      case: "a request id that is neither a string nor a number",
+      body: JSON.stringify({
+        _tag: "Request",
+        id: {},
+        tag: "health",
+        payload: {},
+        headers: [],
+      }),
+      answer: [malformedDefect],
+      procedure: "health",
+    },
+    {
+      case: "a body that is not JSON",
+      body: "{not json",
+      answer: [malformedDefect],
+      procedure: "",
+    },
+    {
+      case: "a request without message headers",
+      body: JSON.stringify({
+        _tag: "Request",
+        id: "1",
+        tag: "health",
+        payload: {},
+      }),
+      answer: [rejectedExit("1")],
+      procedure: "health",
+    },
+    {
+      case: "a message that is not a request",
+      body: JSON.stringify({ _tag: "Bogus" }),
+      answer: [malformedDefect],
+      procedure: "",
+    },
+    {
+      case: "an empty batch",
+      body: "[]",
+      answer: [malformedDefect],
+      procedure: "",
+    },
+  ])(
+    "answers $case with a sanitized 400 and logs it",
+    async ({ body, answer, procedure }) => {
+      const route = serveRpcForTest({ server: testServer() });
+
+      const raw = await route.fetch(rawBody(body));
+      const answered: unknown = JSON.parse(await raw.text());
+
+      expect({
+        status: raw.status,
+        cacheControl: raw.headers.get("cache-control"),
+        body: answered,
+        lines: outcomeLines(route),
+      }).toStrictEqual({
+        status: 400,
+        cacheControl: privateNoStore,
+        body: answer,
+        lines: [
+          {
+            level: "info",
+            procedure,
+            status: 400,
+            code: "BAD_REQUEST",
+            client: "web;rpc=1",
+          },
+        ],
+      });
+    }
+  );
+});
+
 describe("cookies set by procedures", () => {
   const demoServer = testServer({
     config: testServerConfig({

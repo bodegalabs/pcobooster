@@ -7,7 +7,7 @@
 import { createRequestContext } from "@pcobooster/api/application/context";
 import { moduleLog } from "@pcobooster/api/logging";
 import { createPostHogExceptionReporter } from "@pcobooster/api/modules/analytics/posthog-exception";
-import { causeError, faultOutcomeOf } from "@pcobooster/api/rpc/outcome";
+import { causeError } from "@pcobooster/api/rpc/outcome";
 import type { ReportProcedureFailure } from "@pcobooster/api/rpc/outcome";
 import { writeProcedureOutcome } from "@pcobooster/api/rpc/protocol";
 import { makeProductRpcServer } from "@pcobooster/api/rpc/server";
@@ -17,7 +17,6 @@ import type {
 } from "@pcobooster/api/rpc/server";
 import { makeRpcExchange, RpcExchange } from "@pcobooster/api/rpc/services";
 import type { RpcExchangeState } from "@pcobooster/api/rpc/services";
-import { RequestRejected } from "@pcobooster/contracts/faults/request-rejected";
 import {
   RPC_HEADERS,
   SERVER_VERSION_HEADER,
@@ -177,30 +176,6 @@ const rpcRoute =
         return HttpServerResponse.empty({ status: CLIENT_CLOSED_STATUS });
       }
       yield* writeUnsentOutcomes;
-      if (exchange.calls.size === 0) {
-        // The body was not an RPC request at all; the protocol answered with a defect.
-        yield* writeProcedureOutcome(
-          exchange,
-          {
-            call: {
-              procedure: "",
-              requestId: exchange.requestId,
-              client: exchange.client,
-              priority: "interactive",
-              kind: null,
-              startedAt: now(),
-              accounting: null,
-            },
-            outcome: faultOutcomeOf(
-              new RequestRejected({
-                message: "The request body is not an RPC request.",
-                reason: "invalid-payload",
-              })
-            ),
-          },
-          outcomeLines
-        );
-      }
       return finishResponse(answered.value, exchange, options.releaseVersion);
     });
 

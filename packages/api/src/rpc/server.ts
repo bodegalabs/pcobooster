@@ -64,10 +64,10 @@ export type ProductRpcHttpEffect = Effect.Effect<
 >;
 
 /**
- * Starts the product RPC server in the current scope and returns the per-request HTTP effect.
- * `RpcServer.toHttpEffect` with its protocol decorated (`classifyingProtocol`). One handler's
- * defect never fails other calls (`disableFatalDefects`), and buffered JSON keeps one response
- * per HTTP request.
+ * Starts the product RPC server in the current scope and returns the per-request HTTP effect:
+ * the stock HTTP protocol, decorated (`classifyingProtocol`), behind a screen that answers
+ * malformed bodies before RpcServer reads them. One handler's defect never fails other calls
+ * (`disableFatalDefects`), and buffered JSON keeps one response per HTTP request.
  */
 export const makeProductRpcServer = (
   options: ProductRpcServerOptions
@@ -76,18 +76,17 @@ export const makeProductRpcServer = (
     const now = options.now ?? Date.now;
     const { protocol, httpEffect } =
       yield* RpcServer.makeProtocolWithHttpEffect();
+    const classifying = classifyingProtocol(protocol, {
+      isKnownTag: (tag) => ProductRpc.requests.has(tag),
+      report: options.report,
+      now,
+      serialization: yield* RpcSerialization.RpcSerialization,
+    });
     yield* RpcServer.make(ProductRpc, {
       disableFatalDefects: true,
       spanPrefix: "rpc",
     }).pipe(
-      Effect.provideService(
-        RpcServer.Protocol,
-        classifyingProtocol(protocol, {
-          isKnownTag: (tag) => ProductRpc.requests.has(tag),
-          report: options.report,
-          now,
-        })
-      ),
+      Effect.provideService(RpcServer.Protocol, classifying.protocol),
       Effect.provide(ProductRpcServerLive(options)),
       // The server outlives the request that builds it. A Worker's tracer is bound to one
       // invocation's async context (Alchemy's Cloudflare tracer runs every step inside it), so
@@ -99,5 +98,5 @@ export const makeProductRpcServer = (
       // and every request is handled on its own fiber, in its own workerd I/O context.
       Effect.forkScoped({ startImmediately: true })
     );
-    return httpEffect;
+    return classifying.screenBody(httpEffect);
   }).pipe(Effect.provide(RpcSerialization.layerJson));
