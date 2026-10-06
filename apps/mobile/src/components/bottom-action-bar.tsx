@@ -25,7 +25,8 @@ export const BottomActionBar = ({ actions }: BottomActionBarProps) => {
     <View
       style={[
         styles.bar,
-        { paddingBottom: Math.max(insets.bottom, Spacing.sm) },
+        // Above the home indicator, like SwiftUI's `safeAreaBar` with 8 pt padding.
+        { paddingBottom: insets.bottom + Spacing.sm },
       ]}
     >
       <GlassButtonStack actions={actions} />

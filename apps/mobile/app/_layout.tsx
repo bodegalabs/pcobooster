@@ -38,8 +38,11 @@ const RootStack = () => {
               presentation: "formSheet",
               sheetAllowedDetents: [1],
               sheetGrabberVisible: true,
-              sheetCornerRadius: -1,
-              headerShown: false,
+              headerShown: true,
+              title: "Account",
+              headerShadowVisible: false,
+              headerTintColor: colors.ink,
+              headerTitleStyle: { color: colors.ink },
               contentStyle: { backgroundColor: colors.surfaceCanvas },
             }}
           />

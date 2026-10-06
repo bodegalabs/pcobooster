@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { GlassView } from "expo-glass-effect";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Fragment } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -22,42 +21,48 @@ import { AppText } from "../../design/app-text";
 import { colors } from "../../design/colors";
 import { Metrics, Spacing } from "../../design/metrics";
 import { useClock } from "../../lib/environment";
+import { useToasts } from "../../lib/toasts";
 
-const CLOSE_SIZE = 44;
-const HEADER_HEIGHT = 56;
+const AVATAR_LARGE = 40;
+const LIST_TOP_MARGIN = 35;
+const SECTION_GAP = 27;
+/** List rows are a little taller than the 12 pt card rows elsewhere. */
+const LIST_ROW_PADDING = 15;
 /** Device rows inset their divider past the avatar. */
-const ROW_DIVIDER_INSET = Spacing.lg + 40 + Spacing.md;
+const ROW_DIVIDER_INSET = Spacing.lg + AVATAR_LARGE + Spacing.md;
 
 const styles = StyleSheet.create({
-  close: {
+  addCircle: {
     alignItems: "center",
-    borderRadius: CLOSE_SIZE / 2,
-    height: CLOSE_SIZE,
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: AVATAR_LARGE / 2,
+    height: AVATAR_LARGE,
     justifyContent: "center",
-    width: CLOSE_SIZE,
+    width: AVATAR_LARGE,
   },
-  closeSlot: { position: "absolute", right: Spacing.lg },
-  content: { gap: Spacing.xl, paddingHorizontal: Spacing.lg },
+  // SwiftUI's inset grouped list: a taller top margin and more room between sections.
+  content: {
+    gap: SECTION_GAP,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: LIST_TOP_MARGIN,
+  },
   deviceRow: {
     alignItems: "center",
     flexDirection: "row",
     gap: Spacing.md,
     minHeight: Metrics.minimumTapTarget,
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingVertical: LIST_ROW_PADDING,
   },
   deviceText: { flex: 1, gap: Spacing.xxs },
-  header: {
-    alignItems: "center",
-    height: HEADER_HEIGHT,
-    justifyContent: "center",
-  },
   identity: { alignItems: "center", flexDirection: "row", gap: Spacing.lg },
+  identityPadding: { paddingVertical: Spacing.lg + 3 },
   identityText: { flex: 1, gap: Spacing.xxs },
-  later: { paddingHorizontal: Spacing.xs },
+  // List section headers and footers align with the row content.
+  later: { paddingHorizontal: Spacing.lg },
   root: { backgroundColor: colors.surfaceCanvas, flex: 1 },
   section: { gap: Spacing.sm },
-  sectionHeader: { paddingHorizontal: Spacing.xs },
+  sectionHeader: { paddingHorizontal: Spacing.lg },
 });
 
 /** Who is signed in: `accounts.list`, or the remembered device account until it answers. */
@@ -71,7 +76,7 @@ const IdentityCard = ({ account }: { account: DeviceAccount }) => {
   const organization =
     selected?.identity?.organizationName ?? account.organizationName;
   return (
-    <SurfaceCard contentStyle={styles.identity}>
+    <SurfaceCard contentStyle={[styles.identity, styles.identityPadding]}>
       <PersonAvatar name={name} size="hero" />
       <View style={styles.identityText}>
         <AppText font="pageTitle" numberOfLines={2}>
@@ -102,6 +107,7 @@ const IdentityCard = ({ account }: { account: DeviceAccount }) => {
 /** "On this device": tapping another person closes the sheet, then switches. */
 const DeviceAccounts = () => {
   const session = useSession();
+  const toasts = useToasts();
   const router = useRouter();
   const now = useClock().now();
   return (
@@ -169,9 +175,31 @@ const DeviceAccounts = () => {
             </Fragment>
           );
         })}
+        <Hairline
+          color={colors.hairlineSubtle}
+          inset={ROW_DIVIDER_INSET}
+          trailing={Spacing.lg}
+        />
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            toasts.showError("Adding accounts arrives with native sign-in.");
+          }}
+          style={({ pressed }) => [
+            styles.deviceRow,
+            pressed ? { backgroundColor: colors.surfaceHighlight } : null,
+          ]}
+        >
+          <View style={styles.addCircle}>
+            <Glyph color={colors.ink} size={20} symbol="add" weight="medium" />
+          </View>
+          <AppText font="rowTitle" numberOfLines={1}>
+            Add another account
+          </AppText>
+        </Pressable>
       </SurfaceCard>
       <View style={styles.later}>
-        <AppText color={colors.inkTertiary} font="meta">
+        <AppText color={colors.inkSecondary} font="meta">
           People you switch away from stay signed in on this device.
         </AppText>
       </View>
@@ -203,30 +231,23 @@ export const AccountSheet = () => {
   };
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <AppText accessibilityRole="header" font="headline">
-          Account
-        </AppText>
-        <View style={styles.closeSlot}>
-          <Pressable
-            accessibilityLabel="Close"
-            accessibilityRole="button"
-            onPress={() => {
-              router.back();
-            }}
-          >
-            <GlassView isInteractive style={styles.close}>
-              <Glyph
-                color={colors.ink}
-                size={18}
-                symbol="close"
-                weight="medium"
-              />
-            </GlassView>
-          </Pressable>
-        </View>
-      </View>
+      <Stack.Screen
+        options={{
+          unstable_headerRightItems: () => [
+            {
+              type: "button",
+              label: "Close",
+              accessibilityLabel: "Close",
+              icon: { type: "sfSymbol", name: "xmark" },
+              onPress: () => {
+                router.back();
+              },
+            },
+          ],
+        }}
+      />
       <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[
           styles.content,
           { paddingBottom: insets.bottom + Spacing.huge * 2 },

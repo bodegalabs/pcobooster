@@ -123,6 +123,7 @@ export const DesignSystemGallery = () => {
           headerLargeTitleShadowVisible: false,
           headerLargeTitleStyle: { color: colors.ink },
           headerTintColor: colors.ink,
+          headerBackButtonDisplayMode: "minimal",
         }}
       />
       <ScrollView

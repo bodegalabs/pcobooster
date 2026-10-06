@@ -20,9 +20,18 @@ export interface AppTextProps extends Omit<TextProps, "style"> {
  * `Text` in a SwiftUI text style with Dynamic Type and a token color.
  *
  * SwiftUI sizes a one-line `Text` to the font's natural line height and spaces wrapped lines by
- * the style's leading; React Native applies `lineHeight` to every line, so it is set only when
- * the text may wrap.
+ * the style's leading; React Native applies `lineHeight` to every line, including the first and
+ * last. So `lineHeight` is set only when the text may wrap, and the extra half-leading above the
+ * first line and below the last is trimmed with negative margins, so a wrapping block is as tall
+ * as SwiftUI's.
  */
+/** SF Pro's natural line height per point of size (`UIFont.systemFont(ofSize:).lineHeight`). */
+const SF_NATURAL_LINE_RATIO = 1.193;
+
+/** The extra space React Native puts above the first line and below the last. */
+const halfLeading = (fontSize: number, lineHeight: number): number =>
+  (lineHeight - fontSize * SF_NATURAL_LINE_RATIO) / 2;
+
 export const AppText = ({
   font,
   weight,
@@ -47,6 +56,12 @@ export const AppText = ({
           fontSize: resolved.metrics.fontSize,
           fontWeight: fontWeights[resolved.weight],
           lineHeight: isSingleLine ? undefined : resolved.metrics.lineHeight,
+          marginVertical: isSingleLine
+            ? undefined
+            : -halfLeading(
+                resolved.metrics.fontSize,
+                resolved.metrics.lineHeight
+              ),
         },
         tabular ? { fontVariant: ["tabular-nums"] } : null,
         style,

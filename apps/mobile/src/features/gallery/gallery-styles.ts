@@ -49,7 +49,13 @@ export const galleryStyles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     height: SWATCH_HEIGHT,
   },
-  swatchCell: { flexBasis: SWATCH_MIN_WIDTH, flexGrow: 1, gap: 6 },
+  // Three to a row on iPhone; a lone last swatch keeps its column width.
+  swatchCell: {
+    flexBasis: SWATCH_MIN_WIDTH,
+    flexGrow: 1,
+    gap: 6,
+    maxWidth: "32%",
+  },
   symbolCell: { alignItems: "center", gap: 6, width: SYMBOL_CELL },
   symbolGrid: {
     flexDirection: "row",

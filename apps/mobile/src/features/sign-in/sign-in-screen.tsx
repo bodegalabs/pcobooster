@@ -8,6 +8,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   accountDisplayName,
@@ -239,6 +240,10 @@ export const SignInScreen = () => {
   const session = useSession();
   const toasts = useToasts();
   const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  // The content fills the safe area, so the hero takes the top and the actions sit in the thumb
+  // zone (Swift: `minHeight: proxy.size.height` inside a GeometryReader).
+  const safeHeight = height - insets.top - insets.bottom;
   const hasAccounts = session.accounts.length > 0;
   const showLinkError = () => {
     toasts.showError("Couldn't open the link.");
@@ -248,8 +253,8 @@ export const SignInScreen = () => {
       <Backdrop />
       <ScrollView
         alwaysBounceVertical={false}
-        contentContainerStyle={[styles.content, { minHeight: height }]}
-        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={[styles.content, { minHeight: safeHeight }]}
+        contentInsetAdjustmentBehavior="always"
       >
         <Entrance index={0} style={styles.hero}>
           <BrandLockup playsTakeoffOnAppear size="large" />
