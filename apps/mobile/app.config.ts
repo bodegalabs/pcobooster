@@ -67,6 +67,7 @@ const config: ExpoConfig = {
     infoPlist: {
       CADisableMinimumFrameDurationOnPhone: true,
       ITSAppUsesNonExemptEncryption: false,
+      LSApplicationCategoryType: "public.app-category.productivity",
     },
   },
   plugins: [
