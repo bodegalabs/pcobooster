@@ -48,6 +48,7 @@ import {
   peoplePlanWindowHistoryInputSchema,
 } from "@pcobooster/contracts/http/people";
 import { MAX_PENDING_BLOCKOUTS } from "@pcobooster/contracts/http/people-schemas";
+import { buildFrequencyFromServiceHistory } from "@pcobooster/planning-center-models/candidate-frequency";
 import {
   candidateDetailsAdvanced,
   nextWindowContinuation,
@@ -671,7 +672,7 @@ const atDay = (start: string, days: number) =>
 
 /**
  * Sixteen people, each with 201 schedules in the plan window (three pages, the selected plan's
- * on the third) and 150 after it, in date order. No one has blockouts.
+ * on the third) and 150 after it, in date order: four pages in all. No one has blockouts.
  */
 const longScheduleOrg = (): FakeOrg => {
   const collections = new Map<string, Collection>();
@@ -708,7 +709,7 @@ describe("candidate schedule history past one page of schedules", () => {
     scheduleHistory: true,
   };
 
-  it("reads every schedule page in the window, from fresh and warm caches, and equals an exhaustive read", async () => {
+  it("reads every schedule page from the window's start, from fresh and warm caches, and equals an exhaustive read", async () => {
     const org = longScheduleOrg();
     const server = fakePlanningCenter(org);
     const caches = createPlanningCenterPeopleServiceCaches();
@@ -738,17 +739,17 @@ describe("candidate schedule history past one page of schedules", () => {
         (requests) => requests <= PROGRESSIVE_REQUEST_BUDGET
       ),
       severalCalls: fresh.batches.length > 1,
-      // The page after the window's end shows no more of it; the read stops there.
+      // No page's dates prove the later pages hold nothing, so every one is read.
       pages: new Set(pagesRead(server.sent, schedulesPath("p0"))),
     }).toStrictEqual({
       fresh: byPerson(exhaustive),
       warm: byPerson(exhaustive),
       sentByWarm: 0,
-      historyLengths: new Set([201]),
+      historyLengths: new Set([351]),
       selected: new Set([SELECTED_PLAN]),
       everyCallWithinBudget: true,
       severalCalls: true,
-      pages: new Set([0, 100, 200]),
+      pages: new Set([0, 100, 200, 300]),
     });
   });
 
@@ -832,6 +833,123 @@ describe("candidate schedule history past one page of schedules", () => {
         })
       )
     );
+  });
+});
+
+/** A PlanTime as `include=plan_times` sideloads it. */
+const sideloadedTime = (
+  id: string,
+  startsAt: string,
+  timeType: "service" | "rehearsal"
+): PCResource => ({
+  type: "PlanTime",
+  id,
+  attributes: { time_type: timeType, starts_at: startsAt },
+});
+
+describe("candidate schedule history whose dates disagree with the read order", () => {
+  const input: CandidateDetailsInput = {
+    personIds: ["p0"],
+    planId: SELECTED_PLAN,
+    date: PLAN_DATE,
+    scheduleHistory: true,
+  };
+  const readOne = async (org: FakeOrg) => {
+    const server = fakePlanningCenter(org);
+    const continued = await continueCandidateDetails(input, () =>
+      peopleService(server.fetch)
+    );
+    return { server, continued };
+  };
+
+  it("finds the selected plan on a page after schedules dated past the window", async () => {
+    // Planning Center orders schedules by their times' `starts_at`, not by `sort_date`.
+    const late = Array.from({ length: 100 }, (_, index) =>
+      datedSchedule("p0", index, `late-${index}`, "2026-06-15T17:00:00Z", [
+        `late-${index}-time`,
+      ])
+    );
+    const selected = datedSchedule("p0", 100, SELECTED_PLAN, PLAN_DATE, [
+      "selected-time",
+    ]);
+    const org: FakeOrg = {
+      collections: new Map([
+        [
+          schedulesPath("p0"),
+          {
+            data: [...late, selected],
+            included: [
+              ...late.map((_, index) =>
+                sideloadedTime(
+                  `late-${index}-time`,
+                  "2026-06-15T17:00:00Z",
+                  "service"
+                )
+              ),
+              sideloadedTime(
+                "selected-time",
+                "2026-07-15T17:00:00Z",
+                "service"
+              ),
+            ],
+          },
+        ],
+      ]),
+      resources: new Map(),
+    };
+
+    const { server, continued } = await readOne(org);
+    const exhaustive = await exhaustiveCandidateDetails(input, org);
+
+    expect({
+      details: continued.details,
+      selected: continued.details[0]?.history?.selectedPlanAssignments.map(
+        ({ planId }) => planId
+      ),
+      pages: pagesRead(server.sent, schedulesPath("p0")),
+    }).toStrictEqual({
+      details: exhaustive,
+      selected: [SELECTED_PLAN],
+      pages: [0, 100],
+    });
+  });
+
+  it("keeps a rehearsal inside the window whose plan is dated after it", async () => {
+    const org: FakeOrg = {
+      collections: new Map([
+        [
+          schedulesPath("p0"),
+          {
+            data: [
+              datedSchedule("p0", 0, "later-plan", "2026-06-15T17:00:00Z", [
+                "inside",
+              ]),
+            ],
+            included: [
+              sideloadedTime("inside", "2026-05-20T17:00:00Z", "rehearsal"),
+            ],
+          },
+        ],
+      ]),
+      resources: new Map(),
+    };
+
+    const { continued } = await readOne(org);
+    const history = continued.details[0]?.history?.serviceHistory ?? [];
+
+    expect({
+      rehearsals: history.flatMap(({ date, timeType }) =>
+        timeType === "rehearsal" ? [date.toISOString()] : []
+      ),
+      upcomingRehearsals: buildFrequencyFromServiceHistory(
+        history,
+        new Date(PLAN_DATE),
+        ORG_TIME_ZONE
+      ).upcomingRehearsals,
+    }).toStrictEqual({
+      rehearsals: ["2026-05-20T17:00:00.000Z"],
+      upcomingRehearsals: 1,
+    });
   });
 });
 

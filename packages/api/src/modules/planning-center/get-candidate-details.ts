@@ -50,16 +50,12 @@ import { Effect } from "effect";
 const log = moduleLog("planning-center/candidate-details");
 
 /**
- * Pages of 100 schedules one person's plan window may span. Schedules are read from the start
- * of the window in date order, so one page almost always covers it; a window that needs more
- * than this fails the read rather than leave history out.
+ * Pages of 100 schedules one person may have from the start of the plan window on. Every page is
+ * read: schedules come in `starts_at` order while history dates them by `sort_date` and their
+ * times, so no page proves the rest hold nothing history or the selected plan needs. A person
+ * with more than this fails the read rather than leave history out.
  */
 const SCHEDULE_MAX_PAGES = 10;
-/**
- * Schedules come in `starts_at` order, while history dates them by `sort_date`; a page whose
- * last schedule is this many days past the rehearsal window ends the read.
- */
-const SCHEDULE_ORDER_MARGIN_DAYS = 7;
 /**
  * Starting another person leaves this much of the budget for the pages of people already
  * started (about a plan every week of the window and a midweek one on top), so calls finish
@@ -149,10 +145,10 @@ interface PersonSchedules {
 
 /** A person's schedules in the window, read page by page during one call. */
 interface ScheduleRead {
-  /** The page to read next, or `null` once every schedule in the window is read. */
+  /** The page to read next, or `null` once every schedule from the window's start is read. */
   offset: number | null;
   pages: number;
-  /** Schedules in the window, by id: pages read apart may repeat one. */
+  /** Schedules from the window's start, by id: pages read apart may repeat one. */
   readonly data: Map<string, PCResource>;
   readonly included: Map<string, PCResource>;
 }
@@ -193,16 +189,6 @@ const historyDone = (state: PersonState): boolean =>
     [...state.rehearsalPlans].every(
       ([id, timeIds]) => state.rehearsalTimes.nextPage(id, timeIds) === null
     ));
-
-const scheduleDayKey = (
-  schedule: PCResource,
-  orgTimeZone: string
-): string | null => {
-  const sortDate = schedule.attributes.sort_date;
-  return isNonEmptyString(sortDate) && !Number.isNaN(Date.parse(sortDate))
-    ? formatCalendarDayInTimeZone(new Date(sortDate), orgTimeZone)
-    : null;
-};
 
 const done = (state: PersonState): boolean =>
   availabilityDone(state) && historyDone(state);
@@ -289,10 +275,10 @@ const scheduleHistoryFrom = (
  * person found blocked reads no more blockout pages. Blockout lists are read unfiltered:
  * Planning Center's `future` filter is not verified for repeating blockouts that started in the
  * past. A list page is read only while the cursor can hold the repeating blockouts it may add;
- * until then the pending ones' dates are read. For schedule history a person also costs their
- * schedule pages from the window's start until a page passes its end, and the times of every
- * plan in the window with rehearsal times (shared by everyone on that plan). History holds the
- * schedules through the rehearsal window, wherever the pages break.
+ * until then the pending ones' dates are read. For schedule history a person also costs every
+ * schedule page from the window's start on, and the times of every plan in the rehearsal window
+ * whose times the schedules list but `include` left out (shared by everyone on that plan).
+ * History holds every schedule read, as it did when they were read whole.
  *
  * People who do not finish come back in `deferredPersonIds`, and `continuation` holds every
  * page they still need, except schedule pages: a follow-up call reads those again (from cache
@@ -432,10 +418,6 @@ export const getCandidateDetails = (
         }
       );
 
-    const scheduleReadEndDayKey = addCalendarDaysToDayKey(
-      rehearsalLastDayKey,
-      SCHEDULE_ORDER_MARGIN_DAYS
-    );
     const readSchedulePage = (
       state: PersonState,
       schedules: ScheduleRead,
@@ -454,21 +436,12 @@ export const getCandidateDetails = (
           state.started = true;
           schedules.pages += 1;
           for (const schedule of page.data) {
-            const dayKey = scheduleDayKey(schedule, orgTimeZone);
-            if (dayKey === null || dayKey <= rehearsalLastDayKey) {
-              schedules.data.set(schedule.id, schedule);
-            }
+            schedules.data.set(schedule.id, schedule);
           }
           for (const resource of page.included) {
             schedules.included.set(`${resource.type}:${resource.id}`, resource);
           }
-          const last = page.data.at(-1);
-          const lastDayKey =
-            last === undefined ? null : scheduleDayKey(last, orgTimeZone);
-          if (
-            page.nextOffset !== null &&
-            (lastDayKey === null || lastDayKey <= scheduleReadEndDayKey)
-          ) {
+          if (page.nextOffset !== null) {
             if (schedules.pages === SCHEDULE_MAX_PAGES) {
               return Effect.fail(
                 new PlanningCenterPaginationError({
