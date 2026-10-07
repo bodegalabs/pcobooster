@@ -11,7 +11,8 @@
  * | Session still restoring, or signed out | Hold. |
  * | Signed in to a real account, preference read and not opted out | Send. |
  *
- * The preference follows the existing semantics: "Share usage analytics" is on unless the person
+ * The preference follows the existing semantics: "Share usage analytics and error reports" is on
+ * unless the person
  * turned it off, so a preference that has been read and was never set counts as opted in. Only
  * the moment before it is read is unknown, and nothing is sent then.
  *

@@ -68,14 +68,22 @@ const PrivacyPage = () => (
     </p>
     <p>
       <strong>iPhone app errors.</strong> When the iPhone app hits an error, it
-      reports the kind of error, a shortened message with links, addresses,
-      numbers, and quoted values removed, the places in the app&apos;s code
-      where it happened, how long a failed request took, and the app version,
-      build, and iOS version, to PostHog under your account. Reports from before
-      you sign in wait on your phone for up to seven days and are sent only once
-      you sign in. Nothing is reported in a demo or when &ldquo;Share usage
-      analytics&rdquo; is off, and turning it off deletes reports still waiting
-      on the phone.
+      reports it to PostHog under your account: the kind of error, a shortened
+      and filtered error message, the places in the app&apos;s code where it
+      happened, the app version, build, and source revision, the iOS version,
+      and a random ID for that run of the app. For a failed request it also
+      reports which request it was, its request ID (so we can find our
+      server&apos;s log line for it), its error code, and how long it took. The
+      filter removes passwords, tokens, and other credentials, links, email
+      addresses, file paths, long numbers, and long quoted values, but a short
+      value inside a message can remain. Failed requests are reported with
+      messages we write, never the server&apos;s answer. Reports from before you
+      sign in wait on your phone for up to seven days and are sent under the
+      account you then sign in to. Nothing is reported in a demo or when
+      &ldquo;Share usage analytics and error reports&rdquo; is off. Turning it
+      off deletes reports still waiting on the phone and stops a report being
+      sent at that moment where it can, but a report PostHog has already
+      received is kept there.
     </p>
 
     <h2>Why we use it</h2>

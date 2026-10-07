@@ -243,10 +243,10 @@ export const AboutSection = () => {
             style={{ padding: 16, flexDirection: "row", alignItems: "center" }}
           >
             <AppText font="rowTitle" style={textStyle}>
-              Share usage analytics
+              Share usage analytics and error reports
             </AppText>
             <Switch
-              accessibilityLabel="Share usage analytics"
+              accessibilityLabel="Share usage analytics and error reports"
               value={preferences.analyticsOptedOut === false}
               disabled={preferences.analyticsOptedOut === null}
               onValueChange={(enabled) => {

@@ -23,7 +23,7 @@ import {
 export interface Preferences {
   readonly appearance: AppAppearance;
   readonly setAppearance: (appearance: AppAppearance) => void;
-  /** "Share usage analytics" is off. Analytics is opt-out, as on the web and the Swift app. */
+  /** "Share usage analytics and error reports" is off. Analytics is opt-out, as on the web and the Swift app. */
   readonly analyticsOptedOut: boolean | null;
   readonly setAnalyticsOptedOut: (optedOut: boolean) => void;
 }
