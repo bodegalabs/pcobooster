@@ -36,14 +36,11 @@ import {
 } from "./detail";
 import type { ChordChartArrangement } from "./detail";
 import { songDisplayTitle } from "./library";
-import {
-  PDF_FILE_TYPE,
-  printPreviewFile,
-  sharePreviewFile,
-} from "./preview-actions";
+import { printPreviewFile, sharePreviewFile } from "./preview-actions";
 import { PreviewDocumentView } from "./preview-document-view";
-import { devicePreviewFiles } from "./preview-files";
-import { previewReads } from "./preview-reads";
+import { PDF_FILE_TYPE } from "./preview-file-types";
+import { previewFiles } from "./preview-files";
+import { previewReads, songFilesHref } from "./preview-reads";
 import { PreviewError } from "./previews";
 import type { PreviewFile } from "./previews";
 import { songsReads } from "./reads";
@@ -65,12 +62,14 @@ const pdfMenu = ({
   targetId,
   songId,
   select,
+  openFiles,
 }: {
   arrangements: readonly ChordChartArrangement[];
   arrangement: ChordChartArrangement;
   targetId: string;
   songId: string;
   select: (arrangementId: string, target: string | null) => void;
+  openFiles: () => void;
 }): NativeStackHeaderItem => ({
   type: "menu",
   label: "Chart",
@@ -121,6 +120,12 @@ const pdfMenu = ({
         label: "",
         inline: true,
         items: [
+          {
+            type: "action" as const,
+            label: "Files",
+            icon: { type: "sfSymbol" as const, name: "paperclip" as const },
+            onPress: openFiles,
+          },
           {
             type: "action" as const,
             label: "Open in Planning Center",
@@ -346,7 +351,7 @@ export const ChartPdfScreen = () => {
   const pdf = useQuery({
     ...previewReads.chartPdf(
       context,
-      devicePreviewFiles,
+      previewFiles,
       pdfInput ?? {
         songId,
         songTitle: "",
@@ -408,6 +413,9 @@ export const ChartPdfScreen = () => {
                     targetId: chartTargetId(target),
                     songId,
                     select,
+                    openFiles: () => {
+                      router.push(songFilesHref(songId, arrangement.id));
+                    },
                   }),
                 ]),
           ],

@@ -1,18 +1,8 @@
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 
+import type { PreviewFileType } from "./preview-file-types";
 import type { PreviewFile } from "./previews";
-
-/** What iOS needs to offer the right apps in Share. */
-export interface PreviewFileType {
-  readonly mimeType: string | null;
-  readonly uti: string | null;
-}
-
-export const PDF_FILE_TYPE: PreviewFileType = {
-  mimeType: "application/pdf",
-  uti: "com.adobe.pdf",
-};
 
 /**
  * The system share sheet with the saved file itself (never Planning Center's link to it), as

@@ -45,7 +45,7 @@ import {
   splitSongHistory,
 } from "./detail";
 import type { ArrangementRowData, SongFact, SongHistoryEntry } from "./detail";
-import { songChartPdfHref } from "./preview-reads";
+import { songChartPdfHref, songFilesHref } from "./preview-reads";
 import { songChartHref } from "./reads";
 import type { SongDetailModel } from "./use-song-detail";
 
@@ -276,7 +276,7 @@ export const SongFactsCard = ({ model }: { model: SongDetailModel }) => {
 /**
  * The chart of the first arrangement that has one, in its first key, as text drawn from the
  * saved Lyrics & Chords. "View Chart" opens it full screen with every arrangement and key; "PDF"
- * opens Planning Center's own render of it.
+ * opens Planning Center's own render of it, and "Files" the arrangement's attachments.
  */
 export const SongChartCard = ({ model }: { model: SongDetailModel }) => {
   const router = useRouter();
@@ -356,6 +356,17 @@ export const SongChartCard = ({ model }: { model: SongDetailModel }) => {
             testID="song-view-chart-pdf"
             title="PDF"
           />
+          <PillButton
+            accessibilityHint="Lists the arrangement's attached files"
+            kind="secondary"
+            onPress={() => {
+              router.push(songFilesHref(model.songId, withChart.id));
+            }}
+            size="small"
+            symbol="attachment"
+            testID="song-view-files"
+            title="Files"
+          />
         </View>
       </View>
     );
@@ -373,11 +384,15 @@ export const SongChartCard = ({ model }: { model: SongDetailModel }) => {
 const showArrangementActions = (
   model: SongDetailModel,
   row: ArrangementRowData,
-  openChart: () => void
+  openChart: () => void,
+  openFiles: () => void
 ) => {
   const actions: { label: string; run: () => void }[] = [];
   if (model.chartsEnabled) {
-    actions.push({ label: "Chord Chart", run: openChart });
+    actions.push(
+      { label: "Chord Chart", run: openChart },
+      { label: "Files", run: openFiles }
+    );
   }
   actions.push({
     label: "Open in Planning Center",
@@ -407,6 +422,9 @@ const ArrangementRow = ({
   const router = useRouter();
   const openChart = () => {
     router.push(songChartHref(model.songId, row.id));
+  };
+  const openFiles = () => {
+    router.push(songFilesHref(model.songId, row.id));
   };
   const content = (
     <>
@@ -473,7 +491,7 @@ const ArrangementRow = ({
       }
       accessibilityRole={model.chartsEnabled ? "button" : undefined}
       onLongPress={() => {
-        showArrangementActions(model, row, openChart);
+        showArrangementActions(model, row, openChart, openFiles);
       }}
       onPress={model.chartsEnabled ? openChart : undefined}
       style={(state) => [styles.row, pressedFill(state)]}

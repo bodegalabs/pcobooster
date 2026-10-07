@@ -1,0 +1,55 @@
+{
+  "default": {
+    "url": "https://fixtures.invalid/attachments/unknown"
+  },
+  "cases": [
+    {
+      "match": {
+        "attachmentId": "88001"
+      },
+      "output": {
+        "url": "https://fixtures.invalid/attachments/88001"
+      }
+    },
+    {
+      "match": {
+        "attachmentId": "88002"
+      },
+      "output": {
+        "url": "https://fixtures.invalid/attachments/88002"
+      }
+    },
+    {
+      "match": {
+        "attachmentId": "88004"
+      },
+      "output": {
+        "url": "https://fixtures.invalid/attachments/88004"
+      }
+    },
+    {
+      "match": {
+        "attachmentId": "88006"
+      },
+      "output": {
+        "url": "https://fixtures.invalid/attachments/88006"
+      }
+    },
+    {
+      "match": {
+        "attachmentId": "88007"
+      },
+      "output": {
+        "url": "https://fixtures.invalid/attachments/88007"
+      }
+    },
+    {
+      "match": {
+        "attachmentId": "88005"
+      },
+      "output": {
+        "url": "https://fixtures.invalid/attachments/88005"
+      }
+    }
+  ]
+}

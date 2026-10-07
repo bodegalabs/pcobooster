@@ -1,5 +1,7 @@
 import { Directory, File, Paths } from "expo-file-system";
 
+import { launchOptions } from "../../harness/current-launch-options";
+import { fixturePreviewFiles } from "../../harness/fixture-preview-files";
 import { PreviewError, previewScopeFolder, secureUrl } from "./previews";
 import type { PreviewFiles } from "./previews";
 
@@ -58,6 +60,11 @@ export const devicePreviewFiles: PreviewFiles = {
     return saved.uri;
   },
 };
+
+/** The device's files; fixture launches draw the attachment fixtures from bundled bytes. */
+export const previewFiles: PreviewFiles = launchOptions.mock
+  ? fixturePreviewFiles(devicePreviewFiles)
+  : devicePreviewFiles;
 
 /** Removes every saved preview, for every account (signing out or forgetting one). */
 export const clearSongPreviews = (): void => {

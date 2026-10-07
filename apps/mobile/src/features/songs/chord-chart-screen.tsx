@@ -38,7 +38,7 @@ import {
 } from "./detail";
 import type { ChordChartArrangement } from "./detail";
 import { songDisplayTitle } from "./library";
-import { songChartPdfHref } from "./preview-reads";
+import { songChartPdfHref, songFilesHref } from "./preview-reads";
 import type { ChordChartSongOutput } from "./reads";
 import { songsReads } from "./reads";
 
@@ -66,7 +66,8 @@ const chartMenu = (
   targetId: string,
   songId: string,
   select: (arrangementId: string, target: string | null) => void,
-  openPdf: () => void
+  openPdf: () => void,
+  openFiles: () => void
 ): NativeStackHeaderItem => ({
   type: "menu",
   label: "Chart",
@@ -122,6 +123,12 @@ const chartMenu = (
             label: "Planning Center PDF",
             icon: { type: "sfSymbol" as const, name: "doc.text" as const },
             onPress: openPdf,
+          },
+          {
+            type: "action" as const,
+            label: "Files",
+            icon: { type: "sfSymbol" as const, name: "paperclip" as const },
+            onPress: openFiles,
           },
           {
             type: "action" as const,
@@ -304,7 +311,8 @@ const ChartBody = ({
 /**
  * An arrangement's chord chart, read only, for reading at a music stand: its saved Lyrics &
  * Chords in one of its keys (transposed from the key it is written in) or as lyrics. The menu
- * switches arrangement and key, and opens Planning Center's own PDF of the same chart. Behind
+ * switches arrangement and key, and opens Planning Center's own PDF of the same chart and the
+ * arrangement's files. Behind
  * the `chordCharts` flag.
  */
 export const ChordChartScreen = () => {
@@ -369,6 +377,9 @@ export const ChordChartScreen = () => {
                           chartTargetId(target)
                         )
                       );
+                    },
+                    () => {
+                      router.push(songFilesHref(songId, arrangement.id));
                     }
                   ),
                 ],
