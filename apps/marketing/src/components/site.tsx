@@ -15,6 +15,7 @@ import { Separator } from "./ui/separator";
 export const CONTACT_URL = "https://jakebodea.com/contact";
 
 const NAV_LINKS = [
+  { href: "/#features", label: "Features" },
   { href: "/#how-it-works", label: "How it works" },
   { href: "/#pricing", label: "Pricing" },
   { href: "/about", label: "Our story" },
@@ -195,13 +196,16 @@ export const SiteFooter = () => (
       <div>
         <Brand />
         <p className="text-muted-foreground mt-2.5 text-sm">
-          A little more clarity for the people who plan.
+          The workspace for ministry leaders on Planning Center.
         </p>
       </div>
       <nav
         aria-label="Footer navigation"
         className="text-muted-foreground flex flex-wrap items-start gap-x-7 gap-y-3 pt-2 text-sm"
       >
+        <a className="hover:text-foreground" href="/#features">
+          Features
+        </a>
         <a className="hover:text-foreground" href="/#how-it-works">
           How it works
         </a>
