@@ -2,9 +2,10 @@ import type { ServicePlanRow } from "@pcobooster/planning-center-models/service-
 import { describe, expect, it } from "vitest";
 
 import {
-  addRecentSearch,
+  addRecentItem,
+  visibleRecents,
+  recentDestination,
   matchingPlans,
-  recentSearches,
   resultRoute,
 } from "./model";
 
@@ -39,19 +40,39 @@ describe("mobile search", () => {
     expect(matchingPlans(rows, "missing", now, zone)).toStrictEqual([]);
   });
 
-  it("keeps bounded validated recents and moves repeated normalized queries to the front", () => {
-    expect(recentSearches("invalid")).toStrictEqual([]);
-    expect(
-      recentSearches(JSON.stringify(["Grace", 42, "", "x".repeat(81)]))
-    ).toStrictEqual(["Grace"]);
-    expect(addRecentSearch(["Grace", "Rooted"], " grace ")).toStrictEqual([
-      "grace",
-      "Rooted",
+  it("deduplicates queries and entities and hides results from unavailable domains", () => {
+    const plan = {
+      kind: "plans" as const,
+      id: "1",
+      serviceTypeId: "2",
+      title: "Sunday",
+      detail: "Oct 4",
+    };
+    const person = {
+      kind: "people" as const,
+      id: "3",
+      title: "Alex",
+      detail: "Person",
+    };
+    const query = { kind: "query" as const, text: "Grace" };
+    const recents = addRecentItem(addRecentItem([plan, person], query), {
+      kind: "query",
+      text: "grace",
+    });
+    expect(visibleRecents(recents, ["all", "plans"])).toStrictEqual([
+      { kind: "query", text: "grace" },
+      plan,
     ]);
+    expect(recentDestination(plan)).toBe("/services/2/plans/1");
+    expect(recentDestination(person)).toBe("/people/3");
+    expect(recentDestination(query)).toBeNull();
     expect(
-      addRecentSearch(
-        Array.from({ length: 10 }, (_, index) => `query ${index}`),
-        "Newest"
+      addRecentItem(
+        Array.from({ length: 10 }, (_, index) => ({
+          kind: "query",
+          text: `term ${index}`,
+        })),
+        query
       )
     ).toHaveLength(10);
   });

@@ -2,6 +2,8 @@ import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/
 import { formatPlanDate } from "@pcobooster/planning-center-models/service-plans";
 import type { ServicePlanRow } from "@pcobooster/planning-center-models/service-plans";
 
+import type { SearchRecent } from "../../app-shell/local-query-data";
+
 export type SearchDomain = "all" | "plans" | "people" | "songs";
 export const SEARCH_DELAY_MS = 300;
 export const SEARCH_MAX_LENGTH = 80;
@@ -44,44 +46,6 @@ export const matchingPlans = (
   });
 };
 
-export const recentSearches = (stored: string | null): string[] => {
-  if (stored === null) {
-    return [];
-  }
-  try {
-    const value: unknown = JSON.parse(stored);
-    if (!Array.isArray(value)) {
-      return [];
-    }
-    return value
-      .filter(
-        (item): item is string =>
-          typeof item === "string" &&
-          item.trim().length > 0 &&
-          item.length <= SEARCH_MAX_LENGTH
-      )
-      .slice(0, RECENT_LIMIT);
-  } catch {
-    return [];
-  }
-};
-
-export const addRecentSearch = (
-  items: readonly string[],
-  text: string
-): string[] => {
-  const query = text.trim();
-  if (query === "" || query.length > SEARCH_MAX_LENGTH) {
-    return [...items];
-  }
-  return [
-    query,
-    ...items.filter(
-      (item) => normalizedSearch(item) !== normalizedSearch(query)
-    ),
-  ].slice(0, RECENT_LIMIT);
-};
-
 export const resultRoute = (
   domain: Exclude<SearchDomain, "all">,
   id: string,
@@ -95,4 +59,38 @@ export const resultRoute = (
     return `/services/${encodeURIComponent(serviceTypeId)}/plans/${encoded}`;
   }
   return `/${domain}/${encoded}`;
+};
+
+export type { SearchRecent } from "../../app-shell/local-query-data";
+
+export const recentIdentity = (item: SearchRecent): string =>
+  item.kind === "query"
+    ? `query:${normalizedSearch(item.text)}`
+    : `${item.kind}:${item.kind === "plans" ? `${item.serviceTypeId}:` : ""}${item.id}`;
+export const addRecentItem = (
+  items: readonly SearchRecent[],
+  item: SearchRecent
+): SearchRecent[] =>
+  [
+    item,
+    ...items.filter(
+      (existing) => recentIdentity(existing) !== recentIdentity(item)
+    ),
+  ].slice(0, RECENT_LIMIT);
+export const recentDestination = (item: SearchRecent): string | null =>
+  item.kind === "query"
+    ? null
+    : resultRoute(
+        item.kind,
+        item.id,
+        item.kind === "plans" ? item.serviceTypeId : undefined
+      );
+export const visibleRecents = (
+  items: readonly SearchRecent[],
+  domains: readonly SearchDomain[]
+): SearchRecent[] => {
+  const allowed = new Set(domains);
+  return items.filter(
+    (item) => item.kind === "query" || allowed.has(item.kind)
+  );
 };

@@ -6,12 +6,16 @@ import { ProductApi } from "@pcobooster/contracts/http/api";
  *
  * Read results hold `Date`s and other values JSON cannot carry, so every query is written and
  * read through its procedure's own success schema: the query key's second element is the
- * procedure tag (`[scope, "catalog.plans", ...]`). A query whose data no longer decodes (an older
+ * procedure tag (`[scope, "catalog.plans", ...]`). Local recents and People preferences have a
+ * small explicit schema whitelist and share the same storage lease and forgetting policy.
+ * A query whose data no longer decodes (an older
  * build's cache) is dropped, never shown.
  */
 import { API_VERSION } from "@pcobooster/contracts/http/client-version";
 import type { PersistedClient } from "@tanstack/react-query-persist-client";
 import { Option, Schema } from "effect";
+
+import { localQuerySchemas } from "./local-query-data";
 
 /** Cached reads older than a session's lifetime are not worth painting. */
 export const QUERY_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -63,12 +67,15 @@ const codecFor = (key: DehydratedQuery["queryKey"]): Codec | null => {
   }[] = Object.values(ProductApi.groups);
   const procedure = groups.find((candidate) => candidate.identifier === group);
   const success =
-    procedure === undefined
+    Object.entries(localQuerySchemas).find(
+      ([localTag]) => localTag === tag
+    )?.[1] ??
+    (procedure === undefined
       ? undefined
       : Object.values(procedure.endpoints)
           .find((candidate) => candidate.identifier === endpoint)
           ?.success.values()
-          .next().value;
+          .next().value);
   const codec =
     success === undefined
       ? null

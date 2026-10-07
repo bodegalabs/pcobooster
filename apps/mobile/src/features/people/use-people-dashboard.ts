@@ -30,17 +30,16 @@ import {
 } from "./dashboard";
 import type { PeopleScope, RosterSort } from "./dashboard";
 import { runInTurns } from "./in-turns";
+import {
+  peoplePreferencesQuery,
+  savedPeopleScope,
+  savePeoplePreferences,
+} from "./preferences";
 import { peopleKeys, peopleReads } from "./reads";
 import { computeTeamHealth } from "./team-health";
 import type { PersonSignal } from "./team-health";
 
 const NO_BATCHES: readonly (readonly string[])[] = [];
-
-/**
- * The scope each account picked this session. A switch back to an account lands on its teams;
- * nothing is written to disk, so a forgotten account leaves no trace.
- */
-const rememberedScopes = new Map<string, PeopleScope>();
 
 /** What the People list shows: everyone, or only people with a signal to act on. */
 export type PeopleShow = "everyone" | "attention";
@@ -131,11 +130,11 @@ export const usePeopleDashboard = () => {
   const rosterQuery = useVisibleQuery({
     ...peopleReads.roster(context),
     subscribed: isActive,
+    enabled: isActive,
   });
   const roster = rosterQuery.data;
-  const [scopeChoice, setScopeChoice] = useState<PeopleScope | null>(
-    () => rememberedScopes.get(accountScope) ?? null
-  );
+  const preferences = useVisibleQuery(peoplePreferencesQuery(accountScope));
+  const scopeChoice = savedPeopleScope(preferences.data?.scope ?? null);
   const scope = effectiveScope(scopeChoice, roster);
   const scopePersonIds = useMemo(
     () => (roster === undefined ? [] : resolveScopePersonIds(roster, scope)),
@@ -276,10 +275,9 @@ export const usePeopleDashboard = () => {
 
   const selectScope = useCallback(
     (next: PeopleScope) => {
-      rememberedScopes.set(accountScope, next);
-      setScopeChoice(next);
+      savePeoplePreferences(cache, accountScope, { scope: next });
     },
-    [accountScope]
+    [cache, accountScope]
   );
   const loadMore = useCallback(() => {
     setExtraPeople((current) => ({
@@ -330,7 +328,10 @@ export const usePeopleDashboard = () => {
 
   const [sort, setSort] = useState<RosterSort>("name");
   const [show, setShow] = useState<PeopleShow>("everyone");
-  const [view, setView] = useState<PeopleView>("list");
+  const view = preferences.data?.view ?? "list";
+  const setView = (next: PeopleView) => {
+    savePeoplePreferences(cache, accountScope, { view: next });
+  };
 
   return {
     scope,

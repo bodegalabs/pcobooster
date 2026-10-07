@@ -33,18 +33,23 @@ import { AppText } from "../../design/app-text";
 import { colors } from "../../design/colors";
 import { Spacing } from "../../design/metrics";
 import { useClock, useOrgTimeZone } from "../../lib/environment";
-import { appStorage } from "../../session/device-services";
 import {
-  addRecentSearch,
+  recentDestination,
+  recentIdentity,
+  visibleRecents,
   matchingPlans,
   normalizedSearch,
-  recentSearches,
   resultRoute,
   SEARCH_DELAY_MS,
   SEARCH_MAX_LENGTH,
 } from "./model";
-import type { SearchDomain } from "./model";
-import { searchReads } from "./reads";
+import type { SearchDomain, SearchRecent } from "./model";
+import {
+  searchReads,
+  searchRecentsQuery,
+  rememberSearchItem,
+  removeSearchItem,
+} from "./reads";
 
 const PLAN_READ_BATCH = 4;
 const styles = StyleSheet.create({
@@ -71,6 +76,7 @@ interface ResultRow {
   readonly title: string;
   readonly detail: string;
   readonly route: string;
+  readonly recent: SearchRecent;
 }
 interface SearchSectionProps {
   readonly title: string;
@@ -115,6 +121,7 @@ const SearchSection = ({
             accessibilityRole="button"
             accessibilityLabel={`${row.title}, ${row.detail}`}
             key={row.key}
+            testID={`search-result-${row.key}`}
             onPress={() => {
               onOpen(row);
             }}
@@ -140,7 +147,10 @@ const availableDomains = (
       }
     | undefined
 ): SearchDomain[] => {
-  const available: SearchDomain[] = ["all", "plans"];
+  const available: SearchDomain[] = ["all"];
+  if (access?.services.status === "granted") {
+    available.push("plans");
+  }
   if (features.people && access?.people.status === "granted") {
     available.push("people");
   }
@@ -162,8 +172,7 @@ const useSearch = () => {
   const [settled, setSettled] = useState("");
   const [domain, setDomain] = useState<SearchDomain>("all");
 
-  const [recents, setRecents] = useState<string[]>([]);
-  const recentKey = `pcob.search.v1:${context.scope}`;
+  const recentQuery = useQuery(searchRecentsQuery(context.scope));
   const query = normalizedSearch(text);
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -173,37 +182,17 @@ const useSearch = () => {
       clearTimeout(timeout);
     };
   }, [query]);
-  useEffect(() => {
-    let active = true;
-    void (async () => {
-      try {
-        const stored = await appStorage.getItem(recentKey);
-        if (active) {
-          setRecents(recentSearches(stored));
-        }
-      } catch {
-        // Search works without saved recents.
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [recentKey]);
-  const saveRecents = async (next: string[]) => {
-    try {
-      await appStorage.setItem(recentKey, JSON.stringify(next));
-    } catch {
-      // A storage failure does not block search.
+  const remember = () => {
+    const textToKeep = text.trim();
+    if (textToKeep !== "") {
+      rememberSearchItem(cache, context.scope, {
+        kind: "query",
+        text: textToKeep,
+      });
     }
   };
-  const remember = () => {
-    const next = addRecentSearch(recents, text);
-    setRecents(next);
-    void saveRecents(next);
-  };
   const clearRecents = () => {
-    setRecents([]);
-    void saveRecents([]);
+    cache.setQueryData(searchRecentsQuery(context.scope).queryKey, []);
   };
   const access = useQuery({
     ...sharedReads.access(context),
@@ -211,8 +200,11 @@ const useSearch = () => {
     enabled: focused,
   });
   const available = availableDomains(features, access.data);
+  const recents = visibleRecents(recentQuery.data ?? [], available);
   const effectiveDomain = available.includes(domain) ? domain : "all";
-  const showPlans = effectiveDomain === "all" || effectiveDomain === "plans";
+  const showPlans =
+    available.includes("plans") &&
+    (effectiveDomain === "all" || effectiveDomain === "plans");
   const showPeople =
     available.includes("people") &&
     (effectiveDomain === "all" || effectiveDomain === "people");
@@ -277,11 +269,32 @@ const useSearch = () => {
       title: plan.planTitle || plan.serviceTypeName,
       detail: `${plan.serviceTypeName} · ${formatPlanDate(plan.sortDate, timeZone)}`,
       route: resultRoute("plans", plan.planId, plan.serviceTypeId),
+      recent: {
+        kind: "plans" as const,
+        id: plan.planId,
+        serviceTypeId: plan.serviceTypeId,
+        title: plan.planTitle || plan.serviceTypeName,
+        detail: `${plan.serviceTypeName} · ${formatPlanDate(plan.sortDate, timeZone)}`,
+      },
     })
   );
   const open = (row: ResultRow) => {
-    remember();
+    rememberSearchItem(cache, context.scope, row.recent);
     router.push(row.route);
+  };
+  const openRecent = (item: SearchRecent) => {
+    if (item.kind === "query") {
+      setText(item.text);
+    } else {
+      const path = recentDestination(item);
+      if (path !== null && available.includes(item.kind)) {
+        rememberSearchItem(cache, context.scope, item);
+        router.push(path);
+      }
+    }
+  };
+  const removeRecent = (item: SearchRecent) => {
+    removeSearchItem(cache, context.scope, item);
   };
   const waiting = query !== settled;
   return {
@@ -307,16 +320,20 @@ const useSearch = () => {
     remember,
     recents,
     clearRecents,
+    openRecent,
+    removeRecent,
   };
 };
 
 const SearchIntro = ({
   recents,
-  setText,
+  openRecent,
+  removeRecent,
   clearRecents,
 }: {
-  readonly recents: readonly string[];
-  readonly setText: (text: string) => void;
+  readonly recents: readonly SearchRecent[];
+  readonly openRecent: (item: SearchRecent) => void;
+  readonly removeRecent: (item: SearchRecent) => void;
   readonly clearRecents: () => void;
 }) => (
   <View style={styles.section}>
@@ -326,16 +343,31 @@ const SearchIntro = ({
       description="Find plans by service, title, series, or date; find people and songs by name."
     />
     {recents.map((recent) => (
-      <Pressable
-        accessibilityRole="button"
-        key={recent}
-        onPress={() => {
-          setText(recent);
-        }}
-        style={styles.row}
-      >
-        <AppText font="rowTitle">{recent}</AppText>
-      </Pressable>
+      <View key={recentIdentity(recent)} style={styles.section}>
+        <Pressable
+          accessibilityRole="button"
+          testID={`search-recent-${recentIdentity(recent)}`}
+          onPress={() => {
+            openRecent(recent);
+          }}
+          style={styles.row}
+        >
+          <AppText font="rowTitle">
+            {recent.kind === "query" ? recent.text : recent.title}
+          </AppText>
+          {recent.kind === "query" ? null : (
+            <AppText font="rowDetail">{recent.detail}</AppText>
+          )}
+        </Pressable>
+        <PillButton
+          testID={`search-recent-remove-${recentIdentity(recent)}`}
+          title={`Remove ${recent.kind === "query" ? recent.text : recent.title}`}
+          size="small"
+          onPress={() => {
+            removeRecent(recent);
+          }}
+        />
+      </View>
     ))}
     {recents.length === 0 ? null : (
       <PillButton title="Clear recent searches" onPress={clearRecents} />
@@ -373,6 +405,8 @@ const ScopedSearch = () => {
     remember,
     recents,
     clearRecents,
+    openRecent,
+    removeRecent,
   } = useSearch();
   return (
     <View style={styles.canvas}>
@@ -388,6 +422,7 @@ const ScopedSearch = () => {
       >
         <TextInput
           accessibilityLabel="Search plans, people, and songs"
+          testID="search-input"
           autoCapitalize="none"
           autoCorrect={false}
           clearButtonMode="while-editing"
@@ -404,6 +439,7 @@ const ScopedSearch = () => {
           {available.map((item) => (
             <PillButton
               key={item}
+              testID={`search-filter-${item}`}
               kind={domain === item ? "primary" : "outline"}
               onPress={() => {
                 setDomain(item);
@@ -426,7 +462,8 @@ const ScopedSearch = () => {
         {query === "" ? (
           <SearchIntro
             recents={recents}
-            setText={setText}
+            openRecent={openRecent}
+            removeRecent={removeRecent}
             clearRecents={clearRecents}
           />
         ) : (
@@ -466,6 +503,12 @@ const ScopedSearch = () => {
                         title: person.fullName,
                         detail: "Person",
                         route: resultRoute("people", person.id),
+                        recent: {
+                          kind: "people" as const,
+                          id: person.id,
+                          title: person.fullName,
+                          detail: "Person",
+                        },
                       }))
                 }
                 loading={searching && settled.length >= 2 && people.isPending}
@@ -496,6 +539,12 @@ const ScopedSearch = () => {
                                 title: song.title,
                                 detail: song.author,
                                 route: resultRoute("songs", song.id),
+                                recent: {
+                                  kind: "songs" as const,
+                                  id: song.id,
+                                  title: song.title,
+                                  detail: song.author ?? "Song",
+                                },
                               },
                             ]
                       )
