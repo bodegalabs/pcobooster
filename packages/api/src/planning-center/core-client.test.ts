@@ -9,6 +9,7 @@ import {
 } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterPacing } from "@pcobooster/api/planning-center/pacing";
+import { PlanningCenterPaginationError } from "@pcobooster/api/planning-center/pagination-error";
 import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
 import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user-agent";
@@ -371,7 +372,7 @@ describe(PlanningCenterCoreClient, () => {
     ]);
   });
 
-  it("follows pagination once per URL and deduplicates included resources", async () => {
+  it("follows pagination to the end and deduplicates included resources", async () => {
     const firstUrl =
       "https://api.planningcenteronline.com/services/v2/people?per_page=100";
     const secondUrl =
@@ -389,7 +390,7 @@ describe(PlanningCenterCoreClient, () => {
         jsonResponse({
           data: [{ ...person, id: "2" }],
           included: [team],
-          links: { next: firstUrl },
+          links: {},
         })
       );
     const response = await run(
@@ -401,6 +402,125 @@ describe(PlanningCenterCoreClient, () => {
       firstUrl,
       secondUrl,
     ]);
+  });
+
+  it("fails rather than return part of a collection longer than its page limit", async () => {
+    const pageWithNext = (offset: number) =>
+      jsonResponse({
+        data: [{ ...person, id: String(offset) }],
+        links: {
+          next: `https://api.planningcenteronline.com/services/v2/people?offset=${offset + 100}`,
+        },
+      });
+    const fetch = fetchMock()
+      .mockResolvedValueOnce(pageWithNext(0))
+      .mockResolvedValueOnce(pageWithNext(100));
+
+    const exit = await Effect.runPromiseExit(
+      basicClient(fetch).fetchAllWithIncluded("/services/v2/people", {}, 2)
+    );
+
+    expect(exit).toStrictEqual(
+      Exit.fail(
+        new PlanningCenterPaginationError({
+          reason: "page-limit",
+          path: "/services/v2/people",
+          pages: 2,
+        })
+      )
+    );
+  });
+
+  it("returns the next link with the first pages of a collection that goes on", async () => {
+    const nextUrl =
+      "https://api.planningcenteronline.com/services/v2/people?offset=100";
+    const fetch = fetchMock().mockResolvedValueOnce(
+      jsonResponse({ data: [person], links: { next: nextUrl } })
+    );
+
+    const response = await run(
+      basicClient(fetch).fetchFirstPages("/services/v2/people", {}, 1)
+    );
+
+    expect(response).toStrictEqual({
+      data: [person],
+      included: [],
+      next: nextUrl,
+    });
+  });
+
+  it("fails on a next link that repeats a page instead of looping or stopping early", async () => {
+    const firstUrl =
+      "https://api.planningcenteronline.com/services/v2/people?per_page=100";
+    const fetch = fetchMock().mockResolvedValueOnce(
+      jsonResponse({ data: [person], links: { next: firstUrl } })
+    );
+
+    const exit = await Effect.runPromiseExit(
+      basicClient(fetch).fetchAllWithIncluded("/services/v2/people")
+    );
+
+    expect(exit).toStrictEqual(
+      Exit.fail(
+        new PlanningCenterPaginationError({
+          reason: "invalid-next",
+          path: "/services/v2/people",
+          pages: 1,
+        })
+      )
+    );
+    expect(fetch).toHaveBeenCalledOnce();
+  });
+
+  it("reads one page from an offset and returns the next page's offset", async () => {
+    const fetch = fetchMock().mockResolvedValueOnce(
+      jsonResponse({
+        data: [person],
+        included: [],
+        links: {
+          next: "https://api.planningcenteronline.com/services/v2/people/1/blockouts?offset=300&per_page=100",
+        },
+      })
+    );
+
+    const page = await run(
+      basicClient(fetch).fetchPage("/services/v2/people/1/blockouts", {}, 200)
+    );
+
+    expect({
+      page,
+      urls: fetch.mock.calls.map(([input]) => urlOf(input)),
+    }).toStrictEqual({
+      page: { data: [person], included: [], nextOffset: 300 },
+      urls: [
+        "https://api.planningcenteronline.com/services/v2/people/1/blockouts?per_page=100&offset=200",
+      ],
+    });
+  });
+
+  it("fails on a next page whose offset does not advance", async () => {
+    const fetch = fetchMock().mockResolvedValueOnce(
+      jsonResponse({
+        data: [person],
+        links: {
+          next: "https://api.planningcenteronline.com/services/v2/people?offset=100",
+        },
+      })
+    );
+
+    const exit = await Effect.runPromiseExit(
+      basicClient(fetch).fetchPage("/services/v2/people", {}, 100)
+    );
+
+    expect(exit).toStrictEqual(
+      Exit.fail(
+        new PlanningCenterPaginationError({
+          reason: "invalid-next",
+          path: "/services/v2/people",
+          pages: 1,
+        })
+      )
+    );
   });
 
   it("stops pagination and aborts the in-flight page when interrupted", async () => {

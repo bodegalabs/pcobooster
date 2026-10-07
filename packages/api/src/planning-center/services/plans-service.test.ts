@@ -27,26 +27,25 @@ describe("PlanningCenterPlansService.getPlansWithIncludedInDateRange", () => {
       testPlanningCenterToken,
       unreachableHttpClient
     );
-    const fetchAllWithIncluded = vi
-      .spyOn(core, "fetchAllWithIncluded")
-      .mockReturnValue(
-        Effect.succeed({
-          data: [
-            planResource("plan-1", "2026-05-24T10:00:00-07:00"),
-            planResource("plan-2", "2026-06-01T10:00:00-07:00"),
-          ],
-          included: [
-            {
-              id: "series-1",
-              type: "Series",
-              attributes: { title: "Original Series" },
-              relationships: {
-                plan: { data: { id: "plan-1", type: "Plan" } },
-              },
+    const fetchFirstPages = vi.spyOn(core, "fetchFirstPages").mockReturnValue(
+      Effect.succeed({
+        data: [
+          planResource("plan-1", "2026-05-24T10:00:00-07:00"),
+          planResource("plan-2", "2026-06-01T10:00:00-07:00"),
+        ],
+        included: [
+          {
+            id: "series-1",
+            type: "Series",
+            attributes: { title: "Original Series" },
+            relationships: {
+              plan: { data: { id: "plan-1", type: "Plan" } },
             },
-          ],
-        })
-      );
+          },
+        ],
+        next: null,
+      })
+    );
     const service = new PlanningCenterPlansService(core, resolveTimeZone);
 
     const first = await Effect.runPromise(
@@ -69,7 +68,7 @@ describe("PlanningCenterPlansService.getPlansWithIncludedInDateRange", () => {
       )
     );
 
-    expect(fetchAllWithIncluded).toHaveBeenCalledOnce();
+    expect(fetchFirstPages).toHaveBeenCalledOnce();
     expect(second.data[0].attributes.sort_date).toBe(
       "2026-05-24T10:00:00-07:00"
     );

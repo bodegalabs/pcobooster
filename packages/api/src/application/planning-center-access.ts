@@ -232,6 +232,13 @@ export const planningCenterFault = (
         cause: error,
       });
     }
+    case "PlanningCenterPaginationError": {
+      return new ExternalServiceFailure({
+        message: "Planning Center returned more than one request can read.",
+        service: "planning-center",
+        cause: error,
+      });
+    }
     default: {
       const exhaustiveError: never = error;
       return exhaustiveError;

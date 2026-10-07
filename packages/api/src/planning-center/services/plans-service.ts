@@ -107,10 +107,13 @@ export class PlanningCenterPlansService {
     serviceTypeId: string,
     params: Record<string, string> = {}
   ): Effect.Effect<PCResource[], PlanningCenterError> {
-    return this.core.fetchAll(
-      `/services/v2/service_types/${serviceTypeId}/plans`,
-      { ...params, order: "-sort_date" },
-      3
+    return Effect.map(
+      this.core.fetchFirstPages(
+        `/services/v2/service_types/${serviceTypeId}/plans`,
+        { ...params, order: "-sort_date" },
+        3
+      ),
+      ({ data }) => data
     );
   }
 
@@ -194,7 +197,7 @@ export class PlanningCenterPlansService {
           before: beforeDayKey,
           include: include || null,
         });
-        const fetched = yield* core.fetchAllWithIncluded(
+        const fetched = yield* core.fetchFirstPages(
           `/services/v2/service_types/${serviceTypeId}/plans`,
           params,
           PLAN_RANGE_MAX_PAGES
