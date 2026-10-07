@@ -2,6 +2,7 @@ import {
   retryTransientReadFailure,
   speculativeQuery,
 } from "@pcobooster/client/query";
+import { formatAppRelease } from "@pcobooster/contracts/http/request-diagnostics";
 import { addEventListener } from "@react-native-community/netinfo";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import {
@@ -29,6 +30,16 @@ import { Alert, AppState, StyleSheet, View } from "react-native";
 
 import { ErrorToastProvider } from "../components/error-toast";
 import { colors } from "../design/colors";
+import {
+  isApiFailureOrCancellation,
+  makeApiFailureReporter,
+} from "../diagnostics/api-diagnostics";
+import { deviceDiagnostics } from "../diagnostics/device-diagnostics";
+import { withApiProbe } from "../diagnostics/probe-transport";
+import type { ApiProbe } from "../diagnostics/probe-transport";
+import { DiagnosticsProbeError, diagnosticsProbe } from "../diagnostics/probes";
+import { releaseMetadata } from "../diagnostics/release-metadata";
+import { sessionContextFor } from "../diagnostics/session-context";
 import { FeedbackDraftProvider } from "../features/account/feedback-draft";
 import {
   launchOptions,
@@ -74,6 +85,8 @@ import {
   queryCacheKey,
   serializeQueryCache,
 } from "./query-persistence";
+import { makeScopedQueryClient } from "./scoped-query-client";
+import type { ScopedQueryReporting } from "./scoped-query-client";
 import { SessionContext } from "./session";
 import type { SessionValue, SignInActivity } from "./session";
 
@@ -98,11 +111,22 @@ const delay = async (ms: number) => {
 
 const cacheStorage = makeCacheStorage(appStorage, removeAppStorageKeys);
 
+const isApiProbe = (probe: typeof diagnosticsProbe): probe is ApiProbe =>
+  probe === "api-5xx" ||
+  probe === "api-undecodable" ||
+  probe === "api-network" ||
+  probe === "api-5xx-transient";
+
 const deviceServices = {
   secrets: keychainStorage,
   appStorage,
   crypto: deviceCrypto,
   authenticate: ephemeralWebAuthentication,
+  appRelease: formatAppRelease(releaseMetadata),
+  reportOrigin: deviceDiagnostics.origin,
+  productFetch: isApiProbe(diagnosticsProbe)
+    ? withApiProbe(globalThis.fetch, diagnosticsProbe)
+    : globalThis.fetch,
   onForget: (userIds: readonly string[]) => {
     void cacheStorage.forget(userIds);
   },
@@ -125,6 +149,30 @@ const makeRuntime = (): AppRuntime => {
 
 /** One runtime per app session. */
 const runtime: AppRuntime = makeRuntime();
+
+// Verification build probes (`diagnostics/probes.ts`); `diagnosticsProbe` is null otherwise.
+if (diagnosticsProbe === "handled") {
+  deviceDiagnostics.captureException(
+    new DiagnosticsProbeError("Diagnostics probe: handled"),
+    "handled"
+  );
+}
+if (diagnosticsProbe === "rejection") {
+  void Promise.reject(
+    new DiagnosticsProbeError("Diagnostics probe: rejection")
+  );
+}
+
+// Error reports follow the session: held while it restores or nobody is signed in, purged on a
+// demo, and sent only for a signed-in account (`diagnostics/capture-policy.ts`).
+deviceDiagnostics.setSession(
+  sessionContextFor(runtime.session.getSnapshot().phase)
+);
+runtime.session.subscribe(() => {
+  deviceDiagnostics.setSession(
+    sessionContextFor(runtime.session.getSnapshot().phase)
+  );
+});
 
 /** One query cache; every key starts with the account scope, so nothing crosses accounts. */
 const queryClient = new QueryClient({
@@ -155,6 +203,18 @@ if (!runtime.isFixtureMode) {
   );
 }
 
+const reportApiFailure = makeApiFailureReporter(deviceDiagnostics);
+// API failures and cancellations are reported by the query caches alone, never again as
+// uncaught errors, unhandled rejections, or render errors.
+deviceDiagnostics.setReportedElsewhere(isApiFailureOrCancellation);
+
+const scopedQueryReporting: ScopedQueryReporting = {
+  report: reportApiFailure,
+  origin: deviceDiagnostics.origin,
+  currentScope: () => runtime.session.getSnapshot().scope,
+  online: () => onlineManager.isOnline(),
+};
+
 const styles = StyleSheet.create({
   cover: {
     ...StyleSheet.absoluteFill,
@@ -181,8 +241,13 @@ const ScopedQueries = ({
   children: ReactNode;
 }) => {
   const cache = useMemo(
-    () => new QueryClient({ defaultOptions: queryClient.getDefaultOptions() }),
-    []
+    () =>
+      makeScopedQueryClient(
+        scope,
+        queryClient.getDefaultOptions(),
+        scopedQueryReporting
+      ),
+    [scope]
   );
   const persister = useMemo(
     () =>
@@ -280,7 +345,7 @@ const AccountSync = () => {
  */
 const SessionProvider = ({ children }: { children: ReactNode }) => {
   const toasts = useToasts();
-  const { session, client, scheduler } = runtime;
+  const { session, scheduler } = runtime;
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot);
   const [activity, setActivity] = useState<SignInActivity>({ kind: "idle" });
   const activityRef = useRef(activity);
@@ -471,8 +536,8 @@ const SessionProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const clientContext = useMemo(
-    () => ({ client, scope, scheduler }),
-    [client, scheduler, scope]
+    () => ({ client: runtime.clientForScope(scope), scope, scheduler }),
+    [scheduler, scope]
   );
 
   return (

@@ -19,6 +19,10 @@ import {
 import { RequestRejected } from "@pcobooster/contracts/faults/request-rejected";
 import { procedureRoutes } from "@pcobooster/contracts/http/api";
 import { CLIENT_HEADER } from "@pcobooster/contracts/http/client-version";
+import {
+  APP_RELEASE_HEADER,
+  parseAppRelease,
+} from "@pcobooster/contracts/http/request-diagnostics";
 import { matchRoute } from "@pcobooster/contracts/http/route";
 import {
   parseRequestPriority,
@@ -52,6 +56,7 @@ export const unmatchedProductRequest = (now: () => number = Date.now) =>
       method: request.method,
       route: match.kind === "wrong-method" ? match.route : pathname,
       client: request.headers.get(CLIENT_HEADER),
+      appRelease: parseAppRelease(request.headers.get(APP_RELEASE_HEADER)),
       priority: parseRequestPriority(
         request.headers.get(REQUEST_PRIORITY_HEADER)
       ),

@@ -77,7 +77,8 @@ export const callForQuery = async <Result, Failure>(
   }
 };
 
-const MAX_READ_RETRIES = 1;
+/** Automatic retries a failed read gets (`retryTransientReadFailure`). */
+export const MAX_READ_RETRIES = 1;
 const SERVER_ERROR_STATUS = 500;
 
 /**

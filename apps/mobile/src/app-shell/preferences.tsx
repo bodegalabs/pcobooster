@@ -9,6 +9,7 @@ import {
 import type { ReactNode } from "react";
 import { Appearance } from "react-native";
 
+import { deviceDiagnostics } from "../diagnostics/device-diagnostics";
 import type { PlainStorage } from "../session/credential-store";
 import { deviceAnalytics } from "./device-analytics";
 /** System, Light, or Dark (the web's theme menu), kept across launches. */
@@ -22,7 +23,7 @@ import {
 export interface Preferences {
   readonly appearance: AppAppearance;
   readonly setAppearance: (appearance: AppAppearance) => void;
-  /** "Share usage analytics" is off. Analytics is opt-out, as on the web and the Swift app. */
+  /** "Share usage analytics and error reports" is off. Analytics is opt-out, as on the web and the Swift app. */
   readonly analyticsOptedOut: boolean | null;
   readonly setAnalyticsOptedOut: (optedOut: boolean) => void;
 }
@@ -78,6 +79,10 @@ export const PreferencesProvider = ({
       }
       setAnalyticsOptedOut(savedOptOut === "true");
       deviceAnalytics.setOptedOut(savedOptOut === "true");
+      // Error reports follow the same switch; never set means opted in, as for analytics.
+      deviceDiagnostics.setPreference(
+        savedOptOut === "true" ? "opted-out" : "opted-in"
+      );
     })();
   }, [storage]);
 
@@ -93,6 +98,7 @@ export const PreferencesProvider = ({
   const changeAnalyticsOptedOut = useCallback(
     (next: boolean) => {
       deviceAnalytics.setOptedOut(next);
+      deviceDiagnostics.setPreference(next ? "opted-out" : "opted-in");
       setAnalyticsOptedOut(next);
       void storage?.setItem(ANALYTICS_OPT_OUT_KEY, String(next));
     },
