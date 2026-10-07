@@ -1,5 +1,3 @@
-import { describe, expect, it } from "vitest";
-
 import {
   chordName,
   circleOfFifthsDistance,
@@ -14,8 +12,9 @@ import {
   predominantOf,
   scaleOf,
   semitonesUp,
-} from "@/lib/key-theory";
-import type { MusicalKey } from "@/lib/key-theory";
+} from "@pcobooster/planning-center-models/key-theory";
+import type { MusicalKey } from "@pcobooster/planning-center-models/key-theory";
+import { describe, expect, it } from "vitest";
 
 const key = (value: string): MusicalKey => {
   const parsed = parseMusicalKey(value);

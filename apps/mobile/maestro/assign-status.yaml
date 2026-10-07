@@ -1,0 +1,35 @@
+appId: com.pcobooster.ios
+---
+# Each status change shows on the row before the next one runs.
+- extendedWaitUntil:
+    visible: "Frankie Turner"
+    timeout: 30000
+- tapOn: "Status for Frankie Turner"
+- tapOn: "Pending"
+- assertVisible:
+    id: "assign-status-4100104-pending"
+- tapOn: "Status for Frankie Turner"
+- tapOn: "Confirmed"
+- assertVisible:
+    id: "assign-status-4100104-confirmed"
+- tapOn: "Status for Frankie Turner"
+- tapOn: "Declined"
+- scrollUntilVisible:
+    element:
+      id: "assign-status-4100104-declined"
+    direction: DOWN
+    centerElement: true
+- assertVisible: "DECLINED"
+- tapOn: "Frankie Turner"
+- tapOn:
+    id: "assign-detail-unschedule"
+- assertVisible: "Unschedule Frankie Turner?"
+- tapOn:
+    id: "confirm-destructive"
+- scrollUntilVisible:
+    element: "Add Frankie Turner"
+    direction: DOWN
+    centerElement: true
+- assertNotVisible:
+    id: "assign-status-4100104-declined"
+- takeScreenshot: assign-unscheduled

@@ -1,0 +1,35 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible: "Add time"
+    timeout: 60000
+- tapOn: "Add time"
+- tapOn:
+    id: "time-name-field"
+- eraseText
+- inputText: "Fixture service"
+# A changed new time can't be swiped away: the sheet stays with its draft.
+- pressKey: Enter
+- swipe:
+    from:
+      text: "Name"
+    direction: DOWN
+- assertVisible:
+    id: "time-create"
+- assertVisible: "Fixture service"
+# Closing asks first; keeping editing keeps the draft.
+- tapOn:
+    id: "plan-editor-close"
+- assertVisible: "Discard this time?"
+- tapOn: "Keep editing"
+- assertVisible: "Fixture service"
+- tapOn: "Service"
+- tapOn:
+    id: "time-create"
+- assertNotVisible:
+    id: "time-create"
+- scrollUntilVisible:
+    element:
+      text: ".*Fixture service.*"
+- assertVisible: ".*Fixture service.*"
+- takeScreenshot: time-created

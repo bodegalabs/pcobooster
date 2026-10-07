@@ -107,10 +107,15 @@ export const PlanLineup = ({
           onAdjust={(position, change) => {
             void writer.adjust(position, change);
           }}
-          onPerson={(person) => {
+          onPerson={(person, position) => {
             router.push({
               pathname: "/lineup-person",
-              params: { ...ids, planPersonId: person.planPersonId },
+              params: {
+                ...ids,
+                teamId: position.teamId,
+                positionId: position.id,
+                personId: person.personId ?? person.id,
+              },
             });
           }}
           onOpen={(position) => {

@@ -1,5 +1,6 @@
 import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
+import { planningCenterPersonUrl } from "@pcobooster/planning-center-models/planning-center-person-url";
 import { ExternalLink } from "lucide-react";
 import { useMemo } from "react";
 
@@ -19,7 +20,6 @@ import {
   usePeopleDashboardPerson,
   usePersonDashboardContext,
 } from "@/hooks/use-people-dashboard-person";
-import { planningCenterPersonUrl } from "@/lib/people/planning-center-person-url";
 import { personSignals } from "@/lib/team-health";
 
 const PersonHeaderSkeleton = () => (

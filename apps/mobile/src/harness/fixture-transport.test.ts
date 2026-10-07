@@ -176,12 +176,17 @@ describe("fixture HTTP parity", () => {
 
   it("answers synthetic PATCH and DELETE writes as ordinary JSON", async () => {
     const client = fixtureClient();
+    const [item] = await client.run((api) =>
+      api.planItems.list({
+        params: { serviceTypeId: "1101", planId: "881260830" },
+      })
+    );
     const updated = await client.run((api) =>
       api.planItems.update({
         params: {
           serviceTypeId: "1101",
           planId: "881260830",
-          itemId: "item-1",
+          itemId: item.id,
         },
         payload: { title: "Changed" },
       })
@@ -243,5 +248,96 @@ describe("fixture HTTP parity", () => {
     });
     controller.abort();
     await expect(response).rejects.toMatchObject({ name: "AbortError" });
+  });
+});
+
+describe("fixture writes", () => {
+  const plan = { serviceTypeId: "1101", planId: "881261004" };
+  const slot = { ...plan, teamId: "2201", positionId: "3301" };
+  const date = "2026-10-04T16:00:00.000Z";
+  const historyRows = async (
+    client: ReturnType<typeof fixtureClient>,
+    planPersonId: string
+  ) => {
+    const targetClientNative1 = client;
+    const inputNative1 = { date };
+    const history = await targetClientNative1.run((api) =>
+      api.people.planWindowHistory({ payload: inputNative1 })
+    );
+    return history.people.flatMap((person) =>
+      person.rows.filter((row) => row.id === planPersonId)
+    );
+  };
+  const slotOf = async (
+    client: ReturnType<typeof fixtureClient>,
+    personId: string
+  ) => {
+    const targetClientNative2 = client;
+    const inputNative2 = slot;
+    const { candidates } = await targetClientNative2.run((api) =>
+      api.people.positionCandidates({
+        params: inputNative2,
+        query: inputNative2,
+      })
+    );
+    return candidates.find((candidate) => candidate.id === personId)
+      ?.selectedPlanSlot;
+  };
+
+  it("carry into candidate and history reads, as Planning Center's do", async () => {
+    const client = fixtureClient();
+    const targetClientNative3 = client;
+    const inputNative3 = plan;
+    await targetClientNative3.run((api) =>
+      api.catalog.teamPositions({
+        params: inputNative3,
+        query: {},
+      })
+    );
+    const targetClientNative4 = client;
+    const inputNative4 = {
+      ...plan,
+      planPersonId: "881261004001",
+      status: "D" as const,
+    };
+    await targetClientNative4.run((api) =>
+      api.schedule.updateStatus({ params: inputNative4, payload: inputNative4 })
+    );
+    const declined = await slotOf(client, "4100104");
+    const declinedRows = await historyRows(client, "881261004001");
+    expect({
+      slot: declined?.status,
+      rows: declinedRows.map((row) => row.status),
+    }).toStrictEqual({ slot: "declined", rows: ["D"] });
+    const targetClientNative5 = client;
+    const inputNative5 = {
+      ...plan,
+      planPersonId: "881261004001",
+    };
+    await targetClientNative5.run((api) =>
+      api.schedule.remove({ params: inputNative5, query: inputNative5 })
+    );
+    const removed = await slotOf(client, "4100104");
+    const removedRows = await historyRows(client, "881261004001");
+    expect({ slot: removed, rows: removedRows }).toStrictEqual({
+      slot: null,
+      rows: [],
+    });
+    const targetClientNative6 = client;
+    const inputNative6 = {
+      ...slot,
+      personId: "4100102",
+      teamName: "Band",
+      positionName: "Acoustic Guitar",
+      oneOff: false,
+    };
+    const { data } = await targetClientNative6.run((api) =>
+      api.schedule.assign({ params: inputNative6, payload: inputNative6 })
+    );
+    await expect(slotOf(client, "4100102")).resolves.toStrictEqual({
+      planPersonId: data.id,
+      status: "pending",
+      declineReason: null,
+    });
   });
 });

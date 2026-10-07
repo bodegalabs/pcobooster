@@ -1,5 +1,10 @@
 import { speculativeQuery } from "@pcobooster/client/query";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import {
+  formatCompactAgo,
+  songPreviewFacts,
+} from "@pcobooster/planning-center-models/song-library";
+import type { PreviousSong } from "@pcobooster/planning-center-models/song-library";
 import type { SongCatalogEntry } from "@pcobooster/planning-center-models/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronLeft } from "lucide-react";
@@ -33,8 +38,6 @@ import {
 import { useSongSearch } from "@/hooks/use-song-search";
 import { useSongSuggestions } from "@/hooks/use-song-suggestions";
 import { isQueryFresh } from "@/lib/intent-prefetch";
-import { formatCompactAgo, songPreviewFacts } from "@/lib/song-library";
-import type { PreviousSong } from "@/lib/song-library";
 import { cn } from "@/lib/utils";
 
 /** How long a highlighted song must stay highlighted before its preview loads. */

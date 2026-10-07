@@ -70,7 +70,13 @@ export const resolvePlanItemSongDefaults = (
         title = songTitle;
       }
       arrangementId ??= options.suggestedArrangementId ?? undefined;
-      keyId ??= options.suggestedKeyId ?? undefined;
+      // The suggested key belongs to the suggested arrangement, and `null` is a chosen "no key".
+      if (
+        input.keyId === undefined &&
+        arrangementId === options.suggestedArrangementId
+      ) {
+        keyId = options.suggestedKeyId ?? undefined;
+      }
       selectedLayoutId ??= options.suggestedLayoutId ?? undefined;
       // A new song runs as long as its arrangement, so the service clock counts it.
       // `null` is a chosen "no length", so only a missing one is filled.

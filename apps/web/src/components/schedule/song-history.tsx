@@ -3,6 +3,11 @@ import {
   formatCalendarDateLabel,
   formatCalendarDayInTimeZone,
 } from "@pcobooster/planning-center-models/calendar";
+import {
+  songHistoryCountLabel,
+  songHistoryNote,
+  summarizeSongHistory,
+} from "@pcobooster/planning-center-models/song-library";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -10,26 +15,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { useServiceTypes } from "@/hooks/use-service-types";
 import { useSongHistory } from "@/hooks/use-song-history";
-import {
-  songHistoryCountLabel,
-  summarizeSongHistory,
-} from "@/lib/song-library";
 
 /** The calendar year in the org's zone, from its "YYYY-MM-DD" day. */
 const yearOf = (instant: Date, timeZone: string) =>
   formatCalendarDayInTimeZone(instant, timeZone).slice(0, 4);
-
-/** "this plan" for the plan being built, "later" for plans after its date. */
-const noteOf = (
-  entry: SongHistoryEntry,
-  planId: string | null,
-  planDate: Date
-): string | null => {
-  if (entry.planId !== null && entry.planId === planId) {
-    return "this plan";
-  }
-  return entry.sortDate > planDate ? "later" : null;
-};
 
 const HistoryRow = ({
   entry,
@@ -121,7 +110,7 @@ export const SongHistory = ({
             <HistoryRow
               key={`${entry.planId ?? ""}-${entry.sortDate.toISOString()}`}
               entry={entry}
-              note={noteOf(entry, planId, planDate)}
+              note={songHistoryNote(entry, planId, planDate)}
               planDate={planDate}
               timeZone={timeZone}
             />

@@ -1,0 +1,76 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible: "Morning Light"
+    timeout: 60000
+# Details: history with this plan, later plans, and Show All.
+- tapOn: "Morning Light"
+- assertVisible: "Arrangement and key"
+- scrollUntilVisible:
+    element:
+      id: "plan-item-history"
+    centerElement: true
+- tapOn:
+    id: "plan-item-history"
+- scrollUntilVisible:
+    element:
+      id: "song-history-row-881261004"
+    centerElement: true
+- assertVisible: ".*this plan.*"
+- assertVisible: ".*later.*"
+- assertVisible: "Sung .* in the past year · .* at Sunday Gathering"
+- assertNotVisible:
+    id: "song-history-row-881251005"
+- scrollUntilVisible:
+    element:
+      id: "song-history-toggle"
+    centerElement: true
+- assertVisible: "Show All 14"
+- tapOn:
+    id: "song-history-toggle"
+- scrollUntilVisible:
+    element:
+      id: "song-history-row-881251005"
+    centerElement: true
+- assertVisible: "Show Less"
+- tapOn:
+    id: "plan-editor-close"
+# Transition facts between two songs.
+- tapOn:
+    id: "run-sheet-transition-88126100405"
+- assertVisible: "G to D"
+- takeScreenshot: transition-ideas
+- tapOn:
+    id: "plan-editor-close"
+# The key popover loads keys on open; picking one changes the badge.
+- assertVisible: "Key G"
+- tapOn:
+    id: "run-sheet-key-88126100404"
+- assertVisible: "Default Arrangement"
+- tapOn: "A"
+- assertVisible: "Key A"
+- assertNotVisible: "Key G"
+# Add a song below Morning Light: the preview shows facts against it, and the song lands.
+- assertNotVisible: "A New Morning"
+- longPressOn: "Morning Light"
+- tapOn: "Add Below"
+- tapOn: "Song"
+- tapOn:
+    id: "song-search-field"
+- inputText: "new morning"
+- tapOn:
+    id: "song-palette-row-5534"
+- assertVisible: "Keys"
+- assertVisible: "After A"
+- assertVisible: "G, down a whole step"
+- assertVisible: "Not sung in the past year"
+- tapOn: "Add to Plan"
+- extendedWaitUntil:
+    visible: "A New Morning"
+    timeout: 10000
+- assertVisible:
+    text: "A New Morning"
+    below:
+      text: "Morning Light"
+    above:
+      text: "Steady Ground"

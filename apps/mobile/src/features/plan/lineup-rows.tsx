@@ -17,6 +17,7 @@ import { AppText } from "../../design/app-text";
 import { colors, tokenColor } from "../../design/colors";
 import { Metrics, Spacing } from "../../design/metrics";
 import type { StatusTone } from "../../design/status";
+import { scheduleStatusLabel } from "../../design/status";
 import { positionSymbol } from "./position-symbol";
 import {
   canAddSlot,
@@ -304,13 +305,16 @@ const RowPressable = ({
   children,
   minHeight,
   onPress,
+  accessibilityLabel,
 }: {
   children: ReactNode;
   minHeight: number;
+  accessibilityLabel?: string;
   onPress?: () => void;
 }) => (
   <Pressable
     accessibilityRole="button"
+    accessibilityLabel={accessibilityLabel}
     onPress={onPress}
     style={({ pressed }) => [
       styles.rowPress,
@@ -404,7 +408,11 @@ const PersonRow = ({
   const status = personStatus(person);
   const declined = status === "declined";
   return (
-    <RowPressable onPress={onPress} minHeight={Metrics.minimumTapTarget}>
+    <RowPressable
+      onPress={onPress}
+      minHeight={Metrics.minimumTapTarget}
+      accessibilityLabel={`${person.name}, Status: ${scheduleStatusLabel[status]}`}
+    >
       <View style={styles.personRow}>
         <PersonAvatar
           name={person.name}
@@ -481,7 +489,7 @@ export const TeamSection = ({
   collapsed: boolean;
   onToggle: () => void;
   onAdjust: Adjust;
-  onPerson: (person: FilledPositionPerson) => void;
+  onPerson: (person: FilledPositionPerson, position: TeamPosition) => void;
   onOpen: (position: TeamPosition) => void;
   canSchedule: boolean;
 }) => (
@@ -513,10 +521,10 @@ export const TeamSection = ({
                 />
                 {people.map((person) => (
                   <PersonRow
-                    key={person.planPersonId}
+                    key={person.personId ?? person.id}
                     person={person}
                     onPress={() => {
-                      onPerson(person);
+                      onPerson(person, position);
                     }}
                   />
                 ))}

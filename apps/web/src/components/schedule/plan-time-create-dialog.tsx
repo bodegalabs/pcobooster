@@ -1,3 +1,8 @@
+import {
+  getInvalidPlanTimeEditMessage,
+  isValidPlanTimeEdit,
+} from "@pcobooster/planning-center-models/plan-time-edits";
+import type { EditablePlanTime } from "@pcobooster/planning-center-models/plan-time-edits";
 import type { TeamPositionGroup } from "@pcobooster/planning-center-models/types";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -12,11 +17,6 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@/components/ui/responsive-dialog";
-import {
-  getInvalidPlanTimeEditMessage,
-  isValidPlanTimeEdit,
-} from "@/lib/schedule/plan-time-edits";
-import type { EditablePlanTime } from "@/lib/schedule/plan-time-edits";
 
 interface PlanTimeCreateDialogProps {
   open: boolean;

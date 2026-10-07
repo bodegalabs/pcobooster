@@ -1,0 +1,73 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible: "Countdown"
+    timeout: 60000
+# Move Down and Move Up change the order.
+- longPressOn: "Countdown"
+- tapOn: "Move Down"
+- assertVisible:
+    text: "Countdown"
+    below:
+      text: "Worship"
+- longPressOn: "Countdown"
+- tapOn: "Move Up"
+- assertVisible:
+    text: "Countdown"
+    above:
+      text: "Worship"
+# Swipe this row to remove it, then undo.
+- swipe:
+    from:
+      id: "run-sheet-row-88126100402"
+    direction: LEFT
+- tapOn: "Remove"
+- tapOn: "Remove"
+- assertNotVisible:
+    id: "run-sheet-row-88126100402"
+- tapOn:
+    id: "run-sheet-undo"
+- assertVisible:
+    id: "run-sheet-row-88126100402"
+# A new header takes its name.
+- tapOn: "Header"
+- assertVisible:
+    id: "plan-item-title-field"
+- tapOn:
+    id: "plan-item-title-field"
+- eraseText
+- inputText: "Fixture section"
+- tapOn:
+    id: "plan-editor-close"
+- scrollUntilVisible:
+    element:
+      text: "Fixture section"
+    centerElement: true
+# A double tap on Item adds one item.
+- doubleTapOn: "Item"
+- assertVisible:
+    id: "plan-item-title-field"
+- tapOn:
+    id: "plan-editor-close"
+- scrollUntilVisible:
+    element:
+      text: "New Item"
+    centerElement: true
+- assertNotVisible:
+    text: "New Item"
+    index: 1
+# Reorder mode toggles from More.
+- tapOn: "More"
+- tapOn: "Reorder"
+- takeScreenshot: runsheet-reorder
+- retry:
+    maxRetries: 2
+    commands:
+      - tapOn: "More"
+      - assertVisible: "Done Reordering"
+- tapOn: "Done Reordering"
+- retry:
+    maxRetries: 2
+    commands:
+      - tapOn: "More"
+      - assertVisible: "Reorder"

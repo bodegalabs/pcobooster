@@ -13,6 +13,7 @@ import { Effect, Schema } from "effect";
 import type { Json } from "effect/Schema";
 
 import { fixtureFiles } from "./fixture-files";
+import { makeFixturePlan } from "./fixture-plan";
 import { makeFixtureRoster } from "./fixture-roster";
 import accountsFixture from "./fixtures/accounts.list.json";
 
@@ -151,6 +152,13 @@ export const makeFixtureFetch = ({
   overrides = {},
 }: FixtureFetchOptions): typeof globalThis.fetch => {
   const updateRoster = makeFixtureRoster();
+  const updatePlan = makeFixturePlan((tag, payload) => {
+    const answer = fixtureAnswer(tag, payload);
+    if (!answer.found) {
+      throw new Error(`No fixture for ${tag}`);
+    }
+    return answer.value;
+  });
   return async (input, init) => {
     const request = new Request(input, init);
     const url = new URL(request.url);
@@ -232,7 +240,17 @@ export const makeFixtureFetch = ({
         : { found: true, value: override };
     return answer.found
       ? jsonResponse(
-          updateRoster(match.route.tag, payload, answer.value),
+          updatePlan(
+            match.route.tag,
+            payload,
+            updateRoster(
+              match.route.tag,
+              payload,
+              answer.value,
+              accountId ?? "default"
+            ),
+            accountId ?? "default"
+          ),
           200,
           match.route.tag === "demo.start"
             ? { "set-cookie": FIXTURE_DEMO_COOKIE }

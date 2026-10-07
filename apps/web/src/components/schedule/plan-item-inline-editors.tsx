@@ -1,8 +1,10 @@
+import { parseLengthText } from "@pcobooster/planning-center-models/plan-item-draft";
 import {
   formatDuration,
   keyLabelOf,
   keyOptionPartsOf,
 } from "@pcobooster/planning-center-models/plan-overview";
+import type { KeyTransition } from "@pcobooster/planning-center-models/plan-set-insights";
 import type {
   ArrangementOption,
   KeyOption,
@@ -11,7 +13,6 @@ import type {
 import { useState } from "react";
 
 import { KeyTransitionPopover } from "@/components/schedule/key-transition-popover";
-import { parseLengthText } from "@/components/schedule/plan-tab-helpers";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -29,7 +30,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDraftPopover } from "@/hooks/use-persist-on-close-popover";
 import { useSongOptions } from "@/hooks/use-song-options";
-import type { KeyTransition } from "@/lib/plan-set-insights";
 
 /** The key first, then whose key it is or how it is sung, on its own line. */
 const KeyOptionContent = ({ keyOption }: { keyOption: KeyOption }) => {

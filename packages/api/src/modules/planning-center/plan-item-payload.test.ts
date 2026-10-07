@@ -2,7 +2,10 @@ import {
   buildPlanItemAttributes,
   resolvePlanItemSongDefaults,
 } from "@pcobooster/api/modules/planning-center/plan-item-payload";
-import type { LoadSongOptions } from "@pcobooster/api/modules/planning-center/plan-item-payload";
+import type {
+  LoadSongOptions,
+  PlanItemPayloadInput,
+} from "@pcobooster/api/modules/planning-center/plan-item-payload";
 import { Effect } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -67,6 +70,54 @@ describe("plan item payload helpers", () => {
       key_id: "key-1",
       selected_layout_id: "layout-1",
     });
+  });
+
+  it("fills the suggested key only for the suggested arrangement, and keeps a chosen no-key", async () => {
+    getSongOptionsMock.mockReturnValue(
+      Effect.succeed({
+        song: {
+          id: "song-1",
+          title: "Build My Life",
+          author: "Pat Barrett",
+          themes: "Worship",
+          hidden: false,
+          lastScheduledAt: null,
+        },
+        arrangements: [],
+        layouts: [],
+        currentLayout: null,
+        suggestedArrangementId: "arr-1",
+        suggestedKeyId: "key-1",
+        suggestedLayoutId: null,
+        layoutMode: "existing-only",
+      })
+    );
+    const resolve = async (
+      choice: Pick<PlanItemPayloadInput, "arrangementId" | "keyId">
+    ) => {
+      const resolved = await Effect.runPromise(
+        resolvePlanItemSongDefaults(
+          { serviceTypeId: "service-1", songId: "song-1", ...choice },
+          getSongOptionsMock
+        )
+      );
+      return resolved.keyId;
+    };
+    await expect(
+      Promise.all([
+        resolve({}),
+        resolve({ arrangementId: "arr-1" }),
+        resolve({ arrangementId: "arr-2" }),
+        resolve({ arrangementId: "arr-2", keyId: null }),
+        resolve({ arrangementId: null, keyId: null }),
+      ])
+    ).resolves.toStrictEqual([
+      "key-1",
+      "key-1",
+      undefined,
+      undefined,
+      undefined,
+    ]);
   });
 
   it("gives a new song its arrangement's length unless one was chosen", async () => {

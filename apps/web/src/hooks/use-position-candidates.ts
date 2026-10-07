@@ -6,16 +6,6 @@ import type {
   PlanWindowHistoryBatch,
   PositionCandidates,
 } from "@pcobooster/contracts/people-schemas";
-import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
-import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import type {
-  QueryClient,
-  QueryFunctionContext,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
-
-import { isQueryFresh } from "@/lib/intent-prefetch";
 import {
   advancedBlockoutChecks,
   assembleCandidateList,
@@ -26,11 +16,21 @@ import {
   planCandidateDetailsBatches,
   prefetchCandidateDetailBatches,
   windowHistoryAdvanced,
-} from "@/lib/position-candidates";
+} from "@pcobooster/planning-center-models/candidate-list";
 import type {
   CandidateDetail,
   CandidateListProgress,
-} from "@/lib/position-candidates";
+} from "@pcobooster/planning-center-models/candidate-list";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import type {
+  QueryClient,
+  QueryFunctionContext,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { isQueryFresh } from "@/lib/intent-prefetch";
 import {
   readCachedCandidateAvailability,
   readCachedPlanWindowHistory,

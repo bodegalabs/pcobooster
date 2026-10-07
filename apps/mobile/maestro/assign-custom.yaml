@@ -1,0 +1,33 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible: "Avery Woods"
+    timeout: 30000
+- tapOn:
+    id: "assign-position-menu"
+- scrollUntilVisible:
+    element: "Add Position…"
+    direction: DOWN
+    centerElement: true
+- tapOn: "Add Position…"
+- tapOn:
+    id: "assign-position-name"
+- inputText: "Banjo"
+- pressKey: Enter
+- extendedWaitUntil:
+    notVisible:
+      id: "assign-position-name"
+    timeout: 10000
+- assertVisible: "Banjo"
+- tapOn:
+    id: "assign-someone-else"
+- tapOn:
+    id: "assign-search-people"
+- inputText: "June"
+- tapOn: "Add June Albright"
+- assertVisible: "Status for June Albright"
+- tapOn: "Status for June Albright"
+- tapOn: "Confirmed"
+- assertVisible:
+    id: "assign-status-4100154-confirmed"
+- takeScreenshot: assign-custom

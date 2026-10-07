@@ -1,3 +1,8 @@
+import { groupRankingReasons } from "@pcobooster/planning-center-models/ranking-reasons";
+import type {
+  RankingFact,
+  RankingFactKind,
+} from "@pcobooster/planning-center-models/ranking-reasons";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowDown,
@@ -16,8 +21,6 @@ import {
   ResponsivePopoverContent,
   ResponsivePopoverTrigger,
 } from "@/components/ui/responsive-popover";
-import { groupRankingReasons } from "@/lib/ranking-reasons";
-import type { RankingFact, RankingFactKind } from "@/lib/ranking-reasons";
 import { cn } from "@/lib/utils";
 
 const factIcon: Record<RankingFactKind, LucideIcon> = {

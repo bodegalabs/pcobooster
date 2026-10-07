@@ -1,14 +1,13 @@
-import { describe, expect, it } from "vitest";
-
-import { parseMusicalKey } from "@/lib/key-theory";
-import type { MusicalKey } from "@/lib/key-theory";
+import { parseMusicalKey } from "@pcobooster/planning-center-models/key-theory";
+import type { MusicalKey } from "@pcobooster/planning-center-models/key-theory";
 import {
   appendNote,
   suggestionNote,
   rankAlternateKeys,
   rateKeyChange,
   transitionSuggestions,
-} from "@/lib/key-transition-advice";
+} from "@pcobooster/planning-center-models/key-transition-advice";
+import { describe, expect, it } from "vitest";
 
 const key = (value: string): MusicalKey => {
   const parsed = parseMusicalKey(value);

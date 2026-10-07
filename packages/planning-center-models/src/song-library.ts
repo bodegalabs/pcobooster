@@ -1,10 +1,18 @@
-import type { SongHistoryEntry } from "@pcobooster/contracts/songs";
-import type {
-  ArrangementOption,
-  PlanItem,
-} from "@pcobooster/planning-center-models/types";
+import { keyName, parseMusicalKey, semitonesUp } from "./key-theory";
+import type { ArrangementOption, PlanItem } from "./types";
 
-import { keyName, parseMusicalKey, semitonesUp } from "@/lib/key-theory";
+/**
+ * Facts about a song, never suggestions: the song a new one would follow, its history from a
+ * plan's point of view, and what the add-song palette shows.
+ */
+
+/** A plan that scheduled the song: the fields of a `songs.history` row these facts read. */
+export interface SongHistoryFact {
+  planId: string | null;
+  serviceTypeId: string | null;
+  sortDate: Date;
+  startingKey: string | null;
+}
 
 /** The song a new song would follow, and the key it ends in. */
 export interface PreviousSong {
@@ -116,11 +124,13 @@ export const formatCompactAgo = (at: Date, reference: Date): string => {
   return `${Math.floor(days / YEAR_DAYS)}y`;
 };
 
-export interface SongHistorySummary {
+export interface SongHistorySummary<
+  Entry extends SongHistoryFact = SongHistoryFact,
+> {
   /** The latest time it was sung before the plan, at any service. */
-  last: SongHistoryEntry | null;
+  last: Entry | null;
   /** The soonest plan after this one that already has it. */
-  next: SongHistoryEntry | null;
+  next: Entry | null;
   timesThisYear: number;
   timesHere: number;
   /** Keys it has been sung in, most recent first. */
@@ -132,11 +142,11 @@ export interface SongHistorySummary {
  * before it and what is planned after it, for one service type. The plan itself is
  * neither.
  */
-export const summarizeSongHistory = (
-  history: readonly SongHistoryEntry[],
+export const summarizeSongHistory = <Entry extends SongHistoryFact>(
+  history: readonly Entry[],
   planDate: Date,
   serviceTypeId: string | null
-): SongHistorySummary => {
+): SongHistorySummary<Entry> => {
   const past = history.filter((entry) => entry.sortDate < planDate);
   const upcoming = history.filter((entry) => entry.sortDate > planDate);
   const keys = new Set<string>();
@@ -153,6 +163,18 @@ export const summarizeSongHistory = (
       .length,
     keys: [...keys],
   };
+};
+
+/** "this plan" for the plan being built, "later" for plans after its date. */
+export const songHistoryNote = (
+  entry: SongHistoryFact,
+  planId: string | null,
+  planDate: Date
+): string | null => {
+  if (entry.planId !== null && entry.planId === planId) {
+    return "this plan";
+  }
+  return entry.sortDate > planDate ? "later" : null;
 };
 
 /**
@@ -204,7 +226,7 @@ export const songPreviewFacts = ({
   previousSong,
   planDate,
 }: {
-  history: readonly SongHistoryEntry[] | undefined;
+  history: readonly SongHistoryFact[] | undefined;
   arrangements: readonly ArrangementOption[];
   serviceTypeId: string | null;
   previousSong: PreviousSong | null;

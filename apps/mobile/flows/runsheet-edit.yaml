@@ -1,0 +1,35 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible: "Countdown"
+    timeout: 60000
+- tapOn: "Countdown"
+- assertVisible:
+    id: "plan-item-title-field"
+- tapOn:
+    id: "plan-item-title-field"
+- eraseText
+- inputText: "Countdown edited"
+- tapOn:
+    id: "plan-editor-close"
+- assertVisible: "Countdown edited"
+- tapOn: "Countdown edited"
+- tapOn:
+    id: "plan-item-length-field"
+- eraseText
+- inputText: "4:30"
+- tapOn:
+    id: "plan-editor-close"
+- assertVisible: "4:30"
+- tapOn: "Countdown edited"
+- scrollUntilVisible:
+    element:
+      id: "plan-item-notes-field"
+- tapOn:
+    id: "plan-item-notes-field"
+- eraseText
+- inputText: "Fixture notes"
+- tapOn:
+    id: "plan-editor-close"
+- assertVisible: "Fixture notes"
+- takeScreenshot: runsheet-autosave

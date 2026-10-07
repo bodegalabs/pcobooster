@@ -4,7 +4,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import type { RunSheetEntry } from "@pcobooster/planning-center-models/plan-item-draft";
 import { formatDuration } from "@pcobooster/planning-center-models/plan-overview";
+import type { KeyTransition } from "@pcobooster/planning-center-models/plan-set-insights";
 import type {
   ArrangementOption,
   KeyOption,
@@ -26,7 +28,6 @@ import {
   ItemLengthEditor,
   SongKeyPicker,
 } from "@/components/schedule/plan-item-inline-editors";
-import type { RunSheetEntry } from "@/components/schedule/plan-tab-helpers";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DragHandle } from "@/components/ui/drag-handle";
@@ -40,7 +41,6 @@ import { HoverLabel } from "@/components/ui/hover-card";
 import { Item } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { IntentPrefetchProps } from "@/hooks/use-intent-prefetch";
-import type { KeyTransition } from "@/lib/plan-set-insights";
 import { cn } from "@/lib/utils";
 
 export type PlanInsertKind = "song" | "header" | "item";

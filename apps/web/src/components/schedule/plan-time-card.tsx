@@ -1,5 +1,6 @@
 import { Delete02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { EditablePlanTime } from "@pcobooster/planning-center-models/plan-time-edits";
 import type { TeamPositionGroup } from "@pcobooster/planning-center-models/types";
 import { useState } from "react";
 
@@ -9,7 +10,6 @@ import {
 } from "@/components/schedule/plan-time-form-fields";
 import { Button } from "@/components/ui/button";
 import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
-import type { EditablePlanTime } from "@/lib/schedule/plan-time-edits";
 
 interface PlanTimeCardProps {
   planTimeId: string;

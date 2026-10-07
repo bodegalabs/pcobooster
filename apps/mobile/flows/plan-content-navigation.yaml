@@ -1,0 +1,21 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible: "Overview"
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      text: ".*Morning Light.*"
+    centerElement: true
+- tapOn: ".*Morning Light.*"
+- assertVisible: "Countdown"
+- tapOn: "Overview"
+- scrollUntilVisible:
+    element:
+      text: ".*9:00.*AM.*"
+    centerElement: true
+- tapOn: ".*9:00.*AM.*"
+- assertVisible:
+    id: "time-row-8812610041"
+- tapOn: "Plan"
+- assertVisible: "Countdown"

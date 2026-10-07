@@ -1,5 +1,19 @@
 import { speculativeQuery } from "@pcobooster/client/query";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import type { DraftState } from "@pcobooster/planning-center-models/plan-item-draft";
+import {
+  applyPlanItemDraft,
+  createOptimisticBasicPlanItem,
+  createOptimisticSongPlanItem,
+  insertPlanItem,
+  nextPlanItemSequence,
+  planItemDraftChangesItem,
+  planItemsHaveSameOrder,
+  replacePlanItem,
+  replacePlanItemById,
+  shiftPlanItem,
+} from "@pcobooster/planning-center-models/plan-item-order";
+import type { PlanInsertion } from "@pcobooster/planning-center-models/plan-item-order";
 import type {
   PlanItem,
   PlanItemArrangement,
@@ -11,31 +25,17 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import type { DraftState } from "@/components/schedule/plan-tab-helpers";
 import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import { usePlanItems } from "@/hooks/use-plan-items";
 import { createSongOptionsQueryOptions } from "@/hooks/use-song-options";
 import { isQueryFresh } from "@/lib/intent-prefetch";
 import {
-  applyPlanItemDraft,
   applyPlanItemsOptimisticUpdate,
   collectPlanSongOptionPrefetchIds,
-  createOptimisticBasicPlanItem,
-  createOptimisticSongPlanItem,
-  insertPlanItem,
-  nextPlanItemSequence,
-  planItemDraftChangesItem,
-  planItemsHaveSameOrder,
-  replacePlanItem,
-  replacePlanItemById,
   restorePlanItemsSnapshot,
   settlePlanItemsQuery,
-  shiftPlanItem,
 } from "@/lib/plan-items-query-state";
-import type {
-  PlanInsertion,
-  PlanItemsOptimisticSnapshot,
-} from "@/lib/plan-items-query-state";
+import type { PlanItemsOptimisticSnapshot } from "@/lib/plan-items-query-state";
 import { queryKeys } from "@/lib/query-keys";
 import { requestScheduler } from "@/lib/request-priority";
 import { productClient } from "@/product-client";

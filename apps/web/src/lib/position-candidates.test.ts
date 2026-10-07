@@ -2,8 +2,6 @@ import type {
   PlanWindowHistoryBatch,
   PositionCandidates,
 } from "@pcobooster/contracts/people-schemas";
-import { describe, expect, it, vi } from "vitest";
-
 import {
   advancedBlockoutChecks,
   assembleCandidateList,
@@ -13,8 +11,9 @@ import {
   planCandidateDetailsBatches,
   prefetchCandidateDetailBatches,
   windowHistoryAdvanced,
-} from "@/lib/position-candidates";
-import type { CandidateDetail } from "@/lib/position-candidates";
+} from "@pcobooster/planning-center-models/candidate-list";
+import type { CandidateDetail } from "@pcobooster/planning-center-models/candidate-list";
+import { describe, expect, it, vi } from "vitest";
 
 const DATE = "2026-09-27T17:00:00.000Z";
 

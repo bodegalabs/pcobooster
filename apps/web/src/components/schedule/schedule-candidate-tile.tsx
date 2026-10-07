@@ -1,4 +1,10 @@
+import { summarizeCandidateSchedule } from "@pcobooster/planning-center-models/candidate-summary";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import {
+  otherPlanAssignments,
+  positionFromLabel,
+} from "@pcobooster/planning-center-models/plan-assignment-labels";
+import { preferenceConflicts } from "@pcobooster/planning-center-models/ranking-reasons";
 import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
 import { CalendarPlus, Loader2 } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
@@ -15,12 +21,6 @@ import { Item } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { useSchedulePlanPerson } from "@/hooks/use-schedule-plan-person";
-import { summarizeCandidateSchedule } from "@/lib/people/candidate-summary";
-import {
-  otherPlanAssignments,
-  positionFromLabel,
-} from "@/lib/people/plan-assignment-labels";
-import { preferenceConflicts } from "@/lib/ranking-reasons";
 import { cn } from "@/lib/utils";
 
 const STATUS_META: Record<CandidateStatus, { label: string }> = {

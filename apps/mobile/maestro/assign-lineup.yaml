@@ -1,0 +1,20 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible: ".*Acoustic Guitar.*"
+    timeout: 30000
+- tapOn:
+    text: "Open"
+    index: 0
+- assertVisible: "Acoustic Guitar"
+- extendedWaitUntil:
+    visible: "100 fit.*"
+    timeout: 30000
+- tapOn:
+    id: "assign-add-4100111"
+- extendedWaitUntil:
+    visible: "Status for Avery Woods"
+    timeout: 10000
+- tapOn: "Back"
+- assertVisible: ".*Avery Woods.*"
+- takeScreenshot: assign-lineup

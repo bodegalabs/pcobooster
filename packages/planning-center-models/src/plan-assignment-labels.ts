@@ -12,6 +12,21 @@ export const positionFromLabel = (label: string): string => {
 
 const normalizeLabel = (label: string) => label.trim().toLowerCase();
 
+/** Matches a bare slot or its known team prefix without splitting actual slot names. */
+export const matchesAssignmentPosition = (
+  label: string,
+  positionName: string,
+  teamName?: string
+): boolean => {
+  const normalized = normalizeLabel(label);
+  return (
+    normalized === normalizeLabel(positionName) ||
+    (teamName !== undefined &&
+      normalized ===
+        normalizeLabel(`${teamName.trim()} - ${positionName.trim()}`))
+  );
+};
+
 /**
  * The plan's assignment labels other than this slot, which they include when the person is
  * on it. Labels come from two sources, "Team - Position" and bare "Position", so a bare

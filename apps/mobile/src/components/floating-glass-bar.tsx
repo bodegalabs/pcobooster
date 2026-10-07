@@ -9,14 +9,17 @@ import {
 } from "@expo/ui/swift-ui";
 import {
   Animation,
+  accessibilityIdentifier,
   accessibilityLabel,
   animation,
   buttonStyle,
+  disabled,
   font,
   foregroundStyle,
   frame,
   glassEffect,
   glassEffectId,
+  opacity,
   padding,
 } from "@expo/ui/swift-ui/modifiers";
 // SwiftUI's own names (`contentShape`, `shapes`), read as members.
@@ -39,10 +42,15 @@ export interface FloatingGlassAction {
   readonly showsTitle?: boolean;
   /** Tints the one primary action ink. */
   readonly isProminent?: boolean;
+  /** Dimmed and inert, such as while its last tap is still being saved. */
+  readonly disabled?: boolean;
   readonly onPress: () => void;
+  /** For UI tests. */
+  readonly testID?: string;
 }
 
 const BUTTON_SIZE = 50;
+const DISABLED_OPACITY = 0.5;
 
 const justify = {
   leading: "flex-start",
@@ -132,6 +140,11 @@ export const FloatingGlassBar = ({
                       }),
                       glassEffectId(action.id, namespace),
                       accessibilityLabel(action.title),
+                      disabled(action.disabled === true),
+                      opacity(action.disabled === true ? DISABLED_OPACITY : 1),
+                      ...(action.testID === undefined
+                        ? []
+                        : [accessibilityIdentifier(action.testID)]),
                     ]}
                     onPress={() => {
                       action.onPress();

@@ -1,4 +1,5 @@
 import { speculativeQuery } from "@pcobooster/client/query";
+import { buildPlanMemberPositionId } from "@pcobooster/planning-center-models/custom-position";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { SlotRef } from "@pcobooster/planning-center-models/scheduling-notifications";
 import type {
@@ -38,10 +39,7 @@ import type {
   DashboardView,
   PlanSlotSelection,
 } from "@/lib/schedule-navigation";
-import {
-  buildPlanMemberPositionId,
-  planSlotLink,
-} from "@/lib/schedule-navigation";
+import { planSlotLink } from "@/lib/schedule-navigation";
 import {
   findFirstPosition,
   findNextOpenPosition,
