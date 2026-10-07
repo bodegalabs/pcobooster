@@ -45,7 +45,7 @@ describe(readVersion, () => {
       client: seen[0]?.headers.get("x-pcobooster-client"),
     }).toStrictEqual({
       url: "https://example.test/api/v1/health",
-      client: "deploy;api=1",
+      client: "deploy;api=2",
     });
   });
 
