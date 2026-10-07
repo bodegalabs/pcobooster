@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs fixture-only UI flows on one named simulator. Metro must be running on this worktree's port.
 #
-# Usage: scripts/tap-flows.sh [--simulator <name>] [--suite session|plan] [flow ...]
+# Usage: scripts/tap-flows.sh [--simulator <name>] [--suite session|plan|features] [flow ...]
 #
 # - --simulator picks the simulator by name (default pcob-expo-session); the flows drive only it.
 # - --suite session (default) runs the account and services flows; plan runs the run sheet and
@@ -24,6 +24,7 @@ while [ $# -gt 0 ]; do
 done
 case "$suite" in
   session) defaults=(demo-link switch-account sign-out services-filter account-actions feedback) ;;
+  features) defaults=(people-detail songs-library search-navigation) ;;
   plan) defaults=(runsheet-edit runsheet-song runsheet-menus times-edit times-assign times-create plan-content-navigation) ;;
   *) echo "Unknown suite: $suite" >&2; exit 64 ;;
 esac
@@ -42,7 +43,7 @@ trap 'xcrun simctl terminate "$udid" com.pcobooster.ios >/dev/null 2>&1 || true'
 # for the plan suite.
 launch_args() {
   local flow="$1"
-  if [ "$suite" = session ]; then
+  if [ "$suite" != plan ]; then
     local state=signedIn
     if [ "$flow" = demo-link ]; then state=signedOut; fi
     echo "-PCOBMockSession $state"
