@@ -62,32 +62,29 @@ stamp="build/release-smoke/build.json"
 if [[ "$build" == 1 ]]; then
   mkdir -p build/release-smoke
   rm -f "$stamp"
+  bun run scripts/release/artifact-cli.ts source > "$stamp"
   # The smoke flag is the only difference from a Release build. Analytics stays off (no key),
   # and dotenv files cannot add anything the revision does not hold.
   env -u EXPO_PUBLIC_POSTHOG_KEY -u POSTHOG_PROJECT_KEY \
     EXPO_PUBLIC_PCOB_RELEASE_SMOKE=1 EXPO_NO_DOTENV=1 NODE_ENV=production \
     bash scripts/build-ios.sh --configuration Release --udid "$udid" --no-debug-symbols
-  bundle_sha="$(shasum -a 256 "$app/main.jsbundle" | cut -d' ' -f1)"
-  printf '{"revision":"%s","dirty":%s,"bundleSha256":"%s"}\n' "$revision" "$dirty" "$bundle_sha" > "$stamp"
+  bun run scripts/release/artifact-cli.ts record "$stamp" "$app" release-smoke-app
 fi
 if [[ ! -f "$stamp" || ! -f "$app/main.jsbundle" ]]; then
   echo "No smoke app; run with --build." >&2
   exit 1
 fi
 bundle_sha="$(shasum -a 256 "$app/main.jsbundle" | cut -d' ' -f1)"
-python3 -I - "$stamp" "$revision" "$bundle_sha" <<'PY'
-import json, sys
-stamp = json.load(open(sys.argv[1]))
-if stamp["revision"] != sys.argv[2] or stamp["bundleSha256"] != sys.argv[3]:
-    sys.exit("The smoke app was not built from this revision; run with --build.")
-PY
+bun run scripts/release/artifact-cli.ts verify "$stamp" "$app" release-smoke-app
 bytecode="$(python3 -I -c 'import struct,sys; b=open(sys.argv[1],"rb").read(12); print(struct.unpack("<I", b[8:12])[0] if struct.unpack("<Q", b[:8])[0] == 0x1F1903C103BC1FC6 else "none")' "$app/main.jsbundle")"
 if [[ "$bytecode" == none ]]; then
   echo "$app/main.jsbundle is not Hermes bytecode; this is not a Release build." >&2
   exit 1
 fi
 
-out="$mobile/.captures/release-smoke/$revision$([[ "$dirty" == true ]] && echo -dirty)"
+suffix=""
+if [[ "$dirty" == true ]]; then suffix=-dirty; fi
+out="$mobile/.captures/release-smoke/$revision$suffix"
 rm -rf "$out"
 mkdir -p "$out"
 results="$out/results.tsv"
@@ -150,9 +147,10 @@ run_path restored-offline offline signed-in
 terminate
 
 runtime="$(xcrun simctl list devices -j | python3 -I -c 'import json,sys; u=sys.argv[1]; d=json.load(sys.stdin)["devices"]; print(next(k for k,v in d.items() for x in v if x["udid"]==u))' "$udid")"
-python3 -I - "$out" "$results" <<PY
+python3 -I - "$out" "$results" "$stamp" <<PY
 import json, sys
-out, results = sys.argv[1], sys.argv[2]
+out, results, stamp_file = sys.argv[1:]
+stamp = json.load(open(stamp_file))
 paths = []
 for line in open(results):
     name, network, status, reason = line.rstrip("\n").split("\t")
@@ -163,12 +161,14 @@ manifest = {
     "limits": "Release configuration (Hermes bytecode, no Metro) on the iOS Simulator, built with EXPO_PUBLIC_PCOB_RELEASE_SMOKE=1: fixture or failing network, real Keychain, app storage, and cache restoration. Not the signed TestFlight binary, a physical device, OAuth, or live data.",
     "revision": "$revision",
     "dirty": "$dirty" == "true",
+    "buildStamp": stamp,
     "app": {
         "path": "$app",
         "bundleId": "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist")",
         "version": "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Info.plist")",
         "build": "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app/Info.plist")",
         "mainJsbundleSha256": "$bundle_sha",
+        "appSha256": stamp["appSha256"],
         "hermesBytecodeVersion": int("$bytecode"),
     },
     "simulator": {"name": "$simulator", "udid": "$udid", "runtime": "$runtime"},
@@ -180,3 +180,5 @@ json.dump(manifest, open(f"{out}/manifest.json", "w"), indent=2)
 print(f"==> Evidence: {out}/manifest.json ({manifest['status']})")
 sys.exit(0 if manifest["status"] == "PASS" else 1)
 PY
+bun run scripts/release/artifact-cli.ts seal-evidence "$out"
+bun run scripts/release/artifact-cli.ts verify-evidence "$out" "$app"
