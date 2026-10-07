@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
 import styles from "./demo-control.module.css";
@@ -170,3 +171,33 @@ export const DemoSegments = <Value extends string>({
     ))}
   </span>
 );
+
+/** The product's filled pill select, labelled for assistive technology only. */
+export const DemoPillSelect = ({
+  label,
+  options,
+  ...props
+}: Omit<ComponentProps<"select">, "className" | "style" | "children"> & {
+  label: string;
+  options: readonly { readonly value: string; readonly label: string }[];
+}) => (
+  <label className={styles["pill-select"]}>
+    <span>{label}</span>
+    <select {...props}>
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+    <ChevronDown aria-hidden size={14} />
+  </label>
+);
+
+/**
+ * The chord chart editor's text: transparent glyphs over a highlighted copy of the same
+ * text, so its font metrics must match `.chart-highlight` in the replica's styles.
+ */
+export const DemoChartTextarea = (
+  props: Omit<ComponentProps<"textarea">, "className" | "style">
+) => <textarea {...props} className={styles["chart-textarea"]} />;

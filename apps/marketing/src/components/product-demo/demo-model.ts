@@ -479,15 +479,26 @@ export const isPlanView = (view: DemoView): view is PlanView =>
 export interface DemoRoute {
   readonly view: DemoView;
   readonly positionId: string;
+  /** The song whose chord chart is open in Songs; null shows the library. */
+  readonly songId: string | null;
 }
 
 const routeStore = createStore<DemoRoute>({
   view: "assign",
   positionId: "acoustic",
+  songId: null,
 });
 
 export const useDemoRoute = (): DemoRoute => routeStore.use((state) => state);
 
 export const navigateDemo = (next: Partial<DemoRoute>) => {
   routeStore.set({ ...routeStore.get(), ...next });
+};
+
+/** Opens a view in the page's full replica and scrolls it into sight. */
+export const openInDemo = (view: DemoView, demoAnchorId: string) => {
+  navigateDemo({ view, songId: null });
+  document
+    .querySelector(`#${demoAnchorId}`)
+    ?.scrollIntoView({ behavior: "smooth", block: "start" });
 };

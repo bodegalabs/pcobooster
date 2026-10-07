@@ -501,4 +501,82 @@ export const songs: readonly DemoSong[] = [
     arrangement: "Default",
     keys: ["G", "A"],
   },
+  {
+    id: "s9",
+    title: "Quiet Harbor",
+    writers: "Maren Voss and Jonah Pryce",
+    lastScheduled: "Mar 8, 2026",
+    daysSincePlayed: 217,
+    arrangement: "Default",
+    keys: ["Bb", "C"],
+  },
+  {
+    id: "s10",
+    title: "Lamp Unto My Feet",
+    writers: "Beck Marlow",
+    lastScheduled: "Aug 17, 2025",
+    daysSincePlayed: 420,
+    arrangement: "Default",
+    keys: ["E", "D"],
+  },
 ];
+
+export interface DemoChordChart {
+  /** The key the chords are written in. */
+  readonly key: string;
+  readonly bpm: number;
+  readonly meter: string;
+  /** Planning Center's Lyrics & Chords text: inline `[G]` chords and section headings. */
+  readonly chart: string;
+}
+
+/** Original sample charts, in Planning Center's chord chart format. */
+export const chordCharts = new Map<string, DemoChordChart>([
+  [
+    "s1",
+    {
+      key: "G",
+      bpm: 72,
+      meter: "4/4",
+      chart: [
+        "INTRO",
+        "G / / / | C / / / | Em / D / |",
+        "",
+        "VERSE 1",
+        "[G]Morning light on the [C]hills again",
+        "[Em]Mercy new as the [D]day begins",
+        "[G]Every shadow is [C]giving way",
+        "[Em]You are [D]faithful, [G]faithful",
+        "",
+        "CHORUS",
+        "[C]Lift our [G]eyes, lift our [D]hearts to You",
+        "[Em]All we [C]need, You have [D]carried through",
+        "[C]Morning [G]light, You are [D/F#]breaking [Em]in",
+        "[C]Here we [D]stand and we sing a[G]gain",
+        "",
+        "BRIDGE",
+        "[Em]Over the [C]valley, [G]over the [D]sea",
+        "[Em]Your love is [C]calling, [D]calling to me",
+      ].join("\n"),
+    },
+  ],
+  [
+    "s2",
+    {
+      key: "D",
+      bpm: 68,
+      meter: "6/8",
+      chart: [
+        "VERSE 1",
+        "[D]When the storm is [G]loud",
+        "[Bm]You are steady [A]ground",
+        "[D]When the night is [G]long",
+        "[Bm]You are [A]holding [D]on",
+        "",
+        "CHORUS",
+        "[G]Here I [D]stand, here I [A]stay",
+        "[Bm]On the [G]rock that won't [A]move away",
+      ].join("\n"),
+    },
+  ],
+]);

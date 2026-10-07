@@ -1,6 +1,6 @@
 import Key01Icon from "@hugeicons/core-free-icons/Key01Icon";
 import { Check, NotebookPen } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { DemoButton } from "../ui/demo-control";
 import { DemoIcon, Panel, useDismiss } from "./demo-parts";
@@ -27,8 +27,11 @@ export const KeyTransitionButton = ({
   notes,
   onChangeKey,
   onAddNote,
+  align = "start",
 }: {
   transition: KeyTransition;
+  /** `end` opens the panel leftward, for triggers near the replica's right edge. */
+  align?: "start" | "end";
   song: DemoSong | undefined;
   /** The song's notes, so an idea already in them shows as added. */
   notes: string;
@@ -40,6 +43,14 @@ export const KeyTransitionButton = ({
   useDismiss(ref, open, () => {
     setOpen(false);
   });
+  // A panel opened low in the run sheet scrolls into sight, clear of the floating toolbar.
+  useEffect(() => {
+    if (open) {
+      ref.current
+        ?.querySelector("dialog")
+        ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }, [open]);
   const suggestions = suggestionsFor(transition);
   const tip = transition.level === "smooth";
   if (tip && suggestions.length === 0) {
@@ -63,7 +74,7 @@ export const KeyTransitionButton = ({
         </span>
       </DemoButton>
       {open ? (
-        <Panel label="Key change" align="start" size="wide">
+        <Panel label="Key change" align={align} size="wide">
           <div className={styles["transition-head"]}>
             <h4>
               {transition.from} → {transition.to}

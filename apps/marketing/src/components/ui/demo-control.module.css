@@ -500,3 +500,61 @@
     display: none;
   }
 }
+
+/* The product's filled pill select; its label is for assistive technology only. */
+.pill-select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--foreground);
+}
+.pill-select > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.pill-select select {
+  height: 30px;
+  padding: 0 30px 0 12px;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
+  color: inherit;
+  background: var(--muted);
+  cursor: pointer;
+  appearance: none;
+}
+.pill-select > svg {
+  position: absolute;
+  right: 10px;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+/* Chord chart text over its highlighted copy; metrics match `.chart-highlight`. */
+.chart-textarea {
+  margin: 0;
+  padding: 14px 16px;
+  border: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  tab-size: 2;
+  resize: none;
+  overflow: hidden;
+  color: transparent;
+  caret-color: var(--foreground);
+  background: transparent;
+  outline: 0;
+}
+.chart-textarea::selection {
+  color: transparent;
+  background: color-mix(in oklab, var(--status-info) 22%, transparent);
+}

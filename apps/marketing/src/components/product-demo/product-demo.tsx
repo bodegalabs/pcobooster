@@ -9,11 +9,13 @@ import Sun01Icon from "@hugeicons/core-free-icons/Sun01Icon";
 import UserAdd01Icon from "@hugeicons/core-free-icons/UserAdd01Icon";
 import UsersIcon from "@hugeicons/core-free-icons/UsersIcon";
 import type { IconSvgElement } from "@hugeicons/react";
-import { ChevronLeft, Menu, RotateCcw, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu, RotateCcw, X } from "lucide-react";
 import { useState } from "react";
 
 import { DemoButton } from "../ui/demo-control";
 import { AssignView, CandidateList } from "./assign-view";
+import { resetChordCharts } from "./chart-model";
+import { ChordChartView } from "./chord-chart-view";
 import {
   navigateDemo,
   resetAssignments,
@@ -56,6 +58,7 @@ const sections: readonly ViewEntry<"people" | "songs">[] = [
 const resetDemo = () => {
   resetAssignments();
   resetPlan();
+  resetChordCharts();
 };
 
 const viewLabel = (view: DemoView) =>
@@ -119,7 +122,7 @@ const Sidebar = ({
               variant="nav"
               aria-current={entry.id === view ? "page" : undefined}
               onClick={() => {
-                navigateDemo({ view: entry.id });
+                navigateDemo({ view: entry.id, songId: null });
               }}
             >
               <DemoIcon icon={entry.icon} />
@@ -141,6 +144,27 @@ const Sidebar = ({
     </div>
   </aside>
 );
+
+/** The app shell's breadcrumb: the section, then the open chord chart. */
+const Crumbs = ({ view, songId }: { view: DemoView; songId: string | null }) =>
+  view === "songs" && songId !== null ? (
+    <span className={styles.crumbs}>
+      <DemoButton
+        variant="ghost"
+        onClick={() => {
+          navigateDemo({ songId: null });
+        }}
+      >
+        Songs
+      </DemoButton>
+      <ChevronRight className={styles["crumb-separator"]} aria-hidden />
+      <strong>Chord chart</strong>
+    </span>
+  ) : (
+    <span className={styles.crumbs}>
+      <strong>{viewLabel(view)}</strong>
+    </span>
+  );
 
 /** The header's plan view tabs, with each view's icon beside its label. */
 const PlanViewTabs = ({ view }: { view: DemoView }) => (
@@ -255,7 +279,7 @@ const PhoneMenu = ({
             variant="nav"
             aria-current={entry.id === view ? "page" : undefined}
             onClick={() => {
-              navigateDemo({ view: entry.id });
+              navigateDemo({ view: entry.id, songId: null });
               onClose();
             }}
           >
@@ -296,7 +320,7 @@ const PhoneMenu = ({
 
 /** The full clickable replica: app shell, the plan's views, People, and Songs. */
 export const ProductDemo = () => {
-  const { view, positionId } = useDemoRoute();
+  const { view, positionId, songId } = useDemoRoute();
   const [dark, setDark] = useState(false);
   const [phoneMenuOpen, setPhoneMenuOpen] = useState(false);
   const toggleTheme = () => {
@@ -311,9 +335,7 @@ export const ProductDemo = () => {
           {isPlanView(view) ? (
             <PlanViewTabs view={view} />
           ) : (
-            <span className={styles.crumbs}>
-              <strong>{viewLabel(view)}</strong>
-            </span>
+            <Crumbs view={view} songId={songId} />
           )}
           <span className={styles["sample-badge"]}>Sample data</span>
         </header>
@@ -356,7 +378,10 @@ export const ProductDemo = () => {
           {view === "plan" ? <PlanView /> : null}
           {view === "times" ? <TimesView /> : null}
           {view === "people" ? <PeopleView /> : null}
-          {view === "songs" ? <SongsView /> : null}
+          {view === "songs" && songId === null ? <SongsView /> : null}
+          {view === "songs" && songId !== null ? (
+            <ChordChartView songId={songId} />
+          ) : null}
         </div>
       </div>
     </div>
@@ -392,6 +417,24 @@ export const HistoryShowcase = () => (
         compact
         openHistoryFor={{ personId: "p01", offset: -21 }}
       />
+    </div>
+  </div>
+);
+
+/** Team health and the three check-in lists, without the app shell or the table. */
+export const PeopleShowcase = () => (
+  <div className={`${styles.demo} ${styles.embedded}`}>
+    <div className={styles.content}>
+      <PeopleView compact />
+    </div>
+  </div>
+);
+
+/** The chord chart editor for the sample's opening song. */
+export const ChordChartShowcase = () => (
+  <div className={`${styles.demo} ${styles.embedded}`}>
+    <div className={styles.content}>
+      <ChordChartView songId="s1" />
     </div>
   </div>
 );
