@@ -1,3 +1,4 @@
+import { isPlanningCenterPathId } from "@pcobooster/api/modules/planning-center/path-ids";
 import { normalizeKeyOption } from "@pcobooster/api/modules/planning-center/plan-items-shared";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type {
@@ -25,6 +26,7 @@ import type {
 } from "@pcobooster/contracts/chord-charts";
 import { Conflict } from "@pcobooster/contracts/faults/conflict";
 import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import {
   isNonEmptyString,
   isNumber,
@@ -385,8 +387,21 @@ const readPdfBytes = (
 export const getChordChartPdf = (
   input: ChordChartPdfInput,
   { songs, fetch }: ChordChartPdfDependencies
-): Effect.Effect<ChordChartPdf, PlanningCenterError | ExternalServiceFailure> =>
+): Effect.Effect<
+  ChordChartPdf,
+  PlanningCenterError | ExternalServiceFailure | NotFound
+> =>
   Effect.gen(function* renderChart() {
+    const ids = [input.songId, input.arrangementId];
+    if (input.keyId !== undefined) {
+      ids.push(input.keyId);
+    }
+    if (!ids.every(isPlanningCenterPathId)) {
+      return yield* new NotFound({
+        message: "Planning Center has no chart at this link.",
+        resource: "chart",
+      });
+    }
     const arrangementPath = `/services/v2/songs/${input.songId}/arrangements/${input.arrangementId}`;
     const attachmentPath =
       input.keyId === undefined

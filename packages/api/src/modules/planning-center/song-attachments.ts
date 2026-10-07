@@ -1,3 +1,4 @@
+import { isPlanningCenterPathId } from "@pcobooster/api/modules/planning-center/path-ids";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterSongsService } from "@pcobooster/api/planning-center/services/songs-service";
 import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
@@ -36,14 +37,7 @@ export type SongAttachmentsService = Pick<
  */
 export const MAX_ATTACHMENT_KEYS = 6;
 
-/**
- * Planning Center ids are digits, and its rendered charts' ids are words and dashes
- * (`chord_chart-1--`). Anything else could walk the API path, and `open` is a POST the
- * read-only demo client allows, so it never reaches Planning Center.
- */
-const PLANNING_CENTER_ID = /^[\w-]+$/u;
-
-const validId = (id: string): boolean => PLANNING_CENTER_ID.test(id);
+const validId = isPlanningCenterPathId;
 
 const notFound = () =>
   new NotFound({
