@@ -124,6 +124,24 @@ export const hbcVersion = (bytes: Uint8Array): number | null => {
     : null;
 };
 
+/** A matching header alone is insufficient: the shipped compiler must parse the full bytecode. */
+export const archiveBundleProblems = (
+  bytes: Uint8Array,
+  version: number,
+  inspection: ProbeRun
+): string[] => {
+  const problems: string[] = [];
+  if (hbcVersion(bytes) !== version) {
+    problems.push(`Archived bundle is not Hermes bytecode version ${version}`);
+  }
+  if (inspection.exitCode !== 0) {
+    problems.push(
+      `Archived bytecode failed the matching Hermes reader: ${inspection.stderr.trim()}`
+    );
+  }
+  return problems;
+};
+
 const sameList = (left: readonly string[], right: readonly string[]): boolean =>
   left.length === right.length &&
   left.every((value, index) => value === right[index]);

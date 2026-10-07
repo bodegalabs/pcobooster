@@ -34,6 +34,7 @@ import { makeProductClient } from "@pcobooster/client/product-client";
 import { procedureRoutes } from "@pcobooster/contracts/http/api";
 
 import {
+  archiveBundleProblems,
   hbcVersion,
   hermesVersionFromPodfileLock,
   hermesVersionFromProperties,
@@ -59,13 +60,22 @@ const HERMESC_RELEASE_FLAGS = [
 const run = (
   command: string,
   args: readonly string[],
-  options: { cwd?: string; env?: NodeJS.ProcessEnv } = {}
+  options: {
+    cwd?: string;
+    env?: NodeJS.ProcessEnv;
+    discardStdout?: boolean;
+  } = {}
 ): ProbeRun => {
   const result = spawnSync(command, args, {
     cwd: options.cwd ?? mobile,
     env: options.env ?? process.env,
     encoding: "utf-8",
     maxBuffer: 64 * 1024 * 1024,
+    stdio: [
+      "ignore",
+      options.discardStdout === true ? "ignore" : "pipe",
+      "pipe",
+    ],
   });
   return {
     exitCode: result.status ?? 1,
@@ -392,23 +402,38 @@ const main = async () => {
   let archivedBundle: {
     path: string;
     bytecodeVersion: number | null;
+    sha256: string;
+    integrityExitCode: number;
+    runtimeExecuted: false;
+    validatedBy: string;
     problems: string[];
   } | null = null;
   if (appBundle !== null && appBundle !== undefined) {
-    const found = hbcVersion(readFileSync(appBundle));
+    const bytes = readFileSync(appBundle);
+    const found = hbcVersion(bytes);
+    // -b treats input as bytecode. Discard the enormous dump, but retain diagnostics and status.
+    // This validates the whole artifact without claiming React Native/native startup ran here.
+    const inspection = run(
+      engine.hermesc,
+      ["-b", "-dump-bytecode", appBundle],
+      { discardStdout: true }
+    );
     archivedBundle = {
       path: appBundle,
       bytecodeVersion: found,
-      problems:
-        found === compiler.bytecodeVersion
-          ? []
-          : [
-              `${appBundle} is not Hermes bytecode version ${compiler.bytecodeVersion}`,
-            ],
+      sha256: sha("sha256", appBundle),
+      integrityExitCode: inspection.exitCode,
+      runtimeExecuted: false,
+      validatedBy: "matching-hermesc-bytecode-reader",
+      problems: archiveBundleProblems(
+        bytes,
+        compiler.bytecodeVersion,
+        inspection
+      ),
     };
     console.log(
       archivedBundle.problems.length === 0
-        ? `PASS archived bundle is HBC${found}`
+        ? `PASS archived bundle parsed as HBC${found} (integrity only; app runtime not executed)`
         : `FAIL ${archivedBundle.problems.join("; ")}`
     );
   }

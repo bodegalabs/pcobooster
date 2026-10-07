@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Archive and upload the Expo app to App Store Connect.
-# Usage: bun run ios:release [--no-upload] [--skip-build]
+# Prepare an unsigned archive or explicitly export a signed IPA. Never uploads.
+# Usage: bun run ios:release [--prepare | --no-upload] [--skip-build]
+# --prepare (default) creates and validates an unsigned archive without signing credentials.
 # --no-upload signs and exports an IPA without uploading it.
 # --skip-build exports the existing archive only if it matches this clean revision.
 # BUILD_NUMBER picks the build number; with an API key the next free one is the default.
@@ -10,11 +11,15 @@ mobile="$(cd "$(dirname "$0")/.." && pwd)"
 repo="$(cd "$mobile/../.." && pwd)"
 out="$mobile/build/release"
 archive="$out/PCOBooster.xcarchive"
-destination=upload
+destination=prepare
 skip_build=0
 for argument in "$@"; do
   case "$argument" in
+    --prepare) destination=prepare ;;
     --no-upload) destination=export ;;
+    --upload)
+      echo "BLOCKED: uploads belong to the explicitly dispatched ios-release workflow. Its uploader is disabled until isolated signing and environment protection are proven. Local commands only prepare or export." >&2
+      exit 64 ;;
     --skip-build) skip_build=1 ;;
     --) ;;
     -h | --help) sed -n '2,6p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
@@ -74,7 +79,10 @@ asc_cli() {
 
 signing_args=()
 if [[ "$has_key" == 1 ]]; then signing_args+=(--has-key); fi
-signing="$(cli signing ${signing_args[@]+"${signing_args[@]}"})"
+signing=none
+if [[ "$destination" == export ]]; then
+  signing="$(cli signing ${signing_args[@]+"${signing_args[@]}"})"
+fi
 
 key_dir=""
 locked=0
@@ -134,6 +142,7 @@ if [[ "$skip_build" == 0 ]]; then
   fi
   rm -rf "$out"
   mkdir -p "$out"
+  bun run scripts/release/artifact-cli.ts source > "$out/artifact.json"
   echo "==> Archiving pcobooster.com $revision (build $build)"
   EXPO_PUBLIC_POSTHOG_KEY="${EXPO_PUBLIC_POSTHOG_KEY:-${POSTHOG_PROJECT_KEY:-}}" \
   NODE_ENV=production xcodebuild archive \
@@ -147,11 +156,13 @@ if [[ "$skip_build" == 0 ]]; then
     echo "Source revision changed while archiving; refusing export." >&2
     exit 1
   fi
+  bun run scripts/release/artifact-cli.ts record "$out/artifact.json" "$archive/Products/Applications/PCOBooster.app" release-archive-app
   printf '%s\n' "$revision" > "$out/revision"
   printf '%s\n' "$build" > "$out/build-number"
 fi
 
 app="$archive/Products/Applications/PCOBooster.app"
+bun run scripts/release/artifact-cli.ts verify "$out/artifact.json" "$app" release-archive-app
 info="$app/Info.plist"
 version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$info")"
 archived_build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$info")"
@@ -162,6 +173,11 @@ if [[ "$bundle" != com.pcobooster.ios || "$version" != 0.1.0 || "$archived_build
 fi
 echo "==> Release Hermes gate (host engine, archived bytecode version)"
 bun run scripts/hermes-gate/gate.ts --bundle "$app/main.jsbundle"
+
+if [[ "$destination" == prepare ]]; then
+  echo "==> Unsigned archive prepared at $archive. No signing or upload attempted."
+  exit 0
+fi
 
 auth=(-allowProvisioningUpdates)
 if [[ "$signing" == api-key ]]; then
@@ -180,18 +196,10 @@ cat > "$out/ExportOptions.plist" <<PLIST
   <key>uploadSymbols</key><true/>
 </dict></plist>
 PLIST
-if [[ "$destination" == upload ]]; then
-  # Another release may have uploaded this number, or a higher one, while this one archived.
-  asc_cli build-number verify --build "$build"
-fi
 rm -rf "$out/export"
 echo "==> Exporting pcobooster.com $version ($build), destination=$destination, signing=$signing"
-# One attempt: a failed upload is never retried here, so it cannot upload a duplicate.
+# Local export always uses destination=export. Upload is intentionally unavailable.
 xcodebuild -exportArchive -archivePath "$archive" \
   -exportOptionsPlist "$out/ExportOptions.plist" -exportPath "$out/export" "${auth[@]}"
 echo "==> dSYMs for symbolication: $archive/dSYMs"
-if [[ "$destination" == upload ]]; then
-  echo "==> Upload finished. Check processing and TestFlight with: bun run ios:release:status $build"
-else
-  echo "==> Signed IPA exported to $out/export"
-fi
+echo "==> Signed IPA exported to $out/export"

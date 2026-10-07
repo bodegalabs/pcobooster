@@ -1,0 +1,50 @@
+name: iOS release preparation
+
+on:
+  workflow_dispatch:
+    inputs:
+      request_upload:
+        description: Request the protected upload stage (currently blocked pending signing enablement)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# This app-wide group must cover preparation AND the eventual single upload attempt.
+# Never use a revision/run-specific group or cancel a release during an ambiguous upload.
+concurrency:
+  group: ios-release-com.pcobooster.ios
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main'
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - name: Checkout dispatched revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup toolchain
+        uses: ./.github/actions/setup
+      - name: Check release boundaries
+        run: bun vitest run scripts/mobile-release.test.ts scripts/mobile-hermes-gate.test.ts scripts/release-ios.test.ts scripts/mobile-release-artifacts.test.ts
+      - name: Check matching Release Hermes runtime
+        run: bun run --cwd apps/mobile ios:hermes-gate
+
+  upload:
+    if: github.ref == 'refs/heads/main' && inputs.request_upload
+    needs: prepare
+    runs-on: macos-15
+    timeout-minutes: 5
+    # Intentionally a new, unprovisioned environment. Do not reuse `testflight`, whose
+    # existing identity can read broad production secrets and has no reviewer gate.
+    environment: ios-release-upload
+    steps:
+      - name: Explain blocked upload enablement
+        run: |
+          echo 'BLOCKED: no uploader or signing credential retrieval is enabled.' >&2
+          echo 'Approve and prove the isolated Infisical identity, protected environment, signing export, artifact and symbol gates described in docs/ci-cd.md before enabling this stage.' >&2
+          exit 1

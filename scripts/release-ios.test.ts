@@ -4,6 +4,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -77,8 +78,11 @@ const releaseCheckout = () => {
   onTestFinished(() => {
     rmSync(state, { recursive: true, force: true });
   });
-  const release = (env: Record<string, string>) =>
-    spawnSync("bash", [path.join(scripts, "release-ios.sh")], {
+  const release = (
+    env: Record<string, string | undefined>,
+    args = ["--no-upload"]
+  ) =>
+    spawnSync("bash", [path.join(scripts, "release-ios.sh"), ...args], {
       encoding: "utf-8",
       env: {
         PATH: process.env.PATH ?? "",
@@ -92,6 +96,49 @@ const releaseCheckout = () => {
 };
 
 describe("release-ios.sh before it builds", () => {
+  it.each([
+    {},
+    {
+      CI: "1",
+      GITHUB_ACTIONS: "true",
+      GITHUB_EVENT_NAME: "workflow_dispatch",
+      GITHUB_WORKFLOW: "iOS release preparation",
+    },
+  ])("cannot enable a local upload with environment markers (%j)", (env) => {
+    const { release } = releaseCheckout();
+    const result = release(env, ["--upload"]);
+    expect(result.status).toBe(64);
+    expect(result.stderr).toContain("BLOCKED: uploads belong");
+  });
+
+  it("the sole workflow is manually dispatched, serialized app-wide, and has no enabled uploader or credential reader", () => {
+    const workflow = readFileSync(
+      path.join(import.meta.dirname, "../.github/workflows/ios-release.yml"),
+      "utf-8"
+    );
+    for (const expected of [
+      "workflow_dispatch:",
+      "group: ios-release-com.pcobooster.ios",
+      "cancel-in-progress: false",
+      "environment: ios-release-upload",
+      "inputs.request_upload",
+      "github.ref == 'refs/heads/main'",
+      "BLOCKED: no uploader or signing credential retrieval is enabled.",
+    ]) {
+      expect(workflow).toContain(expected);
+    }
+    expect(workflow).not.toMatch(/^ {2}(?:push|pull_request|workflow_run):/mu);
+    expect(workflow).not.toMatch(
+      /id-token:|actions\/infisical|secrets-action|xcodebuild|ios:release\s/gu
+    );
+    const script = readFileSync(
+      path.join(mobile, "scripts/release-ios.sh"),
+      "utf-8"
+    );
+    expect(script).not.toContain("destination=upload");
+    expect(script).toContain("destination=prepare");
+  });
+
   it.each(["true", "1", "yes"])(
     "refuses the Apple account in Xcode when CI=%s",
     (ci) => {

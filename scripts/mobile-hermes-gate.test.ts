@@ -4,6 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  archiveBundleProblems,
   hbcVersion,
   hermesVersionFromPodfileLock,
   hermesVersionFromProperties,
@@ -164,6 +165,30 @@ describe("a passing probe", () => {
 });
 
 describe("the shipped engine", () => {
+  it("rejects a matching header when the full bytecode reader rejects the file", () => {
+    const header = new Uint8Array(12);
+    const view = new DataView(header.buffer);
+    view.setBigUint64(0, 0x1f_19_03_c1_03_bc_1f_c6n, true);
+    view.setUint32(8, 98, true);
+    expect(hbcVersion(header)).toBe(98);
+    expect(
+      archiveBundleProblems(header, 98, {
+        exitCode: 1,
+        stdout: "",
+        stderr: "File too small",
+      })
+    ).toStrictEqual([
+      "Archived bytecode failed the matching Hermes reader: File too small",
+    ]);
+    expect(
+      archiveBundleProblems(new Uint8Array(), 98, {
+        exitCode: 1,
+        stdout: "",
+        stderr: "Invalid bytecode",
+      })
+    ).toHaveLength(2);
+  });
+
   it("reads the Hermes V1 version React Native's podspec installs", () => {
     expect(
       hermesVersionFromProperties(

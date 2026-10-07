@@ -401,6 +401,14 @@ describe("release-cli", () => {
     const dir = stateDir();
     return { dir, env: { PCOB_RELEASE_STATE_DIR: dir } };
   };
+
+  it("refuses upload-number validation without an App Store Connect read key", () => {
+    const result = cli(["build-number", "verify", "--build", "372"], {});
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      "cannot be validated without an App Store Connect read key"
+    );
+  });
   const choose = (env: Record<string, string>, requested: string | null) =>
     cli(
       [

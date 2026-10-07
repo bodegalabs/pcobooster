@@ -151,10 +151,9 @@ const commands = {
     } else if (args[0] === "verify") {
       const build = parseBuildNumber(required(args, "--build"));
       if (used === null) {
-        console.error(
-          `Build ${build} was not rechecked against App Store Connect (no API key).`
+        throw new Error(
+          `BLOCKED: build ${build} cannot be validated without an App Store Connect read key. No upload is permitted.`
         );
-        return;
       }
       stillUnused(build, used);
       console.error(
