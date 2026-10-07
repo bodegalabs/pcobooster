@@ -148,10 +148,12 @@ const appHarness = (start: Account) => {
       diagnostics.setSession(next.diagnostics);
     },
     answerAll,
-    mutate: async () => {
+    mutate: async (beforeCall: () => Promise<void> = async () => {}) => {
       const mutation = cache.getMutationCache().build(cache, {
-        mutationFn: async (_input: null) =>
-          await client.run((api) => api.catalog.organization()),
+        mutationFn: async (_input: null) => {
+          await beforeCall();
+          return await client.run((api) => api.catalog.organization());
+        },
       });
       try {
         await mutation.execute(null);
@@ -235,6 +237,42 @@ describe("API failures that settle after the context changed", () => {
     await app.answerAll();
     await mutation;
     expect(reported(app.sent)).toStrictEqual([]);
+  });
+
+  it("keeps a query's original consent through retries and renews it only for a new fetch", async () => {
+    const app = appHarness(accountA);
+    const read = app.read();
+    await nextTask(0);
+    app.diagnostics.setPreference("opted-out");
+    app.diagnostics.setPreference("opted-in");
+    await app.answerAll();
+    await read;
+    expect([app.wire.length, reported(app.sent)]).toStrictEqual([2, []]);
+    const nextRead = app.read();
+    await app.answerAll();
+    await nextRead;
+    expect(reported(app.sent)).toStrictEqual([
+      {
+        event: "api request failed",
+        distinct_id: "A",
+        request_id: "request-4",
+      },
+    ]);
+  });
+
+  it("keeps a mutation's original consent when its API call starts after a purge", async () => {
+    const app = appHarness(accountA);
+    const ready = Promise.withResolvers<null>();
+    const mutation = app.mutate(async () => {
+      await ready.promise;
+    });
+    await nextTask(0);
+    app.diagnostics.setPreference("opted-out");
+    app.diagnostics.setPreference("opted-in");
+    ready.resolve(null);
+    await app.answerAll();
+    await mutation;
+    expect([app.wire.length, reported(app.sent)]).toStrictEqual([1, []]);
   });
 
   it("do not send a retry with the new account's credentials, and report nothing", async () => {
