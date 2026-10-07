@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_app/people/$personId")({
   validateSearch: personSearchSchema,
   ssr: "data-only",
   beforeLoad: featureGuard("people"),
+  head: () => ({ meta: [{ title: "Person · pcobooster.com" }] }),
   pendingComponent: PersonDetailPageSkeleton,
   component: PersonRoute,
 });

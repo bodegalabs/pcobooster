@@ -23,6 +23,7 @@ export const Route = createFileRoute("/_app/songs/")({
   // Route checks run on the server; the page renders from browser caches.
   ssr: "data-only",
   beforeLoad: featureGuard("chordCharts"),
+  head: () => ({ meta: [{ title: "Songs · pcobooster.com" }] }),
   pendingComponent: SongsPageSkeleton,
   component: SongsRoute,
 });
