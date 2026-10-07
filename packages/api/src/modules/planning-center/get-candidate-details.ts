@@ -1,6 +1,7 @@
 import { moduleLog } from "@pcobooster/api/logging";
 import { mapSchedulesToServiceHistory } from "@pcobooster/api/modules/planning-center/people/history";
 import {
+  keepPlanTimesWithinCursor,
   planTimePageReads,
   PlanTimeProgress,
 } from "@pcobooster/api/modules/planning-center/people/plan-time-pages";
@@ -284,8 +285,9 @@ const scheduleHistoryFrom = (
  * page they still need, except schedule pages: a follow-up call reads those again (from cache
  * when it can), and the first unfinished person's are always kept room for. Availability and
  * history are complete only once every page they depend on is read. Every call finishes or
- * advances someone. Failed reads fail the call, and a window needing more than
- * `SCHEDULE_MAX_PAGES` schedule pages fails it typed.
+ * advances someone. Failed reads fail the call, and a person with more than
+ * `SCHEDULE_MAX_PAGES` schedule pages, or with more rehearsal plans or times than the cursor
+ * carries, fails it typed.
  */
 export const getCandidateDetails = (
   {
@@ -465,7 +467,17 @@ export const getCandidateDetails = (
               state.wantedTimeIds.add(id);
             }
           }
-          return Effect.void;
+          return keepPlanTimesWithinCursor(
+            state.rehearsalTimes,
+            {
+              planIds: new Set(state.rehearsalPlans.keys()),
+              timeIds: state.wantedTimeIds,
+            },
+            {
+              path: `/services/v2/people/${state.personId}/schedules`,
+              pages: schedules.pages,
+            }
+          );
         }
       );
 

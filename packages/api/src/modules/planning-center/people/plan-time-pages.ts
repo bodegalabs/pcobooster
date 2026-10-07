@@ -1,6 +1,11 @@
 import type { PlanningCenterPage } from "@pcobooster/api/planning-center/core-client";
 import type { PageRead } from "@pcobooster/api/planning-center/page-budget";
+import { PlanningCenterPaginationError } from "@pcobooster/api/planning-center/pagination-error";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import {
+  MAX_PROGRESS_PLANS,
+  MAX_PROGRESS_TIMES,
+} from "@pcobooster/contracts/http/people-schemas";
 import { isString } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
@@ -88,6 +93,20 @@ export class PlanTimeProgress {
     this.offsets.set(planId, page.nextOffset);
   }
 
+  /** Keeps only these plans and times, dropping what the reader no longer waits on. */
+  keepOnly(planIds: ReadonlySet<string>, timeIds: ReadonlySet<string>): void {
+    for (const planId of this.offsets.keys()) {
+      if (!planIds.has(planId)) {
+        this.offsets.delete(planId);
+      }
+    }
+    for (const timeId of this.times.keys()) {
+      if (!timeIds.has(timeId)) {
+        this.times.delete(timeId);
+      }
+    }
+  }
+
   /** Every time found so far, shaped as Planning Center resources. */
   resources(): PCResource[] {
     return [...this.times.values()].map(planTimeResource);
@@ -103,6 +122,33 @@ export class PlanTimeProgress {
     };
   }
 }
+
+/**
+ * Narrows `progress` to the plans and times a reader waits on, after checking its continuation
+ * can carry them: it holds a page offset per plan and every wanted time found until the reader's
+ * history is complete, so it could grow to all of them. Past the bounds the API accepts, the
+ * read fails typed (`cursor-limit`, naming the collection that listed them) instead of
+ * answering with a cursor no follow-up call could send.
+ */
+export const keepPlanTimesWithinCursor = (
+  progress: PlanTimeProgress,
+  wanted: {
+    readonly planIds: ReadonlySet<string>;
+    readonly timeIds: ReadonlySet<string>;
+  },
+  listedBy: { readonly path: string; readonly pages: number }
+): Effect.Effect<void, PlanningCenterPaginationError> => {
+  if (
+    wanted.planIds.size > MAX_PROGRESS_PLANS ||
+    wanted.timeIds.size > MAX_PROGRESS_TIMES
+  ) {
+    return Effect.fail(
+      new PlanningCenterPaginationError({ reason: "cursor-limit", ...listedBy })
+    );
+  }
+  progress.keepOnly(wanted.planIds, wanted.timeIds);
+  return Effect.void;
+};
 
 /** A reader waiting on plans, with the times it looks for on each. */
 export interface PlanTimesWanted {

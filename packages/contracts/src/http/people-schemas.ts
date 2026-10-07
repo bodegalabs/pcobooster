@@ -12,8 +12,9 @@ const MAX_ROSTER_REQUESTS = 100;
 /** Repeating blockouts one person's candidate-details cursor holds, at most. */
 export const MAX_PENDING_BLOCKOUTS = 1000;
 /** Plans whose times one person's history or detail page reads across calls. */
-const MAX_PROGRESS_PLANS = 1000;
-const MAX_PROGRESS_TIMES = 5000;
+export const MAX_PROGRESS_PLANS = 1000;
+/** Times found on those plans that the cursor carries until the person's history is complete. */
+export const MAX_PROGRESS_TIMES = 5000;
 
 export const blockoutSchema = Schema.Struct({
   id: Schema.String,

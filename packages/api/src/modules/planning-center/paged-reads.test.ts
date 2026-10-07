@@ -22,7 +22,10 @@ import type {
 import type { PeopleDashboardPersonDetail } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
 import type { PlanTimesProgress } from "@pcobooster/api/modules/planning-center/people/plan-time-pages";
 import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
-import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
+import {
+  createBasicPlanningCenterClient,
+  PLANNING_CENTER_PAGE_SIZE,
+} from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterPage } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterPaginationError } from "@pcobooster/api/planning-center/pagination-error";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
@@ -47,7 +50,12 @@ import {
   peopleCandidateDetailsInputSchema,
   peoplePlanWindowHistoryInputSchema,
 } from "@pcobooster/contracts/http/people";
-import { MAX_PENDING_BLOCKOUTS } from "@pcobooster/contracts/http/people-schemas";
+import {
+  candidateDetailsBatchSchema,
+  MAX_PENDING_BLOCKOUTS,
+  MAX_PROGRESS_TIMES,
+  planTimesProgressSchema,
+} from "@pcobooster/contracts/http/people-schemas";
 import { buildFrequencyFromServiceHistory } from "@pcobooster/planning-center-models/candidate-frequency";
 import {
   candidateDetailsAdvanced,
@@ -291,6 +299,9 @@ const decodeCandidateDetailsInput = Schema.decodeUnknownOption(
 );
 const decodeWindowHistoryInput = Schema.decodeUnknownOption(
   peoplePlanWindowHistoryInputSchema
+);
+const decodePlanTimesProgress = Schema.decodeUnknownOption(
+  planTimesProgressSchema
 );
 
 /** Follows the continuation the way the browser does, each call its own invocation. */
@@ -1026,6 +1037,105 @@ describe("candidate schedule history over many rehearsal plans", () => {
   });
 });
 
+/**
+ * One person serving `plans` plans in the window, each listing 100 rehearsal times that
+ * `include=plan_times` leaves out, on one plan-time page per plan.
+ */
+const manyTimesOrg = (personId: string, plans: number): FakeOrg => {
+  const collections = new Map<string, Collection>();
+  const schedules = Array.from({ length: plans }, (_unused, index) => {
+    const planId = `${personId}-times-${index}`;
+    const times = Array.from(
+      { length: PLANNING_CENTER_PAGE_SIZE },
+      (_, time): PCResource => ({
+        type: "PlanTime",
+        id: `${planId}-${time}`,
+        attributes: {
+          time_type: "rehearsal",
+          starts_at: atDay(PLAN_DATE, -1 - (time % 3)),
+        },
+      })
+    );
+    collections.set(`/services/v2/plans/${planId}/plan_times`, {
+      data: times,
+    });
+    return datedSchedule(
+      personId,
+      index,
+      planId,
+      PLAN_DATE,
+      times.map(({ id }) => id)
+    );
+  });
+  collections.set(schedulesPath(personId), { data: schedules });
+  return { collections, resources: new Map() };
+};
+
+const decodeCandidateDetailsBatch = Schema.decodeUnknownOption(
+  candidateDetailsBatchSchema
+);
+
+describe("candidate schedule history with more rehearsal times than one call reads", () => {
+  const input: CandidateDetailsInput = {
+    personIds: ["p0"],
+    planId: SELECTED_PLAN,
+    date: PLAN_DATE,
+    scheduleHistory: true,
+  };
+  const plansAtBound = MAX_PROGRESS_TIMES / PLANNING_CENTER_PAGE_SIZE;
+
+  it("carries every time found, up to the cursor's bound, in answers and cursors the API accepts", async () => {
+    const org = manyTimesOrg("p0", plansAtBound);
+    const server = fakePlanningCenter(org);
+
+    const continued = await continueCandidateDetails(input, () =>
+      peopleService(server.fetch)
+    );
+    const exhaustive = await exhaustiveCandidateDetails(input, org);
+
+    expect({
+      details: continued.details,
+      rehearsals: continued.details.map(rehearsals),
+      severalCalls: continued.batches.length > 1,
+      everyAnswerValid: continued.batches.every((batch) =>
+        Option.isSome(decodeCandidateDetailsBatch(batch))
+      ),
+    }).toStrictEqual({
+      details: exhaustive,
+      rehearsals: [MAX_PROGRESS_TIMES],
+      severalCalls: true,
+      everyAnswerValid: true,
+    });
+  });
+
+  it("fails typed, before reading their plans, when the times would outgrow the cursor", async () => {
+    const server = fakePlanningCenter(manyTimesOrg("p0", plansAtBound + 1));
+
+    const exit = await Effect.runPromiseExit(
+      getCandidateDetails(input, {
+        people: peopleService(server.fetch),
+        resolveTimeZone: Effect.succeed(ORG_TIME_ZONE),
+      })
+    );
+
+    expect({
+      exit,
+      planTimePages: server.sent.filter(({ path }) =>
+        path.endsWith("/plan_times")
+      ).length,
+    }).toStrictEqual({
+      exit: Exit.fail(
+        new PlanningCenterPaginationError({
+          reason: "cursor-limit",
+          path: schedulesPath("p0"),
+          pages: 1,
+        })
+      ),
+      planTimePages: 0,
+    });
+  });
+});
+
 describe("candidate availability over thousands of repeating blockouts", () => {
   /** 2,000 repeating blockouts that may cover the plan day, none of whose dates do. */
   const manyParentsOrg = (): FakeOrg => {
@@ -1217,6 +1327,77 @@ describe("person detail over paged plan times", () => {
       everyCallWithinBudget: true,
       partialsContinue: true,
     });
+  });
+
+  /** September plans each listing 100 rehearsal times that only their own pages hold. */
+  const manyTimesDetailOrg = (plans: number): FakeOrg => {
+    const org = manyTimesOrg("person-1", plans);
+    const schedules = org.collections.get(schedulesPath("person-1"));
+    org.collections.set(schedulesPath("person-1"), {
+      data: (schedules?.data ?? []).map((schedule, index) => ({
+        ...schedule,
+        attributes: {
+          ...schedule.attributes,
+          sort_date: atDay("2026-09-01T17:00:00Z", index % 28),
+        },
+      })),
+    });
+    return { ...org, resources: detailOrg().resources };
+  };
+  const plansAtBound = MAX_PROGRESS_TIMES / PLANNING_CENTER_PAGE_SIZE;
+
+  it("keeps every continuation within what the API accepts at the cursor's bound", async () => {
+    vi.useFakeTimers({
+      now: Date.parse("2026-09-16T12:00:00Z"),
+      toFake: ["Date"],
+    });
+    const server = fakePlanningCenter(manyTimesDetailOrg(plansAtBound));
+
+    const calls = await continuePersonDetail(server.fetch);
+
+    expect({
+      unresolved: calls.at(-1)?.detail.requestBudget.unresolvedRehearsalTimes,
+      severalCalls: calls.length > 1,
+      everyCursorValid: calls.every(
+        ({ detail }) =>
+          detail.continuation === null ||
+          Option.isSome(decodePlanTimesProgress(detail.continuation))
+      ),
+    }).toStrictEqual({
+      unresolved: 0,
+      severalCalls: true,
+      everyCursorValid: true,
+    });
+  });
+
+  it("fails typed when the missing times would outgrow the cursor", async () => {
+    vi.useFakeTimers({
+      now: Date.parse("2026-09-16T12:00:00Z"),
+      toFake: ["Date"],
+    });
+    const server = fakePlanningCenter(manyTimesDetailOrg(plansAtBound + 1));
+
+    const exit = await Effect.runPromiseExit(
+      getPeopleDashboardPerson({
+        personId: "person-1",
+        month: "2026-09",
+        dependencies: {
+          ...otherServices,
+          peopleService: peopleService(server.fetch),
+          detailCache: new PlanningCenterReadCache(),
+        },
+      })
+    );
+
+    expect(exit).toStrictEqual(
+      Exit.fail(
+        new PlanningCenterPaginationError({
+          reason: "cursor-limit",
+          path: schedulesPath("person-1"),
+          pages: 1,
+        })
+      )
+    );
   });
 });
 

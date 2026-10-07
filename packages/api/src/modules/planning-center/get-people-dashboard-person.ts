@@ -14,6 +14,7 @@ import type {
   PeopleDashboardPersonDetail,
 } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
 import {
+  keepPlanTimesWithinCursor,
   planTimePageReads,
   PlanTimeProgress,
 } from "@pcobooster/api/modules/planning-center/people/plan-time-pages";
@@ -28,6 +29,7 @@ import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-c
 import { readPagesWithinBudget } from "@pcobooster/api/planning-center/page-budget";
 import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import {
+  pagesFor,
   planningCenterRequestsSpent,
   PROGRESSIVE_REQUEST_BUDGET,
   withPlanningCenterRequestCount,
@@ -280,15 +282,17 @@ interface ResolvedPlanTimes {
  * lack them, all within `PROGRESSIVE_REQUEST_BUDGET` counted requests. Ranges go to the service
  * types missing the most times, and leave room for plan-by-plan reads; a plan's pages stop once
  * its missing times are found. Pages that do not fit come back as a continuation holding the
- * times found so far, and a follow-up call reads only plan pages. A service type or plan
- * Planning Center does not find contributes no times; any other failure fails the read.
+ * times found so far, and a follow-up call reads only plan pages; more missing times than that
+ * continuation carries fail the read typed. A service type or plan Planning Center does not
+ * find contributes no times; any other failure fails the read.
  */
 const resolveMissingPlanTimes = (
   schedules: PCResource[],
   included: PCResource[],
   window: PersonScheduleWindow,
   dependencies: ScheduleReaders,
-  continuation: PlanTimesProgress | undefined
+  continuation: PlanTimesProgress | undefined,
+  listedBy: { readonly path: string; readonly pages: number }
 ): Effect.Effect<ResolvedPlanTimes, PlanningCenterError> => {
   const { byServiceType, missingTimeIds } = findMissingPlanTimes(
     schedules,
@@ -301,6 +305,16 @@ const resolveMissingPlanTimes = (
   return Effect.gen(function* readMissingPlanTimes() {
     const planTimes = new PlanTimeProgress(continuation, (id) =>
       missingTimeIds.has(id)
+    );
+    yield* keepPlanTimesWithinCursor(
+      planTimes,
+      {
+        planIds: new Set(
+          unresolvedTimesByPlan(schedules, missingTimeIds).keys()
+        ),
+        timeIds: missingTimeIds,
+      },
+      listedBy
     );
     if (continuation === undefined) {
       const beforeRanges = yield* planningCenterRequestsSpent;
@@ -510,7 +524,11 @@ const readPersonSchedules = (
       schedules.included,
       window,
       dependencies,
-      continuation
+      continuation,
+      {
+        path: `/services/v2/people/${personId}/schedules`,
+        pages: pagesFor(schedules.data.length),
+      }
     );
     return { schedules: schedules.data, unsent, ...resolved };
   });
