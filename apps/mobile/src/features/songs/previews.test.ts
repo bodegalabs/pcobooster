@@ -331,12 +331,43 @@ describe("a drawing's failure and Try again", () => {
 });
 
 describe("what a preview holds only while on screen", () => {
+  it("keeps a returned screen awake when its old activation finishes late", async () => {
+    const oldActivation = Promise.withResolvers<boolean>();
+    const held = new Set<string>();
+    let activations = 0;
+    const activate = async (tag: string) => {
+      activations += 1;
+      if (activations === 1) {
+        await oldActivation.promise;
+      }
+      held.add(tag);
+    };
+    const deactivate = vi.fn<(tag: string) => Promise<void>>(async (tag) => {
+      held.delete(tag);
+      await Promise.resolve();
+    });
+    const leaveOld = holdKeepAwake("same-screen", activate, deactivate);
+    leaveOld();
+    const leaveReturned = holdKeepAwake("same-screen", activate, deactivate);
+    await Promise.resolve();
+    expect(held.size).toBe(1);
+    oldActivation.resolve(true);
+    await vi.waitFor(() => {
+      expect(deactivate).toHaveBeenCalledTimes(2);
+    });
+    expect(held.size).toBe(1);
+    leaveReturned();
+    expect(held.size).toBe(0);
+  });
+
   it("releases keep-awake again when the screen left before activation finished", async () => {
     const activation = Promise.withResolvers<boolean>();
     const calls: string[] = [];
+    let acquiredTag = "";
     const release = holdKeepAwake(
       "song-preview-1",
       async (tag) => {
+        acquiredTag = tag;
         calls.push(`activate ${tag}`);
         await activation.promise;
       },
@@ -349,9 +380,9 @@ describe("what a preview holds only while on screen", () => {
     activation.resolve(true);
     await vi.waitFor(() => {
       expect(calls).toStrictEqual([
-        "activate song-preview-1",
-        "deactivate song-preview-1",
-        "deactivate song-preview-1",
+        `activate ${acquiredTag}`,
+        `deactivate ${acquiredTag}`,
+        `deactivate ${acquiredTag}`,
       ]);
     });
   });

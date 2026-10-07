@@ -7,8 +7,10 @@
 
 type KeepAwakeCall = (tag: string) => Promise<void>;
 
+let acquisitions = 0;
+
 /**
- * Keeps the screen awake under `tag` until the returned release runs. Activation is
+ * Keeps the screen awake under a unique acquisition of `tag` until the returned release runs. Activation is
  * asynchronous, so a release that comes first is applied again once activation finishes:
  * a left screen never keeps the device awake.
  */
@@ -17,18 +19,20 @@ export const holdKeepAwake = (
   activate: KeepAwakeCall,
   deactivate: KeepAwakeCall
 ): (() => void) => {
+  acquisitions += 1;
+  const acquisitionTag = `${tag}:${acquisitions}`;
   let released = false;
   // Keep-awake is best effort: a failed call leaves the system's own idle timer in charge.
   const release = async () => {
     try {
-      await deactivate(tag);
+      await deactivate(acquisitionTag);
     } catch {
       // See above.
     }
   };
   void (async () => {
     try {
-      await activate(tag);
+      await activate(acquisitionTag);
     } catch {
       return;
     }
