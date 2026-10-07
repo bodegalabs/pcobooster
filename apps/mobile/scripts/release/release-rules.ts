@@ -140,3 +140,76 @@ export const stillUnused = (
     );
   }
 };
+
+/**
+ * PostHog project 614621's public ingestion key, the same one pcobooster.com serves in its web
+ * bundle. It is a client key, not a secret, so it is committed here: every release archive bakes
+ * it in from source, and no release step has to read the application's secrets to get it.
+ */
+export const POSTHOG_PROJECT_KEY =
+  "phc_AknTLSXtT8F8KEuukTcnuS7DKSiekTGmDMfVy3UBn8B4";
+
+const ANALYTICS_KEY_VARIABLES = [
+  "EXPO_PUBLIC_POSTHOG_KEY",
+  "POSTHOG_PROJECT_KEY",
+] as const;
+
+/**
+ * The analytics key a release archive embeds. A key in the environment must be this same key, so
+ * a release can neither ship with analytics silently off nor report to another project.
+ */
+export const releaseAnalyticsKey = (
+  env: Readonly<Record<string, string | undefined>>
+): string => {
+  for (const name of ANALYTICS_KEY_VARIABLES) {
+    const value = env[name] ?? "";
+    if (value !== "" && value !== POSTHOG_PROJECT_KEY) {
+      throw new Error(
+        `${name} is not pcobooster.com's PostHog project key. Unset it; releases embed the committed key.`
+      );
+    }
+  }
+  return POSTHOG_PROJECT_KEY;
+};
+
+/**
+ * Embedded frameworks that ship without a dSYM: React Native's prebuilt binaries, as build 373's
+ * real export showed. Apple cannot symbolicate native frames inside them; the app's own binary
+ * and every framework built from source still need symbols.
+ */
+export const PREBUILT_FRAMEWORKS_WITHOUT_DSYMS = [
+  "React.framework",
+  "ReactNativeDependencies.framework",
+  "hermesvm.framework",
+] as const;
+
+export type ProcessingOutcome = "processed" | "failed" | "pending";
+
+const FAILED_PROCESSING = new Set(["FAILED", "INVALID"]);
+
+/**
+ * Where App Store Connect's processing of an uploaded build stands. Only a VALID, unexpired build
+ * with this exact build number and version counts as processed; a build not listed yet is pending.
+ */
+export const processingOutcome = (
+  state: {
+    readonly processingState: string | null;
+    readonly version: string | null;
+    readonly shortVersion: string | null;
+    readonly expired: boolean | null;
+  } | null,
+  build: number,
+  version: string
+): ProcessingOutcome => {
+  if (
+    state?.processingState === "VALID" &&
+    state.version === String(build) &&
+    state.shortVersion === version &&
+    state.expired !== true
+  ) {
+    return "processed";
+  }
+  return FAILED_PROCESSING.has(state?.processingState ?? "")
+    ? "failed"
+    : "pending";
+};

@@ -33,7 +33,7 @@ Reports follow "Share usage analytics and error reports" (Account), which is on 
 
 | Context | What happens |
 | --- | --- |
-| Development build, fixture mode, or no `EXPO_PUBLIC_POSTHOG_KEY` | Diagnostics is off. Nothing is kept. |
+| Development build, fixture mode, or no `EXPO_PUBLIC_POSTHOG_KEY` (release archives always embed it; see [analytics key](ci-cd.md#analytics-key)) | Diagnostics is off. Nothing is kept. |
 | Preference still being read | Held. |
 | Opted out | Dropped, and everything held is deleted (memory and the pending-fatal file). |
 | Demo or development session | Dropped, and everything held is deleted. |
@@ -101,7 +101,7 @@ Debug IDs alone cannot show that a composed map belongs to the bundle: before th
 
 `scripts/release-ios.sh` is owned by the release work (#300, #306) and is not changed here. It does not run these steps yet: until it does, a release archive has no source maps in PostHog, and this contract is a required integration boundary for that work. Nothing in `node_modules` is patched and PostHog's Xcode wrapper is not used.
 
-**Archive step** (no PostHog credentials in this environment). Export these for `xcodebuild archive`, alongside the existing `EXPO_PUBLIC_POSTHOG_KEY`:
+**Archive step** (no PostHog credentials in this environment). Export these for `xcodebuild archive`, alongside `EXPO_PUBLIC_POSTHOG_KEY`, which `release-ios.sh` sets from the committed project key and checks in the archived bundle:
 
 | Variable | Value | Purpose |
 | --- | --- | --- |

@@ -72,7 +72,46 @@ A deploy you run yourself (`bun run deploy:production`, `bun run infra:deploy`) 
 
 ## iOS releases (TestFlight)
 
-Local release commands prepare archives or export signed IPAs; they never upload. From clean committed source after `bun run ci` and `bun run build`:
+Until the CI executor below is enabled, TestFlight builds ship from a person's Mac with `ios:testflight`, the one supported local upload path. `ios:release` on its own still only prepares archives or exports signed IPAs, and `release-ios.sh --upload` stays refused.
+
+### Local TestFlight release
+
+From the main checkout (or any worktree) at `origin/main` with no changes, signed into Xcode with an account on team `6C46GY4Z38`, with the `pcob-release-smoke` simulator and Maestro installed (see [Release smoke check](#release-smoke-check)):
+
+```bash
+infisical run --env=prod --path=/apple --projectId=2eca20e1-20ac-4f06-a086-99ea5c590483 -- bun run --cwd apps/mobile ios:testflight
+```
+
+Inject only Production `/apple` (`ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8_BASE64`), never the application's `/` secrets. `scripts/release/testflight.ts` runs, in order:
+
+1. Refuses a CI/provider marker, a preset `BUILD_NUMBER`, a missing App Store Connect key, or an analytics key other than the committed one, before running anything.
+2. Fetches `origin/main` and requires `HEAD` to equal it with no tracked or untracked changes. Runs `bun install --frozen-lockfile` (a fresh worktree has no dependencies), `bun run ci`, `bun run build`, and `ios:release-smoke --build`, then rechecks the checkout. None of these steps sees the Apple key.
+3. Runs `release-ios.sh --no-upload` with `PCOB_RELEASE_SIGNING=xcode-account` unless set otherwise. With the key, the build number is one above every App Store Connect build, every in-flight upload, every local claim, and floor 292; it is claimed before archiving. The Hermes gate runs before and after archiving, and the archive must embed the PostHog key ([analytics key](#analytics-key)).
+4. Runs the [signed export gate](#signed-export-gate) against the IPA, with the React Native prebuilt frameworks below exempted from the dSYM check.
+5. Rechecks that App Store Connect has nothing at or above the number, prints the version, build, revision, and IPA hash, and asks you to type the build number back (`--yes` skips this). Then makes one `xcrun altool --upload-package` with `--apple-id` (the numeric App Store Connect app id, which `findAppId` looks up), `--bundle-id`, `--bundle-version`, `--bundle-short-version-string`, and `--p8-file-path` pointing at an owner-only temporary key removed afterwards, also on interrupt.
+6. Polls `ios:release:status` once a minute, for at most 30 minutes, until the build is `VALID` with this number and version `0.1.0`. `INVALID` or `FAILED` fails the run; a timeout exits non-zero and says the outcome is pending.
+
+A failed or interrupted upload is never retried: Apple may still have it. Check `ios:release:status <build>`. The number stays claimed locally and burned, and the next release takes a higher one. Source maps are not uploaded and the CI ledger is not written; the source-map workstream and the executor own those. Tester-group access and installed-device acceptance remain manual.
+
+Build 373 (2026-10-07, `524e880c`) was the first local upload: an `xcode-account` export and a hand-run `altool` with the flags above. App Store Connect processed it `VALID`. It shipped without the analytics key, so PostHog has no events or `$exception` from it; that release is why the key is now committed and checked.
+
+### What's in TestFlight
+
+```bash
+infisical run --env=prod --path=/apple --projectId=2eca20e1-20ac-4f06-a086-99ea5c590483 -- bun run --cwd apps/mobile ios:release:latest
+# Or the newest N builds, default 10, at most 200:
+infisical run ... -- bun run --cwd apps/mobile ios:release:builds --limit 5
+```
+
+Both print JSON: each build's number, version, processing state, upload date, expiry, TestFlight internal and external states, and beta groups, newest upload first. `pendingUploads` lists uploads numbered above every listed build that App Store Connect has not listed as builds yet. `ios:release:status <build>` reads one build.
+
+### Analytics key
+
+The app reports analytics and diagnostics to PostHog project 614621 only when its archive embeds `EXPO_PUBLIC_POSTHOG_KEY` ([mobile diagnostics](mobile-diagnostics.md)). That project key is a public ingestion token that pcobooster.com already serves in its web bundle, so it is committed as `POSTHOG_PROJECT_KEY` in `apps/mobile/scripts/release/release-rules.ts` and every release archive embeds it from source. No release step reads Infisical `/` for it. `release-ios.sh` refuses an `EXPO_PUBLIC_POSTHOG_KEY` or `POSTHOG_PROJECT_KEY` in the environment that differs from the committed key, and refuses any archive whose `main.jsbundle` does not contain it, including a `--skip-build` export. If the project key ever rotates, change the constant in a reviewed commit. The symbol-upload key (`POSTHOG_CLI_API_KEY`) is a different, secret credential and is still never baked in.
+
+### Preparing or exporting without uploading
+
+From clean committed source after `bun run ci` and `bun run build`:
 
 ```bash
 BUILD_NUMBER=<explicit-number> bun run ios:release --prepare
@@ -80,9 +119,9 @@ BUILD_NUMBER=<explicit-number> bun run ios:release --prepare
 BUILD_NUMBER=<explicit-number> PCOB_RELEASE_SIGNING=xcode-account bun run ios:release --no-upload
 ```
 
-`--prepare` is the default: clean Expo prebuild, Pods, unsigned Release arm64 archive, exact source/app provenance, and the matching Hermes gate. It does not sign. `--no-upload` additionally signs and exports an IPA using `destination=export`. `--skip-build` reuses only a stamped archive whose revision, source state, native app files, JavaScript bundle, identity, version, and build number still match. The app keeps version `0.1.0` and bundle ID `com.pcobooster.ios`; production API requests use `https://pcobooster.com`. Archives need 15 GiB free disk and land in ignored `apps/mobile/build/release/`. Dotenv is disabled. Upload flags fail before native generation; environment markers cannot turn a local command into an uploader.
+`--prepare` is the default: clean Expo prebuild, Pods, unsigned Release arm64 archive, exact source/app provenance, and the matching Hermes gate. It does not sign. `--no-upload` additionally signs and exports an IPA using `destination=export`. `--skip-build` reuses only a stamped archive whose revision, source state, native app files, JavaScript bundle, identity, version, and build number still match. The app keeps version `0.1.0` and bundle ID `com.pcobooster.ios`; production API requests use `https://pcobooster.com`. Archives need 15 GiB free disk and land in ignored `apps/mobile/build/release/`. Dotenv is disabled. Upload flags fail before native generation; environment markers cannot turn `release-ios.sh` into an uploader.
 
-An ASC read key allows allocation above every iOS build and in-flight upload, with a machine-local claim ledger and lock preventing reuse within local preparation. Without a key, preparation/export requires an explicit number above floor 292 and local claims; that number is **not validated against ASC and cannot be uploaded**. `build-number verify` fails without a read key. Git ancestry is never used. Local claims are preparation bookkeeping, not a distributed reservation: separate machines can observe the same ASC snapshot. Only the serialized executor may upload.
+An ASC read key allows allocation above every iOS build and in-flight upload, with a machine-local claim ledger and lock preventing reuse within local preparation. Without a key, preparation/export requires an explicit number above floor 292 and local claims; that number is **not validated against ASC and cannot be uploaded** (`ios:testflight` requires the key). `build-number verify` fails without a read key. Git ancestry is never used. Local claims are preparation bookkeeping, not a distributed reservation: separate machines can observe the same ASC snapshot, so run one release at a time.
 
 For ASC reads or API-key export, inject only Production `/apple`, never the application's `/` secrets:
 
@@ -90,11 +129,11 @@ For ASC reads or API-key export, inject only Production `/apple`, never the appl
 infisical run --env=prod --path=/apple --projectId=2eca20e1-20ac-4f06-a086-99ea5c590483 -- bun run ios:release --no-upload
 ```
 
-`ASC_KEY_ID`, `ASC_ISSUER_ID`, and one of `ASC_KEY_P8_BASE64` or `ASC_KEY_PATH` supply the key. Credentials are removed from native generation/compilation; decoded temporary keys use private permissions and are deleted on exit. `PCOB_RELEASE_SIGNING=xcode-account` explicitly uses the local Xcode account, optionally with the key for reads. Any truthy CI/provider marker refuses this fallback. API-key cloud signing remains **unproven**: the current key reads ASC but export failed with a permission/certificate error. An Admin team key and cloud-managed distribution certificate access require an actual successful export before being called supported. An explicitly supplied `EXPO_PUBLIC_POSTHOG_KEY` can enable public analytics; signing jobs must not fetch application secrets to obtain it.
+`ASC_KEY_ID`, `ASC_ISSUER_ID`, and one of `ASC_KEY_P8_BASE64` or `ASC_KEY_PATH` supply the key. Credentials are removed from native generation/compilation; decoded temporary keys use private permissions and are deleted on exit. `PCOB_RELEASE_SIGNING=xcode-account` explicitly uses the local Xcode account, optionally with the key for reads. Any truthy CI/provider marker refuses this fallback. API-key cloud signing remains **unproven**: the current key reads ASC but export failed with a permission/certificate error. An Admin team key and cloud-managed distribution certificate access require an actual successful export before being called supported.
 
-### Sole release executor: blocked until enablement
+### CI release executor: blocked until enablement
 
-`.github/workflows/ios-release.yml` is the only supported upload path, triggered only by `workflow_dispatch` on `main`. Its app-wide `ios-release-com.pcobooster.ios` concurrency group covers every job with `cancel-in-progress: false`; that group, not a lock, serializes releases. The secretless `prepare` job runs the release boundary tests and the matching host Hermes gate. The `release` job (requested with `request_upload`, environment `ios-release-upload`) is implemented, but its **first step fails BLOCKED** before checkout, credentials, ledger writes, signing, or upload. Separately, `RELEASE_ENABLEMENT` in `apps/mobile/scripts/release/ci-release.ts` is `"blocked"`, so `ci-cli.ts release` and `availability` refuse before reading any credential, whatever CI variables are set, and the job grants no `id-token` or write permission. Local `release-ios.sh --upload` stays refused, even with spoofed CI markers. The existing `testflight` environment has no reviewer gate and shares a broad production Infisical identity, so the executor does not use it.
+`.github/workflows/ios-release.yml` is the intended long-term upload path, triggered only by `workflow_dispatch` on `main`. Until it is enabled, uploads go through the [local TestFlight release](#local-testflight-release). Its app-wide `ios-release-com.pcobooster.ios` concurrency group covers every job with `cancel-in-progress: false`; that group, not a lock, serializes releases. The secretless `prepare` job runs the release boundary tests and the matching host Hermes gate. The `release` job (requested with `request_upload`, environment `ios-release-upload`) is implemented, but its **first step fails BLOCKED** before checkout, credentials, ledger writes, signing, or upload. Separately, `RELEASE_ENABLEMENT` in `apps/mobile/scripts/release/ci-release.ts` is `"blocked"`, so `ci-cli.ts release` and `availability` refuse before reading any credential, whatever CI variables are set, and the job grants no `id-token` or write permission. Local `release-ios.sh --upload` stays refused, even with spoofed CI markers. The existing `testflight` environment has no reviewer gate and shares a broad production Infisical identity, so the executor does not use it.
 
 After the block, the job checks out exactly `github.sha`, refuses any `GITHUB_RUN_ATTEMPT` other than 1, selects the approved Xcode, runs `bun run ci`, installs checksummed Maestro and `posthog-cli`, runs the Release simulator smoke at this revision, reads the isolated credentials through OIDC, then runs `bun run --cwd apps/mobile scripts/release/ci-cli.ts release` once and the bounded `availability` report. Artifacts (manifest, IPA, maps, dSYMs, uploader output, Hermes and smoke evidence) are retained for 90 days; they are review material, not the ledger.
 
@@ -105,7 +144,7 @@ After the block, the job checks out exactly `github.sha`, refuses any `GITHUB_RU
 3. Persist `claimed` before any archive work. If the write fails, stop; the next run rereads the ledger, so a write that landed still burns its number.
 4. `release-ios.sh --prepare` (clean prebuild, unsigned archive, Hermes gates, maps), then `--no-upload --skip-build` with API-key signing. Verify the signed export (below), upload source maps through `source-maps.ts upload` and check the cloned map, and persist `verified` with every artifact hash. Any failure persists `abandoned`; the number stays burned. Archive and export never see the PostHog key or ledger token, and the source-map upload never sees the Apple key or ledger token.
 5. Recheck the IPA and manifest hashes and that ASC has nothing at or above this number, then persist `upload_started`. If that write fails, the uploader is never called.
-6. One `xcrun altool --upload-package` of the verified IPA, with the key in an owner-only temporary file removed afterwards. A failure, an interruption, or an error printed with exit 0 leaves `upload_started`: the outcome is unknown, so nothing retries it and the number is never reused.
+6. One `xcrun altool --upload-package` of the verified IPA, with the app's numeric `--apple-id` and the build's bundle ID, version, and build number, and the key in an owner-only temporary file removed afterwards. A failure, an interruption, or an error printed with exit 0 leaves `upload_started`: the outcome is unknown, so nothing retries it and the number is never reused.
 7. Persist `upload_accepted`. If that write fails, the run reports the upload as unknown; reconciliation shows it.
 
 `ci-cli.ts availability` polls ASC at most 30 minutes (once a minute) and records `processed` only for a `VALID`, unexpired build with this exact build number and version `0.1.0`. A timeout or an unlisted build is reported as unknown, never as proof that retrying is safe. Tester-group access, release metadata, and physical-device acceptance stay separate human checks.
@@ -128,9 +167,9 @@ Each item needs explicit approval and proof before the block is removed. None fo
 - The `ios-release-ledger` branch, initialized with the header above and an empty `events.jsonl`, protected against deletion and force pushes, writable only by the executor's identity. If `GITHUB_TOKEN` with `contents: write` cannot be limited to that branch, approve a scoped GitHub App token instead of broadening the job.
 - A new Infisical project and environment, imports disabled, holding only the ASC read and signing key and a separately approved PostHog symbol-upload key; a machine identity whose OIDC subject is bound to this repository, `main`, this workflow, and `ios-release-upload`. Set `INFISICAL_PROJECT_ID`, `INFISICAL_IDENTITY_ID`, and `INFISICAL_ENV_SLUG` on that environment only. The production project and the `testflight` identity are excluded.
 - Apple: a key role and distribution certificate/profile access that make `xcodebuild -exportArchive` with `-allowProvisioningUpdates` and the API key succeed for this app and team. The current read-capable key failed with a cloud-signing permission/certificate error; an actual successful export must replace that.
-- The runner's Xcode (`IOS_RELEASE_DEVELOPER_DIR`), its simulator runtime for `iPhone 17 Pro`, and its `altool --upload-package --p8-file-path` options, proven on the runner image.
+- The runner's Xcode (`IOS_RELEASE_DEVELOPER_DIR`), its simulator runtime for `iPhone 17 Pro`, and its `altool --upload-package` options, proven on the runner image. A local upload (build 373) proved `--apple-id`, `--bundle-id`, `--bundle-version`, `--bundle-short-version-string`, and `--p8-file-path` with this key on a developer Mac only.
 - Checksummed tool releases: `IOS_RELEASE_MAESTRO_URL`/`_SHA256` and `IOS_RELEASE_POSTHOG_CLI_URL`/`_SHA256` (`posthog-cli` 0.18.9).
-- A reviewed list of any embedded framework that ships without a dSYM, from a real export.
+- A reviewed list of any embedded framework that ships without a dSYM, from a real export. Build 373's export had dSYMs and `Symbols/` entries for the app and every Expo framework, and none for React Native's prebuilt `React.framework`, `ReactNativeDependencies.framework`, and `hermesvm.framework`. The local release exempts exactly those (`PREBUILT_FRAMEWORKS_WITHOUT_DSYMS`); the executor still passes an empty list until this item is approved.
 - PostHog: authorization for source-map upload, and a synthetic internal event that symbolicates against the exact release maps.
 - The enablement change itself: remove the block step, set `RELEASE_ENABLEMENT` to `"approved"`, and grant `id-token: write` plus the approved ledger writer, in one reviewed commit. Then a separately confirmed dispatch of that exact revision. Apple processing, build/version, tester-group access, metadata, and device acceptance are verified separately afterwards.
 
@@ -150,7 +189,7 @@ Run the smoke check before declaring a beta usable. The Release build takes seve
 
 ### After upload
 
-An upload does not establish TestFlight availability. `bun run --cwd apps/mobile ios:release:status <build>` (with the key in the environment) reads the build's processing state, version, TestFlight internal and external states, and beta groups; check that the processed build matches the uploaded number and revision, then confirm tester access in App Store Connect. There is no enabled upload job. The dispatched executor remains blocked until the enablement approvals above are granted and proven. `alchemy.ci.ts` retains the `testflight` environment, its production OIDC binding, and the `TESTFLIGHT_RELEASES` variable for a future job.
+An upload does not establish TestFlight availability. `ios:testflight` waits for `VALID`; `bun run --cwd apps/mobile ios:release:status <build>` (with the key in the environment) reads the build's processing state, version, TestFlight internal and external states, and beta groups at any time. Check that the processed build matches the uploaded number and revision, then confirm tester access in App Store Connect. There is no enabled upload job. The dispatched executor remains blocked until the enablement approvals above are granted and proven. `alchemy.ci.ts` retains the `testflight` environment, its production OIDC binding, and the `TESTFLIGHT_RELEASES` variable for a future job.
 
 ## OIDC and token scope
 

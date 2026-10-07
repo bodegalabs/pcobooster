@@ -12,6 +12,7 @@ import {
   ascToken,
   buildState,
   makeAscClient,
+  recentBuilds,
   takenBuildNumbers,
 } from "../apps/mobile/scripts/release/asc";
 import type { Fetch } from "../apps/mobile/scripts/release/asc";
@@ -19,6 +20,9 @@ import {
   automationMarker,
   chooseBuildNumber,
   parseBuildNumber,
+  POSTHOG_PROJECT_KEY,
+  processingOutcome,
+  releaseAnalyticsKey,
   signingMode,
   stillUnused,
 } from "../apps/mobile/scripts/release/release-rules";
@@ -157,6 +161,67 @@ describe("build numbers", () => {
       expect(() => parseBuildNumber(value)).toThrow("BUILD_NUMBER");
     }
   );
+});
+
+describe("release analytics", () => {
+  it("embeds pcobooster.com's public PostHog project key without reading any secret", () => {
+    expect(POSTHOG_PROJECT_KEY).toMatch(/^phc_[A-Za-z\d]{44}$/u);
+    expect(releaseAnalyticsKey({})).toBe(POSTHOG_PROJECT_KEY);
+    expect(
+      releaseAnalyticsKey({
+        EXPO_PUBLIC_POSTHOG_KEY: POSTHOG_PROJECT_KEY,
+        POSTHOG_PROJECT_KEY,
+      })
+    ).toBe(POSTHOG_PROJECT_KEY);
+  });
+
+  it.each(["EXPO_PUBLIC_POSTHOG_KEY", "POSTHOG_PROJECT_KEY"])(
+    "refuses another project's key in %s",
+    (name) => {
+      expect(() => releaseAnalyticsKey({ [name]: "phc_other" })).toThrow(
+        `${name} is not pcobooster.com's PostHog project key`
+      );
+    }
+  );
+});
+
+describe("App Store Connect processing", () => {
+  const state = {
+    processingState: "VALID",
+    version: "373",
+    shortVersion: "0.1.0",
+    expired: false,
+  };
+
+  it("counts only a VALID, unexpired build with this number and version as processed", () => {
+    expect(processingOutcome(state, 373, "0.1.0")).toBe("processed");
+    expect(processingOutcome({ ...state, version: "372" }, 373, "0.1.0")).toBe(
+      "pending"
+    );
+    expect(
+      processingOutcome({ ...state, shortVersion: "0.2.0" }, 373, "0.1.0")
+    ).toBe("pending");
+    expect(processingOutcome({ ...state, expired: true }, 373, "0.1.0")).toBe(
+      "pending"
+    );
+  });
+
+  it("waits for an unlisted or processing build and stops on a failed one", () => {
+    expect(processingOutcome(null, 373, "0.1.0")).toBe("pending");
+    expect(
+      processingOutcome(
+        { ...state, processingState: "PROCESSING" },
+        373,
+        "0.1.0"
+      )
+    ).toBe("pending");
+    expect(
+      processingOutcome({ ...state, processingState: "INVALID" }, 373, "0.1.0")
+    ).toBe("failed");
+    expect(
+      processingOutcome({ ...state, processingState: "FAILED" }, 373, "0.1.0")
+    ).toBe("failed");
+  });
 });
 
 describe("the release lock and claims", () => {
@@ -373,6 +438,58 @@ describe("App Store Connect reads", () => {
   });
 });
 
+describe("listing TestFlight builds", () => {
+  it("reads one page of the newest builds and reports uploads above them", async () => {
+    const { fetch, requests } = pages({
+      "/v1/builds": {
+        data: [
+          {
+            id: "b373",
+            type: "builds",
+            attributes: { version: "373", processingState: "VALID" },
+          },
+          {
+            id: "b372",
+            type: "builds",
+            attributes: { version: "372", processingState: "VALID" },
+          },
+        ],
+        // A second page must not be read.
+        links: { next: `${API}/v1/builds?cursor=2` },
+      },
+      "/v1/apps/app1/buildUploads": {
+        data: [
+          {
+            id: "u1",
+            type: "buildUploads",
+            attributes: { cfBundleVersion: "373", state: "COMPLETE" },
+          },
+          {
+            id: "u2",
+            type: "buildUploads",
+            attributes: { cfBundleVersion: "374", state: "PROCESSING" },
+          },
+        ],
+      },
+    });
+    const recent = await recentBuilds(makeAscClient(key, fetch), "app1", 2);
+    expect(recent.builds.map((build) => build.version)).toStrictEqual([
+      "373",
+      "372",
+    ]);
+    expect(recent.pendingUploads).toStrictEqual([
+      { version: "374", state: "PROCESSING" },
+    ]);
+    const buildsRequest = new URL(
+      requests.find((request) => request.url.includes("/v1/builds?"))?.url ?? ""
+    );
+    expect(buildsRequest.searchParams.get("sort")).toBe("-uploadedDate");
+    expect(
+      requests.filter((request) => request.url.includes("cursor="))
+    ).toStrictEqual([]);
+  });
+});
+
 describe("release-cli", () => {
   const cli = (args: string[], env: Record<string, string>) =>
     spawnSync("bun", ["run", "scripts/release/release-cli.ts", ...args], {
@@ -396,6 +513,20 @@ describe("release-cli", () => {
       "api-key"
     );
   }, 15_000);
+
+  it("prints the committed analytics key and refuses another", () => {
+    expect(cli(["analytics-key"], {}).stdout.trim()).toBe(POSTHOG_PROJECT_KEY);
+    const other = cli(["analytics-key"], { POSTHOG_PROJECT_KEY: "phc_other" });
+    expect(other.status).toBe(1);
+    expect(other.stderr).toContain("not pcobooster.com's PostHog project key");
+  });
+
+  it("needs a key to list builds, and a bounded limit", () => {
+    expect(cli(["latest"], {}).stderr).toContain("needs an API key");
+    expect(cli(["builds", "--limit", "0"], {}).stderr).toContain(
+      "--limit must be a whole number from 1 to 200"
+    );
+  });
 
   const claimEnv = () => {
     const dir = stateDir();

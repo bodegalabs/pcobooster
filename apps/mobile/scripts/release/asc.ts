@@ -113,11 +113,17 @@ const decodePage = Schema.decodeUnknownSync(PageSchema);
 
 export type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 
+export interface ListOptions {
+  /** Stop after this many pages; every page by default. */
+  readonly pages?: number;
+}
+
 export interface AscClient {
-  /** Every resource across all pages of a list request. */
+  /** Every resource across all pages of a list request, or across the first `pages`. */
   readonly list: (
     path: string,
-    query: Readonly<Record<string, string>>
+    query: Readonly<Record<string, string>>,
+    options?: ListOptions
   ) => Promise<{ readonly data: Resource[]; readonly included: Resource[] }>;
 }
 
@@ -126,12 +132,14 @@ export const makeAscClient = (
   fetch: Fetch = globalThis.fetch,
   now: () => Date = () => new Date()
 ): AscClient => ({
-  list: async (path, query) => {
+  list: async (path, query, options) => {
     const data: Resource[] = [];
     const included: Resource[] = [];
     let next: string | undefined =
       `${API}${path}?${new URLSearchParams(query).toString()}`;
-    while (next !== undefined) {
+    let pagesLeft = options?.pages ?? Number.POSITIVE_INFINITY;
+    while (next !== undefined && pagesLeft > 0) {
+      pagesLeft -= 1;
       if (!next.startsWith(`${API}/`)) {
         throw new Error(`App Store Connect paged outside its API: ${next}`);
       }
@@ -236,27 +244,20 @@ const relatedIds = (resource: Resource, name: string): string[] => {
   return isRelatedList(related) ? related.map((item) => item.id) : [related.id];
 };
 
-/** One build's processing state, its TestFlight states, and the beta groups it is in. */
-export const buildState = async (
-  client: AscClient,
-  appId: string,
-  build: number
-): Promise<BuildState | null> => {
-  const { data, included } = await client.list("/v1/builds", {
-    "filter[app]": appId,
-    "filter[version]": String(build),
-    "filter[preReleaseVersion.platform]": "IOS",
-    include: "preReleaseVersion,buildBetaDetail,betaGroups",
-    "fields[builds]":
-      "version,processingState,uploadedDate,expired,preReleaseVersion,buildBetaDetail,betaGroups",
-    "fields[preReleaseVersions]": "version",
-    "fields[buildBetaDetails]": "internalBuildState,externalBuildState",
-    "fields[betaGroups]": "name",
-  });
-  const [found] = data;
-  if (found === undefined) {
-    return null;
-  }
+const BUILD_STATE_QUERY = {
+  "filter[preReleaseVersion.platform]": "IOS",
+  include: "preReleaseVersion,buildBetaDetail,betaGroups",
+  "fields[builds]":
+    "version,processingState,uploadedDate,expired,preReleaseVersion,buildBetaDetail,betaGroups",
+  "fields[preReleaseVersions]": "version",
+  "fields[buildBetaDetails]": "internalBuildState,externalBuildState",
+  "fields[betaGroups]": "name",
+} as const;
+
+const toBuildState = (
+  found: Resource,
+  included: readonly Resource[]
+): BuildState => {
   const byId = (type: string, id: string) =>
     included.find((resource) => resource.type === type && resource.id === id);
   const [releaseId] = relatedIds(found, "preReleaseVersion");
@@ -281,5 +282,84 @@ export const buildState = async (
       const group = byId("betaGroups", id);
       return (group === undefined ? null : attribute(group, "name")) ?? id;
     }),
+  };
+};
+
+/** One build's processing state, its TestFlight states, and the beta groups it is in. */
+export const buildState = async (
+  client: AscClient,
+  appId: string,
+  build: number
+): Promise<BuildState | null> => {
+  const { data, included } = await client.list("/v1/builds", {
+    ...BUILD_STATE_QUERY,
+    "filter[app]": appId,
+    "filter[version]": String(build),
+  });
+  const [found] = data;
+  return found === undefined ? null : toBuildState(found, included);
+};
+
+/** An upload App Store Connect has not listed as a build yet. */
+export interface PendingUpload {
+  readonly version: string;
+  readonly state: Schema.Json | null;
+}
+
+export interface RecentBuilds {
+  /** The most recently uploaded builds, newest first. */
+  readonly builds: readonly BuildState[];
+  /** Uploads numbered above every listed build: still being delivered or processed. */
+  readonly pendingUploads: readonly PendingUpload[];
+}
+
+/**
+ * The newest `limit` builds with their processing and TestFlight states, and any upload
+ * numbered above all of them, so in-flight uploads are not missed.
+ */
+export const recentBuilds = async (
+  client: AscClient,
+  appId: string,
+  limit: number
+): Promise<RecentBuilds> => {
+  const [listed, uploads] = await Promise.all([
+    client.list(
+      "/v1/builds",
+      {
+        ...BUILD_STATE_QUERY,
+        "filter[app]": appId,
+        sort: "-uploadedDate",
+        limit: String(limit),
+      },
+      { pages: 1 }
+    ),
+    client.list(`/v1/apps/${appId}/buildUploads`, {
+      "filter[platform]": "IOS",
+      "fields[buildUploads]": "cfBundleVersion,state",
+      limit: PAGE_LIMIT,
+    }),
+  ]);
+  const builds = listed.data
+    .slice(0, limit)
+    .map((found) => toBuildState(found, listed.included));
+  let newest = 0;
+  for (const build of builds) {
+    if (build.version !== null && POSITIVE_INTEGER.test(build.version)) {
+      newest = Math.max(newest, Number(build.version));
+    }
+  }
+  const pendingUploads = uploads.data.flatMap((upload) => {
+    const version = attribute(upload, "cfBundleVersion");
+    return version !== null &&
+      POSITIVE_INTEGER.test(version) &&
+      Number(version) > newest
+      ? [{ version, state: upload.attributes?.state ?? null }]
+      : [];
+  });
+  return {
+    builds,
+    pendingUploads: pendingUploads.toSorted(
+      (a, b) => Number(b.version) - Number(a.version)
+    ),
   };
 };
