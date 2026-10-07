@@ -418,7 +418,7 @@ export const makeDiagnostics = ({
       try {
         pending?.clear();
       } catch {
-        /* Nothing to clear. */
+        /* The pending store stays suppressed until a clear succeeds. */
       }
       return;
     }

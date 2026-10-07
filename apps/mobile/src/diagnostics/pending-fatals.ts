@@ -12,6 +12,9 @@
  * than `PENDING_MAX_AGE_MS`. A repeat of a kept fatal (a crash loop) raises its count instead of
  * taking another slot. Reports keep only what `sanitize.ts` allowed plus the release they were
  * captured in, the app session, and whose context they belong to (`capture-policy.ts`).
+ * A tiny existence marker commits purge before either copy is deleted. It is removed only
+ * after both copies are gone, so interrupted cleanup cannot revive an older snapshot. Failed
+ * cleanup also latches suppression in this process until a later clear succeeds.
  * Anything unreadable is discarded.
  */
 import { Option, Schema } from "effect";
@@ -37,6 +40,13 @@ export interface SyncTextFile {
 
 /** The two files the reports are kept in, used in turn. */
 export type PendingFatalCopies = readonly [SyncTextFile, SyncTextFile];
+
+/** File existence commits a purge before either report copy is removed. No contents needed. */
+export interface PurgeMarker {
+  readonly exists: () => boolean;
+  readonly create: () => void;
+  readonly remove: () => void;
+}
 
 const Field = Schema.String.check(Schema.isMaxLength(FIELD_MAX_LENGTH));
 
@@ -131,10 +141,17 @@ interface Copy {
 
 export const makePendingFatals = (
   copies: PendingFatalCopies,
-  now: () => number
+  now: () => number,
+  purgeMarker: PurgeMarker
 ): PendingFatals => {
+  // A failed purge cannot be undone by opting back in in this process.
+  let suppressed = false;
+  const isSuppressed = () => suppressed || purgeMarker.exists();
   /** The newest copy that decodes; a damaged copy is deleted, the other is the truth. */
   const newest = (): Copy | null => {
+    if (isSuppressed()) {
+      return null;
+    }
     let found: Copy | null = null;
     for (const index of [0, 1] as const) {
       const file = copies[index];
@@ -150,13 +167,21 @@ export const makePendingFatals = (
     }
     return found;
   };
-  /** Deletes both copies; the second is still deleted when the first cannot be. */
+  /** Keep the marker until both copies are gone; partial cleanup stays suppressed on restart. */
   const clear = () => {
+    suppressed = true;
     try {
-      copies[0].remove();
+      purgeMarker.create();
     } finally {
-      copies[1].remove();
+      // Still try removing both if the disk cannot create the marker.
+      try {
+        copies[0].remove();
+      } finally {
+        copies[1].remove();
+      }
     }
+    purgeMarker.remove();
+    suppressed = false;
   };
   const list = (): PendingFatal[] => {
     const copy = newest();
@@ -177,6 +202,9 @@ export const makePendingFatals = (
   const replace = (fatals: readonly PendingFatal[]) => {
     if (fatals.length === 0) {
       clear();
+      return;
+    }
+    if (isSuppressed()) {
       return;
     }
     const current = newest();

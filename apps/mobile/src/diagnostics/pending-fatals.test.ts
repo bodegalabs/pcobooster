@@ -43,7 +43,18 @@ const memoryFile = (cut: WriteCut): MemoryFile => {
 const memoryFiles = () => {
   const cut: WriteCut = { at: null };
   const copies = [memoryFile(cut), memoryFile(cut)] as const;
+  let purged = false;
+  const purgeMarker = {
+    exists: () => purged,
+    create: () => {
+      purged = true;
+    },
+    remove: () => {
+      purged = false;
+    },
+  };
   return Object.assign(copies, {
+    purgeMarker,
     /** Whether anything is kept on disk. */
     stored: () => copies.some((copy) => copy.text !== null),
     /** Cuts the next write short, as a crash or a full disk would. */
@@ -66,7 +77,8 @@ const fatal = (id: string, message = id): PendingFatal => ({
 
 describe(makePendingFatals, () => {
   it("keeps at most three reports, the earliest ones", () => {
-    const store = makePendingFatals(memoryFiles(), () => NOW);
+    const files = memoryFiles();
+    const store = makePendingFatals(files, () => NOW, files.purgeMarker);
     for (const id of ["a", "b", "c", "d"]) {
       store.add(fatal(id));
     }
@@ -75,7 +87,8 @@ describe(makePendingFatals, () => {
   });
 
   it("counts a repeated crash instead of taking another slot", () => {
-    const store = makePendingFatals(memoryFiles(), () => NOW);
+    const files = memoryFiles();
+    const store = makePendingFatals(files, () => NOW, files.purgeMarker);
     const crash = new Error("loop");
     store.add({ ...fatal("a"), record: buildExceptionRecord(crash, "fatal") });
     store.add({ ...fatal("b"), record: buildExceptionRecord(crash, "fatal") });
@@ -84,7 +97,8 @@ describe(makePendingFatals, () => {
 
   it("drops reports older than seven days", () => {
     let now = NOW;
-    const store = makePendingFatals(memoryFiles(), () => now);
+    const files = memoryFiles();
+    const store = makePendingFatals(files, () => now, files.purgeMarker);
     store.add(fatal("a"));
     now = NOW + PENDING_MAX_AGE_MS + 1;
     expect(store.list()).toStrictEqual([]);
@@ -93,13 +107,15 @@ describe(makePendingFatals, () => {
   it("discards an unreadable copy", () => {
     const files = memoryFiles();
     files[0].text = "{not json";
-    expect(makePendingFatals(files, () => NOW).list()).toStrictEqual([]);
+    expect(
+      makePendingFatals(files, () => NOW, files.purgeMarker).list()
+    ).toStrictEqual([]);
     expect(files.stored()).toBeFalsy();
   });
 
   it("keeps every report already kept when a later write is cut short", () => {
     const files = memoryFiles();
-    const store = makePendingFatals(files, () => NOW);
+    const store = makePendingFatals(files, () => NOW, files.purgeMarker);
     store.add(fatal("a"));
     store.add(fatal("b"));
     for (const cut of [0, 1, 12, 200]) {
@@ -115,7 +131,7 @@ describe(makePendingFatals, () => {
 
   it("keeps the previous state when a count or retry update is cut short", () => {
     const files = memoryFiles();
-    const store = makePendingFatals(files, () => NOW);
+    const store = makePendingFatals(files, () => NOW, files.purgeMarker);
     store.add(fatal("a"));
     files.cutNextWrite(20);
     expect(() => {
@@ -128,11 +144,58 @@ describe(makePendingFatals, () => {
 
   it("deletes both copies when cleared", () => {
     const files = memoryFiles();
-    const store = makePendingFatals(files, () => NOW);
+    const store = makePendingFatals(files, () => NOW, files.purgeMarker);
     store.add(fatal("a"));
     store.add(fatal("b"));
     store.clear();
     expect([files.stored(), store.list()]).toStrictEqual([false, []]);
+  });
+
+  it.each([0, 1])(
+    "suppresses old snapshots across restart if deleting copy %s fails",
+    (index) => {
+      const files = memoryFiles();
+      const store = makePendingFatals(files, () => NOW, files.purgeMarker);
+      store.add(fatal("a"));
+      store.add(fatal("b"));
+      const copy = files[index];
+      if (copy === undefined) {
+        throw new Error("Missing copy");
+      }
+      const { remove } = copy;
+      copy.remove = () => {
+        throw new Error("Delete denied");
+      };
+      expect(() => {
+        store.clear();
+      }).toThrow("Delete denied");
+      expect(store.list()).toStrictEqual([]);
+      const restarted = makePendingFatals(files, () => NOW, files.purgeMarker);
+      expect(restarted.list()).toStrictEqual([]);
+      restarted.add(fatal("still-suppressed"));
+      expect(restarted.list()).toStrictEqual([]);
+      copy.remove = remove;
+      restarted.clear();
+      restarted.add(fatal("new"));
+      expect(restarted.list().map(({ id }) => id)).toStrictEqual(["new"]);
+    }
+  );
+
+  it("still deletes both snapshots when creating the purge marker fails", () => {
+    const files = memoryFiles();
+    const store = makePendingFatals(files, () => NOW, files.purgeMarker);
+    store.add(fatal("a"));
+    store.add(fatal("b"));
+    files.purgeMarker.create = () => {
+      throw new Error("Cannot create marker");
+    };
+    expect(() => {
+      store.clear();
+    }).toThrow("Cannot create marker");
+    expect([files.stored(), store.list()]).toStrictEqual([false, []]);
+    expect(
+      makePendingFatals(files, () => NOW, files.purgeMarker).list()
+    ).toStrictEqual([]);
   });
 
   it("rebuilds each report from the file, so extra fields never leave the device", () => {
@@ -143,7 +206,11 @@ describe(makePendingFatals, () => {
       owner: { kind: "user", userId: "u1", email: "jordan@example.com" },
     };
     files[1].text = JSON.stringify({ sequence: 1, fatals: [tampered] });
-    const [kept] = makePendingFatals(files, () => NOW).list();
+    const [kept] = makePendingFatals(
+      files,
+      () => NOW,
+      files.purgeMarker
+    ).list();
     expect(JSON.stringify(kept)).not.toContain("Jordan");
     expect(JSON.stringify(kept)).not.toContain("example.com");
     expect(kept?.owner).toStrictEqual({ kind: "user", userId: "u1" });
@@ -151,7 +218,7 @@ describe(makePendingFatals, () => {
 
   it("trims a report too large to keep", () => {
     const files = memoryFiles();
-    const store = makePendingFatals(files, () => NOW);
+    const store = makePendingFatals(files, () => NOW, files.purgeMarker);
     const error = new Error("deep");
     error.stack = [
       "Error: deep",

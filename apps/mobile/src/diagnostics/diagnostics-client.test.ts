@@ -57,7 +57,18 @@ const memoryFile = (cut: WriteCut): MemoryFile => {
 const memoryFiles = () => {
   const cut: WriteCut = { at: null };
   const copies = [memoryFile(cut), memoryFile(cut)] as const;
+  let purged = false;
+  const purgeMarker = {
+    exists: () => purged,
+    create: () => {
+      purged = true;
+    },
+    remove: () => {
+      purged = false;
+    },
+  };
   return Object.assign(copies, {
+    purgeMarker,
     /** Whether anything is kept on disk. */
     stored: () => copies.some((copy) => copy.text !== null),
     /** Cuts the next write short, as a crash or a full disk would. */
@@ -96,7 +107,7 @@ const harness = ({
     enabled,
     release: releaseOverride,
     transport,
-    pending: makePendingFatals(file, () => clock.now),
+    pending: makePendingFatals(file, () => clock.now, file.purgeMarker),
     now: () => clock.now,
     newId: () => {
       id += 1;
@@ -221,6 +232,26 @@ describe(makeDiagnostics, () => {
     signIn(diagnostics);
     await diagnostics.settled();
     expect(sent).toStrictEqual([]);
+  });
+
+  it("does not replay a partially purged fatal after opt-in or restart", async () => {
+    const file = memoryFiles();
+    const first = harness({ file });
+    first.diagnostics.recordFatal(new Error("old one"));
+    first.diagnostics.recordFatal(new Error("old two"));
+    const [, second] = file;
+    const { remove } = second;
+    second.remove = () => {
+      throw new Error("Delete denied");
+    };
+    first.diagnostics.setPreference("opted-out");
+    signIn(first.diagnostics);
+    await first.diagnostics.settled();
+    const restarted = harness({ file });
+    signIn(restarted.diagnostics);
+    await restarted.diagnostics.settled();
+    expect([...first.sent, ...restarted.sent]).toStrictEqual([]);
+    second.remove = remove;
   });
 
   it("keeps nothing captured while opted out", async () => {

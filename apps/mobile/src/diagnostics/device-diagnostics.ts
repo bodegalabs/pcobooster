@@ -16,7 +16,11 @@ import { makeDiagnostics } from "./diagnostics-client";
 import type { CapturedEvent, Diagnostics } from "./diagnostics-client";
 import { fatalSentinel } from "./fatal-sentinel";
 import { makePendingFatals } from "./pending-fatals";
-import type { PendingFatalCopies, SyncTextFile } from "./pending-fatals";
+import type {
+  PendingFatalCopies,
+  PurgeMarker,
+  SyncTextFile,
+} from "./pending-fatals";
 import { releaseMetadata } from "./release-metadata";
 
 const POSTHOG_HOST = "https://us.i.posthog.com";
@@ -25,6 +29,8 @@ const PENDING_FILES = [
   "pcobooster-pending-fatals-a.json",
   "pcobooster-pending-fatals-b.json",
 ] as const;
+
+const PURGE_FILE = "pcobooster-pending-fatals-purged";
 
 const readSetting = Schema.decodeUnknownSync(Schema.String);
 const key = readSetting(process.env.EXPO_PUBLIC_POSTHOG_KEY ?? "");
@@ -48,9 +54,28 @@ const textFile = (name: string): SyncTextFile => {
 };
 
 /** The pending-fatal files in Caches (never backed up), or null when they cannot be opened. */
-const openPendingFiles = (): PendingFatalCopies | null => {
+const openPendingFiles = (): {
+  copies: PendingFatalCopies;
+  purgeMarker: PurgeMarker;
+} | null => {
   try {
-    return [textFile(PENDING_FILES[0]), textFile(PENDING_FILES[1])];
+    const marker = new File(Paths.cache, PURGE_FILE);
+    return {
+      copies: [textFile(PENDING_FILES[0]), textFile(PENDING_FILES[1])],
+      purgeMarker: {
+        exists: () => marker.exists,
+        create: () => {
+          if (!marker.exists) {
+            marker.create();
+          }
+        },
+        remove: () => {
+          if (marker.exists) {
+            marker.delete();
+          }
+        },
+      },
+    };
   } catch {
     return null;
   }
@@ -91,7 +116,13 @@ export const deviceDiagnostics: Diagnostics = makeDiagnostics({
   release: releaseMetadata,
   transport: sendToPostHog,
   pending:
-    pendingFiles === null ? null : makePendingFatals(pendingFiles, Date.now),
+    pendingFiles === null
+      ? null
+      : makePendingFatals(
+          pendingFiles.copies,
+          Date.now,
+          pendingFiles.purgeMarker
+        ),
   verificationBuild:
     readSetting(process.env.EXPO_PUBLIC_DIAGNOSTICS_PROBES ?? "") === "1",
 });
