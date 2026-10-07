@@ -40,6 +40,7 @@ import type {
   PeopleDashboardPersonDetail,
   PeopleDashboardRoster,
 } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
+import type { PlanTimesProgress } from "@pcobooster/api/modules/planning-center/people/plan-time-pages";
 import {
   presentBlockouts,
   presentCandidateDetails,
@@ -237,6 +238,7 @@ export const getPeopleDashboardActivity = (input: {
 export const getPeopleDashboardPerson = (input: {
   readonly personId: string;
   readonly month?: string;
+  readonly continuation?: PlanTimesProgress;
 }): Effect.Effect<
   PeopleDashboardPersonDetail,
   ApplicationFault,
@@ -255,6 +257,7 @@ export const getPeopleDashboardPerson = (input: {
     const detail = yield* getPeopleDashboardPersonDetail({
       personId: input.personId,
       month: input.month,
+      continuation: input.continuation,
       dependencies: {
         peopleService,
         catalogService,

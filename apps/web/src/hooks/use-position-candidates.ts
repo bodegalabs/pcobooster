@@ -7,9 +7,9 @@ import type {
   PositionCandidates,
 } from "@pcobooster/contracts/people-schemas";
 import {
-  advancedBlockoutChecks,
   assembleCandidateList,
   CANDIDATE_DETAILS_BATCH_CONCURRENCY,
+  candidateDetailsAdvanced,
   collectCandidateDetails,
   expandWindowHistory,
   needsScheduleHistory,
@@ -164,13 +164,13 @@ interface CandidateDetailsRequest {
 }
 
 /**
- * Follows `deferredPersonIds` (with `blockoutProgress`) until the batch is complete. Every call
- * details someone or advances someone's blockout checks.
+ * Follows `deferredPersonIds` (with `continuation`) until the batch is complete. Every call
+ * details someone or reads another of someone's pages.
  */
 const fetchCandidateDetails = async (
   { personIds, planId, dateKey, scheduleHistory }: CandidateDetailsRequest,
   context: QueryFunctionContext,
-  blockoutProgress?: CandidateDetailsBatch["blockoutProgress"]
+  continuation?: CandidateDetailsBatch["continuation"]
 ): Promise<CandidateDetail[]> => {
   const batch = await callForQuery(context, productClient, (api) =>
     api.people.candidateDetails({
@@ -179,7 +179,7 @@ const fetchCandidateDetails = async (
         personIds: [...personIds],
         date: dateKey,
         scheduleHistory,
-        blockoutProgress,
+        continuation,
       },
     })
   );
@@ -187,10 +187,7 @@ const fetchCandidateDetails = async (
   if (deferred.length === 0) {
     return batch.people;
   }
-  if (
-    batch.people.length === 0 &&
-    !advancedBlockoutChecks(blockoutProgress ?? [], batch.blockoutProgress)
-  ) {
+  if (!candidateDetailsAdvanced(continuation, batch)) {
     throw new Error("Candidate details made no progress.");
   }
   return [
@@ -198,7 +195,7 @@ const fetchCandidateDetails = async (
     ...(await fetchCandidateDetails(
       { personIds: deferred, planId, dateKey, scheduleHistory },
       context,
-      batch.blockoutProgress
+      batch.continuation
     )),
   ];
 };

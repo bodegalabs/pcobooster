@@ -101,6 +101,7 @@ export const planningCenterReadCachesForRequest = (
     people: caches.people.people.forRequest(),
     resourceLists: caches.people.resourceLists.forRequest(),
     collections: caches.people.collections.forRequest(),
+    pages: caches.people.pages.forRequest(),
     allTeamPeople: caches.people.allTeamPeople.forRequest(),
     planWindowRosters: caches.people.planWindowRosters.forRequest(),
   },

@@ -32,8 +32,8 @@ export const PeopleHandlers = HttpApiBuilder.group(
       .handle("dashboardActivity", ({ query }) =>
         getPeopleDashboardActivity(query)
       )
-      .handle("dashboardPerson", ({ params, query }) =>
-        getPeopleDashboardPerson({ ...params, ...query })
+      .handle("dashboardPerson", ({ params, payload }) =>
+        getPeopleDashboardPerson({ ...params, ...payload })
       )
       .handle("myScheduledPlans", () => getMyScheduledPlans())
 );

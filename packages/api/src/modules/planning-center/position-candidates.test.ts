@@ -5,6 +5,10 @@ import type {
   CandidateListInput,
 } from "@pcobooster/api/modules/planning-center/load-position-candidates.test-support";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import type {
+  PlanningCenterError,
+  PlanningCenterPage,
+} from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
@@ -16,19 +20,27 @@ import type {
 import { Effect } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+type CollectionRead = Effect.Effect<PCResource[], PlanningCenterError>;
+
+const onlyPage = (data: PCResource[]): PlanningCenterPage => ({
+  data,
+  included: [],
+  nextOffset: null,
+});
+
 const createFixture = () => {
   const mocks = {
     getServiceTypesCached:
       vi.fn<PlanningCenterCatalogService["getServiceTypesCached"]>(),
     getPeopleForTeamPosition:
       vi.fn<PlanningCenterPeopleService["getPeopleForTeamPosition"]>(),
-    getPersonBlockouts:
-      vi.fn<PlanningCenterPeopleService["getPersonBlockouts"]>(),
+    // Whole collections; `dependencies` serves each as its only page.
+    getPersonBlockouts: vi.fn<(personId: string) => CollectionRead>(),
     getPersonBlockoutDates:
-      vi.fn<PlanningCenterPeopleService["getPersonBlockoutDates"]>(),
+      vi.fn<(personId: string, blockoutId: string) => CollectionRead>(),
     getPersonSchedulesAfter:
       vi.fn<PlanningCenterPeopleService["getPersonSchedulesAfter"]>(),
-    getPlanPlanTimes: vi.fn<PlanningCenterPeopleService["getPlanPlanTimes"]>(),
+    getPlanPlanTimes: vi.fn<(planId: string) => CollectionRead>(),
     getPlanTeamMembers:
       vi.fn<PlanningCenterPeopleService["getPlanTeamMembers"]>(),
     getPlanWindowRoster:
@@ -41,10 +53,16 @@ const createFixture = () => {
     catalog: { getServiceTypesCached: mocks.getServiceTypesCached },
     people: {
       getPeopleForTeamPosition: mocks.getPeopleForTeamPosition,
-      getPersonBlockouts: mocks.getPersonBlockouts,
-      getPersonBlockoutDates: mocks.getPersonBlockoutDates,
+      getPersonBlockoutsPage: (personId: string) =>
+        Effect.map(mocks.getPersonBlockouts(personId), onlyPage),
+      getPersonBlockoutDatesPage: (personId: string, blockoutId: string) =>
+        Effect.map(
+          mocks.getPersonBlockoutDates(personId, blockoutId),
+          onlyPage
+        ),
       getPersonSchedulesAfter: mocks.getPersonSchedulesAfter,
-      getPlanPlanTimes: mocks.getPlanPlanTimes,
+      getPlanPlanTimesPage: (planId: string) =>
+        Effect.map(mocks.getPlanPlanTimes(planId), onlyPage),
       getPlanTeamMembers: mocks.getPlanTeamMembers,
       getPlanWindowRoster: mocks.getPlanWindowRoster,
     },

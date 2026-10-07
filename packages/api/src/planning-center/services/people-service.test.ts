@@ -1,4 +1,6 @@
 import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
+import type { PlanningCenterPage } from "@pcobooster/api/planning-center/core-client";
+import { PlanningCenterPaginationError } from "@pcobooster/api/planning-center/pagination-error";
 import {
   createPlanningCenterPeopleServiceCaches,
   PlanningCenterPeopleService,
@@ -169,7 +171,7 @@ describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
       service_type: { data: { id: "st-1", type: "ServiceType" } },
     };
     const fetchAllWithIncluded = vi
-      .spyOn(core, "fetchAllWithIncluded")
+      .spyOn(core, "fetchFirstPages")
       .mockReturnValue(
         Effect.succeed({
           data: [
@@ -189,6 +191,7 @@ describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
             },
             resource("st-1", "ServiceType", { name: "Sunday" }),
           ],
+          next: null,
         })
       );
     const service = new PlanningCenterPeopleService(core);
@@ -234,7 +237,7 @@ describe("PlanningCenterPeopleService.getPersonSchedulesAfter", () => {
       unreachableHttpClient
     );
     const fetchAllWithIncluded = vi
-      .spyOn(core, "fetchAllWithIncluded")
+      .spyOn(core, "fetchFirstPages")
       .mockReturnValue(
         Effect.succeed({
           data: [
@@ -247,6 +250,7 @@ describe("PlanningCenterPeopleService.getPersonSchedulesAfter", () => {
             },
           ],
           included: [],
+          next: null,
         })
       );
     const service = new PlanningCenterPeopleService(core);
@@ -280,8 +284,8 @@ describe("PlanningCenterPeopleService.getPersonSchedulesAfter", () => {
       unreachableHttpClient
     );
     const fetchAllWithIncluded = vi
-      .spyOn(core, "fetchAllWithIncluded")
-      .mockReturnValue(Effect.succeed({ data: [], included: [] }));
+      .spyOn(core, "fetchFirstPages")
+      .mockReturnValue(Effect.succeed({ data: [], included: [], next: null }));
     const service = new PlanningCenterPeopleService(core);
 
     await Effect.runPromise(
@@ -308,8 +312,8 @@ describe("PlanningCenterPeopleService.getPersonSchedulesAfter", () => {
       unreachableHttpClient
     );
     const fetchAllWithIncluded = vi
-      .spyOn(core, "fetchAllWithIncluded")
-      .mockReturnValue(Effect.succeed({ data: [], included: [] }));
+      .spyOn(core, "fetchFirstPages")
+      .mockReturnValue(Effect.succeed({ data: [], included: [], next: null }));
     const service = new PlanningCenterPeopleService(core);
 
     await Effect.runPromise(
@@ -441,8 +445,8 @@ describe("PlanningCenterPeopleService.invalidateScheduleReadCaches", () => {
       unreachableHttpClient
     );
     const fetchAllWithIncluded = vi
-      .spyOn(core, "fetchAllWithIncluded")
-      .mockReturnValue(Effect.succeed({ data: [], included: [] }));
+      .spyOn(core, "fetchFirstPages")
+      .mockReturnValue(Effect.succeed({ data: [], included: [], next: null }));
     const service = new PlanningCenterPeopleService(core);
 
     await Effect.runPromise(service.getPlanTeamMembers("st-789", "plan-101"));
@@ -478,23 +482,32 @@ describe("PlanningCenterPeopleService.invalidateScheduleReadCaches", () => {
   });
 });
 
-describe("PlanningCenterPeopleService.getPlanPlanTimes", () => {
-  it("fetches all plan times through the shared cache-backed endpoint", async () => {
+const page = (
+  data: PCResource[],
+  nextOffset: number | null = null
+): PlanningCenterPage => ({ data, included: [], nextOffset });
+
+describe("PlanningCenterPeopleService.getPlanPlanTimesPage", () => {
+  it("reads one page from its offset and caches it under that offset", async () => {
     const core = createBasicPlanningCenterClient(
       testPlanningCenterToken,
       unreachableHttpClient
     );
-    const fetchAll = vi
-      .spyOn(core, "fetchAll")
-      .mockReturnValue(Effect.succeed([]));
+    const fetchPage = vi
+      .spyOn(core, "fetchPage")
+      .mockReturnValue(Effect.succeed(page([], 200)));
     const service = new PlanningCenterPeopleService(core);
 
-    await Effect.runPromise(service.getPlanPlanTimes("plan-456"));
+    const first = await Effect.runPromise(
+      service.getPlanPlanTimesPage("plan-456", 100)
+    );
+    await Effect.runPromise(service.getPlanPlanTimesPage("plan-456", 100));
 
-    expect(fetchAll).toHaveBeenCalledExactlyOnceWith(
+    expect(first).toStrictEqual(page([], 200));
+    expect(fetchPage).toHaveBeenCalledExactlyOnceWith(
       "/services/v2/plans/plan-456/plan_times",
-      { per_page: "100" },
-      10
+      {},
+      100
     );
   });
 
@@ -503,14 +516,14 @@ describe("PlanningCenterPeopleService.getPlanPlanTimes", () => {
       testPlanningCenterToken,
       unreachableHttpClient
     );
-    vi.spyOn(core, "fetchAll").mockReturnValue(
+    vi.spyOn(core, "fetchPage").mockReturnValue(
       Effect.fail(planningCenterNotFound())
     );
     const service = new PlanningCenterPeopleService(core);
 
     await expect(
-      Effect.runPromise(service.getPlanPlanTimes("plan-456"))
-    ).resolves.toStrictEqual([]);
+      Effect.runPromise(service.getPlanPlanTimesPage("plan-456", 0))
+    ).resolves.toStrictEqual(page([]));
   });
 
   it.each(planningCenterBudgetFailures())(
@@ -520,21 +533,81 @@ describe("PlanningCenterPeopleService.getPlanPlanTimes", () => {
         testPlanningCenterToken,
         unreachableHttpClient
       );
-      const fetchAll = vi
-        .spyOn(core, "fetchAll")
+      const fetchPage = vi
+        .spyOn(core, "fetchPage")
         .mockReturnValueOnce(Effect.fail(failure))
-        .mockReturnValueOnce(Effect.succeed([resource("time-1", "PlanTime")]));
+        .mockReturnValueOnce(
+          Effect.succeed(page([resource("time-1", "PlanTime")]))
+        );
       const service = new PlanningCenterPeopleService(core);
 
       await expect(
-        Effect.runPromiseExit(service.getPlanPlanTimes("plan-456"))
+        Effect.runPromiseExit(service.getPlanPlanTimesPage("plan-456", 0))
       ).resolves.toStrictEqual(Exit.fail(failure));
       await expect(
-        Effect.runPromise(service.getPlanPlanTimes("plan-456"))
-      ).resolves.toStrictEqual([resource("time-1", "PlanTime")]);
-      expect(fetchAll).toHaveBeenCalledTimes(2);
+        Effect.runPromise(service.getPlanPlanTimesPage("plan-456", 0))
+      ).resolves.toStrictEqual(page([resource("time-1", "PlanTime")]));
+      expect(fetchPage).toHaveBeenCalledTimes(2);
     }
   );
+
+  it("drops every cached page of a plan when its times change", async () => {
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
+    );
+    const fetchPage = vi
+      .spyOn(core, "fetchPage")
+      .mockReturnValue(Effect.succeed(page([], null)));
+    const service = new PlanningCenterPeopleService(core);
+    const readBoth = Effect.all([
+      service.getPlanPlanTimesPage("plan-456", 0),
+      service.getPlanPlanTimesPage("plan-456", 100),
+    ]);
+
+    await Effect.runPromise(readBoth);
+    service.invalidatePlanTimeSensitiveReadCaches("plan-456");
+    await Effect.runPromise(readBoth);
+
+    expect(fetchPage).toHaveBeenCalledTimes(4);
+  });
+});
+
+describe("PlanningCenterPeopleService.getPersonBlockouts", () => {
+  it("reads every page, and fails rather than return part of a list past ten pages", async () => {
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
+    );
+    const fetchPage = vi
+      .spyOn(core, "fetchPage")
+      .mockImplementation((_endpoint, _params, offset) =>
+        Effect.succeed({
+          data: [resource(`blockout-${offset}`, "Blockout")],
+          included: [],
+          nextOffset: offset + 100,
+        })
+      );
+    const service = new PlanningCenterPeopleService(core);
+
+    const exit = await Effect.runPromiseExit(
+      service.getPersonBlockouts("person-1")
+    );
+
+    expect({
+      exit,
+      pages: fetchPage.mock.calls.map((call) => call[2]),
+    }).toStrictEqual({
+      exit: Exit.fail(
+        new PlanningCenterPaginationError({
+          reason: "page-limit",
+          path: "/services/v2/people/person-1/blockouts",
+          pages: 10,
+        })
+      ),
+      pages: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900],
+    });
+  });
 });
 
 describe("PlanningCenterPeopleService.deletePlanPerson", () => {
@@ -702,7 +775,7 @@ describe("PlanningCenterPeopleService.getPersonSchedulesAfter with an instant", 
       unreachableHttpClient
     );
     const fetchAllWithIncluded = vi
-      .spyOn(core, "fetchAllWithIncluded")
+      .spyOn(core, "fetchFirstPages")
       .mockReturnValue(
         Effect.succeed({
           data: [
@@ -717,6 +790,7 @@ describe("PlanningCenterPeopleService.getPersonSchedulesAfter with an instant", 
             },
           ],
           included: [],
+          next: null,
         })
       );
     const fetchAll = vi.spyOn(core, "fetchAll");
@@ -749,8 +823,8 @@ describe("PlanningCenterPeopleService.getPersonSchedulesAfter with an instant", 
       unreachableHttpClient
     );
     const fetchAllWithIncluded = vi
-      .spyOn(core, "fetchAllWithIncluded")
-      .mockReturnValue(Effect.succeed({ data: [], included: [] }));
+      .spyOn(core, "fetchFirstPages")
+      .mockReturnValue(Effect.succeed({ data: [], included: [], next: null }));
     const service = new PlanningCenterPeopleService(core);
     const readBoth = async () => {
       await Effect.runPromise(

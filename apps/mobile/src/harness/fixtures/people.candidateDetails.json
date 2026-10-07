@@ -59,8 +59,8 @@
       {"personId": "4100111", "isBlockedForDate": false}
     ],
     "deferredPersonIds": [],
-    "blockoutProgress": [],
-    "requestBudget": {"limit": 36, "planningCenterRequests": 55, "firstReadRequests": 55, "blockoutDateRequests": 0, "planTimeRequests": 0}
+    "continuation": {"people": []},
+    "requestBudget": {"limit": 36, "planningCenterRequests": 55}
   },
   "cases": [
     {
@@ -115,8 +115,8 @@
           {"personId": "4100111", "isBlockedForDate": false}
         ],
         "deferredPersonIds": [],
-        "blockoutProgress": [],
-        "requestBudget": {"limit": 36, "planningCenterRequests": 46, "firstReadRequests": 45, "blockoutDateRequests": 1, "planTimeRequests": 0}
+        "continuation": {"people": []},
+        "requestBudget": {"limit": 36, "planningCenterRequests": 46}
       }
     },
     {
@@ -171,8 +171,8 @@
           {"personId": "4100111", "isBlockedForDate": false}
         ],
         "deferredPersonIds": [],
-        "blockoutProgress": [],
-        "requestBudget": {"limit": 36, "planningCenterRequests": 46, "firstReadRequests": 45, "blockoutDateRequests": 1, "planTimeRequests": 0}
+        "continuation": {"people": []},
+        "requestBudget": {"limit": 36, "planningCenterRequests": 46}
       }
     },
     {
@@ -227,8 +227,8 @@
           {"personId": "4100111", "isBlockedForDate": false}
         ],
         "deferredPersonIds": [],
-        "blockoutProgress": [],
-        "requestBudget": {"limit": 36, "planningCenterRequests": 46, "firstReadRequests": 45, "blockoutDateRequests": 1, "planTimeRequests": 0}
+        "continuation": {"people": []},
+        "requestBudget": {"limit": 36, "planningCenterRequests": 46}
       }
     },
     {
@@ -283,8 +283,8 @@
           {"personId": "4100111", "isBlockedForDate": false}
         ],
         "deferredPersonIds": [],
-        "blockoutProgress": [],
-        "requestBudget": {"limit": 36, "planningCenterRequests": 46, "firstReadRequests": 45, "blockoutDateRequests": 1, "planTimeRequests": 0}
+        "continuation": {"people": []},
+        "requestBudget": {"limit": 36, "planningCenterRequests": 46}
       }
     },
     {
@@ -339,8 +339,8 @@
           {"personId": "4100111", "isBlockedForDate": false}
         ],
         "deferredPersonIds": [],
-        "blockoutProgress": [],
-        "requestBudget": {"limit": 36, "planningCenterRequests": 47, "firstReadRequests": 45, "blockoutDateRequests": 2, "planTimeRequests": 0}
+        "continuation": {"people": []},
+        "requestBudget": {"limit": 36, "planningCenterRequests": 47}
       }
     },
     {
@@ -395,8 +395,8 @@
           {"personId": "4100111", "isBlockedForDate": false}
         ],
         "deferredPersonIds": [],
-        "blockoutProgress": [],
-        "requestBudget": {"limit": 36, "planningCenterRequests": 46, "firstReadRequests": 45, "blockoutDateRequests": 1, "planTimeRequests": 0}
+        "continuation": {"people": []},
+        "requestBudget": {"limit": 36, "planningCenterRequests": 46}
       }
     },
     {
@@ -451,8 +451,8 @@
           {"personId": "4100111", "isBlockedForDate": false}
         ],
         "deferredPersonIds": [],
-        "blockoutProgress": [],
-        "requestBudget": {"limit": 36, "planningCenterRequests": 47, "firstReadRequests": 45, "blockoutDateRequests": 2, "planTimeRequests": 0}
+        "continuation": {"people": []},
+        "requestBudget": {"limit": 36, "planningCenterRequests": 47}
       }
     },
     {
@@ -507,8 +507,8 @@
           {"personId": "4100111", "isBlockedForDate": false}
         ],
         "deferredPersonIds": [],
-        "blockoutProgress": [],
-        "requestBudget": {"limit": 36, "planningCenterRequests": 47, "firstReadRequests": 45, "blockoutDateRequests": 2, "planTimeRequests": 0}
+        "continuation": {"people": []},
+        "requestBudget": {"limit": 36, "planningCenterRequests": 47}
       }
     },
     {
@@ -563,8 +563,8 @@
           {"personId": "4100111", "isBlockedForDate": false}
         ],
         "deferredPersonIds": [],
-        "blockoutProgress": [],
-        "requestBudget": {"limit": 36, "planningCenterRequests": 47, "firstReadRequests": 45, "blockoutDateRequests": 2, "planTimeRequests": 0}
+        "continuation": {"people": []},
+        "requestBudget": {"limit": 36, "planningCenterRequests": 47}
       }
     },
     {
@@ -619,8 +619,8 @@
           {"personId": "4100111", "isBlockedForDate": false}
         ],
         "deferredPersonIds": [],
-        "blockoutProgress": [],
-        "requestBudget": {"limit": 36, "planningCenterRequests": 46, "firstReadRequests": 45, "blockoutDateRequests": 1, "planTimeRequests": 0}
+        "continuation": {"people": []},
+        "requestBudget": {"limit": 36, "planningCenterRequests": 46}
       }
     },
     {
@@ -675,8 +675,8 @@
           {"personId": "4100111", "isBlockedForDate": false}
         ],
         "deferredPersonIds": [],
-        "blockoutProgress": [],
-        "requestBudget": {"limit": 36, "planningCenterRequests": 47, "firstReadRequests": 45, "blockoutDateRequests": 2, "planTimeRequests": 0}
+        "continuation": {"people": []},
+        "requestBudget": {"limit": 36, "planningCenterRequests": 47}
       }
     },
     {
@@ -731,8 +731,8 @@
           {"personId": "4100111", "isBlockedForDate": false}
         ],
         "deferredPersonIds": [],
-        "blockoutProgress": [],
-        "requestBudget": {"limit": 36, "planningCenterRequests": 46, "firstReadRequests": 45, "blockoutDateRequests": 1, "planTimeRequests": 0}
+        "continuation": {"people": []},
+        "requestBudget": {"limit": 36, "planningCenterRequests": 46}
       }
     },
     {
@@ -787,8 +787,8 @@
           {"personId": "4100111", "isBlockedForDate": false}
         ],
         "deferredPersonIds": [],
-        "blockoutProgress": [],
-        "requestBudget": {"limit": 36, "planningCenterRequests": 47, "firstReadRequests": 45, "blockoutDateRequests": 2, "planTimeRequests": 0}
+        "continuation": {"people": []},
+        "requestBudget": {"limit": 36, "planningCenterRequests": 47}
       }
     }
   ]

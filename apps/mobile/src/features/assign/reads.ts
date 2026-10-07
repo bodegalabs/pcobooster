@@ -1,8 +1,8 @@
 import type { ProductApi } from "@pcobooster/client/product-client";
 import { callForQuery, speculativeQuery } from "@pcobooster/client/query";
 import {
-  advancedBlockoutChecks,
   CANDIDATE_DETAILS_BATCH_CONCURRENCY,
+  candidateDetailsAdvanced,
   windowHistoryAdvanced,
 } from "@pcobooster/planning-center-models/candidate-list";
 import { queryOptions } from "@tanstack/react-query";
@@ -81,13 +81,7 @@ export const fetchCandidateDetails = async (
   if (batch.deferredPersonIds.length === 0) {
     return batch.people;
   }
-  if (
-    batch.people.length === 0 &&
-    !advancedBlockoutChecks(
-      input.blockoutProgress ?? [],
-      batch.blockoutProgress
-    )
-  ) {
+  if (!candidateDetailsAdvanced(input.continuation, batch)) {
     throw new Error("Candidate details made no progress.");
   }
   return [
@@ -97,7 +91,7 @@ export const fetchCandidateDetails = async (
       {
         ...input,
         personIds: batch.deferredPersonIds,
-        blockoutProgress: batch.blockoutProgress,
+        continuation: batch.continuation,
       },
       context
     )),

@@ -14,12 +14,18 @@ import type {
   PeopleDashboardPersonDetail,
 } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
 import {
+  planTimePageReads,
+  PlanTimeProgress,
+} from "@pcobooster/api/modules/planning-center/people/plan-time-pages";
+import type { PlanTimesProgress } from "@pcobooster/api/modules/planning-center/people/plan-time-pages";
+import {
   isDeclinedStatus,
   RHYTHM_HISTORY_DAYS,
   scheduleSortDate,
   scheduleStatus,
 } from "@pcobooster/api/modules/planning-center/serving-rhythm";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import { readPagesWithinBudget } from "@pcobooster/api/planning-center/page-budget";
 import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import {
   planningCenterRequestsSpent,
@@ -64,7 +70,7 @@ const MISSING_PLAN_TIMES_CONCURRENCY = 4;
  */
 const DIRECT_PLAN_TIME_READS_RESERVE = 5;
 const PEOPLE_DASHBOARD_PERSON_CACHE_TTL_MS = 2 * 60 * 1000;
-const PEOPLE_DASHBOARD_PERSON_CACHE_VERSION = "v10";
+const PEOPLE_DASHBOARD_PERSON_CACHE_VERSION = "v11";
 
 type PeopleDashboardPersonReader = Pick<
   PlanningCenterPeopleService,
@@ -72,7 +78,7 @@ type PeopleDashboardPersonReader = Pick<
   | "getPerson"
   | "getPersonPlanPeople"
   | "getPersonSchedulesAfter"
-  | "getPlanPlanTimes"
+  | "getPlanPlanTimesPage"
 >;
 
 export interface PeopleDashboardPersonDependencies {
@@ -242,42 +248,47 @@ const findMissingPlanTimes = (
   return { byServiceType, missingTimeIds };
 };
 
-const planIdsWithUnresolvedTimes = (
+/** Per plan, the times its schedules list that are not resolved yet. */
+const unresolvedTimesByPlan = (
   schedules: PCResource[],
   unresolvedTimeIds: Set<string>
-): string[] => {
-  const planIds = new Set<string>();
+): Map<string, string[]> => {
+  const byPlan = new Map<string, string[]>();
   for (const schedule of schedules) {
     const [planId] = getRelationshipIds(schedule.relationships?.plan?.data);
     const unresolved = getRelationshipIds(
       schedule.relationships?.times?.data
-    ).some((id) => unresolvedTimeIds.has(id));
-    if (isNonEmptyString(planId) && unresolved) {
-      planIds.add(planId);
+    ).filter((id) => unresolvedTimeIds.has(id));
+    if (isNonEmptyString(planId) && unresolved.length > 0) {
+      byPlan.set(planId, [...(byPlan.get(planId) ?? []), ...unresolved]);
     }
   }
-  return [...planIds];
+  return byPlan;
 };
 
 interface ResolvedPlanTimes {
   readonly included: PCResource[];
-  /** Rehearsal (and other) times left out to stay within the request budget. */
+  /** Times Planning Center does not list on their plans; their assignments keep the plan date. */
   readonly unresolvedTimes: number;
+  /** Plan pages left for a follow-up call, or `null` when every time was looked for. */
+  readonly continuation: PlanTimesProgress | null;
 }
 
 /**
  * Resolves rehearsal PlanTimes with one cached plan-range read per service type (shared by every
- * person and month in that range), then reads a plan's own times when the ranges lack them, all
- * within `PROGRESSIVE_REQUEST_BUDGET` counted requests. Ranges go to the service types missing
- * the most times, and leave room for plan-by-plan reads. Times that still do not fit date their
- * assignment by its plan and are counted in `unresolvedTimes`. A service type or plan Planning
- * Center does not find contributes no times; any other failure fails the read.
+ * person and month in that range), then reads a plan's own times page by page when the ranges
+ * lack them, all within `PROGRESSIVE_REQUEST_BUDGET` counted requests. Ranges go to the service
+ * types missing the most times, and leave room for plan-by-plan reads; a plan's pages stop once
+ * its missing times are found. Pages that do not fit come back as a continuation holding the
+ * times found so far, and a follow-up call reads only plan pages. A service type or plan
+ * Planning Center does not find contributes no times; any other failure fails the read.
  */
 const resolveMissingPlanTimes = (
   schedules: PCResource[],
   included: PCResource[],
   window: PersonScheduleWindow,
-  dependencies: ScheduleReaders
+  dependencies: ScheduleReaders,
+  continuation: PlanTimesProgress | undefined
 ): Effect.Effect<ResolvedPlanTimes, PlanningCenterError> => {
   const { byServiceType, missingTimeIds } = findMissingPlanTimes(
     schedules,
@@ -285,76 +296,71 @@ const resolveMissingPlanTimes = (
     window.orgTimeZone
   );
   if (missingTimeIds.size === 0) {
-    return Effect.succeed({ included, unresolvedTimes: 0 });
+    return Effect.succeed({ included, unresolvedTimes: 0, continuation: null });
   }
   return Effect.gen(function* readMissingPlanTimes() {
-    const beforeRanges = yield* planningCenterRequestsSpent;
-    const rangeSlots = Math.max(
-      0,
-      Math.floor(
-        (PROGRESSIVE_REQUEST_BUDGET -
-          beforeRanges -
-          DIRECT_PLAN_TIME_READS_RESERVE) /
-          PLAN_RANGE_MAX_PAGES
-      )
+    const planTimes = new PlanTimeProgress(continuation, (id) =>
+      missingTimeIds.has(id)
     );
-    const rangeServiceTypes = [...byServiceType.entries()]
-      .toSorted(([, a], [, b]) => b.missingTimes - a.missingTimes)
-      .slice(0, rangeSlots);
-    const ranges = yield* Effect.forEach(
-      rangeServiceTypes,
-      ([serviceTypeId, { latestPlanDayKey }]) =>
-        dependencies.plansService
-          .getPlansWithIncludedInDateRange(
-            serviceTypeId,
-            window.rangeStartDayKey,
-            latestPlanDayKey > window.rangeEndDayKey
-              ? lastDayKeyOfMonth(latestPlanDayKey)
-              : window.rangeEndDayKey,
-            "plan_times",
-            window.orgTimeZone
-          )
-          .pipe(
-            Effect.map((response) => response.included),
-            recoverPlanningCenterFailure({
-              kinds: ["not-found"],
-              reason:
-                "Service type not found; its schedules keep their plan dates without rehearsal times",
-              details: { serviceTypeId },
-              fallback: (): PCResource[] => [],
-            })
-          ),
-      { concurrency: MISSING_PLAN_TIMES_CONCURRENCY }
-    );
-    const resolved = new Map<string, PCResource>();
-    for (const resource of ranges.flat()) {
-      if (resource.type === "PlanTime" && missingTimeIds.has(resource.id)) {
-        resolved.set(resource.id, resource);
-      }
-    }
-    const unresolvedAfterRanges = new Set(
-      [...missingTimeIds].filter((id) => !resolved.has(id))
-    );
-    const afterRanges = yield* planningCenterRequestsSpent;
-    const direct = yield* Effect.forEach(
-      planIdsWithUnresolvedTimes(schedules, unresolvedAfterRanges).slice(
+    if (continuation === undefined) {
+      const beforeRanges = yield* planningCenterRequestsSpent;
+      const rangeSlots = Math.max(
         0,
-        Math.max(0, PROGRESSIVE_REQUEST_BUDGET - afterRanges)
-      ),
-      (planId) => dependencies.peopleService.getPlanPlanTimes(planId),
-      { concurrency: MISSING_PLAN_TIMES_CONCURRENCY }
-    );
-    for (const resource of direct.flat()) {
-      if (
-        resource.type === "PlanTime" &&
-        unresolvedAfterRanges.has(resource.id)
-      ) {
-        resolved.set(resource.id, resource);
-      }
+        Math.floor(
+          (PROGRESSIVE_REQUEST_BUDGET -
+            beforeRanges -
+            DIRECT_PLAN_TIME_READS_RESERVE) /
+            PLAN_RANGE_MAX_PAGES
+        )
+      );
+      const rangeServiceTypes = [...byServiceType.entries()]
+        .toSorted(([, a], [, b]) => b.missingTimes - a.missingTimes)
+        .slice(0, rangeSlots);
+      const ranges = yield* Effect.forEach(
+        rangeServiceTypes,
+        ([serviceTypeId, { latestPlanDayKey }]) =>
+          dependencies.plansService
+            .getPlansWithIncludedInDateRange(
+              serviceTypeId,
+              window.rangeStartDayKey,
+              latestPlanDayKey > window.rangeEndDayKey
+                ? lastDayKeyOfMonth(latestPlanDayKey)
+                : window.rangeEndDayKey,
+              "plan_times",
+              window.orgTimeZone
+            )
+            .pipe(
+              Effect.map((response) => response.included),
+              recoverPlanningCenterFailure({
+                kinds: ["not-found"],
+                reason:
+                  "Service type not found; its schedules keep their plan dates without rehearsal times",
+                details: { serviceTypeId },
+                fallback: (): PCResource[] => [],
+              })
+            ),
+        { concurrency: MISSING_PLAN_TIMES_CONCURRENCY }
+      );
+      planTimes.add(ranges.flat());
     }
+    const missingByPlan = unresolvedTimesByPlan(
+      schedules,
+      new Set([...missingTimeIds].filter((id) => !planTimes.has(id)))
+    );
+    const unfinished = yield* readPagesWithinBudget(
+      () =>
+        planTimePageReads(dependencies.peopleService, [
+          { progress: planTimes, plans: missingByPlan },
+        ]).map(({ read }) => read),
+      { concurrency: MISSING_PLAN_TIMES_CONCURRENCY, startReserve: 0 }
+    );
+    const resolved = planTimes
+      .resources()
+      .filter(({ id }) => missingTimeIds.has(id));
     return {
-      included: [...included, ...resolved.values()],
-      unresolvedTimes: missingTimeIds.size - resolved.size,
+      included: [...included, ...resolved],
+      unresolvedTimes: missingTimeIds.size - resolved.length,
+      continuation: unfinished ? planTimes.progress() : null,
     };
   });
 };
@@ -447,6 +453,7 @@ interface PersonScheduleRead {
   readonly unsent: PCResource[];
   readonly included: PCResource[];
   readonly unresolvedTimes: number;
+  readonly continuation: PlanTimesProgress | null;
 }
 
 const needsPlanTimes = (schedule: PCResource, window: PersonScheduleWindow) => {
@@ -469,7 +476,8 @@ const needsPlanTimes = (schedule: PCResource, window: PersonScheduleWindow) => {
 const readPersonSchedules = (
   personId: string,
   window: PersonScheduleWindow,
-  dependencies: ScheduleReaders
+  dependencies: ScheduleReaders,
+  continuation: PlanTimesProgress | undefined
 ): Effect.Effect<PersonScheduleRead, PlanningCenterError> =>
   Effect.gen(function* readPersonScheduleItems() {
     const [schedules, planPeople] = yield* Effect.all(
@@ -493,15 +501,16 @@ const readPersonSchedules = (
       schedules.data,
       dependencies.catalogService
     );
-    const { included, unresolvedTimes } = yield* resolveMissingPlanTimes(
+    const resolved = yield* resolveMissingPlanTimes(
       [...schedules.data, ...unsent].filter((schedule) =>
         needsPlanTimes(schedule, window)
       ),
       schedules.included,
       window,
-      dependencies
+      dependencies,
+      continuation
     );
-    return { schedules: schedules.data, unsent, included, unresolvedTimes };
+    return { schedules: schedules.data, unsent, ...resolved };
   });
 
 const dedupeScheduleItems = (items: ScheduleItem[]) => {
@@ -607,6 +616,7 @@ const buildDashboardPersonDetail = (
 
 const buildPeopleDashboardPerson = ({
   personId,
+  continuation,
   dependencies,
   now,
   monthKey,
@@ -614,6 +624,7 @@ const buildPeopleDashboardPerson = ({
   orgTimeZone,
 }: {
   personId: string;
+  continuation: PlanTimesProgress | undefined;
   dependencies: PeopleDashboardPersonDependencies;
   now: Date;
   monthKey: string;
@@ -625,7 +636,7 @@ const buildPeopleDashboardPerson = ({
     const [personResource, read] = yield* Effect.all(
       [
         dependencies.peopleService.getPerson(personId),
-        readPersonSchedules(personId, window, dependencies),
+        readPersonSchedules(personId, window, dependencies, continuation),
       ],
       { concurrency: "unbounded" }
     );
@@ -647,16 +658,25 @@ const buildPeopleDashboardPerson = ({
         planningCenterRequests: spent,
         unresolvedRehearsalTimes: read.unresolvedTimes,
       },
+      continuation: read.continuation,
     };
   });
 
+/**
+ * A person's detail page. When rehearsal times do not fit one call, the detail comes back with
+ * `continuation`, and a follow-up call passing it back reads the remaining plan pages. Only
+ * complete details are cached.
+ */
 export const getPeopleDashboardPerson = ({
   personId,
   month,
+  continuation,
   dependencies,
 }: {
   personId: string;
   month?: string;
+  /** From the previous call's `continuation`. */
+  continuation?: PlanTimesProgress;
   dependencies: PeopleDashboardPersonDependencies;
 }): Effect.Effect<PeopleDashboardPersonDetail, PlanningCenterError> =>
   dependencies.resolveTimeZone.pipe(
@@ -665,27 +685,41 @@ export const getPeopleDashboardPerson = ({
       const monthDate = parseMonthDate(month, now);
       const monthInfo = getMonthInfo(monthDate, orgTimeZone);
       const monthKey = `${monthInfo.year}-${String(monthInfo.monthIndex + 1).padStart(2, "0")}`;
-
+      const build = () =>
+        buildPeopleDashboardPerson({
+          personId,
+          continuation,
+          dependencies,
+          now,
+          monthKey,
+          monthInfo,
+          orgTimeZone,
+        });
+      if (continuation !== undefined) {
+        return build();
+      }
+      const cacheKey = [
+        PEOPLE_DASHBOARD_PERSON_CACHE_VERSION,
+        "people-dashboard-person",
+        dependencies.peopleService.getCacheScope(),
+        personId,
+        monthKey,
+        orgTimeZone,
+      ].join(":");
       return cachedRead(
         dependencies.detailCache,
-        [
-          PEOPLE_DASHBOARD_PERSON_CACHE_VERSION,
-          "people-dashboard-person",
-          dependencies.peopleService.getCacheScope(),
-          personId,
-          monthKey,
-          orgTimeZone,
-        ].join(":"),
+        cacheKey,
         PEOPLE_DASHBOARD_PERSON_CACHE_TTL_MS,
-        () =>
-          buildPeopleDashboardPerson({
-            personId,
-            dependencies,
-            now,
-            monthKey,
-            monthInfo,
-            orgTimeZone,
+        build
+      ).pipe(
+        // Callers sharing this load follow its continuation; no later one may find it cached.
+        Effect.tap((detail) =>
+          Effect.sync(() => {
+            if (detail.continuation !== null) {
+              dependencies.detailCache.deleteWhere((key) => key === cacheKey);
+            }
           })
+        )
       );
     }),
     withPlanningCenterRequestCount

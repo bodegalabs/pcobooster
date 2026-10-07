@@ -136,6 +136,7 @@ const personDetail = (): PeopleDashboardPersonDetail => ({
     planningCenterRequests: 4,
     unresolvedRehearsalTimes: 0,
   },
+  continuation: null,
 });
 
 const storedDashboardParts = () => ({

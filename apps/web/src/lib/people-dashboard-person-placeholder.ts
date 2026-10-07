@@ -55,6 +55,7 @@ export const getCachedPeopleDashboardPersonDetail = (
         planningCenterRequests: 0,
         unresolvedRehearsalTimes: 0,
       },
+      continuation: null,
     };
   }
 

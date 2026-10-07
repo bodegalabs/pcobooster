@@ -15,6 +15,7 @@ import type { PositionCandidatesDependencies } from "@pcobooster/api/modules/pla
 import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
+import { candidateDetailsAdvanced } from "@pcobooster/planning-center-models/candidate-list";
 import { expandPlanWindowHistory } from "@pcobooster/planning-center-models/plan-window-history";
 import {
   assemblePositionCandidates,
@@ -95,7 +96,7 @@ const loadDetails = async (
     planId: string;
     date: string;
     scheduleHistory: boolean;
-    blockoutProgress?: CandidateDetailsBatch["blockoutProgress"];
+    continuation?: CandidateDetailsBatch["continuation"];
   },
   spent: number,
   progress: Progress
@@ -111,11 +112,7 @@ const loadDetails = async (
   if (batch.deferredPersonIds.length === 0) {
     return batch.people;
   }
-  if (
-    batch.people.length === 0 &&
-    batch.blockoutProgress.length === 0 &&
-    batch.deferredPersonIds.length >= request.personIds.length
-  ) {
+  if (!candidateDetailsAdvanced(request.continuation, batch)) {
     throw new Error("Candidate details made no progress");
   }
   return [
@@ -125,7 +122,7 @@ const loadDetails = async (
       {
         ...request,
         personIds: batch.deferredPersonIds,
-        blockoutProgress: batch.blockoutProgress,
+        continuation: batch.continuation,
       },
       spent,
       progress

@@ -3,16 +3,20 @@ import type {
   PositionCandidates,
 } from "@pcobooster/contracts/people-schemas";
 import {
-  advancedBlockoutChecks,
   assembleCandidateList,
   CANDIDATE_DETAILS_BATCH_CONCURRENCY,
+  candidateDetailsAdvanced,
   expandWindowHistory,
   needsScheduleHistory,
   planCandidateDetailsBatches,
   prefetchCandidateDetailBatches,
   windowHistoryAdvanced,
 } from "@pcobooster/planning-center-models/candidate-list";
-import type { CandidateDetail } from "@pcobooster/planning-center-models/candidate-list";
+import type {
+  CandidateDetail,
+  CandidateDetailsBatch,
+  CandidateDetailsContinuation,
+} from "@pcobooster/planning-center-models/candidate-list";
 import { describe, expect, it, vi } from "vitest";
 
 const DATE = "2026-09-27T17:00:00.000Z";
@@ -227,30 +231,37 @@ describe(windowHistoryAdvanced, () => {
   });
 });
 
-describe(advancedBlockoutChecks, () => {
-  const before = [
-    { personId: "p-1", checkedBlockoutIds: ["b-1"], blocked: false },
-  ];
+const progress = (datesOffset: number): CandidateDetailsContinuation => ({
+  people: [
+    {
+      personId: "p-1",
+      blocked: false,
+      blockoutsOffset: null,
+      pendingBlockouts: [{ blockoutId: "b-1", timeZone: "UTC", datesOffset }],
+      rehearsalTimes: { plans: [], times: [] },
+    },
+  ],
+});
+const batch = (
+  continuation: CandidateDetailsContinuation,
+  people: CandidateDetailsBatch["people"] = []
+): CandidateDetailsBatch => ({ people, continuation });
 
-  it("counts newly checked blockouts and newly found blocks", () => {
+describe(candidateDetailsAdvanced, () => {
+  it("counts a call that only moved a page cursor, or finished someone", () => {
     expect([
-      advancedBlockoutChecks(before, [
-        { personId: "p-1", checkedBlockoutIds: ["b-1", "b-2"], blocked: false },
-      ]),
-      advancedBlockoutChecks(before, [
-        { personId: "p-1", checkedBlockoutIds: ["b-1"], blocked: true },
-      ]),
-      advancedBlockoutChecks(
-        [],
-        [{ personId: "p-2", checkedBlockoutIds: ["b-9"], blocked: false }]
+      candidateDetailsAdvanced(progress(100), batch(progress(200))),
+      candidateDetailsAdvanced(undefined, batch(progress(0))),
+      candidateDetailsAdvanced(
+        progress(100),
+        batch(progress(100), [detail("p-2", false)])
       ),
     ]).toStrictEqual([true, true, true]);
   });
 
-  it("reports progress that did not move", () => {
-    expect([
-      advancedBlockoutChecks(before, before),
-      advancedBlockoutChecks([], []),
-    ]).toStrictEqual([false, false]);
+  it("reports a call that handed back the continuation it was given", () => {
+    expect(
+      candidateDetailsAdvanced(progress(100), batch(progress(100)))
+    ).toBeFalsy();
   });
 });

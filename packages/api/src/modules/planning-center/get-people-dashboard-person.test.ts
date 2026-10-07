@@ -5,6 +5,7 @@ import {
 } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
 import type { PeopleDashboardPersonDependencies } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
 import type { PeopleDashboardPersonDetail } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
+import type { PlanTimesProgress } from "@pcobooster/api/modules/planning-center/people/plan-time-pages";
 import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
@@ -144,9 +145,10 @@ const dependenciesFor = ({
   const getPersonPlanPeople = vi
     .fn<PeopleReader["getPersonPlanPeople"]>()
     .mockReturnValue(Effect.succeed(planPeople));
-  const getPlanPlanTimes = vi.fn<PeopleReader["getPlanPlanTimes"]>(
-    (planId: string) => Effect.succeed(planPlanTimes[planId] ?? [])
-  );
+  // A plan's whole time list; `dependencies` serves it as the plan's only page.
+  const getPlanPlanTimes = vi.fn<
+    (planId: string) => Effect.Effect<PCResource[], PlanningCenterError>
+  >((planId: string) => Effect.succeed(planPlanTimes[planId] ?? []));
   const getServiceTypesCached = vi
     .fn<
       PeopleDashboardPersonDependencies["catalogService"]["getServiceTypesCached"]
@@ -163,7 +165,12 @@ const dependenciesFor = ({
       getPerson,
       getPersonSchedulesAfter,
       getPersonPlanPeople,
-      getPlanPlanTimes,
+      getPlanPlanTimesPage: (planId) =>
+        Effect.map(getPlanPlanTimes(planId), (data) => ({
+          data,
+          included: [],
+          nextOffset: null,
+        })),
     },
     catalogService: { getServiceTypesCached },
     plansService: { getPlansWithIncludedInDateRange },
@@ -585,7 +592,7 @@ describe(getPeopleDashboardPerson, () => {
     });
   });
 
-  it("stays within the budget for someone serving in 12 service types and reports what it left unresolved", async () => {
+  it("stays within the budget for someone serving in 12 service types and continues to every rehearsal time", async () => {
     vi.useFakeTimers({ now: NOW });
     const serviceTypeIds = Array.from(
       { length: 12 },
@@ -641,29 +648,58 @@ describe(getPeopleDashboardPerson, () => {
       const rehearsal = rehearsalsByPlanId.get(planId);
       return countedRead(rehearsal === undefined ? [] : [rehearsal]);
     });
-    const accounting = new PlanningCenterRequestAccounting();
+    // Each call is its own invocation, as the browser follows the continuation.
+    const readCall = async (
+      continuation?: PlanTimesProgress
+    ): Promise<{ requests: number; detail: PeopleDashboardPersonDetail }[]> => {
+      const accounting = new PlanningCenterRequestAccounting();
+      const detail: PeopleDashboardPersonDetail = await Effect.runPromise(
+        getPeopleDashboardPerson({
+          personId: "person-1",
+          month: "2026-09",
+          continuation,
+          dependencies: fixture.dependencies,
+        }).pipe(Effect.provideService(PlanningCenterAccounting, accounting))
+      );
+      const call = { requests: accounting.requestCount, detail };
+      return detail.continuation === null
+        ? [call]
+        : [call, ...(await readCall(detail.continuation))];
+    };
+    const calls = await readCall();
 
-    const detail = await Effect.runPromise(
+    // A partial detail is never left in the cache: a later visit reads again.
+    const personReads = fixture.getPerson.mock.calls.length;
+    await Effect.runPromise(
       getPeopleDashboardPerson({
         personId: "person-1",
         month: "2026-09",
         dependencies: fixture.dependencies,
-      }).pipe(Effect.provideService(PlanningCenterAccounting, accounting))
+      })
     );
 
-    const resolved =
-      3 * fixture.getPlansWithIncludedInDateRange.mock.calls.length +
-      fixture.getPlanPlanTimes.mock.calls.length;
+    const [first] = calls;
+    const last = calls.at(-1);
     expect({
-      withinBudget: accounting.requestCount <= PROGRESSIVE_REQUEST_BUDGET,
-      reported: detail.requestBudget.planningCenterRequests,
-      unresolved: detail.requestBudget.unresolvedRehearsalTimes,
-      someUnresolved: detail.requestBudget.unresolvedRehearsalTimes > 0,
+      everyCallWithinBudget: calls.every(
+        ({ requests }) => requests <= PROGRESSIVE_REQUEST_BUDGET
+      ),
+      firstReported: first?.detail.requestBudget.planningCenterRequests,
+      firstContinues: first?.detail.continuation !== null,
+      calls: calls.length,
+      unresolved: last?.detail.requestBudget.unresolvedRehearsalTimes,
+      rehearsalDays: last?.detail.person.monthDays.filter(
+        ({ kind }) => kind === "rehearsal"
+      ).length,
+      revisitReadAgain: fixture.getPerson.mock.calls.length > personReads,
     }).toStrictEqual({
-      withinBudget: true,
-      reported: accounting.requestCount,
-      unresolved: 36 - resolved,
-      someUnresolved: true,
+      everyCallWithinBudget: true,
+      firstReported: first?.requests,
+      firstContinues: true,
+      calls: 2,
+      unresolved: 0,
+      rehearsalDays: 3,
+      revisitReadAgain: true,
     });
   });
 });

@@ -16,7 +16,7 @@ export const getFutureBlockoutsForPerson = (
   dependencies: FutureBlockoutsDependencies
 ): Effect.Effect<Blockout[], PlanningCenterError> =>
   Effect.map(
-    dependencies.peopleService.getPersonBlockouts(personId, {}),
+    dependencies.peopleService.getPersonBlockouts(personId),
     (rawBlockouts) => {
       const now = new Date();
       const blockouts: Blockout[] = [];

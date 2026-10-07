@@ -11,7 +11,8 @@ import {
   peopleSearchResultSchema,
   planWindowHistoryBatchSchema,
   positionCandidatesSchema,
-  blockoutProgressSchema,
+  candidateDetailsContinuationSchema,
+  planTimesProgressSchema,
   windowPlanRefSchema,
 } from "@pcobooster/contracts/http/people-schemas";
 import {
@@ -68,11 +69,14 @@ export const peopleCandidateDetailsInputSchema = Schema.Struct({
   date: planDateSchema,
   /** Also read each person's own schedules; only when the plan window is empty. */
   scheduleHistory: Schema.Boolean,
-  /** From the previous call's `blockoutProgress`; omit on the first call. */
-  blockoutProgress: Schema.optional(
-    mutableArray(blockoutProgressSchema).check(
-      Schema.isMaxLength(PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE)
-    )
+  /** From the previous call's `continuation`; omit on the first call. */
+  continuation: Schema.optional(
+    Schema.Struct({
+      ...candidateDetailsContinuationSchema.fields,
+      people: candidateDetailsContinuationSchema.fields.people.check(
+        Schema.isMaxLength(PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE)
+      ),
+    })
   ),
 });
 
@@ -94,6 +98,8 @@ export const peopleDashboardActivityInputSchema = Schema.Struct({
 export const peopleDashboardPersonInputSchema = Schema.Struct({
   ...peopleBlockoutsInputSchema.fields,
   month: Schema.optional(Schema.String.check(Schema.isPattern(MONTH_KEY))),
+  /** From the previous call's `continuation`; omit on the first call. */
+  continuation: Schema.optional(planTimesProgressSchema),
 });
 
 const CANDIDATE_POSITION = ["serviceTypeId", "planId", "positionId"] as const;
@@ -124,8 +130,8 @@ export const people = planningCenterGroup(
     success: planWindowHistoryBatchSchema,
   }),
   /**
-   * Partial with a continuation cursor: `deferredPersonIds` and `blockoutProgress`. A POST read:
-   * the people and their blockout progress can outgrow a URL.
+   * Partial with a continuation cursor: `deferredPersonIds` and `continuation`. A POST read:
+   * the people and their page progress can outgrow a URL.
    */
   read.post("candidateDetails", "/plans/:planId/candidate-details", {
     params: Struct.pick(peopleCandidateDetailsInputSchema.fields, ["planId"]),
@@ -150,10 +156,13 @@ export const people = planningCenterGroup(
     success: peopleDashboardActivityBatchSchema,
     feature: "people",
   }),
-  /** Partial without a cursor: `requestBudget.unresolvedRehearsalTimes` says what is missing. */
-  read("dashboardPerson", "/people/:personId/dashboard", {
+  /**
+   * Partial with a continuation cursor: pass `continuation` back until it is `null`. A POST
+   * read: the rehearsal times found so far can outgrow a URL.
+   */
+  read.post("dashboardPerson", "/people/:personId/dashboard", {
     params: Struct.pick(peopleDashboardPersonInputSchema.fields, ["personId"]),
-    query: Struct.omit(peopleDashboardPersonInputSchema.fields, ["personId"]),
+    payload: Struct.omit(peopleDashboardPersonInputSchema.fields, ["personId"]),
     success: peopleDashboardPersonDetailSchema,
     feature: "people",
   }),

@@ -18,10 +18,27 @@ export interface CandidateDetailsBatch {
     isBlockedForDate: boolean;
     history?: CandidateHistory;
   }[];
-  blockoutProgress: {
+  continuation: CandidateDetailsContinuation;
+}
+
+/**
+ * Where a candidate details call stopped: each unfinished person's next blockout pages and the
+ * rehearsal plan times read so far. Clients pass it back unchanged with `deferredPersonIds`.
+ */
+export interface CandidateDetailsContinuation {
+  people: {
     personId: string;
-    checkedBlockoutIds: string[];
     blocked: boolean;
+    blockoutsOffset: number | null;
+    pendingBlockouts: {
+      blockoutId: string;
+      timeZone: string | null;
+      datesOffset: number;
+    }[];
+    rehearsalTimes: {
+      plans: { planId: string; nextOffset: number | null }[];
+      times: { id: string; timeType: string | null; startsAt: string | null }[];
+    };
   }[];
 }
 export interface PlanWindowHistoryBatch extends PlanWindowRosters {
@@ -106,22 +123,16 @@ export const windowHistoryAdvanced = (
   );
 };
 
-type BlockoutProgress = CandidateDetailsBatch["blockoutProgress"];
-
-/** Whether a candidate details call checked another blockout or found a block. */
-export const advancedBlockoutChecks = (
-  before: BlockoutProgress,
-  after: BlockoutProgress
-): boolean => {
-  const earlier = new Map(before.map((entry) => [entry.personId, entry]));
-  return after.some(({ personId, checkedBlockoutIds, blocked }) => {
-    const previous = earlier.get(personId);
-    return (
-      blocked !== (previous?.blocked ?? false) ||
-      checkedBlockoutIds.length > (previous?.checkedBlockoutIds.length ?? 0)
-    );
-  });
-};
+/**
+ * Whether a candidate details call finished someone or moved its continuation: read another
+ * blockout, date, or plan-time page. A call that did neither would repeat forever.
+ */
+export const candidateDetailsAdvanced = (
+  continuation: CandidateDetailsContinuation | undefined,
+  batch: CandidateDetailsBatch
+): boolean =>
+  batch.people.length > 0 ||
+  JSON.stringify(continuation) !== JSON.stringify(batch.continuation);
 
 export interface CandidateListProgress {
   candidateCount: number;

@@ -1,3 +1,5 @@
+import type { PlanTimesProgress } from "@pcobooster/api/modules/planning-center/people/plan-time-pages";
+
 export type PeopleDashboardDayKind = "service" | "rehearsal";
 
 export interface PeopleDashboardMonth {
@@ -94,9 +96,11 @@ export interface PeopleDashboardPersonDetail {
     /** Planning Center requests the procedure sent; cached reads cost none. */
     planningCenterRequests: number;
     /**
-     * Rehearsal (and other) times the budget left unread; their assignments show on their
-     * plan's date. Zero when the detail is complete.
+     * Rehearsal (and other) times their plans do not list, or not read yet while
+     * `continuation` is set; their assignments show on their plan's date.
      */
     unresolvedRehearsalTimes: number;
   };
+  /** Plan pages left for a follow-up call; `null` once the detail is complete. */
+  continuation: PlanTimesProgress | null;
 }

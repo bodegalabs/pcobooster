@@ -1,4 +1,5 @@
 import { loadPositionCandidatesProgressively } from "@pcobooster/api/modules/planning-center/load-position-candidates.test-support";
+import type { PlanningCenterPage } from "@pcobooster/api/planning-center/core-client";
 import { PROGRESSIVE_REQUEST_BUDGET } from "@pcobooster/api/planning-center/request-budget";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
@@ -628,6 +629,13 @@ interface OrgFixture {
   readonly emptyWindow?: boolean;
 }
 
+/** A collection that fits one page. */
+const onlyPage = (data: readonly PCResource[]): PlanningCenterPage => ({
+  data: structuredClone([...data]),
+  included: [],
+  nextOffset: null,
+});
+
 const createOrg = ({ emptyWindow = false }: OrgFixture = {}) => {
   const catalog = {
     getServiceTypesCached: () => Effect.succeed(structuredClone(serviceTypes)),
@@ -677,18 +685,18 @@ const createOrg = ({ emptyWindow = false }: OrgFixture = {}) => {
         data: structuredClone(windowRosters.get(planId) ?? []),
         included: rosterIncluded(planId),
       }),
-    getPersonBlockouts: (personId: string) =>
-      Effect.succeed(structuredClone(blockoutsByPerson.get(personId) ?? [])),
-    getPersonBlockoutDates: (_personId: string, blockoutId: string) =>
-      Effect.succeed(structuredClone(blockoutDates.get(blockoutId) ?? [])),
+    getPersonBlockoutsPage: (personId: string) =>
+      Effect.succeed(onlyPage(blockoutsByPerson.get(personId) ?? [])),
+    getPersonBlockoutDatesPage: (_personId: string, blockoutId: string) =>
+      Effect.succeed(onlyPage(blockoutDates.get(blockoutId) ?? [])),
     getPersonSchedulesAfter: (personId: string) =>
       Effect.succeed({
         data: structuredClone(schedulesByPerson.get(personId) ?? []),
         included: structuredClone(scheduleIncluded),
       }),
-    getPlanPlanTimes: (planId: string) =>
+    getPlanPlanTimesPage: (planId: string) =>
       Effect.succeed(
-        structuredClone(PLANS.find(({ id }) => id === planId)?.times ?? [])
+        onlyPage(PLANS.find(({ id }) => id === planId)?.times ?? [])
       ),
   };
   return {

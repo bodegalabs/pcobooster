@@ -3,12 +3,16 @@ import {
   finiteNumber,
   integer,
   mutableArray,
+  nonNegativeInteger,
   requiredId,
 } from "@pcobooster/contracts/http/schema";
 import { Schema } from "effect";
 
 const MAX_ROSTER_REQUESTS = 100;
-const MAX_CHECKED_BLOCKOUTS = 1000;
+const MAX_PENDING_BLOCKOUTS = 1000;
+/** Plans whose times one person's history or detail page reads across calls. */
+const MAX_PROGRESS_PLANS = 1000;
+const MAX_PROGRESS_TIMES = 5000;
 
 export const blockoutSchema = Schema.Struct({
   id: Schema.String,
@@ -166,32 +170,62 @@ export const candidateDetailSchema = Schema.Struct({
   history: Schema.optional(candidateHistorySchema),
 });
 
-/** Blockout checks a previous call already did for a person it left unfinished. */
-export const blockoutProgressSchema = Schema.Struct({
+/** The page a follow-up call reads next: an offset into a Planning Center collection. */
+const pageOffset = nonNegativeInteger;
+
+/**
+ * Plans whose times earlier calls read page by page for one person (`nextOffset` is `null` once
+ * read to the end), and the times found that the person's schedules list.
+ */
+export const planTimesProgressSchema = Schema.Struct({
+  plans: mutableArray(
+    Schema.Struct({ planId: requiredId, nextOffset: Schema.NullOr(pageOffset) })
+  ).check(Schema.isMaxLength(MAX_PROGRESS_PLANS)),
+  times: mutableArray(
+    Schema.Struct({
+      id: requiredId,
+      timeType: Schema.NullOr(Schema.String),
+      startsAt: Schema.NullOr(Schema.String),
+    })
+  ).check(Schema.isMaxLength(MAX_PROGRESS_TIMES)),
+});
+
+/** What earlier calls learned about a person they left unfinished. */
+export const candidatePersonProgressSchema = Schema.Struct({
   personId: requiredId,
-  /** Repeating blockouts read and found not to cover the plan day. */
-  checkedBlockoutIds: mutableArray(requiredId).check(
-    Schema.isMaxLength(MAX_CHECKED_BLOCKOUTS)
-  ),
-  /** A blockout was found to cover the plan day. */
+  /** A blockout covers the plan day. */
   blocked: Schema.Boolean,
+  /** The next page of the person's blockout list, or `null` once it is all read. */
+  blockoutsOffset: Schema.NullOr(pageOffset),
+  /** Repeating blockouts whose dates may still cover the plan day, and their next date page. */
+  pendingBlockouts: mutableArray(
+    Schema.Struct({
+      blockoutId: requiredId,
+      timeZone: Schema.NullOr(Schema.String),
+      datesOffset: pageOffset,
+    })
+  ).check(Schema.isMaxLength(MAX_PENDING_BLOCKOUTS)),
+  /** For schedule history: the rehearsal plans whose times were read, and the times found. */
+  rehearsalTimes: planTimesProgressSchema,
+});
+
+/** Where a candidate details call stopped; a follow-up call resumes from it alone. */
+export const candidateDetailsContinuationSchema = Schema.Struct({
+  people: mutableArray(candidatePersonProgressSchema),
 });
 
 export const candidateDetailsBatchSchema = Schema.Struct({
   generatedAt: Schema.String,
+  /** People whose details are complete. */
   people: mutableArray(candidateDetailSchema),
   /** Requested people left for a follow-up call to stay within the budget. */
   deferredPersonIds: mutableArray(Schema.String),
-  /** Pass back with `deferredPersonIds`; the next call skips checks already done. */
-  blockoutProgress: mutableArray(blockoutProgressSchema),
+  /** Pass back with `deferredPersonIds`; empty once nobody is deferred. */
+  continuation: candidateDetailsContinuationSchema,
   requestBudget: Schema.Struct({
     limit: finiteNumber,
     /** Planning Center requests the call sent; cached reads cost none. */
     planningCenterRequests: finiteNumber,
-    /** Blockout lists and schedule pages. */
-    firstReadRequests: finiteNumber,
-    blockoutDateRequests: finiteNumber,
-    planTimeRequests: finiteNumber,
   }),
 });
 
@@ -319,11 +353,13 @@ export const peopleDashboardPersonDetailSchema = Schema.Struct({
     /** Planning Center requests the call sent; cached reads cost none. */
     planningCenterRequests: finiteNumber,
     /**
-     * Rehearsal (and other) times the budget left unread; their assignments show on their
-     * plan's date. Zero when the detail is complete.
+     * Rehearsal (and other) times their plans do not list, or not read yet while
+     * `continuation` is set; their assignments show on their plan's date.
      */
     unresolvedRehearsalTimes: finiteNumber,
   }),
+  /** Plan pages left for a follow-up call; `null` once the detail is complete. */
+  continuation: Schema.NullOr(planTimesProgressSchema),
 });
 
 export const peopleSearchResultSchema = Schema.Struct({

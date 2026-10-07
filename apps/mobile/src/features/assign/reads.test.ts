@@ -74,7 +74,7 @@ describe("Assign reads through the product client", () => {
     );
   });
 
-  it("follows deferred history and blockout cursors without changing the plan date", async () => {
+  it("follows deferred history and blockout page cursors without changing the plan date", async () => {
     const { transport, context, cache } = setup();
     const call = vi.spyOn(transport, "handle");
     call.mockResolvedValueOnce({
@@ -96,13 +96,25 @@ describe("Assign reads through the product client", () => {
         serviceTypeIds: [],
       },
     });
+    // Only a date page advanced: nobody finished, and the cursor still counts as progress.
+    const continuation = {
+      people: [
+        {
+          personId: "a",
+          blocked: false,
+          blockoutsOffset: null,
+          pendingBlockouts: [
+            { blockoutId: "daily", timeZone: "UTC", datesOffset: 100 },
+          ],
+          rehearsalTimes: { plans: [], times: [] },
+        },
+      ],
+    };
     call.mockResolvedValueOnce({
       ...detailsFixture.default,
       people: [],
       deferredPersonIds: ["a"],
-      blockoutProgress: [
-        { personId: "a", checkedBlockoutIds: ["checked"], blocked: false },
-      ],
+      continuation,
     });
     call.mockResolvedValueOnce({
       ...detailsFixture.default,
@@ -115,9 +127,7 @@ describe("Assign reads through the product client", () => {
       planId: slot.planId,
       personIds: ["a"],
       scheduleHistory: false,
-      blockoutProgress: [
-        { personId: "a", checkedBlockoutIds: ["checked"], blocked: false },
-      ],
+      continuation,
     });
   });
 
@@ -127,7 +137,6 @@ describe("Assign reads through the product client", () => {
       ...detailsFixture.default,
       people: [],
       deferredPersonIds: ["a"],
-      blockoutProgress: [],
     });
     await expect(
       cache.query(assignReads.details(context, slot, ["a"], false))

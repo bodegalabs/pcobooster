@@ -2,7 +2,9 @@ import { buildPlanningCenterUrl } from "@pcobooster/api/planning-center/core-cli
 import type {
   PlanningCenterCoreClient,
   PlanningCenterError,
+  PlanningCenterPage,
 } from "@pcobooster/api/planning-center/core-client";
+import { PlanningCenterPaginationError } from "@pcobooster/api/planning-center/pagination-error";
 import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import {
@@ -39,6 +41,35 @@ const PEOPLE_SEARCH_CACHE_TTL_MS = 60 * 1000;
 export const PLAN_ROSTER_MAX_PAGES = 25;
 /** 100 teams per page; an organization with more than 1,000 teams is cut off. */
 const TEAM_PAGES_MAX = 10;
+/** 100 blockouts per page; nobody lists more than 1,000. */
+const BLOCKOUT_LIST_MAX_PAGES = 10;
+
+/** Reads a paged collection to its end, failing past `BLOCKOUT_LIST_MAX_PAGES`. */
+const readEveryPage = (
+  readPage: (
+    offset: number
+  ) => Effect.Effect<PlanningCenterPage, PlanningCenterError>,
+  path: string
+): Effect.Effect<PCResource[], PlanningCenterError> =>
+  Effect.gen(function* readPages() {
+    const data: PCResource[] = [];
+    let offset: number | null = 0;
+    for (let pages = 0; offset !== null; pages += 1) {
+      if (pages === BLOCKOUT_LIST_MAX_PAGES) {
+        return yield* Effect.fail(
+          new PlanningCenterPaginationError({
+            reason: "page-limit",
+            path,
+            pages,
+          })
+        );
+      }
+      const page: PlanningCenterPage = yield* readPage(offset);
+      data.push(...page.data);
+      offset = page.nextOffset;
+    }
+    return data;
+  });
 
 /** One active team: who is on it and who leads it. */
 export interface TeamRoster {
@@ -66,6 +97,8 @@ export interface PlanningCenterPeopleServiceCaches {
   readonly people: PlanningCenterReadCache<PCResource>;
   readonly resourceLists: PlanningCenterReadCache<PCResource[]>;
   readonly collections: PlanningCenterReadCache<ResourceCollectionResponse>;
+  /** Single pages of collections read page by page. */
+  readonly pages: PlanningCenterReadCache<PlanningCenterPage>;
   readonly allTeamPeople: PlanningCenterReadCache<AllTeamPeopleResponse>;
   /** Rosters of the plans around a plan date, read for candidate history. */
   readonly planWindowRosters: PlanningCenterReadCache<ResourceCollectionResponse>;
@@ -76,6 +109,7 @@ export const createPlanningCenterPeopleServiceCaches =
     people: new PlanningCenterReadCache<PCResource>(),
     resourceLists: new PlanningCenterReadCache<PCResource[]>(),
     collections: new PlanningCenterReadCache<ResourceCollectionResponse>(),
+    pages: new PlanningCenterReadCache<PlanningCenterPage>(),
     allTeamPeople: new PlanningCenterReadCache<AllTeamPeopleResponse>(),
     planWindowRosters:
       new PlanningCenterReadCache<ResourceCollectionResponse>(),
@@ -295,38 +329,51 @@ export class PlanningCenterPeopleService {
     ).pipe(Effect.map(cloneAllTeamPeopleResponse));
   }
 
-  getPersonBlockouts(
+  /** One page of a person's blockouts: one-time ones and repeating ones' parents. */
+  getPersonBlockoutsPage(
     personId: string,
-    params: Record<string, string> = {}
-  ): Effect.Effect<PCResource[], PlanningCenterError> {
-    return cachedRead(
-      this.caches.resourceLists,
-      this.buildCacheKey("person-blockouts", personId, stableParams(params)),
+    offset: number
+  ): Effect.Effect<PlanningCenterPage, PlanningCenterError> {
+    return this.cachedPage(
+      ["person-blockouts", personId],
       PERSON_BLOCKOUTS_CACHE_TTL_MS,
+      offset,
       () =>
-        this.core.fetchAll(
+        this.core.fetchPage(
           `/services/v2/people/${personId}/blockouts`,
-          params,
-          10
+          {},
+          offset
         )
-    ).pipe(Effect.map((blockouts) => structuredClone(blockouts)));
+    );
   }
 
-  getPersonBlockoutDates(
-    personId: string,
-    blockoutId: string
+  /** Every blockout of a person, read page by page; fails rather than list only some. */
+  getPersonBlockouts(
+    personId: string
   ): Effect.Effect<PCResource[], PlanningCenterError> {
-    return cachedRead(
-      this.caches.resourceLists,
-      this.buildCacheKey("person-blockout-dates", personId, blockoutId),
+    return readEveryPage(
+      (offset) => this.getPersonBlockoutsPage(personId, offset),
+      `/services/v2/people/${personId}/blockouts`
+    );
+  }
+
+  /** One page of the dates a repeating blockout generated. */
+  getPersonBlockoutDatesPage(
+    personId: string,
+    blockoutId: string,
+    offset: number
+  ): Effect.Effect<PlanningCenterPage, PlanningCenterError> {
+    return this.cachedPage(
+      ["person-blockout-dates", personId, blockoutId],
       PERSON_BLOCKOUTS_CACHE_TTL_MS,
+      offset,
       () =>
-        this.core.fetchAll(
+        this.core.fetchPage(
           `/services/v2/people/${personId}/blockouts/${blockoutId}/blockout_dates`,
           {},
-          10
+          offset
         )
-    ).pipe(Effect.map((dates) => structuredClone(dates)));
+    );
   }
 
   /**
@@ -368,12 +415,12 @@ export class PlanningCenterPeopleService {
       PERSON_READ_CACHE_TTL_MS,
       () =>
         this.core
-          .fetchAllWithIncluded(
+          .fetchFirstPages(
             `/services/v2/people/${personId}/schedules`,
             params,
             maxPages
           )
-          .pipe(Effect.map(toResourceCollection))
+          .pipe(Effect.map(({ data, included }) => ({ data, included })))
     ).pipe(Effect.map(cloneResourceCollectionResponse));
   }
 
@@ -400,34 +447,34 @@ export class PlanningCenterPeopleService {
   }
 
   /**
-   * Cached fetch of all PlanTimes for a plan. Shared across candidates so a position page with
-   * 30 candidates serving on the same Sunday plan triggers one fetch, not 30. PlanTimes rarely
-   * change, so the TTL is longer than per-person caches. A plan Planning Center does not find
-   * (deleted, or in another organization) has no times; every other failure fails the read.
+   * One page of a plan's PlanTimes, cached per page and shared by everyone on the plan. A plan
+   * Planning Center does not find (deleted, or in another organization) has no times; every
+   * other failure fails the read.
    */
-  getPlanPlanTimes(
-    planId: string
-  ): Effect.Effect<PCResource[], PlanningCenterError> {
-    return cachedRead(
-      this.caches.resourceLists,
-      this.buildCacheKey("plan-plan-times", planId),
+  getPlanPlanTimesPage(
+    planId: string,
+    offset: number
+  ): Effect.Effect<PlanningCenterPage, PlanningCenterError> {
+    return this.cachedPage(
+      ["plan-plan-times", planId],
       PLAN_TIMES_CACHE_TTL_MS,
+      offset,
       () =>
         this.core
-          .fetchAll(
-            `/services/v2/plans/${planId}/plan_times`,
-            { per_page: "100" },
-            10
-          )
+          .fetchPage(`/services/v2/plans/${planId}/plan_times`, {}, offset)
           .pipe(
             recoverPlanningCenterFailure({
               kinds: ["not-found"],
               reason: "Plan not found; reading it as having no plan times",
               details: { planId },
-              fallback: (): PCResource[] => [],
+              fallback: (): PlanningCenterPage => ({
+                data: [],
+                included: [],
+                nextOffset: null,
+              }),
             })
           )
-    ).pipe(Effect.map((planTimes) => structuredClone(planTimes)));
+    );
   }
 
   getPeopleForTeamPosition(
@@ -707,13 +754,31 @@ export class PlanningCenterPeopleService {
 
   invalidatePlanTimeSensitiveReadCaches(planId: string) {
     const scope = this.core.getCacheScope();
-    const planTimesKey = this.buildCacheKey("plan-plan-times", planId);
+    const planTimesPagePrefix = `${this.buildCacheKey("plan-plan-times", planId)}:`;
     const personSchedulesPrefix = [scope, "person-schedules"].join(":");
 
-    this.caches.resourceLists.deleteWhere((key) => key === planTimesKey);
+    this.caches.pages.deleteWhere((key) => key.startsWith(planTimesPagePrefix));
     this.caches.collections.deleteWhere((key) =>
       key.startsWith(personSchedulesPrefix)
     );
+  }
+
+  /**
+   * A page is cached as itself, under its offset, so a collection is never cached as complete
+   * before its last page is read.
+   */
+  private cachedPage(
+    [namespace, ...parts]: readonly [string, ...string[]],
+    ttlMs: number,
+    offset: number,
+    load: () => Effect.Effect<PlanningCenterPage, PlanningCenterError>
+  ): Effect.Effect<PlanningCenterPage, PlanningCenterError> {
+    return cachedRead(
+      this.caches.pages,
+      this.buildCacheKey(namespace, ...parts, String(offset)),
+      ttlMs,
+      load
+    ).pipe(Effect.map((page) => structuredClone(page)));
   }
 
   private buildCacheKey(namespace: string, ...parts: string[]): string {
@@ -729,7 +794,7 @@ export class PlanningCenterPeopleService {
     PlanningCenterError
   > {
     return this.core
-      .fetchAllWithIncluded(
+      .fetchFirstPages(
         "/services/v2/teams",
         { include: "people,team_leaders,service_types" },
         TEAM_PAGES_MAX

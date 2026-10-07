@@ -197,39 +197,26 @@ export const repeatingBlockoutMayCover = (
   );
 };
 
-const isRepeatingBlockout = (parent: PCResource): boolean => {
+export const isRepeatingBlockout = (parent: PCResource): boolean => {
   const frequency = parent.attributes.repeat_frequency;
   return frequency !== undefined && frequency !== "no_repeat";
 };
 
-/** Repeating blockouts whose generated dates must be read to judge the plan date. */
-export const repeatingBlockoutsToRead = (
-  parents: readonly PCResource[],
-  planSortAt: Date
-): PCResource[] =>
-  parents.filter(
-    (parent) =>
-      isRepeatingBlockout(parent) &&
-      repeatingBlockoutMayCover(parent, planSortAt)
-  );
-
 /**
- * Whether any blockout touches the plan's calendar day in the blockout's own time zone. A
- * one-time blockout is its own date; a repeating one counts only through its generated dates.
+ * Whether a blockout date (a one-time blockout, or a date a repeating one generated) touches
+ * the plan's calendar day in the blockout's own time zone, falling back to its parent's.
  */
-export const isBlockedOnPlanDate = (
-  parents: readonly PCResource[],
-  datesByBlockoutId: ReadonlyMap<string, readonly PCResource[]>,
+export const blockoutDateCoversPlanDate = (
+  date: PCResource,
+  parentTimeZone: string | null,
   planSortAt: Date
-): boolean =>
-  parents.some((parent) => {
-    const dates = isRepeatingBlockout(parent)
-      ? (datesByBlockoutId.get(parent.id) ?? [])
-      : [parent];
-    return dates.some((date) => {
-      const blockout = toBlockout(date, parent);
-      return (
-        blockout !== null && blockoutCoversPlanSortInstant(planSortAt, blockout)
-      );
-    });
+): boolean => {
+  const blockout = toBlockout(date, {
+    type: "Blockout",
+    id: date.id,
+    attributes: { time_zone: parentTimeZone },
   });
+  return (
+    blockout !== null && blockoutCoversPlanSortInstant(planSortAt, blockout)
+  );
+};
