@@ -18,6 +18,7 @@ describe("app entry order", () => {
       "core-js/actual/array/to-spliced",
       "core-js/actual/array/with",
       "./src/diagnostics/device-diagnostics",
+      "./src/diagnostics/startup-probe",
       "expo-router/entry",
     ]);
   });

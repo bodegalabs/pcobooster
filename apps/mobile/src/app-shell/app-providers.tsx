@@ -38,6 +38,9 @@ import {
 } from "../diagnostics/api-diagnostics";
 import { callFailureOf } from "../diagnostics/call-failures";
 import { deviceDiagnostics } from "../diagnostics/device-diagnostics";
+import { withApiProbe } from "../diagnostics/probe-transport";
+import type { ApiProbe } from "../diagnostics/probe-transport";
+import { DiagnosticsProbeError, diagnosticsProbe } from "../diagnostics/probes";
 import { releaseMetadata } from "../diagnostics/release-metadata";
 import { sessionContextFor } from "../diagnostics/session-context";
 import { FeedbackDraftProvider } from "../features/account/feedback-draft";
@@ -98,6 +101,9 @@ const delay = async (ms: number) => {
 
 const cacheStorage = makeCacheStorage(appStorage, removeAppStorageKeys);
 
+const isApiProbe = (probe: typeof diagnosticsProbe): probe is ApiProbe =>
+  probe === "api-5xx" || probe === "api-undecodable" || probe === "api-network";
+
 /** One runtime per app session. */
 const runtime: AppRuntime = launchOptions.mock
   ? makeFixtureRuntime(launchOptions, appClock.now)
@@ -110,7 +116,23 @@ const runtime: AppRuntime = launchOptions.mock
         void cacheStorage.forget(userIds);
       },
       appRelease: formatAppRelease(releaseMetadata),
+      productFetch: isApiProbe(diagnosticsProbe)
+        ? withApiProbe(globalThis.fetch, diagnosticsProbe)
+        : globalThis.fetch,
     });
+
+// Verification build probes (`diagnostics/probes.ts`); `diagnosticsProbe` is null otherwise.
+if (diagnosticsProbe === "handled") {
+  deviceDiagnostics.captureException(
+    new DiagnosticsProbeError("Diagnostics probe: handled"),
+    "handled"
+  );
+}
+if (diagnosticsProbe === "rejection") {
+  void Promise.reject(
+    new DiagnosticsProbeError("Diagnostics probe: rejection")
+  );
+}
 
 // Error reports follow the session: held while it restores or nobody is signed in, purged on a
 // demo, and sent only for a signed-in account (`diagnostics/capture-policy.ts`).

@@ -6,6 +6,7 @@ import { AppProviders } from "../src/app-shell/app-providers";
 import { LaunchRoute } from "../src/app-shell/launch-route";
 import { useSession } from "../src/app-shell/session";
 import { colors } from "../src/design/colors";
+import { RenderProbe } from "../src/diagnostics/render-probe";
 import { launchOptions } from "../src/harness/current-launch-options";
 
 /** Render failures anywhere in the app: reported, with a way to try again. */
@@ -94,6 +95,7 @@ const RootStack = () => {
         </Stack.Protected>
       </Stack>
       <LaunchRoute isSignedIn={isSignedIn} />
+      <RenderProbe />
     </>
   );
 };

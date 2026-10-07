@@ -245,6 +245,8 @@ export interface DeviceServices {
   readonly crypto: SignInCrypto;
   readonly authenticate: WebAuthentication;
   readonly onForget: SessionStoreDependencies["onForget"];
+  /** The product client's fetch; a verification build's API probe wraps it. */
+  readonly productFetch?: typeof globalThis.fetch;
   /** The installed release (`0.1.0(372)+1a2b3c4`) the API logs with each request. */
   readonly appRelease: string | null;
 }
@@ -256,7 +258,7 @@ export const makeLiveRuntime = (
 ): AppRuntime =>
   buildRuntime(options, {
     origin: API_ORIGIN,
-    fetch: globalThis.fetch,
+    fetch: device.productFetch ?? globalThis.fetch,
     secrets: device.secrets,
     signIn: makeNativeSignIn({
       origin: API_ORIGIN,
