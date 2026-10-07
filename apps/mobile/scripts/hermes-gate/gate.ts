@@ -348,13 +348,14 @@ const main = async () => {
   );
 
   const scenarios = [
-    { label: "current", substitute: null },
+    { label: "current", substitute: null, expectation: "loads" },
     {
       label: "old-route-parser",
       substitute: `${endpoint}=${regressionSource}`,
+      expectation: "fails with build 371's fatal",
     },
   ] as const;
-  const results = scenarios.map(({ label, substitute }) => {
+  const results = scenarios.map(({ label, substitute, expectation }) => {
     console.log(
       `==> ${label}: bundling with export:embed and hermesc ${HERMESC_RELEASE_FLAGS.join(" ")}`
     );
@@ -362,14 +363,23 @@ const main = async () => {
     const result = run(runner, [probe.bytecode]);
     writeFileSync(path.join(out, `${label}.stdout`), result.stdout);
     writeFileSync(path.join(out, `${label}.stderr`), result.stderr);
+    // The bundles and bytecode are tens of MB; their hashes stay in the evidence.
+    for (const artifact of [
+      probe.bundle,
+      `${probe.bundle}.map`,
+      probe.bytecode,
+      path.join(out, `${label}-assets`),
+    ]) {
+      rmSync(artifact, { recursive: true, force: true });
+    }
     const problems =
       label === "current"
         ? passingProbeProblems(result, expected)
         : regressionProbeProblems(result);
     console.log(
       problems.length === 0
-        ? `PASS ${label}`
-        : `FAIL ${label}\n  ${problems.join("\n  ")}`
+        ? `PASS ${label} ${expectation}`
+        : `FAIL ${label} should have ${expectation}\n  ${problems.join("\n  ")}`
     );
     return {
       label,
