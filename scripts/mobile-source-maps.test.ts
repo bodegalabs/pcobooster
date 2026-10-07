@@ -1,11 +1,33 @@
+import { execFileSync } from "node:child_process";
+import {
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import process from "node:process";
+
 import { describe, expect, it } from "vitest";
 
 import {
   bundleDebugId,
+  directoryMapProblems,
   entryOrderProblems,
+  mapsIn,
+  recordClonedMap,
   releaseMapProblems,
+  sha256,
   summarizeSourceMap,
 } from "../apps/mobile/scripts/source-maps";
+import type { ReleaseMaps } from "../apps/mobile/scripts/source-maps";
+
+const COMPOSE_HOOK = path.join(
+  import.meta.dirname,
+  "../apps/mobile/scripts/compose-source-maps.mjs"
+);
 
 const DEBUG_ID = "276fc392-115d-4d38-8b2d-efc090cf44ac";
 
@@ -30,6 +52,37 @@ const packagerMap = map({ debugId: DEBUG_ID });
 const composedMap = map({ x_hermes_function_offsets: { 0: [0] } });
 const bytecode = new TextEncoder().encode(`\u0000hbc\u0000${DEBUG_ID}\u0000`);
 
+/** What `compose-source-maps.mjs` records for these files. */
+const provenanceOf = ({
+  packager = packagerMap,
+  composed = composedMap,
+  shipped = bytecode,
+  cloned = null,
+}: {
+  packager?: string;
+  composed?: string;
+  shipped?: Uint8Array;
+  cloned?: string | null;
+} = {}) =>
+  JSON.stringify({
+    version: 1,
+    debugId: summarizeSourceMap(packager)?.debugId ?? null,
+    packagerMapSha256: sha256(packager),
+    compilerMapSha256: sha256("hermes"),
+    composedMapSha256: sha256(composed),
+    bytecodeSha256: sha256(shipped),
+    clonedMapSha256: cloned === null ? null : sha256(cloned),
+  });
+
+const releaseMaps = (overrides: Partial<ReleaseMaps> = {}): ReleaseMaps => ({
+  packagerMap,
+  composedMap,
+  provenance: provenanceOf(),
+  bytecode,
+  cloned: false,
+  ...overrides,
+});
+
 describe(summarizeSourceMap, () => {
   it("reads Expo's debugId and PostHog's chunkId", () => {
     expect([
@@ -42,66 +95,207 @@ describe(summarizeSourceMap, () => {
 
 describe(releaseMapProblems, () => {
   it("accepts maps that belong to the shipped bytecode", () => {
-    expect(
-      releaseMapProblems({ packagerMap, composedMap, bytecode, cloned: false })
-    ).toStrictEqual([]);
+    expect(releaseMapProblems(releaseMaps())).toStrictEqual([]);
   });
 
   it("rejects maps from another build", () => {
     expect(
-      releaseMapProblems({
-        packagerMap,
-        composedMap,
-        bytecode: new TextEncoder().encode("other build"),
-        cloned: false,
-      })
+      releaseMapProblems(
+        releaseMaps({ bytecode: new TextEncoder().encode("other build") })
+      )
     ).toStrictEqual([
       `The shipped bundle does not contain debug ID ${DEBUG_ID}; the maps belong to another build.`,
+      "The shipped bundle is not the bytecode these maps were composed for.",
     ]);
   });
 
   it("rejects a packager map without a debug ID", () => {
+    const packager = map({});
     expect(
-      releaseMapProblems({
-        packagerMap: map({}),
-        composedMap,
-        bytecode,
-        cloned: false,
-      })
+      releaseMapProblems(
+        releaseMaps({
+          packagerMap: packager,
+          provenance: provenanceOf({ packager }),
+        })
+      )
     ).toStrictEqual([
       "The packager map has no debug ID; is metro.config.ts using getPostHogExpoConfig?",
     ]);
   });
 
-  it("requires the composed map to carry the chunk ID once posthog-cli cloned it", () => {
+  it("rejects maps with no provenance, however well their IDs agree", () => {
+    expect(releaseMapProblems(releaseMaps({ provenance: null }))).toStrictEqual(
+      [
+        "The maps have no readable provenance.json from compose-source-maps.mjs, so nothing ties them to this bundle.",
+      ]
+    );
+  });
+
+  it("rejects an unrelated composed map before it is cloned, even one naming no or another chunk ID", () => {
+    const stale = map({
+      sources: ["/apps/mobile/src/other.ts"],
+      x_hermes_function_offsets: { 0: [999_999] },
+    });
+    const foreign = map({
+      chunkId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      x_hermes_function_offsets: { 0: [0] },
+    });
     expect([
-      releaseMapProblems({ packagerMap, composedMap, bytecode, cloned: true }),
-      releaseMapProblems({
-        packagerMap,
-        composedMap: map({
-          chunkId: DEBUG_ID,
-          x_hermes_function_offsets: { 0: [0] },
-        }),
-        bytecode,
-        cloned: true,
-      }),
+      releaseMapProblems(releaseMaps({ composedMap: stale })),
+      releaseMapProblems(
+        releaseMaps({
+          composedMap: foreign,
+          provenance: provenanceOf({ composed: foreign }),
+        })
+      ),
     ]).toStrictEqual([
+      [
+        "The composed map is not the one this composition wrote; it belongs to another run.",
+      ],
       [
         "The composed map's chunk ID does not match the packager map's debug ID.",
       ],
+    ]);
+  });
+
+  it("after cloning, requires the map upload cloned, carrying the chunk ID", () => {
+    const clonedMap = map({
+      chunkId: DEBUG_ID,
+      x_hermes_function_offsets: { 0: [0] },
+    });
+    expect([
+      releaseMapProblems(
+        releaseMaps({
+          composedMap: clonedMap,
+          provenance: provenanceOf({ cloned: clonedMap }),
+          cloned: true,
+        })
+      ),
+      releaseMapProblems(releaseMaps({ cloned: true })),
+    ]).toStrictEqual([
       [],
+      [
+        "The composed map's chunk ID does not match the packager map's debug ID.",
+        "The composed map is not the one `upload` cloned after checking it.",
+      ],
     ]);
   });
 
   it("rejects a composed map that is not Hermes's or names no app sources", () => {
+    const composed = map({ sources: ["/node_modules/x.js"] });
     expect(
-      releaseMapProblems({
-        packagerMap,
-        composedMap: map({ sources: ["/node_modules/x.js"] }),
-        bytecode,
-        cloned: false,
-      })
+      releaseMapProblems(
+        releaseMaps({
+          composedMap: composed,
+          provenance: provenanceOf({ composed }),
+        })
+      )
     ).toHaveLength(2);
+  });
+});
+
+/**
+ * One run of the composition hook the archive uses, on real files: a packager map with `debugId`,
+ * Hermes's map, and the bytecode beside it, as react-native-xcode.sh lays them out.
+ */
+const composeRun = (debugId: string, offset: number) => {
+  const work = mkdtempSync(path.join(tmpdir(), "pcob-maps-"));
+  const maps = path.join(work, "maps");
+  const packager = path.join(work, "packager-output.map");
+  const hbc = path.join(work, "main.jsbundle");
+  writeFileSync(
+    packager,
+    JSON.stringify({
+      version: 3,
+      sources: ["/repo/apps/mobile/src/index.ts"],
+      names: [],
+      mappings: "AAAA",
+      debugId,
+    })
+  );
+  writeFileSync(hbc, `\u0000hbc\u0000${debugId}\u0000${offset}`);
+  writeFileSync(
+    `${hbc}.map`,
+    JSON.stringify({
+      version: 3,
+      sources: ["main.jsbundle"],
+      names: [],
+      mappings: "AAAA",
+      x_hermes_function_offsets: { 0: [offset] },
+    })
+  );
+  const { composed } = mapsIn(maps);
+  mkdirSync(path.dirname(composed), { recursive: true });
+  execFileSync(
+    process.execPath,
+    [COMPOSE_HOOK, packager, `${hbc}.map`, "-o", composed],
+    {
+      stdio: "ignore",
+      env: {
+        ...process.env,
+        PCOB_PACKAGER_SOURCEMAP_COPY: mapsIn(maps).packager,
+      },
+    }
+  );
+  return { maps, bundle: hbc };
+};
+
+const OTHER_DEBUG_ID = "9a3e6d70-5b6c-4f27-8d4c-2d6f0b1c3e4a";
+
+describe("maps from two composition runs", () => {
+  it("are accepted only together with their own bundle", () => {
+    const first = composeRun(DEBUG_ID, 1);
+    const second = composeRun(OTHER_DEBUG_ID, 2);
+    // The first run's packager map and provenance beside the second run's composed map.
+    const mixed = mkdtempSync(path.join(tmpdir(), "pcob-mixed-"));
+    for (const name of [
+      "packager/main.jsbundle.map",
+      "packager/provenance.json",
+    ]) {
+      mkdirSync(path.dirname(path.join(mixed, name)), { recursive: true });
+      copyFileSync(path.join(first.maps, name), path.join(mixed, name));
+    }
+    mkdirSync(path.join(mixed, "hermes"), { recursive: true });
+    copyFileSync(mapsIn(second.maps).composed, mapsIn(mixed).composed);
+    expect([
+      directoryMapProblems(first.maps, first.bundle, false),
+      directoryMapProblems(second.maps, second.bundle, false),
+      directoryMapProblems(mixed, first.bundle, false),
+      directoryMapProblems(first.maps, second.bundle, false),
+    ]).toStrictEqual([
+      [],
+      [],
+      [
+        "The composed map is not the one this composition wrote; it belongs to another run.",
+      ],
+      [
+        `The shipped bundle does not contain debug ID ${DEBUG_ID}; the maps belong to another build.`,
+        "The shipped bundle is not the bytecode these maps were composed for.",
+      ],
+    ]);
+  });
+
+  it("are accepted after cloning only once upload recorded the clone it checked", () => {
+    const run = composeRun(DEBUG_ID, 1);
+    const { composed } = mapsIn(run.maps);
+    // What `posthog-cli hermes clone` does: copy the debug ID into the composed map.
+    const clone = () => {
+      const text = readFileSync(composed, "utf-8");
+      writeFileSync(
+        composed,
+        JSON.stringify({ ...JSON.parse(text), chunkId: DEBUG_ID })
+      );
+    };
+    clone();
+    const unrecorded = directoryMapProblems(run.maps, run.bundle, true);
+    recordClonedMap(run.maps);
+    expect([
+      unrecorded,
+      directoryMapProblems(run.maps, run.bundle, true),
+    ]).toStrictEqual([
+      ["The composed map is not the one `upload` cloned after checking it."],
+      [],
+    ]);
   });
 });
 

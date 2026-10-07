@@ -2,20 +2,33 @@
  * Hermes source maps for PostHog error tracking: checks that a release's maps match the bundle it
  * shipped, uploads them, and rehearses the whole pipeline locally without Xcode.
  *
- *   bun run scripts/source-maps.ts verify --maps <dir> --bundle <PCOBooster.app/main.jsbundle>
- *   bun run scripts/source-maps.ts upload --maps <dir>
+ *   bun run scripts/source-maps.ts verify --maps <dir> --bundle <PCOBooster.app/main.jsbundle> [--cloned]
+ *   bun run scripts/source-maps.ts upload --maps <dir> --bundle <PCOBooster.app/main.jsbundle>
  *   bun run scripts/source-maps.ts rehearse --out <dir>
  *
- * `<dir>` holds `packager/main.jsbundle.map` (kept by `compose-source-maps.mjs`) and
- * `hermes/main.jsbundle.map` (React Native's composed map, `SOURCEMAP_FILE`). See
- * docs/mobile-diagnostics.md for how the release script wires them.
+ * `<dir>` holds `packager/main.jsbundle.map` and `packager/provenance.json` (kept and written by
+ * `compose-source-maps.mjs`) and `hermes/main.jsbundle.map` (React Native's composed map,
+ * `SOURCEMAP_FILE`). See docs/mobile-diagnostics.md for how the release script wires them.
+ *
+ * Maps are tied to the shipped bundle by `provenance.json`, not by their debug IDs alone: the
+ * composition hook records the hashes of the packager map, the composed map, and the bytecode it
+ * composed them for. `verify` refuses maps whose files or archived bundle differ from it, and
+ * `upload` runs that check before `hermes clone` copies the debug ID into the composed map, so a
+ * stale or unrelated composed map is never given this bundle's identity.
  *
  * `upload` runs the pinned `posthog-cli` (`POSTHOG_CLI`, else `posthog-cli` on PATH) with
  * `POSTHOG_CLI_API_KEY` and `POSTHOG_CLI_PROJECT_ID` from the environment. It never reads them
  * from a file and never prints them.
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { createHash } from "node:crypto";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
@@ -41,6 +54,26 @@ const decodeMap = Schema.decodeUnknownOption(
     })
   )
 );
+
+const Sha256 = Schema.String.check(Schema.isPattern(/^[\da-f]{64}$/u));
+
+const ProvenanceSchema = Schema.Struct({
+  version: Schema.Literal(1),
+  debugId: Schema.NullOr(Schema.String),
+  packagerMapSha256: Sha256,
+  compilerMapSha256: Sha256,
+  composedMapSha256: Sha256,
+  bytecodeSha256: Schema.NullOr(Sha256),
+  clonedMapSha256: Schema.NullOr(Sha256),
+});
+/** What `compose-source-maps.mjs` recorded about one composition run. */
+export type Provenance = typeof ProvenanceSchema.Type;
+const decodeProvenance = Schema.decodeUnknownOption(
+  Schema.fromJsonString(ProvenanceSchema)
+);
+
+export const sha256 = (contents: string | Uint8Array): string =>
+  createHash("sha256").update(contents).digest("hex");
 
 export interface SourceMapSummary {
   /** The debug ID the map names (`debugId`, or PostHog's `chunkId` after `hermes clone`). */
@@ -72,19 +105,62 @@ export const bundleDebugId = (bundle: string): string | null =>
 export interface ReleaseMaps {
   readonly packagerMap: string;
   readonly composedMap: string;
+  /** `provenance.json`, or null when there is none. */
+  readonly provenance: string | null;
   /** The shipped Hermes bytecode bundle. */
   readonly bytecode: Uint8Array;
-  /** After `posthog-cli hermes clone`, the composed map must carry the debug ID too. */
+  /**
+   * After `upload` ran `posthog-cli hermes clone`: the composed map must then be the one it
+   * cloned and carry the debug ID. Before, it must be the one the composition wrote.
+   */
   readonly cloned: boolean;
 }
 
+const provenanceProblems = (
+  { packagerMap, composedMap, provenance, bytecode, cloned }: ReleaseMaps,
+  debugId: string | null
+): string[] => {
+  const recorded =
+    provenance === null ? null : Option.getOrNull(decodeProvenance(provenance));
+  if (recorded === null) {
+    return [
+      "The maps have no readable provenance.json from compose-source-maps.mjs, so nothing ties them to this bundle.",
+    ];
+  }
+  const problems: string[] = [];
+  if (
+    sha256(packagerMap) !== recorded.packagerMapSha256 ||
+    recorded.debugId !== debugId
+  ) {
+    problems.push(
+      "The packager map is not the one this composition kept; the maps come from different runs."
+    );
+  }
+  if (
+    recorded.bytecodeSha256 === null ||
+    sha256(bytecode) !== recorded.bytecodeSha256
+  ) {
+    problems.push(
+      "The shipped bundle is not the bytecode these maps were composed for."
+    );
+  }
+  const composed = sha256(composedMap);
+  if (!cloned && composed !== recorded.composedMapSha256) {
+    problems.push(
+      "The composed map is not the one this composition wrote; it belongs to another run."
+    );
+  }
+  if (cloned && composed !== recorded.clonedMapSha256) {
+    problems.push(
+      "The composed map is not the one `upload` cloned after checking it."
+    );
+  }
+  return problems;
+};
+
 /** Problems that would leave a release's stacks unreadable; empty when the maps match. */
-export const releaseMapProblems = ({
-  packagerMap,
-  composedMap,
-  bytecode,
-  cloned,
-}: ReleaseMaps): string[] => {
+export const releaseMapProblems = (maps: ReleaseMaps): string[] => {
+  const { packagerMap, composedMap, bytecode, cloned } = maps;
   const problems: string[] = [];
   const packager = summarizeSourceMap(packagerMap);
   const composed = summarizeSourceMap(composedMap);
@@ -104,10 +180,11 @@ export const releaseMapProblems = ({
     if (composed.appSources === 0) {
       problems.push(`The composed map names no ${APP_SOURCE} sources.`);
     }
-    if (
-      cloned &&
-      (composed.debugId === null || composed.debugId !== packager?.debugId)
-    ) {
+    // Before cloning, a composed map naming any ID names another bundle's.
+    const mismatched = cloned
+      ? composed.debugId === null || composed.debugId !== packager?.debugId
+      : composed.debugId !== null && composed.debugId !== packager?.debugId;
+    if (mismatched) {
       problems.push(
         "The composed map's chunk ID does not match the packager map's debug ID."
       );
@@ -123,7 +200,7 @@ export const releaseMapProblems = ({
       `The shipped bundle does not contain debug ID ${debugId}; the maps belong to another build.`
     );
   }
-  return problems;
+  return [...problems, ...provenanceProblems(maps, packager?.debugId ?? null)];
 };
 
 const moduleBody = (bundle: string, id: string): string | null => {
@@ -183,10 +260,58 @@ const option = (args: readonly string[], name: string): string => {
   return path.resolve(value);
 };
 
-const mapsIn = (directory: string) => ({
+export const mapsIn = (directory: string) => ({
   packager: path.join(directory, "packager", "main.jsbundle.map"),
+  provenance: path.join(directory, "packager", "provenance.json"),
   composed: path.join(directory, "hermes", "main.jsbundle.map"),
 });
+
+const readIfPresent = (file: string): string | null =>
+  existsSync(file) ? readFileSync(file, "utf-8") : null;
+
+/** `releaseMapProblems` for the maps in `directory` and the bundle at `bundle`. */
+export const directoryMapProblems = (
+  directory: string,
+  bundle: string,
+  cloned: boolean
+): string[] => {
+  const maps = mapsIn(directory);
+  return releaseMapProblems({
+    packagerMap: readIfPresent(maps.packager) ?? "",
+    composedMap: readIfPresent(maps.composed) ?? "",
+    provenance: readIfPresent(maps.provenance),
+    bytecode: readFileSync(bundle),
+    cloned,
+  });
+};
+
+/** Records the composed map `hermes clone` just rewrote as the one `upload` checked. */
+export const recordClonedMap = (directory: string) => {
+  const maps = mapsIn(directory);
+  const recorded = Option.getOrThrow(
+    decodeProvenance(readFileSync(maps.provenance, "utf-8"))
+  );
+  writeFileSync(
+    maps.provenance,
+    `${JSON.stringify(
+      { ...recorded, clonedMapSha256: sha256(readFileSync(maps.composed)) },
+      null,
+      2
+    )}\n`
+  );
+};
+
+/** Whether `upload` already cloned the composed map now in `directory`. */
+const alreadyCloned = (directory: string): boolean => {
+  const maps = mapsIn(directory);
+  const provenance = readIfPresent(maps.provenance);
+  const recorded =
+    provenance === null ? null : Option.getOrNull(decodeProvenance(provenance));
+  return (
+    recorded?.clonedMapSha256 !== null &&
+    recorded?.clonedMapSha256 === sha256(readFileSync(maps.composed))
+  );
+};
 
 const fail = (problems: readonly string[]) => {
   if (problems.length > 0) {
@@ -198,17 +323,7 @@ const fail = (problems: readonly string[]) => {
 };
 
 const verify = (directory: string, bundle: string, cloned: boolean) => {
-  const maps = mapsIn(directory);
-  fail(
-    releaseMapProblems({
-      packagerMap: readFileSync(maps.packager, "utf-8"),
-      composedMap: existsSync(maps.composed)
-        ? readFileSync(maps.composed, "utf-8")
-        : "",
-      bytecode: readFileSync(bundle),
-      cloned,
-    })
-  );
+  fail(directoryMapProblems(directory, bundle, cloned));
   process.stdout.write(`Source maps match ${bundle}.\n`);
 };
 
@@ -228,7 +343,7 @@ const posthogCli = (): string => {
   return cli;
 };
 
-const upload = (directory: string) => {
+const upload = (directory: string, bundle: string) => {
   for (const name of ["POSTHOG_CLI_API_KEY", "POSTHOG_CLI_PROJECT_ID"]) {
     if (setting(name) === "") {
       throw new Error(`${name} must be set for the upload step only.`);
@@ -240,22 +355,28 @@ const upload = (directory: string) => {
     ...process.env,
     POSTHOG_CLI_HOST: setting("POSTHOG_CLI_HOST") || POSTHOG_HOST,
   };
-  // Each event names its release ($app_namespace, $app_version, $app_build), so the maps are
-  // uploaded release-independent and matched by chunk ID.
-  execFileSync(
-    cli,
-    [
-      "hermes",
-      "clone",
-      "--minified-map-path",
-      maps.packager,
-      "--composed-map-path",
-      maps.composed,
-      "--release-mode",
-      "event",
-    ],
-    { stdio: "inherit", env: environment }
-  );
+  // Clone only maps proven to be this bundle's; a re-run after a failed upload skips the clone.
+  if (!alreadyCloned(directory)) {
+    verify(directory, bundle, false);
+    // Each event names its release ($app_namespace, $app_version, $app_build), so the maps are
+    // uploaded release-independent and matched by chunk ID.
+    execFileSync(
+      cli,
+      [
+        "hermes",
+        "clone",
+        "--minified-map-path",
+        maps.packager,
+        "--composed-map-path",
+        maps.composed,
+        "--release-mode",
+        "event",
+      ],
+      { stdio: "inherit", env: environment }
+    );
+    recordClonedMap(directory);
+  }
+  verify(directory, bundle, true);
   execFileSync(
     cli,
     [
@@ -366,7 +487,7 @@ if (import.meta.main) {
       break;
     }
     case "upload": {
-      upload(option(args, "--maps"));
+      upload(option(args, "--maps"), option(args, "--bundle"));
       break;
     }
     case "rehearse": {
@@ -375,7 +496,7 @@ if (import.meta.main) {
     }
     default: {
       throw new Error(
-        "Usage: source-maps.ts verify --maps <dir> --bundle <main.jsbundle> [--cloned] | upload --maps <dir> | rehearse --out <dir>"
+        "Usage: source-maps.ts verify --maps <dir> --bundle <main.jsbundle> [--cloned] | upload --maps <dir> --bundle <main.jsbundle> | rehearse --out <dir>"
       );
     }
   }
