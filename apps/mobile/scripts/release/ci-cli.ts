@@ -88,6 +88,7 @@ const appStoreConnect = async () => {
   const appId = await findAppId(client, BUNDLE_ID);
   return {
     key,
+    appId,
     builds: async () => await takenBuildNumbers(client, appId),
     state: async (build: number) => await buildState(client, appId, build),
   };
@@ -235,7 +236,12 @@ const release = async () => {
         await Promise.resolve();
         assertUnchanged(out, identity);
       },
-      upload: makeAltoolUploader({ run: runCommand, key: asc.key, out }),
+      upload: makeAltoolUploader({
+        run: runCommand,
+        key: asc.key,
+        appId: asc.appId,
+        out,
+      }),
       now: () => new Date(),
       log: (line) => {
         console.error(line);

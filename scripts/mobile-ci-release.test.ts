@@ -545,6 +545,7 @@ const uploader = (result: CommandResult) => {
         return KEY.privateKey;
       },
     },
+    appId: "6753000000",
     out,
   });
   return { out, calls, upload, identity, keyReads };
@@ -592,6 +593,26 @@ describe("executor adapters", () => {
     expect(existsSync(path.dirname(seen))).toBeFalsy();
   });
 
+  it("removes the uploader's key when the upload is interrupted", () => {
+    const adapters = path.join(
+      import.meta.dirname,
+      "../apps/mobile/scripts/release/ci-adapters.ts"
+    );
+    const script = `
+      import { spawnSync } from "node:child_process";
+      import { withPrivateKeyFile } from ${JSON.stringify(adapters)};
+      withPrivateKeyFile({ keyId: "K", issuerId: "I", privateKey: "PEM" }, (file) => {
+        console.log(file);
+        spawnSync("sh", ["-c", \`kill -INT \${process.pid}; sleep 1\`]);
+      });
+    `;
+    const result = spawnSync("bun", ["-e", script], { encoding: "utf-8" });
+    const file = result.stdout.trim();
+    // Without a listener, the interrupt would end the process before any cleanup ran.
+    expect(file).toMatch(/AuthKey_K\.p8$/u);
+    expect(existsSync(path.dirname(file))).toBeFalsy();
+  });
+
   it("makes one altool call of the verified IPA and returns its delivery id", async () => {
     const { calls, out, upload, identity } = uploader({
       status: 0,
@@ -605,6 +626,30 @@ describe("executor adapters", () => {
     expect(calls).toHaveLength(1);
     expect(calls[0]).toContain(path.join(out, "export/PCOBooster.ipa"));
     expect(calls[0]?.at(-1)).toBe("key-present");
+  });
+
+  it("names the app and build to altool, which --upload-package requires", async () => {
+    const { calls, upload, identity } = uploader({
+      status: 0,
+      stdout: "{}",
+      stderr: "",
+    });
+    await upload(identity);
+    const call = calls[0] ?? [];
+    const flag = (name: string) => call[call.indexOf(name) + 1];
+    expect(
+      [
+        "--apple-id",
+        "--bundle-id",
+        "--bundle-version",
+        "--bundle-short-version-string",
+      ].map(flag)
+    ).toStrictEqual([
+      "6753000000",
+      identity.bundleId,
+      String(identity.build),
+      identity.version,
+    ]);
   });
 
   it.each([

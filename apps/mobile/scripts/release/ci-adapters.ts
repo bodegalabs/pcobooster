@@ -5,6 +5,7 @@
 import { chmodSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import process from "node:process";
 
 import { Schema } from "effect";
 
@@ -45,22 +46,45 @@ export const runIdentityFromEnv = (
   };
 };
 
+const KEY_SIGNALS = {
+  SIGHUP: 129,
+  SIGINT: 130,
+  SIGTERM: 143,
+} as const satisfies Partial<Record<NodeJS.Signals, number>>;
+
 /**
  * Writes the App Store Connect key to a fresh owner-only folder for the duration of `withFile`,
- * and removes it afterwards whether `withFile` returns or throws.
+ * and removes it afterwards whether `withFile` returns or throws. While it exists, an interrupt
+ * or termination cannot end the process before the folder is removed: during a synchronous
+ * upload the listener keeps the process alive until `finally` runs, and otherwise it removes the
+ * folder and exits with the signal's status.
  */
 export const withPrivateKeyFile = <T>(
   key: AscKey,
   withFile: (file: string) => T
 ): T => {
   const dir = mkdtempSync(path.join(tmpdir(), "pcob-upload-key-"));
+  const remove = () => {
+    rmSync(dir, { recursive: true, force: true });
+  };
+  const handlers = Object.entries(KEY_SIGNALS).map(([signal, status]) => {
+    const handler = () => {
+      remove();
+      process.exit(status);
+    };
+    process.once(signal, handler);
+    return () => process.off(signal, handler);
+  });
   try {
     chmodSync(dir, 0o700);
     const file = path.join(dir, `AuthKey_${key.keyId}.p8`);
     writeFileSync(file, key.privateKey, { mode: 0o600 });
     return withFile(file);
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    remove();
+    for (const off of handlers) {
+      off();
+    }
   }
 };
 
@@ -75,6 +99,8 @@ export const deliveryId = (output: string): string | null =>
 export interface UploaderOptions {
   readonly run: RunCommand;
   readonly key: AscKey;
+  /** The app's numeric App Store Connect id, which `altool --upload-package` requires. */
+  readonly appId: string;
   /** `apps/mobile/build/release`; the uploader's output is retained beside the IPA. */
   readonly out: string;
 }
@@ -86,7 +112,7 @@ export interface UploaderOptions {
  * altool runs, so nothing can change them between the last check and the upload.
  */
 export const makeAltoolUploader =
-  ({ run, key, out }: UploaderOptions) =>
+  ({ run, key, appId, out }: UploaderOptions) =>
   async (identity: ArtifactIdentity): Promise<UploadReceipt> => {
     await Promise.resolve();
     const ipa = path.join(releasePaths(out).export, identity.ipaFileName);
@@ -96,6 +122,14 @@ export const makeAltoolUploader =
         "altool",
         "--upload-package",
         ipa,
+        "--apple-id",
+        appId,
+        "--bundle-id",
+        identity.bundleId,
+        "--bundle-version",
+        String(identity.build),
+        "--bundle-short-version-string",
+        identity.version,
         "--api-key",
         key.keyId,
         "--api-issuer",

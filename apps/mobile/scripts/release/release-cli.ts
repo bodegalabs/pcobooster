@@ -9,6 +9,10 @@
  *                                               Prints and claims the release's build number.
  *   build-number verify --build <n>             Fails if App Store Connect now has it, or higher.
  *   status --build <n>                          Prints the build's processing and TestFlight state.
+ *   builds [--limit <n>]                        Prints the newest builds (default 10) and any
+ *                                               upload App Store Connect has not listed yet.
+ *   latest                                      The same for the newest build only.
+ *   analytics-key                               Prints the PostHog key release archives embed.
  *
  * App Store Connect reads use ASC_KEY_ID, ASC_ISSUER_ID, and ASC_KEY_PATH or ASC_KEY_P8_BASE64
  * from the environment this command alone receives.
@@ -20,12 +24,14 @@ import {
   buildState,
   findAppId,
   makeAscClient,
+  recentBuilds,
   takenBuildNumbers,
 } from "./asc";
 import type { AscClient } from "./asc";
 import {
   chooseBuildNumber,
   parseBuildNumber,
+  releaseAnalyticsKey,
   signingMode,
   stillUnused,
 } from "./release-rules";
@@ -39,6 +45,9 @@ import {
 } from "./release-state";
 
 const BUNDLE_ID = "com.pcobooster.ios";
+const DEFAULT_BUILD_LIST = 10;
+/** App Store Connect's largest page; the list reads one page. */
+const MAX_BUILD_LIST = 200;
 
 const option = (args: readonly string[], name: string): string | null => {
   const index = args.indexOf(name);
@@ -68,6 +77,17 @@ const pidOption = (args: readonly string[]): number => {
   return pid;
 };
 
+const limitOption = (args: readonly string[]): number => {
+  const value = option(args, "--limit");
+  const limit = value === null ? DEFAULT_BUILD_LIST : Number(value);
+  if (!Number.isInteger(limit) || limit < 1 || limit > MAX_BUILD_LIST) {
+    throw new Error(
+      `--limit must be a whole number from 1 to ${MAX_BUILD_LIST}.`
+    );
+  }
+  return limit;
+};
+
 /** The App Store Connect reader and the app's id, or null without a key. */
 const appStoreConnect = async (): Promise<{
   client: AscClient;
@@ -82,6 +102,17 @@ const appStoreConnect = async (): Promise<{
 };
 
 type Command = (args: readonly string[]) => Promise<void>;
+
+const listBuilds = async (limit: number): Promise<void> => {
+  const asc = await appStoreConnect();
+  if (asc === null) {
+    throw new Error(
+      "Listing builds reads App Store Connect and needs an API key."
+    );
+  }
+  const recent = await recentBuilds(asc.client, asc.appId, limit);
+  console.log(JSON.stringify(recent, null, 2));
+};
 
 const commands = {
   signing: async (args) => {
@@ -152,6 +183,16 @@ const commands = {
       process.exitCode = 1;
     }
   },
+  builds: async (args) => {
+    await listBuilds(limitOption(args));
+  },
+  latest: async () => {
+    await listBuilds(1);
+  },
+  "analytics-key": async () => {
+    await Promise.resolve();
+    console.log(releaseAnalyticsKey(process.env));
+  },
 } satisfies Record<string, Command>;
 
 const [name, ...rest] = process.argv.slice(2);
@@ -160,7 +201,9 @@ const isCommandName = (value: string): value is keyof typeof commands =>
 const command: Command | undefined =
   name !== undefined && isCommandName(name) ? commands[name] : undefined;
 if (command === undefined) {
-  console.error("Usage: release-cli.ts signing|lock|build-number|status ...");
+  console.error(
+    "Usage: release-cli.ts signing|lock|build-number|status|builds|latest|analytics-key ..."
+  );
   process.exitCode = 64;
 } else {
   try {

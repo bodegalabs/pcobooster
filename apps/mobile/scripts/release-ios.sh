@@ -5,6 +5,7 @@
 # --no-upload signs and exports an IPA without uploading it.
 # --skip-build exports the existing archive only if it matches this clean revision.
 # BUILD_NUMBER picks the build number; with an API key the next free one is the default.
+# Every archive embeds pcobooster.com's public PostHog key from source; one without it never exports.
 set -euo pipefail
 
 mobile="$(cd "$(dirname "$0")/.." && pwd)"
@@ -81,6 +82,10 @@ asc_cli() {
   fi
 }
 
+# Fail before any work if the environment names another analytics key.
+analytics_key="$(cli analytics-key)"
+unset EXPO_PUBLIC_POSTHOG_KEY POSTHOG_PROJECT_KEY
+
 signing_args=()
 if [[ "$has_key" == 1 ]]; then signing_args+=(--has-key); fi
 signing=none
@@ -148,7 +153,7 @@ if [[ "$skip_build" == 0 ]]; then
   mkdir -p "$out/maps/hermes"
   bun run scripts/release/artifact-cli.ts source > "$out/artifact.json"
   echo "==> Archiving pcobooster.com $revision (build $build)"
-  EXPO_PUBLIC_POSTHOG_KEY="${EXPO_PUBLIC_POSTHOG_KEY:-${POSTHOG_PROJECT_KEY:-}}" \
+  EXPO_PUBLIC_POSTHOG_KEY="$analytics_key" \
   EXPO_PUBLIC_SOURCE_REVISION="$revision" \
   SOURCEMAP_FILE="$out/maps/hermes/main.jsbundle.map" \
   COMPOSE_SOURCEMAP_PATH="$mobile/scripts/compose-source-maps.mjs" \
@@ -180,6 +185,12 @@ archived_build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$info")"
 bundle="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$info")"
 if [[ "$bundle" != com.pcobooster.ios || "$version" != 0.1.0 || "$archived_build" != "$build" ]]; then
   echo "Archive identity, version, or build number does not match this release." >&2
+  exit 1
+fi
+# Hermes keeps string literals verbatim, so an archive built without the key lacks these bytes and
+# would ship with analytics and diagnostics off.
+if ! LC_ALL=C grep -qF "$analytics_key" "$app/main.jsbundle"; then
+  echo "The archived JavaScript does not embed the PostHog project key; analytics and diagnostics would be off. Refusing this archive." >&2
   exit 1
 fi
 echo "==> Release Hermes gate (host engine, archived bytecode version)"

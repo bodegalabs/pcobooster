@@ -200,6 +200,32 @@ describe("release-ios.sh before it builds", () => {
     }
   );
 
+  it("refuses to archive with another analytics key before taking the lock", () => {
+    const { release, state } = releaseCheckout();
+    const result = release({
+      BUILD_NUMBER: "400",
+      EXPO_PUBLIC_POSTHOG_KEY: "phc_other",
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("not pcobooster.com's PostHog project key");
+    expect(existsSync(path.join(state, "lock"))).toBeFalsy();
+  });
+
+  it("embeds the committed analytics key and refuses an archive without it", () => {
+    const script = readFileSync(
+      path.join(mobile, "scripts/release-ios.sh"),
+      "utf-8"
+    );
+    expect(script).toContain('EXPO_PUBLIC_POSTHOG_KEY="$analytics_key"');
+    expect(script).toMatch(
+      /grep -qF "\$analytics_key" "\$app\/main\.jsbundle"/u
+    );
+    // The key check precedes the archived-bytecode Hermes gate, which precedes any export.
+    expect(script.indexOf("grep -qF")).toBeLessThan(
+      script.indexOf("xcodebuild -exportArchive")
+    );
+  });
+
   it("refuses to release the fixture smoke build", () => {
     const { release } = releaseCheckout();
     const result = release({ EXPO_PUBLIC_PCOB_RELEASE_SMOKE: "1" });

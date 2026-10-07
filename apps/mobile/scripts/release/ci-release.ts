@@ -37,7 +37,11 @@ import type {
  *   7. Persist `upload_accepted`. If that write fails, the upload happened but the ledger says
  *      `upload_started`; reconciliation reports it.
  */
-import { chooseBuildNumber, stillUnused } from "./release-rules";
+import {
+  chooseBuildNumber,
+  processingOutcome,
+  stillUnused,
+} from "./release-rules";
 
 export type Enablement = "blocked" | "approved";
 
@@ -260,7 +264,6 @@ export interface AvailabilityDependencies {
 
 const AVAILABILITY_LIMITS =
   "App Store Connect processing only. Tester-group access, release metadata, and physical-device acceptance are checked separately by a person.";
-const FAILED_PROCESSING = new Set(["FAILED", "INVALID"]);
 
 /**
  * Reads App Store Connect, at most until `timeoutMs`, for the build this run uploaded. Records
@@ -300,12 +303,8 @@ export const awaitProcessing = async (
     // Each read decides whether to wait for the next.
     // oxlint-disable-next-line no-await-in-loop
     const state = await deps.buildState(build);
-    if (
-      state?.processingState === "VALID" &&
-      state.version === String(build) &&
-      state.shortVersion === request.version &&
-      state.expired !== true
-    ) {
+    const outcome = processingOutcome(state, build, request.version);
+    if (state !== null && outcome === "processed") {
       // oxlint-disable-next-line no-await-in-loop
       await persistEvent(deps.ledger, ledger, {
         build,
@@ -317,7 +316,7 @@ export const awaitProcessing = async (
       });
       return report("processed", state);
     }
-    if (FAILED_PROCESSING.has(state?.processingState ?? "")) {
+    if (outcome === "failed") {
       return report("failed", state);
     }
     if (deps.now().getTime() + request.intervalMs > deadline) {
