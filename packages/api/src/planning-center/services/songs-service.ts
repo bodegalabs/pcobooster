@@ -215,9 +215,25 @@ export class PlanningCenterSongsService {
   }
 
   /**
-   * A short-lived URL for a chart Services renders, such as `chord_chart-{keyId}--` on a
-   * key or `lyric_chart-{arrangementId}` on an arrangement. Opening logs a view and changes
-   * nothing, so the read-only demo client may send it.
+   * The first page of an attachments collection: an arrangement's own files or one key's.
+   * `next` is set when Planning Center has more.
+   */
+  getAttachmentsPage(
+    attachmentsPath: string
+  ): Effect.Effect<
+    { data: PCResource[]; next: string | null },
+    PlanningCenterError
+  > {
+    return this.core
+      .fetchFirstPages(attachmentsPath, {}, 1)
+      .pipe(Effect.map(({ data, next }) => ({ data, next })));
+  }
+
+  /**
+   * A short-lived URL for an attachment: a chart Services renders, such as
+   * `chord_chart-{keyId}--` on a key or `lyric_chart-{arrangementId}` on an arrangement, or a
+   * file someone attached. Opening logs a view and changes nothing, so the read-only demo client
+   * may send it. Callers build `attachmentPath` only from validated ids.
    */
   openChartAttachment(
     attachmentPath: string

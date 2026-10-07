@@ -183,6 +183,8 @@ Path: `use-people-dashboard-person.ts` to `application/people.ts:218` to `get-pe
 | `songs.search` | `search-songs.ts:22-73` to `songs-service.ts:52-86` (`fetchAll /songs?order=title`, 15 pages max, 15 min TTL; KV-backed on the shared-cache branch) | ceil(songs / 100), about 12, **one after another** | 0 |
 | `songs.options` | `get-song-options.ts:54-65`: song, arrangements with keys (5 min), `last_scheduled_item` (never cached) | 3 | 1 |
 | `planItems.create` and `update` | `plan-item-payload.ts:63` song defaults (the `songs.options` reads), then one write | 1 to 4 | 1 to 2 |
+| `songs.attachments` (added 2026-10-07) | `song-attachments.ts`: arrangements with keys (5 min), the arrangement's attachments, then up to 6 keys' attachments, one page each, 3 at a time | 2 to 8 | 1 to 7 |
+| `songs.attachmentLink` (added 2026-10-07) | `song-attachments.ts`: one attachment `open` (a POST read action); the file itself downloads on the device | 1 | 1 |
 
 The song catalog cache key includes the service type (`search-songs.ts:41-42`, `` `${cacheKey}:${serviceTypeId}` ``), but the catalog fetch has no service type filter. Every service type loads the same 12 pages separately, and so does every token refresh.
 

@@ -13,6 +13,10 @@ import {
   searchRunSheetSongs,
   suggestRunSheetSongs,
 } from "@pcobooster/api/application/run-sheet";
+import {
+  readSongAttachmentLink,
+  readSongAttachments,
+} from "@pcobooster/api/application/song-attachments";
 import { readSongLibrary } from "@pcobooster/api/application/song-library";
 import { preparedWrite } from "@pcobooster/api/http/write";
 import { ProductApi } from "@pcobooster/contracts/http/api";
@@ -27,6 +31,10 @@ export const SongHandlers = Layer.mergeAll(
       .handle("library", () => readSongLibrary())
       .handle("history", ({ params }) => getRunSheetSongHistory(params))
       .handle("options", ({ params }) => getRunSheetSongOptions(params))
+      .handle("attachments", ({ params }) => readSongAttachments(params))
+      .handle("attachmentLink", ({ params, query }) =>
+        readSongAttachmentLink({ ...params, ...query })
+      )
   ),
   HttpApiBuilder.group(ProductApi, "chordCharts", (handlers) =>
     handlers
