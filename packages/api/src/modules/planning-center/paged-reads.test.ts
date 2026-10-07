@@ -33,6 +33,7 @@ import {
   PLANNING_CENTER_REQUEST_CAP,
   PROGRESSIVE_REQUEST_BUDGET,
 } from "@pcobooster/api/planning-center/request-budget";
+import { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import {
   createPlanningCenterPeopleServiceCaches,
   PlanningCenterPeopleService,
@@ -54,6 +55,7 @@ import {
   candidateDetailsBatchSchema,
   MAX_PENDING_BLOCKOUTS,
   MAX_PROGRESS_TIMES,
+  MAX_SERVICE_TYPES,
   planTimesProgressSchema,
 } from "@pcobooster/contracts/http/people-schemas";
 import { buildFrequencyFromServiceHistory } from "@pcobooster/planning-center-models/candidate-frequency";
@@ -1654,6 +1656,105 @@ describe("plan window history over paged plan ranges", () => {
       everyPlanOnce: rows.length === new Set(rows).size,
       rows: rows.length,
     }).toStrictEqual({ moved: true, everyPlanOnce: true, rows: 180 });
+  });
+});
+
+describe("plan window history across as many service types as the catalog holds", () => {
+  /** `count` active service types; the first holds 200 window plans, each needing a roster. */
+  const manyServiceTypesOrg = (count: number): FakeOrg => {
+    const serviceTypes = Array.from(
+      { length: count },
+      (_, index): PCResource => ({
+        type: "ServiceType",
+        id: `st-${index}`,
+        attributes: { archived_at: null, name: `Type ${index}` },
+      })
+    );
+    const plans = Array.from({ length: 200 }, (_, index): PCResource => ({
+      type: "Plan",
+      id: `st-0-plan-${index}`,
+      attributes: { sort_date: PLAN_DATE, plan_people_count: 1 },
+    }));
+    return {
+      collections: new Map([
+        ["/services/v2/service_types", { data: serviceTypes }],
+        ["/services/v2/service_types/st-0/plans", { data: plans }],
+      ]),
+      resources: new Map(),
+    };
+  };
+  const servicesWithCatalog = (fetch: typeof globalThis.fetch) => ({
+    ...windowServices(fetch),
+    catalog: new PlanningCenterCatalogService(
+      createBasicPlanningCenterClient(
+        { applicationId: "test-client", secret: "test-token" },
+        httpClientFor(fetch)
+      )
+    ),
+  });
+
+  it("hands back cursors the API accepts with every service type the catalog allows", async () => {
+    const server = fakePlanningCenter(manyServiceTypesOrg(MAX_SERVICE_TYPES));
+    // The first few calls: the whole window would take one per service type.
+    const followCursors = async (
+      calls: number,
+      continuation?: PlanWindowHistoryInput["continuation"]
+    ): Promise<(PlanWindowHistoryInput["continuation"] | null)[]> => {
+      if (calls === 0) {
+        return [];
+      }
+      const batch = await Effect.runPromise(
+        getPlanWindowHistory(
+          { date: PLAN_DATE, continuation },
+          servicesWithCatalog(server.fetch)
+        )
+      );
+      const next = nextWindowContinuation(batch);
+      return [
+        next,
+        ...(next === null ? [] : await followCursors(calls - 1, next)),
+      ];
+    };
+    const cursors = await followCursors(3);
+
+    expect({
+      largestRanges: Math.max(
+        ...cursors.map((cursor) => cursor?.ranges.length ?? 0)
+      ),
+      everyCursorAccepted: cursors.every(
+        (cursor) =>
+          cursor !== null &&
+          Option.isSome(
+            decodeWindowHistoryInput({ date: PLAN_DATE, continuation: cursor })
+          )
+      ),
+    }).toStrictEqual({
+      largestRanges: MAX_SERVICE_TYPES,
+      everyCursorAccepted: true,
+    });
+  });
+
+  it("fails typed when the organization has more service types than that", async () => {
+    const server = fakePlanningCenter(
+      manyServiceTypesOrg(MAX_SERVICE_TYPES + 1)
+    );
+
+    const exit = await Effect.runPromiseExit(
+      getPlanWindowHistory(
+        { date: PLAN_DATE },
+        servicesWithCatalog(server.fetch)
+      )
+    );
+
+    expect(exit).toStrictEqual(
+      Exit.fail(
+        new PlanningCenterPaginationError({
+          reason: "page-limit",
+          path: "/services/v2/service_types",
+          pages: MAX_SERVICE_TYPES / PLANNING_CENTER_PAGE_SIZE,
+        })
+      )
+    );
   });
 });
 

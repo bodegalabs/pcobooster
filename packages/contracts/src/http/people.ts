@@ -12,6 +12,8 @@ import {
   planWindowHistoryBatchSchema,
   positionCandidatesSchema,
   candidateDetailsContinuationSchema,
+  MAX_SERVICE_TYPES,
+  MAX_WINDOW_CONTINUATION_PLANS,
   planTimesProgressSchema,
   windowPlanRefSchema,
   windowRangeRefSchema,
@@ -27,8 +29,6 @@ import {
 } from "@pcobooster/contracts/people";
 import { Struct, Schema } from "effect";
 
-const MAX_CONTINUATION_PLANS = 1000;
-const MAX_CONTINUATION_SERVICE_TYPES = 200;
 const PEOPLE_SEARCH_MIN_LENGTH = 2;
 const PEOPLE_SEARCH_MAX_LENGTH = 80;
 const MONTH_KEY = /^\d{4}-\d{2}$/u;
@@ -49,10 +49,10 @@ export const peoplePlanWindowHistoryInputSchema = Schema.Struct({
   continuation: Schema.optional(
     Schema.Struct({
       plans: mutableArray(windowPlanRefSchema).check(
-        Schema.isMaxLength(MAX_CONTINUATION_PLANS)
+        Schema.isMaxLength(MAX_WINDOW_CONTINUATION_PLANS)
       ),
       ranges: mutableArray(windowRangeRefSchema).check(
-        Schema.isMaxLength(MAX_CONTINUATION_SERVICE_TYPES)
+        Schema.isMaxLength(MAX_SERVICE_TYPES)
       ),
     })
   ),

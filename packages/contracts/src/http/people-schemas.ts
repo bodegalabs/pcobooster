@@ -9,6 +9,13 @@ import {
 import { Schema } from "effect";
 
 const MAX_ROSTER_REQUESTS = 100;
+/**
+ * Service types an organization may have: the catalog reads them whole and fails typed past
+ * this, so a window cursor's ranges (one per active service type) never outgrow it.
+ */
+export const MAX_SERVICE_TYPES = 1000;
+/** Listed plans a window cursor carries; a call lists no more than it can hand back. */
+export const MAX_WINDOW_CONTINUATION_PLANS = 1000;
 /** Repeating blockouts one person's candidate-details cursor holds, at most. */
 export const MAX_PENDING_BLOCKOUTS = 1000;
 /** Plans whose times one person's history or detail page reads across calls. */
@@ -164,9 +171,13 @@ export const planWindowHistoryBatchSchema = Schema.Struct({
     })
   ),
   /** Listed plans left for a follow-up call, in window order. */
-  deferredPlans: mutableArray(windowPlanRefSchema),
+  deferredPlans: mutableArray(windowPlanRefSchema).check(
+    Schema.isMaxLength(MAX_WINDOW_CONTINUATION_PLANS)
+  ),
   /** Ranges not listed to their end yet, and their next page; after `deferredPlans`. */
-  deferredRanges: mutableArray(windowRangeRefSchema),
+  deferredRanges: mutableArray(windowRangeRefSchema).check(
+    Schema.isMaxLength(MAX_SERVICE_TYPES)
+  ),
   requestBudget: Schema.Struct({
     limit: finiteNumber,
     /** Planning Center requests the call sent; cached reads cost none. */

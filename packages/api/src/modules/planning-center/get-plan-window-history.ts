@@ -23,6 +23,7 @@ import {
   nextRangeOffset,
 } from "@pcobooster/api/planning-center/services/plans-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
+import { MAX_WINDOW_CONTINUATION_PLANS } from "@pcobooster/contracts/http/people-schemas";
 import {
   addCalendarDaysToDayKey,
   formatCalendarDayInTimeZone,
@@ -582,13 +583,15 @@ const locatePending = (
 
 /**
  * Lists range pages in order, a range's later pages before the next range, while the plans
- * already collected leave room on rosters. A first call always lists one page. Returns the
+ * already collected leave room on rosters and the cursor has room for `planRoom` more plans
+ * (a page is listed whole or not at all). A first call always lists one page. Returns the
  * plans listed; `ranges` is left holding what is still unlisted.
  */
 const listRanges = (
   ranges: WindowRangeRef[],
   pages: RangePages,
   collectedRosterRequests: number,
+  planRoom: number,
   { beforeDayKey, orgTimeZone }: WindowDays
 ): Effect.Effect<WindowPlan[], PlanningCenterError> =>
   Effect.gen(function* listRangePages() {
@@ -597,7 +600,10 @@ const listRanges = (
     let mustList = collectedRosterRequests === 0;
     while (ranges.length > 0) {
       const room = (yield* requestsLeft) - rosterRequests;
-      const slots = mustList ? Math.max(room, 1) : room;
+      const slots = Math.min(
+        mustList ? Math.max(room, 1) : room,
+        Math.floor((planRoom - listed.length) / PLANNING_CENTER_PAGE_SIZE)
+      );
       if (slots < 1) {
         break;
       }
@@ -612,6 +618,9 @@ const listRanges = (
         const adding = page.plans.filter(({ plan, planTimes }) =>
           addsWindowHistory(plan, planTimes, beforeDayKey, orgTimeZone)
         );
+        if (listed.length + adding.length > planRoom) {
+          break;
+        }
         listed.push(...adding);
         rosterRequests += adding.reduce(
           (sum, { plan }) => sum + rosterRequestsFor(plan),
@@ -738,6 +747,7 @@ export const getPlanWindowHistory = (
                 )
               )
             : 0,
+          MAX_WINDOW_CONTINUATION_PLANS - pending.length,
           days
         )
       : [];
