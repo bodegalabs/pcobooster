@@ -1,0 +1,17 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible: "Avery Woods"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "100 fit.*"
+    timeout: 30000
+- tapOn:
+    id: "assign-add-4100111"
+- assertVisible: "Next: Electric Guitar"
+- assertNotVisible: "1 open slot"
+- tapOn: "Avery Woods"
+- assertVisible: "Unschedule"
+- takeScreenshot: assign-added
+- tapOn:
+    id: "assign-detail-close"

@@ -1,11 +1,10 @@
 import { Host, Picker, Text as SwiftText } from "@expo/ui/swift-ui";
 import { disabled, pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 import { describeSchedulingNotification } from "@pcobooster/planning-center-models/scheduling-notifications";
-import type { FilledPositionPerson } from "@pcobooster/planning-center-models/types";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Linking, ScrollView, View } from "react-native";
+import { Alert, ScrollView, View } from "react-native";
 
 import { sharedReads, useProductClient } from "../../app-shell/queries";
 import { BottomActionBar } from "../../components/bottom-action-bar";
@@ -18,35 +17,39 @@ import { colors } from "../../design/colors";
 import { playHaptic } from "../../design/haptics";
 import { scheduleStatusLabel, scheduleStatuses } from "../../design/status";
 import { useOrgTimeZone } from "../../lib/environment";
-import { useToasts } from "../../lib/toasts";
 import { rosterAccess } from "./access";
+import { rosterAssignment } from "./assignment";
+import type { RosterAssignment } from "./assignment";
 import { PersonDraft } from "./person-draft";
 import { ReadStatus } from "./read-status";
 import { planReads } from "./reads";
 import type { PlanIds } from "./reads";
 import { personStatus } from "./roster";
 import type { PersonStatus } from "./roster";
+import { useOpenPlanningCenterPerson } from "./roster-links";
 import { usePlanWriter } from "./use-plan-writer";
 
 const PersonEditor = ({
   ids,
-  person,
+  assignment,
   caption,
   canSchedule,
 }: {
   ids: PlanIds;
-  person: FilledPositionPerson;
+  assignment: RosterAssignment;
   caption: string;
   canSchedule: boolean;
 }) => {
+  const { person } = assignment;
   const draft = useRef<PersonDraft | null>(null);
-  const initialPerson = useRef(person);
+  const initialPerson = useRef(assignment);
 
   const [status, setStatus] = useState(() => personStatus(person));
   const writer = usePlanWriter(ids);
   const router = useRouter();
   const zone = useOrgTimeZone();
-  const toasts = useToasts();
+  const openPlanningCenterPerson = useOpenPlanningCenterPerson();
+  const { personId } = person;
   const notification = describeSchedulingNotification(
     person.notification,
     zone
@@ -70,14 +73,17 @@ const PersonEditor = ({
           onPress: () => {
             draft.current?.discard();
             router.back();
-            void writer.remove(person);
+            void writer.remove(assignment);
           },
         },
       ]
     );
   };
   return (
-    <View style={{ flex: 1, backgroundColor: colors.surfaceCanvas }}>
+    <View
+      collapsable={false}
+      style={{ flex: 1, backgroundColor: colors.surfaceCanvas }}
+    >
       <Stack.Screen
         options={{
           title: "",
@@ -153,20 +159,12 @@ const PersonEditor = ({
             </AppText>
           )}
         </SurfaceCard>
-        {person.personId === null || person.personId === undefined ? null : (
+        {personId === null || personId === undefined ? null : (
           <PillButton
             title="Open in Planning Center"
             kind="outline"
             onPress={() => {
-              void (async () => {
-                try {
-                  await Linking.openURL(
-                    `https://people.planningcenteronline.com/people/AC${encodeURIComponent(person.personId ?? "")}`
-                  );
-                } catch {
-                  toasts.showError("Couldn't open Planning Center.");
-                }
-              })();
+              openPlanningCenterPerson(personId);
             }}
           />
         )}
@@ -188,11 +186,14 @@ const PersonEditor = ({
 };
 
 export const LineupPersonSheet = () => {
-  const { serviceTypeId, planId, planPersonId } = useLocalSearchParams<{
-    serviceTypeId: string;
-    planId: string;
-    planPersonId: string;
-  }>();
+  const { serviceTypeId, planId, teamId, positionId, personId } =
+    useLocalSearchParams<{
+      serviceTypeId: string;
+      planId: string;
+      teamId: string;
+      positionId: string;
+      personId: string;
+    }>();
   const context = useProductClient();
   const plan = useQuery(planReads.plan(context, { serviceTypeId, planId }));
   const ids = {
@@ -211,20 +212,12 @@ export const LineupPersonSheet = () => {
     serviceTypeId,
     accounts.data?.demo ?? false
   );
-  const group = query.data?.find((candidate) =>
-    candidate.positions.some((position) =>
-      (position.filledPeople ?? []).some(
-        (person) => person.planPersonId === planPersonId
-      )
-    )
-  );
-  const position = group?.positions.find((candidate) =>
-    (candidate.filledPeople ?? []).some(
-      (person) => person.planPersonId === planPersonId
-    )
+  const group = query.data?.find((candidate) => candidate.teamId === teamId);
+  const position = group?.positions.find(
+    (candidate) => candidate.id === positionId
   );
   const person = position?.filledPeople?.find(
-    (candidate) => candidate.planPersonId === planPersonId
+    (candidate) => (candidate.personId ?? candidate.id) === personId
   );
   if (person === undefined && query.data !== undefined) {
     return (
@@ -249,9 +242,9 @@ export const LineupPersonSheet = () => {
   }
   return (
     <PersonEditor
-      key={planPersonId}
+      key={`${planId}:${teamId}:${positionId}:${personId}`}
       ids={ids}
-      person={person}
+      assignment={rosterAssignment(ids, { teamId, id: positionId }, person)}
       canSchedule={canSchedule}
       caption={`${group?.teamName ?? ""} · ${position?.name ?? ""}`}
     />

@@ -1,0 +1,14 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible: "Avery Woods"
+    timeout: 30000
+- tapOn:
+    text: "Schedule around this plan"
+    index: 0
+- assertVisible:
+    id: "assign-day-close"
+- takeScreenshot: assign-day
+- tapOn:
+    id: "assign-day-close"
+- assertVisible: "Acoustic Guitar"

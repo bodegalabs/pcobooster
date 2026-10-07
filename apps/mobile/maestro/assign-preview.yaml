@@ -1,0 +1,13 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible: "Avery Woods"
+    timeout: 30000
+- tapOn: "Avery Woods"
+- assertVisible: "Around this plan"
+- assertVisible: "Why this ranking"
+- assertVisible: "Serving"
+- takeScreenshot: assign-preview
+- tapOn:
+    id: "assign-detail-close"
+- assertVisible: "Acoustic Guitar"

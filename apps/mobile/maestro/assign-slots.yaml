@@ -1,0 +1,26 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible: "Avery Woods"
+    timeout: 30000
+- tapOn: "Add open slot"
+- assertVisible: "2 open slots"
+- tapOn: "Remove open slot"
+- assertVisible: "1 open slot"
+# History is on by default: the day bars hide, then come back.
+- assertVisible:
+    text: "Schedule around this plan"
+    index: 0
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "Show History"
+- assertNotVisible: "Schedule around this plan"
+- takeScreenshot: assign-history-off
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "Show History"
+- extendedWaitUntil:
+    visible:
+      text: "Schedule around this plan"
+      index: 0
+    timeout: 5000

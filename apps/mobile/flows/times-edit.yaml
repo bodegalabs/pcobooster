@@ -1,0 +1,47 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible:
+      id: "time-row-8812610041"
+    timeout: 60000
+- tapOn:
+    id: "time-row-8812610041"
+- tapOn:
+    id: "time-name-field"
+- eraseText
+- inputText: "Band rehearsal"
+- tapOn:
+    id: "time-end-toggle"
+- tapOn:
+    id: "plan-editor-close"
+- assertVisible: ".*Band rehearsal.*"
+- tapOn:
+    id: "time-row-8812610041"
+- tapOn:
+    id: "time-end-toggle"
+- tapOn:
+    id: "plan-editor-close"
+- assertVisible: ".*8:00.*PM.*"
+- longPressOn:
+    id: "time-row-8812610041"
+# The long press shows the time's preview card (its text isn't exposed to accessibility).
+- assertVisible: "Preview"
+- takeScreenshot: time-preview
+- assertVisible: "Duplicate"
+- tapOn: "Duplicate"
+- tapOn:
+    id: "time-name-field"
+- eraseText
+- inputText: "Extra rehearsal"
+- tapOn:
+    id: "time-create"
+- assertVisible: ".*Extra rehearsal.*"
+- takeScreenshot: times-duplicate
+- tapOn: ".*Extra rehearsal.*"
+- tapOn:
+    id: "time-delete"
+- assertVisible: "Delete time?"
+- tapOn:
+    text: "Delete time"
+    index: 0
+- assertNotVisible: ".*Extra rehearsal.*"

@@ -1,12 +1,14 @@
-import type { PlanItem } from "@pcobooster/planning-center-models/types";
-
-import { keyName, parseMusicalKey } from "@/lib/key-theory";
-import { rateKeyChange } from "@/lib/key-transition-advice";
+import {
+  keyName,
+  parseMusicalKey,
+} from "@pcobooster/planning-center-models/key-theory";
+import { rateKeyChange } from "@pcobooster/planning-center-models/key-transition-advice";
 import type {
   KeyChangeKind,
   KeyTransitionLevel,
   TransitionSongs,
-} from "@/lib/key-transition-advice";
+} from "@pcobooster/planning-center-models/key-transition-advice";
+import type { PlanItem } from "@pcobooster/planning-center-models/types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** Songs played within this many days before the plan count as a repeat. */

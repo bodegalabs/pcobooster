@@ -1,15 +1,43 @@
-import type {
-  CandidateDetailsBatch,
-  PlanWindowHistoryBatch,
-  PositionCandidates,
-} from "@pcobooster/contracts/people-schemas";
 import { expandPlanWindowHistory } from "@pcobooster/planning-center-models/plan-window-history";
+import type { PlanWindowRosters } from "@pcobooster/planning-center-models/plan-window-history";
 import {
   assemblePositionCandidates,
   EMPTY_CANDIDATE_HISTORY,
 } from "@pcobooster/planning-center-models/position-candidates";
-import type { CandidateHistory } from "@pcobooster/planning-center-models/position-candidates";
+import type {
+  CandidateHistory,
+  PositionCandidate,
+  SelectedPlanMatchContext,
+} from "@pcobooster/planning-center-models/position-candidates";
 import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
+
+/** Only the domain fields used to assemble progressive candidate reads. */
+export interface CandidateDetailsBatch {
+  people: {
+    personId: string;
+    isBlockedForDate: boolean;
+    history?: CandidateHistory;
+  }[];
+  blockoutProgress: {
+    personId: string;
+    checkedBlockoutIds: string[];
+    blocked: boolean;
+  }[];
+}
+export interface PlanWindowHistoryBatch extends PlanWindowRosters {
+  loadedPlanCount: number;
+  deferredPlans: {
+    planId: string;
+    serviceTypeId: string;
+    rosterRequests: number;
+  }[];
+  deferredServiceTypeIds: string[];
+}
+export interface PositionCandidates {
+  candidates: PositionCandidate[];
+  match: SelectedPlanMatchContext;
+  timeZone: string;
+}
 
 /**
  * Candidate detail calls in flight at once. Each costs about 20 Planning

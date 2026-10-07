@@ -1,4 +1,19 @@
+import { appendNote } from "@pcobooster/planning-center-models/key-transition-advice";
+import {
+  buildDraft,
+  NONE_VALUE,
+  parseLengthText,
+  pickKeyId,
+  synchronizeDraftWithSongOptions,
+} from "@pcobooster/planning-center-models/plan-item-draft";
+import type { DraftState } from "@pcobooster/planning-center-models/plan-item-draft";
 import { keyOptionLabelOf } from "@pcobooster/planning-center-models/plan-overview";
+import type { KeyTransition } from "@pcobooster/planning-center-models/plan-set-insights";
+import {
+  describeKeyChange,
+  tempoLabel,
+} from "@pcobooster/planning-center-models/song-library";
+import type { PreviousSong } from "@pcobooster/planning-center-models/song-library";
 import type {
   ArrangementOption,
   KeyOption,
@@ -20,14 +35,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import { KeyTransitionPopover } from "@/components/schedule/key-transition-popover";
-import {
-  buildDraft,
-  NONE_VALUE,
-  parseLengthText,
-  pickKeyId,
-  synchronizeDraftWithSongOptions,
-} from "@/components/schedule/plan-tab-helpers";
-import type { DraftState } from "@/components/schedule/plan-tab-helpers";
 import { SongHistory } from "@/components/schedule/song-history";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -57,10 +64,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
 import { useSongOptions } from "@/hooks/use-song-options";
-import { appendNote } from "@/lib/key-transition-advice";
-import type { KeyTransition } from "@/lib/plan-set-insights";
-import { describeKeyChange, tempoLabel } from "@/lib/song-library";
-import type { PreviousSong } from "@/lib/song-library";
 import { planningCenterSongUrl } from "@/lib/songs-index";
 import { cn } from "@/lib/utils";
 

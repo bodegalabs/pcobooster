@@ -1,7 +1,6 @@
+import { summarizeCandidateSchedule } from "@pcobooster/planning-center-models/candidate-summary";
 import type { ScheduleFrequency } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
-
-import { summarizeCandidateSchedule } from "@/lib/people/candidate-summary";
 
 const ORG_TIME_ZONE = "America/Los_Angeles";
 // 7 PM on Fri, Oct 23 in Los Angeles; already Oct 24 in UTC.

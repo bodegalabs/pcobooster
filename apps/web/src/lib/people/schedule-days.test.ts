@@ -1,7 +1,6 @@
+import { buildScheduleDays } from "@pcobooster/planning-center-models/schedule-days";
 import type { ServiceHistoryItem } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
-
-import { buildScheduleDays } from "@/lib/people/schedule-days";
 
 const ORG_TIME_ZONE = "America/Los_Angeles";
 // 7 PM on Fri, Oct 23 in Los Angeles; already Oct 24 in UTC.

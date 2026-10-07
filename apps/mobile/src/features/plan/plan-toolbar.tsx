@@ -62,6 +62,7 @@ const toolbarOptions = ({
   onCollapse,
   onExpand,
   onOpenPlanningCenter,
+  rightItems,
 }: {
   header: { title: string; subtitle: string };
   segment: PlanSegment;
@@ -70,6 +71,7 @@ const toolbarOptions = ({
   onCollapse: () => void;
   onExpand: () => void;
   onOpenPlanningCenter?: () => void;
+  rightItems?: NativeStackNavigationOptions["unstable_headerRightItems"];
 }): NativeStackNavigationOptions => ({
   title: "",
   headerStyle: { backgroundColor: colors.surfaceCanvas },
@@ -81,80 +83,82 @@ const toolbarOptions = ({
       element: <PlanTitle {...header} onMenu={onTitleMenu} />,
     },
   ],
-  unstable_headerRightItems: () =>
-    segment === "Lineup"
-      ? [
-          {
-            type: "button",
-            label: "Previous plan",
-            icon: { type: "sfSymbol", name: "chevron.up" },
-            onPress: () => {
-              onStep("previous");
+  unstable_headerRightItems:
+    rightItems ??
+    (() =>
+      segment === "Lineup"
+        ? [
+            {
+              type: "button",
+              label: "Previous plan",
+              icon: { type: "sfSymbol", name: "chevron.up" },
+              onPress: () => {
+                onStep("previous");
+              },
+              sharesBackground: false,
+              width: 37,
             },
-            sharesBackground: false,
-            width: 37,
-          },
-          {
-            type: "menu",
-            label: "More",
-            icon: { type: "sfSymbol", name: "ellipsis" },
-            sharesBackground: false,
-            width: 37,
-            menu: {
-              items: [
-                {
-                  type: "action",
-                  label: "Next plan",
-                  icon: { type: "sfSymbol", name: "chevron.down" },
-                  onPress: () => {
-                    onStep("next");
+            {
+              type: "menu",
+              label: "More",
+              icon: { type: "sfSymbol", name: "ellipsis" },
+              sharesBackground: false,
+              width: 37,
+              menu: {
+                items: [
+                  {
+                    type: "action",
+                    label: "Next plan",
+                    icon: { type: "sfSymbol", name: "chevron.down" },
+                    onPress: () => {
+                      onStep("next");
+                    },
                   },
-                },
-                {
-                  type: "action",
-                  label: "Collapse All Teams",
-                  onPress: onCollapse,
-                },
-                {
-                  type: "action",
-                  label: "Expand All Teams",
-                  onPress: onExpand,
-                },
-                ...(onOpenPlanningCenter === undefined
-                  ? []
-                  : [
-                      {
-                        type: "action" as const,
-                        label: "Open in Planning Center",
-                        onPress: onOpenPlanningCenter,
-                      },
-                    ]),
-              ],
+                  {
+                    type: "action",
+                    label: "Collapse All Teams",
+                    onPress: onCollapse,
+                  },
+                  {
+                    type: "action",
+                    label: "Expand All Teams",
+                    onPress: onExpand,
+                  },
+                  ...(onOpenPlanningCenter === undefined
+                    ? []
+                    : [
+                        {
+                          type: "action" as const,
+                          label: "Open in Planning Center",
+                          onPress: onOpenPlanningCenter,
+                        },
+                      ]),
+                ],
+              },
             },
-          },
-        ]
-      : [
-          {
-            type: "button",
-            label: "Previous plan",
-            icon: { type: "sfSymbol", name: "chevron.up" },
-            onPress: () => {
-              onStep("previous");
+          ]
+        : [
+            {
+              type: "button",
+              label: "Previous plan",
+              icon: { type: "sfSymbol", name: "chevron.up" },
+              onPress: () => {
+                onStep("previous");
+              },
+              sharesBackground: true,
+              width: 37,
             },
-            sharesBackground: true,
-            width: 37,
-          },
-          {
-            type: "button",
-            label: "Next plan",
-            icon: { type: "sfSymbol", name: "chevron.down" },
-            onPress: () => {
-              onStep("next");
+            {
+              type: "button",
+              label: "Next plan",
+              icon: { type: "sfSymbol", name: "chevron.down" },
+              onPress: () => {
+                onStep("next");
+              },
+              sharesBackground: true,
+              width: 37,
             },
-            sharesBackground: true,
-            width: 37,
-          },
-        ],
+          ]),
 });
 
 export const PlanToolbar = (props: Parameters<typeof toolbarOptions>[0]) => (

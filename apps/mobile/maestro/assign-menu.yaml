@@ -1,0 +1,36 @@
+appId: com.pcobooster.ios
+---
+# Long press: Swift's context menu over a preview card.
+- extendedWaitUntil:
+    visible: "Avery Woods"
+    timeout: 30000
+- longPressOn:
+    id: "candidate-4100111"
+- assertVisible: "Add to Acoustic Guitar"
+- assertVisible: "Show Details"
+- assertVisible: "Open in Planning Center"
+- takeScreenshot: assign-menu
+- tapOn: "Add to Acoustic Guitar"
+- extendedWaitUntil:
+    visible:
+      id: "assign-status-4100111-pending"
+    timeout: 10000
+# The row moves to Scheduled; let it settle before the next long press.
+- waitForAnimationToEnd:
+    timeout: 3000
+- longPressOn:
+    id: "candidate-4100111"
+- assertVisible: "Unschedule"
+- tapOn: "Confirmed"
+- extendedWaitUntil:
+    visible:
+      id: "assign-status-4100111-confirmed"
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 3000
+- longPressOn:
+    id: "candidate-4100111"
+- tapOn: "Show Details"
+- assertVisible: "Around this plan"
+- tapOn:
+    id: "assign-detail-close"

@@ -1,14 +1,13 @@
+import {
+  buildRunSheet,
+  synchronizeDraftWithSongOptions,
+} from "@pcobooster/planning-center-models/plan-item-draft";
+import type { DraftState } from "@pcobooster/planning-center-models/plan-item-draft";
 import type {
   PlanItem,
   SongOptionSet,
 } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
-
-import {
-  buildRunSheet,
-  synchronizeDraftWithSongOptions,
-} from "@/components/schedule/plan-tab-helpers";
-import type { DraftState } from "@/components/schedule/plan-tab-helpers";
 
 const songOptions: SongOptionSet = {
   song: {

@@ -1,0 +1,19 @@
+appId: com.pcobooster.ios
+---
+# Filling the last open slot floats the next-open offer, which dismisses itself after 8 s.
+- extendedWaitUntil:
+    visible: "Avery Woods"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "100 fit.*"
+    timeout: 30000
+- tapOn:
+    id: "assign-add-4100111"
+- assertVisible:
+    id: "assign-next-open-offer"
+- assertVisible: "Next: Electric Guitar"
+- extendedWaitUntil:
+    notVisible:
+      id: "assign-next-open-offer"
+    timeout: 12000
+- assertVisible: "Status for Avery Woods"

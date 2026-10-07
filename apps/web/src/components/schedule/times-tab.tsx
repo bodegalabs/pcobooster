@@ -1,3 +1,7 @@
+import {
+  buildEditablePlanTime,
+  isValidPlanTimeEdit,
+} from "@pcobooster/planning-center-models/plan-time-edits";
 import type { PlanTime } from "@pcobooster/planning-center-models/types";
 import { Clock3, Plus } from "lucide-react";
 
@@ -16,10 +20,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { useTimesTabController } from "@/hooks/use-times-tab-controller";
-import {
-  buildEditablePlanTime,
-  isValidPlanTimeEdit,
-} from "@/lib/schedule/plan-time-edits";
 
 interface TimesTabProps {
   serviceTypeId: string | null;

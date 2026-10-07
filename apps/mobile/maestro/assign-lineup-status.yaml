@@ -1,0 +1,48 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible: ".*Acoustic Guitar.*"
+    timeout: 30000
+- tapOn:
+    text: "Open"
+    index: 0
+- extendedWaitUntil:
+    visible: "100 fit.*"
+    timeout: 30000
+- tapOn:
+    id: "assign-add-4100111"
+- extendedWaitUntil:
+    visible: "Status for Avery Woods"
+    timeout: 10000
+- tapOn: "Back"
+- assertVisible: "Avery Woods, Status: Pending"
+- tapOn: "Avery Woods, Status: Pending"
+- assertVisible: "Avery Woods"
+- tapOn: "Confirmed"
+- assertVisible:
+    text: "Confirmed"
+    selected: true
+- tapOn: "Close"
+- extendedWaitUntil:
+    visible: "Avery Woods, Status: Confirmed"
+    timeout: 10000
+- tapOn: "Avery Woods, Status: Confirmed"
+- tapOn: "Unschedule"
+- extendedWaitUntil:
+    visible: "Unschedule Avery Woods.*"
+    timeout: 10000
+- tapOn:
+    text: "Unschedule"
+    childOf:
+      containsChild:
+        text: "Cancel"
+- extendedWaitUntil:
+    notVisible: "Unschedule Avery Woods.*"
+    timeout: 10000
+- extendedWaitUntil:
+    notVisible: "Avery Woods, Status: Confirmed"
+    timeout: 10000
+- extendedWaitUntil:
+    visible: "Frankie Turner, Status: Confirmed"
+    timeout: 10000
+- takeScreenshot: assign-lineup-status

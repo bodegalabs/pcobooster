@@ -1,10 +1,7 @@
+import { buildPlanMemberPositionId } from "@pcobooster/planning-center-models/custom-position";
 import { describe, expect, it } from "vitest";
 
-import {
-  buildPlanMemberPositionId,
-  planSlotLink,
-  planWorkspaceLink,
-} from "@/lib/schedule-navigation";
+import { planSlotLink, planWorkspaceLink } from "@/lib/schedule-navigation";
 
 describe(planWorkspaceLink, () => {
   it("opens a plan on its overview", () => {

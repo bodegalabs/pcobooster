@@ -19,8 +19,11 @@ import {
   predominantOf,
   scaleOf,
   semitonesUp,
-} from "@/lib/key-theory";
-import type { CommonToneChord, MusicalKey } from "@/lib/key-theory";
+} from "@pcobooster/planning-center-models/key-theory";
+import type {
+  CommonToneChord,
+  MusicalKey,
+} from "@pcobooster/planning-center-models/key-theory";
 
 export type KeyTransitionLevel = "smooth" | "worth-a-look" | "rough";
 

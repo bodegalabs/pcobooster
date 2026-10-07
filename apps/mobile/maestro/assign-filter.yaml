@@ -1,0 +1,25 @@
+appId: com.pcobooster.ios
+---
+# Filter people waits in the navigation bar's drawer, revealed by pulling the list down as in
+# Swift, and clears when the position changes.
+- extendedWaitUntil:
+    visible: "Avery Woods"
+    timeout: 30000
+- scrollUntilVisible:
+    element: "Filter people"
+    direction: UP
+- tapOn: "Filter people"
+- inputText: "Hayden"
+- assertVisible: "Hayden Collins"
+- assertNotVisible: "Avery Woods"
+- takeScreenshot: assign-filter
+- tapOn:
+    id: "assign-position-menu"
+- tapOn: "Keys, .*"
+- tapOn:
+    id: "assign-position-menu"
+- tapOn: "Acoustic Guitar, .*"
+- extendedWaitUntil:
+    visible: "Avery Woods"
+    timeout: 10000
+- assertVisible: "Hayden Collins"

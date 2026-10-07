@@ -76,7 +76,10 @@ export const planReads = {
       queryFn: async (context) => {
         const input = ids;
         return await callForQuery(context, client, (api) =>
-          api.catalog.teamPositions({ params: input, query: input })
+          api.catalog.teamPositions({
+            params: input,
+            query: input,
+          })
         );
       },
       staleTime: 60_000,

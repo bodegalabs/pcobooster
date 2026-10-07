@@ -1,7 +1,6 @@
+import { partitionPeopleForRecommendationStrip } from "@pcobooster/planning-center-models/recommendation-strip-order";
 import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
-
-import { partitionPeopleForRecommendationStrip } from "@/lib/people/recommendation-strip-order";
 
 const basePerson = (
   id: string,

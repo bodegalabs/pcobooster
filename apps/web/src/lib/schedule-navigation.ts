@@ -13,12 +13,6 @@ export interface PlanSlotSelection {
   positionId: string | null;
 }
 
-export const buildPlanMemberPositionId = (
-  teamId: string,
-  positionName: string
-): string =>
-  `plan-member-position:${teamId}:${encodeURIComponent(positionName.trim().toLowerCase())}`;
-
 /** Opens a plan on its Overview. */
 export const planWorkspaceLink = (serviceTypeId: string, planId: string) =>
   linkOptions({

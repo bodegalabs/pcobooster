@@ -103,7 +103,7 @@ const getPlanPersonIdsForTime = (
 export const buildEditablePlanTime = (
   planTime: PlanTime,
   timeZone: string,
-  teamPositionGroups: TeamPositionGroup[] | undefined
+  teamPositionGroups?: TeamPositionGroup[]
 ): EditablePlanTime => {
   const starts = formatWallTimeInTimeZone(planTime.startsAt, timeZone);
   const ends = planTime.endsAt
@@ -158,20 +158,14 @@ export const planTimeEditHasChanges = (
   );
 };
 
-export const buildPlanTimePatch = (
-  planTime: PlanTime,
+/** Diffs assignments against the draft acknowledged by a prior save, without a roster refetch. */
+export const buildPlanTimeDraftPatch = (
+  original: EditablePlanTime,
   edit: EditablePlanTime,
-  timeZone: string,
-  teamPositionGroups: TeamPositionGroup[] | undefined
+  timeZone: string
 ) => {
-  const originalNeededPositionIds = getNeededPositionIdsForTime(
-    teamPositionGroups,
-    planTime.id
-  );
-  const originalPlanPersonIds = getPlanPersonIdsForTime(
-    teamPositionGroups,
-    planTime.id
-  );
+  const originalNeededPositionIds = original.assignedNeededPositionIds;
+  const originalPlanPersonIds = original.assignedPlanPersonIds;
   const originalNeededPositionIdSet = new Set(originalNeededPositionIds);
   const originalPlanPersonIdSet = new Set(originalPlanPersonIds);
   const editedNeededPositionIdSet = new Set(edit.assignedNeededPositionIds);
@@ -205,6 +199,18 @@ export const buildPlanTimePatch = (
     ),
   };
 };
+
+export const buildPlanTimePatch = (
+  planTime: PlanTime,
+  edit: EditablePlanTime,
+  timeZone: string,
+  teamPositionGroups: TeamPositionGroup[] | undefined
+) =>
+  buildPlanTimeDraftPatch(
+    buildEditablePlanTime(planTime, timeZone, teamPositionGroups),
+    edit,
+    timeZone
+  );
 
 export const buildDefaultNewPlanTimeEdit = (
   planTimes: PlanTime[],

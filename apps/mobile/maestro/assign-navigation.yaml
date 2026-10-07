@@ -1,0 +1,15 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible: "Avery Woods"
+    timeout: 30000
+- tapOn: "Next Open Position"
+- assertVisible: "Electric Guitar"
+- tapOn:
+    id: "assign-position-menu"
+# Swift's title menu: a section per team, positions with how many slots they need.
+- assertVisible: "Band"
+- tapOn: "Keys, .*"
+- assertVisible: "Keys"
+- assertNotVisible: "Electric Guitar"
+- takeScreenshot: assign-position

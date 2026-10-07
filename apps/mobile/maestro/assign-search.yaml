@@ -1,0 +1,24 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible: "Avery Woods"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "assign-someone-else"
+    direction: DOWN
+- tapOn:
+    id: "assign-someone-else"
+- assertVisible: "Someone Else"
+- tapOn:
+    id: "assign-search-people"
+- inputText: "June"
+- tapOn: "Add June Albright"
+- assertNotVisible: "Someone Else"
+# A one-off person lands on the slot as pending, off the roster.
+- scrollUntilVisible:
+    element:
+      id: "assign-status-4100154-pending"
+    direction: UP
+- assertVisible: "Status for June Albright"
+- takeScreenshot: assign-one-off

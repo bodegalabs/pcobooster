@@ -92,7 +92,7 @@ if [ -z "$swift_app" ]; then
 fi
 
 # Screens the Expo app has so far; the rest arrive in later layers.
-built="01-services 02-plan-overview 03-plan-lineup 13-account 14-signin"
+built="01-services 02-plan-overview 03-plan-lineup 04-plan-runsheet 05-plan-times 06-assign 13-account 14-signin"
 shot() {
   local name="$1"
   shift

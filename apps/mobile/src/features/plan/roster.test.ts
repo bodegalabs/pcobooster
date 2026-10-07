@@ -41,6 +41,13 @@ const groups: TeamPositionGroup[] = [
   { teamId: "band", teamName: "Band", positions: [position] },
 ];
 
+const identity = {
+  planId: "plan",
+  teamId: "band",
+  positionId: "keys",
+  personId: "p",
+};
+
 describe("lineup rules", () => {
   it("uses raw status for confirmed, declined, and removed; otherwise falls back", () => {
     for (const rawStatus of [" C ", "confirmed"]) {
@@ -74,17 +81,17 @@ describe("lineup rules", () => {
   });
 
   it("updates filled counts without changing requested open slots", () => {
-    const [confirmed] = editRosterPerson(groups, "pp", "confirmed")[0]
+    const [confirmed] = editRosterPerson(groups, identity, "confirmed")[0]
       .positions;
     expect(confirmed.filledConfirmedCount).toBe(1);
     expect(confirmed.filledPendingCount).toBe(0);
     expect(confirmed.filledPeople?.[0].rawStatus).toBe("C");
     expect(
-      editRosterPerson(groups, "pp", "pending")[0].positions[0]
+      editRosterPerson(groups, identity, "pending")[0].positions[0]
         .filledPendingCount
     ).toBe(1);
     for (const action of ["declined", "remove"] as const) {
-      const [removed] = editRosterPerson(groups, "pp", action)[0].positions;
+      const [removed] = editRosterPerson(groups, identity, action)[0].positions;
       expect(removed.neededCount).toBe(1);
       expect(removed.filledPeople).toStrictEqual([]);
       expect(removed.filledPendingCount).toBe(0);
@@ -92,7 +99,9 @@ describe("lineup rules", () => {
   });
 
   it("leaves missing people and the source roster unchanged", () => {
-    expect(editRosterPerson(groups, "missing", "remove")).toStrictEqual(groups);
+    expect(
+      editRosterPerson(groups, { ...identity, personId: "missing" }, "remove")
+    ).toStrictEqual(groups);
     expect(position.filledPeople).toStrictEqual([person]);
   });
 
@@ -140,10 +149,16 @@ describe("lineup rules", () => {
             ...position,
             filledPeople: [
               { ...person, name: "Zoe" },
-              { ...person, planPersonId: "other", name: "Amy" },
+              {
+                ...person,
+                planPersonId: "other",
+                personId: "amy",
+                name: "Amy",
+              },
               {
                 ...person,
                 planPersonId: "third",
+                personId: "ben",
                 name: "Ben",
                 status: "confirmed" as const,
                 rawStatus: "C",
@@ -153,7 +168,8 @@ describe("lineup rules", () => {
         ],
       },
     ];
-    const [result] = editRosterPerson(roster, "pp", "confirmed")[0].positions;
+    const [result] = editRosterPerson(roster, identity, "confirmed")[0]
+      .positions;
     expect(result.filledPeople?.map((row) => row.name)).toStrictEqual([
       "Ben",
       "Zoe",

@@ -1,9 +1,8 @@
 import { MouseSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+import { reorderPlanItems } from "@pcobooster/planning-center-models/plan-item-order";
 import type { PlanItem } from "@pcobooster/planning-center-models/types";
 import { useState } from "react";
-
-import { reorderPlanItems } from "@/lib/plan-items-query-state";
 
 interface UsePlanBuilderDragOptions {
   items: PlanItem[];

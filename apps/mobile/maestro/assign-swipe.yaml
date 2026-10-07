@@ -1,0 +1,44 @@
+appId: com.pcobooster.ios
+---
+# Swipe right on a candidate: dragging past about 40% of the row adds them without a tap
+# (Swift's allowsFullSwipe); a shorter drag reveals Add. A swipe left reveals Unschedule.
+- extendedWaitUntil:
+    visible: "Avery Woods"
+    timeout: 30000
+- swipe:
+    from:
+      id: "candidate-4100111"
+    direction: RIGHT
+    duration: 600
+# Maestro's drag length varies; a revealed Add is dragged on from where it rests.
+- runFlow:
+    when:
+      visible:
+        id: "assign-swipe-add-4100111"
+    commands:
+      - swipe:
+          from:
+            id: "candidate-4100111"
+          direction: RIGHT
+          duration: 600
+- extendedWaitUntil:
+    visible:
+      id: "assign-status-4100111-pending"
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 5000
+- swipe:
+    from:
+      id: "candidate-4100111"
+    direction: LEFT
+    duration: 600
+- tapOn:
+    id: "assign-swipe-unschedule-4100111"
+- tapOn:
+    id: "confirm-destructive"
+- extendedWaitUntil:
+    visible: "Add Avery Woods"
+    timeout: 10000
+- assertNotVisible:
+    id: "assign-status-4100111-pending"
+- takeScreenshot: assign-swipe

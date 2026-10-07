@@ -1,6 +1,21 @@
 import { Key01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  keyName,
+  parseMusicalKey,
+} from "@pcobooster/planning-center-models/key-theory";
+import type { MusicalKey } from "@pcobooster/planning-center-models/key-theory";
+import {
+  rankAlternateKeys,
+  suggestionNote,
+  transitionSuggestions,
+} from "@pcobooster/planning-center-models/key-transition-advice";
+import type {
+  AdviceSegment,
+  KeyTransitionLevel,
+} from "@pcobooster/planning-center-models/key-transition-advice";
 import { keyOptionLabelOf } from "@pcobooster/planning-center-models/plan-overview";
+import type { KeyTransition } from "@pcobooster/planning-center-models/plan-set-insights";
 import type {
   ArrangementOption,
   KeyOption,
@@ -25,18 +40,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useSongOptions } from "@/hooks/use-song-options";
-import { keyName, parseMusicalKey } from "@/lib/key-theory";
-import type { MusicalKey } from "@/lib/key-theory";
-import {
-  rankAlternateKeys,
-  suggestionNote,
-  transitionSuggestions,
-} from "@/lib/key-transition-advice";
-import type {
-  AdviceSegment,
-  KeyTransitionLevel,
-} from "@/lib/key-transition-advice";
-import type { KeyTransition } from "@/lib/plan-set-insights";
 
 /** One key icon for every key change, toned by how rough the change is. */
 const KEY_ICON_TONES: Record<KeyTransitionLevel, string> = {

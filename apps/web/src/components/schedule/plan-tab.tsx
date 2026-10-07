@@ -1,4 +1,14 @@
 import { closestCenter, DndContext, DragOverlay } from "@dnd-kit/core";
+import { appendNote } from "@pcobooster/planning-center-models/key-transition-advice";
+import {
+  buildDraft,
+  buildRunSheet,
+} from "@pcobooster/planning-center-models/plan-item-draft";
+import type { RunSheetEntry } from "@pcobooster/planning-center-models/plan-item-draft";
+import type { PlanInsertion } from "@pcobooster/planning-center-models/plan-item-order";
+import { buildPlanInsights } from "@pcobooster/planning-center-models/plan-set-insights";
+import type { PlanInsights } from "@pcobooster/planning-center-models/plan-set-insights";
+import { previousSongBefore } from "@pcobooster/planning-center-models/song-library";
 import type {
   PlanItem,
   SongCatalogEntry,
@@ -19,11 +29,6 @@ import {
 import type { PlanItemRowHandlers } from "@/components/schedule/plan-item-list";
 import { PlanItemPane } from "@/components/schedule/plan-item-pane";
 import type { PlanItemSaveInput } from "@/components/schedule/plan-item-pane";
-import {
-  buildDraft,
-  buildRunSheet,
-} from "@/components/schedule/plan-tab-helpers";
-import type { RunSheetEntry } from "@/components/schedule/plan-tab-helpers";
 import { PlanTabToolbar } from "@/components/schedule/plan-tab-toolbar";
 import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
@@ -42,11 +47,6 @@ import {
 } from "@/hooks/use-plan-tab-controller";
 import type { AddedPlanItemKind } from "@/hooks/use-plan-tab-controller";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
-import { appendNote } from "@/lib/key-transition-advice";
-import type { PlanInsertion } from "@/lib/plan-items-query-state";
-import { buildPlanInsights } from "@/lib/plan-set-insights";
-import type { PlanInsights } from "@/lib/plan-set-insights";
-import { previousSongBefore } from "@/lib/song-library";
 import { cn } from "@/lib/utils";
 
 interface PlanTabProps {

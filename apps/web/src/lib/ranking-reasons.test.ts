@@ -1,11 +1,10 @@
 import { scoreAndNormalizePeople } from "@pcobooster/planning-center-models/candidate-scoring";
-import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
-import { describe, expect, it } from "vitest";
-
 import {
   groupRankingReasons,
   preferenceConflicts,
-} from "@/lib/ranking-reasons";
+} from "@pcobooster/planning-center-models/ranking-reasons";
+import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
+import { describe, expect, it } from "vitest";
 
 const person = (
   frequency?: PersonWithAvailability["frequency"]

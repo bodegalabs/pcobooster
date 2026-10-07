@@ -1,24 +1,23 @@
-import type { FilledPositionPerson } from "@pcobooster/planning-center-models/types";
-
+import type { RosterAssignment } from "./assignment";
 import { personStatus } from "./roster";
 import type { PersonStatus } from "./roster";
 
 export interface PersonDraftWriter {
   readonly setStatus: (
-    person: FilledPositionPerson,
+    assignment: RosterAssignment,
     status: PersonStatus
   ) => Promise<boolean>;
 }
 /** Save a changed draft once on close; unscheduling discards it. */
 export class PersonDraft {
-  readonly person: FilledPositionPerson;
+  readonly assignment: RosterAssignment;
   readonly initialStatus: PersonStatus;
   status: PersonStatus;
   private committed = false;
   private discarded = false;
-  constructor(person: FilledPositionPerson) {
-    this.person = person;
-    this.initialStatus = personStatus(person);
+  constructor(assignment: RosterAssignment) {
+    this.assignment = assignment;
+    this.initialStatus = personStatus(assignment.person);
     this.status = this.initialStatus;
   }
   discard(): void {
@@ -33,6 +32,6 @@ export class PersonDraft {
       return;
     }
     this.committed = true;
-    await writer.setStatus(this.person, this.status);
+    await writer.setStatus(this.assignment, this.status);
   }
 }

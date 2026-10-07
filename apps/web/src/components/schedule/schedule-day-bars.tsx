@@ -1,5 +1,7 @@
 import { formatCalendarDateLabel } from "@pcobooster/planning-center-models/calendar";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import { buildScheduleDays } from "@pcobooster/planning-center-models/schedule-days";
+import type { ScheduleDay } from "@pcobooster/planning-center-models/schedule-days";
 import type { ServiceHistoryItem } from "@pcobooster/planning-center-models/types";
 import type { CSSProperties } from "react";
 
@@ -11,8 +13,6 @@ import {
 } from "@/components/ui/hover-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
-import { buildScheduleDays } from "@/lib/people/schedule-days";
-import type { ScheduleDay } from "@/lib/people/schedule-days";
 import { cn } from "@/lib/utils";
 
 const DAYS_PER_WEEK = 7;

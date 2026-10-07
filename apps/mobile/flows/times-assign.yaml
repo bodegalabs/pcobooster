@@ -1,0 +1,35 @@
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible:
+      id: "time-row-8812610041"
+    timeout: 60000
+- tapOn:
+    id: "time-row-8812610041"
+- scrollUntilVisible:
+    element:
+      id: "time-assignments-row"
+- tapOn:
+    id: "time-assignments-row"
+- assertVisible: "Teams"
+- tapOn: "All teams"
+- tapOn:
+    id: "plan-editor-close"
+- tapOn:
+    id: "plan-editor-close"
+- assertVisible: ".*All teams.*"
+- tapOn:
+    id: "time-row-8812610041"
+- scrollUntilVisible:
+    element:
+      id: "time-assignments-row"
+- tapOn:
+    id: "time-assignments-row"
+- scrollUntilVisible:
+    element:
+      text: "People"
+- takeScreenshot: time-assignment-people
+- tapOn:
+    id: "plan-editor-close"
+- tapOn:
+    id: "plan-editor-close"

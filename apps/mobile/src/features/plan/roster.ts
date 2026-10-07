@@ -4,6 +4,8 @@ import type {
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
 
+import type { AssignmentIdentity } from "./assignment";
+
 export type PersonStatus = "confirmed" | "pending" | "declined";
 export const statusCodes = {
   confirmed: "C",
@@ -66,14 +68,21 @@ export const listFormat = (names: readonly string[]): string => {
 /** Declines and removals remove the roster row without changing requested open slots. */
 export const editRosterPerson = (
   groups: readonly TeamPositionGroup[],
-  planPersonId: string,
+  identity: AssignmentIdentity,
   status: PersonStatus | "remove"
 ): TeamPositionGroup[] =>
   groups.map((group) => ({
     ...group,
     positions: group.positions.map((position) => {
+      if (
+        position.teamId !== identity.teamId ||
+        position.id !== identity.positionId
+      ) {
+        return position;
+      }
       const person = position.filledPeople?.find(
-        (candidate) => candidate.planPersonId === planPersonId
+        (candidate) =>
+          (candidate.personId ?? candidate.id) === identity.personId
       );
       if (person === undefined) {
         return position;
@@ -81,10 +90,13 @@ export const editRosterPerson = (
       const removes = status === "remove" || status === "declined";
       const people = position.filledPeople ?? [];
       const updatedPeople = removes
-        ? people.filter((candidate) => candidate.planPersonId !== planPersonId)
+        ? people.filter(
+            (candidate) =>
+              (candidate.personId ?? candidate.id) !== identity.personId
+          )
         : people
             .map((candidate) =>
-              candidate.planPersonId === planPersonId
+              (candidate.personId ?? candidate.id) === identity.personId
                 ? { ...candidate, status, rawStatus: statusCodes[status] }
                 : candidate
             )

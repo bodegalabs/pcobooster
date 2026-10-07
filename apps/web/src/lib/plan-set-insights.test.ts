@@ -1,12 +1,11 @@
-import type { PlanItem } from "@pcobooster/planning-center-models/types";
-import { describe, expect, it } from "vitest";
-
 import {
   buildPlanInsights,
   daysSinceRecentPlay,
   formatPlayedAgo,
   keyTransitions,
-} from "@/lib/plan-set-insights";
+} from "@pcobooster/planning-center-models/plan-set-insights";
+import type { PlanItem } from "@pcobooster/planning-center-models/types";
+import { describe, expect, it } from "vitest";
 
 const item = (
   id: string,

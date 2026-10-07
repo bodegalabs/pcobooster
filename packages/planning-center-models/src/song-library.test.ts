@@ -1,5 +1,3 @@
-import type { SongHistoryEntry } from "@pcobooster/contracts/songs";
-import type { PlanItem } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -7,9 +5,12 @@ import {
   describeKeyChange,
   formatCompactAgo,
   previousSongBefore,
+  songHistoryNote,
   songPreviewFacts,
   summarizeSongHistory,
-} from "@/lib/song-library";
+} from "./song-library";
+import type { SongHistoryFact } from "./song-library";
+import type { PlanItem } from "./types";
 
 const item = (
   id: string,
@@ -105,14 +106,11 @@ const entry = (
   day: string,
   serviceTypeId: string,
   startingKey: string | null
-): SongHistoryEntry => ({
+): SongHistoryFact => ({
   planId: `plan-${day}`,
   serviceTypeId,
-  serviceTypeName: serviceTypeId,
   sortDate: new Date(`${day}T17:00:00Z`),
-  keyName: startingKey,
   startingKey,
-  arrangementName: null,
 });
 
 describe(summarizeSongHistory, () => {
@@ -137,6 +135,34 @@ describe(summarizeSongHistory, () => {
       timesHere: 2,
       keys: ["G", "E", "F"],
     });
+  });
+});
+
+describe(songHistoryNote, () => {
+  it("marks the plan being built and plans after its date", () => {
+    const planDate = new Date("2026-10-11T17:00:00Z");
+    expect([
+      songHistoryNote(
+        entry("2026-10-11", "agape", "G"),
+        "plan-2026-10-11",
+        planDate
+      ),
+      songHistoryNote(
+        entry("2026-10-18", "agape", "G"),
+        "plan-2026-10-11",
+        planDate
+      ),
+      songHistoryNote(
+        entry("2026-10-04", "agape", "G"),
+        "plan-2026-10-11",
+        planDate
+      ),
+      songHistoryNote(
+        { ...entry("2026-10-11", "agape", "G"), planId: null },
+        null,
+        planDate
+      ),
+    ]).toStrictEqual(["this plan", "later", null, null]);
   });
 });
 
