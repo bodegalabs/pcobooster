@@ -6,6 +6,7 @@ import {
   readFileSync,
   rmSync,
   statSync,
+  writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -31,6 +32,7 @@ import {
 } from "../apps/mobile/scripts/release/ci-release";
 import type { ReleaseDependencies } from "../apps/mobile/scripts/release/ci-release";
 import type { CommandResult } from "../apps/mobile/scripts/release/signed-export";
+import { sha256 } from "../apps/mobile/scripts/source-maps";
 import {
   AT,
   BUNDLE,
@@ -63,8 +65,9 @@ describe("the sole release executor", () => {
       "export 373",
       "verify 373",
       "symbols",
-      "unchanged",
       "asc",
+      "unchanged",
+      "unchanged",
       "upload 373",
     ]);
   });
@@ -263,6 +266,59 @@ describe("before an upload starts", () => {
     }
   );
 
+  it("abandons without uploading when the IPA changes while App Store Connect is rechecked", async () => {
+    const ledger = memoryLedger();
+    const retained = { changed: false };
+    let reads = 0;
+    const { deps, uploads } = harness(ledger.store, {
+      appStoreConnectBuilds: async () => {
+        reads += 1;
+        // The recheck's wait is where another process could swap the IPA.
+        retained.changed = reads > 1;
+        return await Promise.resolve([372]);
+      },
+      assertUnchanged: async () => {
+        await (retained.changed
+          ? Promise.reject(new Error("The IPA or release manifest changed"))
+          : Promise.resolve());
+      },
+    });
+    await expect(runRelease(deps, requestOf())).rejects.toThrow(
+      "manifest changed"
+    );
+    expect(uploads()).toStrictEqual([]);
+    expect(ledger.states().at(-1)).toBe("373 abandoned");
+  });
+
+  it("never calls the uploader when the IPA changes while upload_started is written", async () => {
+    const ledger = memoryLedger();
+    const retained = { changed: false };
+    const store = {
+      ...ledger.store,
+      advance: async (parent: string, text: string, message: string) => {
+        const head = await ledger.store.advance(parent, text, message);
+        retained.changed = ledger.states().at(-1) === "373 upload_started";
+        return head;
+      },
+    };
+    const { deps, uploads } = harness(store, {
+      assertUnchanged: async () => {
+        await (retained.changed
+          ? Promise.reject(new Error("The IPA or release manifest changed"))
+          : Promise.resolve());
+      },
+    });
+    await expect(runRelease(deps, requestOf())).rejects.toThrow(
+      "Nothing was uploaded; the number stays burned as upload_started"
+    );
+    expect(uploads()).toStrictEqual([]);
+    // The ledger never abandons upload_started, so the number is never reused.
+    expect(ledger.states().at(-1)).toBe("373 upload_started");
+    await expect(
+      runRelease(harness(ledger.store).deps, requestOf("1002"))
+    ).resolves.toMatchObject({ build: 374 });
+  });
+
   it("refuses a rerun attempt before anything else", async () => {
     const { deps, calls } = harness(memoryLedger().store);
     await expect(runRelease(deps, requestOf("1001", 2))).rejects.toThrow(
@@ -446,6 +502,8 @@ describe("reconciliation", () => {
 });
 
 const KEY = { keyId: "KEY123", issuerId: "issuer", privateKey: "PEM" };
+const IPA_BYTES = "signed ipa";
+const MANIFEST_BYTES = "manifest";
 const DISPATCH = {
   GITHUB_ACTIONS: "true",
   GITHUB_EVENT_NAME: "workflow_dispatch",
@@ -461,7 +519,15 @@ const uploader = (result: CommandResult) => {
     rmSync(out, { recursive: true, force: true });
   });
   mkdirSync(path.join(out, "export"));
+  writeFileSync(path.join(out, "export/PCOBooster.ipa"), IPA_BYTES);
+  writeFileSync(path.join(out, "release-manifest.json"), MANIFEST_BYTES);
+  const identity = {
+    ...identityFor(373),
+    ipaSha256: sha256(IPA_BYTES),
+    manifestSha256: sha256(MANIFEST_BYTES),
+  };
   const calls: string[][] = [];
+  const keyReads = { count: 0 };
   const upload = makeAltoolUploader({
     run: (command, args) => {
       const p8 = args[args.indexOf("--p8-file-path") + 1] ?? "";
@@ -472,10 +538,16 @@ const uploader = (result: CommandResult) => {
       ]);
       return result;
     },
-    key: KEY,
+    key: {
+      ...KEY,
+      get privateKey() {
+        keyReads.count += 1;
+        return KEY.privateKey;
+      },
+    },
     out,
   });
-  return { out, calls, upload };
+  return { out, calls, upload, identity, keyReads };
 };
 
 describe("executor adapters", () => {
@@ -521,13 +593,13 @@ describe("executor adapters", () => {
   });
 
   it("makes one altool call of the verified IPA and returns its delivery id", async () => {
-    const { calls, out, upload } = uploader({
+    const { calls, out, upload, identity } = uploader({
       status: 0,
       stdout:
         '{"success-message":"No errors uploading","delivery-uuid":"0a1b2c3d-0000-4000-8000-000000000001"}',
       stderr: "",
     });
-    await expect(upload(identityFor(373))).resolves.toMatchObject({
+    await expect(upload(identity)).resolves.toMatchObject({
       deliveryId: "0a1b2c3d-0000-4000-8000-000000000001",
     });
     expect(calls).toHaveLength(1);
@@ -535,20 +607,40 @@ describe("executor adapters", () => {
     expect(calls[0]?.at(-1)).toBe("key-present");
   });
 
-  it("treats an error that exited zero as a failed upload", async () => {
-    await expect(
-      uploader({
+  it.each([
+    ["IPA", "export/PCOBooster.ipa"],
+    ["manifest", "release-manifest.json"],
+  ])(
+    "refuses a retained %s changed since verification, before the key or altool",
+    async (_, file) => {
+      const { calls, out, upload, identity, keyReads } = uploader({
         status: 0,
-        stdout: '{"product-errors":[{"code":409}]}',
+        stdout: "{}",
         stderr: "",
-      }).upload(identityFor(373))
-    ).rejects.toThrow("altool exited 0");
+      });
+      writeFileSync(path.join(out, file), "swapped");
+      await expect(upload(identity)).rejects.toThrow(
+        "changed since verification; nothing was uploaded"
+      );
+      expect(calls).toStrictEqual([]);
+      expect(keyReads.count).toBe(0);
+      expect(existsSync(path.join(out, "upload-output.txt"))).toBeFalsy();
+    }
+  );
+
+  it("treats an error that exited zero as a failed upload", async () => {
+    const zero = uploader({
+      status: 0,
+      stdout: '{"product-errors":[{"code":409}]}',
+      stderr: "",
+    });
+    await expect(zero.upload(zero.identity)).rejects.toThrow("altool exited 0");
     expect(deliveryId("no id here")).toBeNull();
   });
 
   it("treats a failed exit as a failed upload and retains its output", async () => {
     const failed = uploader({ status: 1, stdout: "", stderr: "network" });
-    await expect(failed.upload(identityFor(373))).rejects.toThrow(
+    await expect(failed.upload(failed.identity)).rejects.toThrow(
       "altool exited 1"
     );
     expect(

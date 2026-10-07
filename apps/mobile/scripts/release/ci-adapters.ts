@@ -11,7 +11,7 @@ import { Schema } from "effect";
 import { sha256 } from "../source-maps";
 import type { AscKey } from "./asc";
 import type { ArtifactIdentity, RunIdentity, UploadReceipt } from "./ci-ledger";
-import { releasePaths } from "./signed-export";
+import { assertUnchanged, releasePaths } from "./signed-export";
 import type { RunCommand } from "./signed-export";
 
 const DispatchSchema = Schema.Struct({
@@ -82,12 +82,15 @@ export interface UploaderOptions {
 /**
  * One `altool --upload-package` of the verified IPA. Any non-zero exit, or an error in output
  * that exited zero, throws; the caller treats that as an unknown outcome, never as a retry.
+ * The retained IPA and manifest are rehashed synchronously right before the key is written and
+ * altool runs, so nothing can change them between the last check and the upload.
  */
 export const makeAltoolUploader =
   ({ run, key, out }: UploaderOptions) =>
   async (identity: ArtifactIdentity): Promise<UploadReceipt> => {
     await Promise.resolve();
     const ipa = path.join(releasePaths(out).export, identity.ipaFileName);
+    assertUnchanged(out, identity);
     const result = withPrivateKeyFile(key, (p8) =>
       run("xcrun", [
         "altool",

@@ -28,8 +28,10 @@ import type {
  *      may not be burned, and the next run rereads the ledger.
  *   4. Archive, export, verify the signed IPA, upload symbols, persist `verified`. A failure
  *      marks the claim `abandoned`; the number stays burned.
- *   5. Recheck the IPA and App Store Connect, then persist `upload_started`. If that write fails,
- *      the uploader is never called.
+ *   5. Recheck App Store Connect and then the IPA, then persist `upload_started`. If that write fails,
+ *      the uploader is never called. Recheck the IPA once more after the write lands, since the
+ *      App Store Connect read and the ledger write both wait; a change leaves `upload_started`
+ *      (the ledger never abandons it) and the uploader is never called.
  *   6. Call the uploader once. A throw leaves `upload_started`: the outcome is unknown, so
  *      nothing retries it and the number is never reused.
  *   7. Persist `upload_accepted`. If that write fails, the upload happened but the ledger says
@@ -173,8 +175,8 @@ export const runRelease = async (
       artifacts: identity,
       symbols,
     });
-    await deps.assertUnchanged(identity);
     stillUnused(build, await deps.appStoreConnectBuilds());
+    await deps.assertUnchanged(identity);
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     const state = lastState(ledger.records.get(build) ?? []);
@@ -205,6 +207,15 @@ export const runRelease = async (
     state: "upload_started",
     ipaSha256: identity.ipaSha256,
   });
+  try {
+    await deps.assertUnchanged(identity);
+  } catch (error) {
+    const why = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Build ${build} changed after upload_started was recorded (${why}). Nothing was uploaded; the number stays burned as upload_started and is never retried. Run reconcile.`,
+      { cause: error }
+    );
+  }
   let receipt: UploadReceipt;
   try {
     receipt = await deps.upload(identity);
