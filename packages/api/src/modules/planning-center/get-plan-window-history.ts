@@ -460,7 +460,9 @@ class RangePages {
     });
   }
 
-  private readOne(page: PageRef): Effect.Effect<void, PlanningCenterError> {
+  private readOne(
+    page: PageRef
+  ): Effect.Effect<RangePage, PlanningCenterError> {
     return this.plans
       .getPlanRangePage(
         page.serviceTypeId,
@@ -468,20 +470,17 @@ class RangePages {
         "plan_times",
         page.offset
       )
-      .pipe(
-        Effect.map((read) => {
-          this.store(page, read);
-        })
-      );
+      .pipe(Effect.map((read) => this.store(page, read)));
   }
 
+  /** Keeps a page's plans in the range, and where the range goes on. */
   private store(
     { serviceTypeId, offset }: PageRef,
     page: PlanningCenterPage
-  ): void {
+  ): RangePage {
     const { afterDayKey, rangeEndDayKey, orgTimeZone } = this.days;
     const planTimes = parseIncludedPlanTimes(page.included);
-    this.pages.set(pageKey({ serviceTypeId, offset }), {
+    const stored: RangePage = {
       plans: page.data.flatMap((plan) =>
         isInOrganizationDayRange(plan, afterDayKey, rangeEndDayKey, orgTimeZone)
           ? [
@@ -495,7 +494,9 @@ class RangePages {
           : []
       ),
       next: nextRangeOffset(page, rangeEndDayKey, orgTimeZone),
-    });
+    };
+    this.pages.set(pageKey({ serviceTypeId, offset }), stored);
+    return stored;
   }
 }
 
