@@ -118,7 +118,7 @@ export const Route = createFileRoute("/terms")({
     pageHead({
       title: "Terms of Service",
       description:
-        "The terms for using PCOBooster, an independent scheduling workspace for Planning Center Services.",
+        "The terms for using PCOBooster, an independent workspace for Planning Center Services.",
       pathname: "/terms",
     }),
   component: TermsPage,

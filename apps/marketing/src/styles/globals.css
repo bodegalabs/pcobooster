@@ -44,6 +44,8 @@
   --color-sidebar: var(--sidebar);
   --color-status-confirmed: var(--status-confirmed);
   --color-status-declined: var(--status-declined);
+  --color-status-scheduled: var(--status-scheduled);
+  --color-status-info: var(--status-info);
   --color-chart-2: var(--chart-2);
   --color-logo: var(--logo);
   --color-brand: var(--brand);

@@ -3,19 +3,19 @@ export const MARKETING_BASE = "/marketing/";
 
 const SITE_ORIGIN = "https://pcobooster.com";
 const SITE_NAME = "PCOBooster";
-const DEFAULT_TITLE = "Planning Center Services Scheduling | PCOBooster";
+const DEFAULT_TITLE = "PCOBooster | The Workspace for Planning Center Services";
 const SOCIAL_PREVIEWS = {
   "/": {
     title: DEFAULT_TITLE,
     description:
-      "See availability, open positions, and recent serving history as you build your next lineup.",
+      "Fill teams, look after volunteers, and get songs and chord charts ready, right on top of Planning Center Services.",
     image: "og-home.png",
-    alt: "PCOBooster helps build a lineup with availability and serving history in view",
+    alt: "PCOBooster: the workspace ministry leaders use on top of Planning Center Services",
   },
   "/about": {
     title: "Our story | PCOBooster",
     description:
-      "Why Jake built a Planning Center Services scheduling workspace around the people behind every plan.",
+      "Why Jake built a faster way to get Sunday ready in Planning Center Services.",
     image: "og-about.png",
     alt: "PCOBooster was built for the people who bring the team together",
   },
@@ -24,14 +24,14 @@ const SOCIAL_PREVIEWS = {
     description:
       "What PCOBooster collects when you sign in with Planning Center, why, and how to have it deleted.",
     image: "og-home.png",
-    alt: "PCOBooster helps build a lineup with availability and serving history in view",
+    alt: "PCOBooster: the workspace ministry leaders use on top of Planning Center Services",
   },
   "/terms": {
     title: "Terms of Service | PCOBooster",
     description:
-      "The terms for using PCOBooster, an independent scheduling workspace for Planning Center Services.",
+      "The terms for using PCOBooster, an independent workspace for Planning Center Services.",
     image: "og-home.png",
-    alt: "PCOBooster helps build a lineup with availability and serving history in view",
+    alt: "PCOBooster: the workspace ministry leaders use on top of Planning Center Services",
   },
 } as const;
 

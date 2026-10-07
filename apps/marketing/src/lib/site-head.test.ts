@@ -20,7 +20,7 @@ describe(canonicalUrl, () => {
 describe(pageTitle, () => {
   it("uses the site default without a page title", () => {
     expect(pageTitle()).toBe(
-      "Planning Center Services Scheduling | PCOBooster"
+      "PCOBooster | The Workspace for Planning Center Services"
     );
   });
 

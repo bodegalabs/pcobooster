@@ -22,23 +22,33 @@ const AboutPage = () => (
     </div>
     <article className="text-muted-foreground [&_h2]:text-foreground leading-letter md:text-lede md:leading-letter [&_p]:leading-letter mt-12 text-base md:mt-[72px] [&_h2]:mt-12 [&_h2]:mb-[18px] [&_h2]:text-2xl [&_h2]:leading-tight [&_h2]:tracking-tight [&_p]:mb-[22px]">
       <p className="text-foreground text-xl leading-snug! tracking-tight md:text-2xl">
-        I wanted a better view of how my team was doing.
+        Planning Center had everything I needed. I just wanted to get to it
+        faster.
       </p>
       <p>
-        Planning Center already had everything: plans, positions, blockouts, and
-        who served when. It just wasn’t laid out around the question I kept
-        asking while scheduling, which is who I should ask this week.
+        Plans, positions, blockouts, songs, and who served when: it was all in
+        Planning Center Services. But getting a Sunday ready meant a dozen tabs,
+        and the question I kept asking, who should I ask this week, never had
+        one screen that answered it.
       </p>
       <p>
-        So I built a view that puts availability and recent serving history next
-        to each open spot. When I pick someone, the assignment goes back to
-        Planning Center like it always has.
+        So I built one. It started as availability and serving history beside
+        each open spot. Then it grew into the rest of my week: who on the team
+        needs a check-in, the order of service, the times, and the chord charts
+        the band reads on Sunday. Every change still goes back to Planning
+        Center, so everyone else keeps working the way they always have.
+      </p>
+      <h2>It’s for the people who lead.</h2>
+      <p>
+        Worship leaders, team leaders, production leads, pastors, and church
+        staff all spend their weeks in Planning Center. PCOBooster is meant to
+        give each of them that time back.
       </p>
       <h2>It’s early.</h2>
       <p>
         PCOBooster is in beta. It works, and it still has rough edges. If you
-        put together a schedule for your team, I’d like to hear what would help.
-        The feedback button in the app comes straight to me, or you can reach me
+        get Sunday ready for your church, I’d like to hear what would help. The
+        feedback button in the app comes straight to me, or you can reach me
         here.
       </p>
       <p className="text-brand mt-8 mb-6 text-xl font-medium">Jake</p>
@@ -71,7 +81,7 @@ export const Route = createFileRoute("/about")({
     pageHead({
       title: "Our story",
       description:
-        "Why Jake built PCOBooster: a clearer view of the people behind the plan, connected to Planning Center Services.",
+        "Why Jake built PCOBooster: a faster way for ministry leaders to get Sunday ready in Planning Center Services.",
       pathname: "/about",
     }),
   component: AboutPage,
