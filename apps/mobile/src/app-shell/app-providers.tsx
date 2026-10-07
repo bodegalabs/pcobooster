@@ -101,7 +101,10 @@ const delay = async (ms: number) => {
 const cacheStorage = makeCacheStorage(appStorage, removeAppStorageKeys);
 
 const isApiProbe = (probe: typeof diagnosticsProbe): probe is ApiProbe =>
-  probe === "api-5xx" || probe === "api-undecodable" || probe === "api-network";
+  probe === "api-5xx" ||
+  probe === "api-undecodable" ||
+  probe === "api-network" ||
+  probe === "api-5xx-transient";
 
 /** One runtime per app session. */
 const runtime: AppRuntime = launchOptions.mock

@@ -13,7 +13,7 @@
  * | `handled` | Reports a handled error |
  * | `rejection` | Leaves a promise rejection unhandled |
  * | `render` | Throws once while rendering the root stack; Try Again recovers |
- * | `api-5xx`, `api-undecodable`, `api-network` | See `probe-transport.ts` |
+ * | `api-5xx`, `api-undecodable`, `api-network`, `api-5xx-transient` | See `probe-transport.ts` |
  *
  * There is no remote trigger and no hidden control in the app; a production build has none of
  * this. Events from a verification build carry `verification_build: true`.
@@ -29,6 +29,7 @@ export const diagnosticsProbes = [
   "api-5xx",
   "api-undecodable",
   "api-network",
+  "api-5xx-transient",
 ] as const;
 export type DiagnosticsProbe = (typeof diagnosticsProbes)[number];
 
