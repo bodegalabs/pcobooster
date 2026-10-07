@@ -2,9 +2,9 @@ import {
   buildServicePlanRows,
   formatPlanDate,
 } from "@pcobooster/planning-center-models/service-plans";
-import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Stack, useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Stack, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -21,6 +21,11 @@ import {
   sharedReads,
   useProductClient,
 } from "../../app-shell/queries";
+import {
+  useVisibleQuery as useQuery,
+  useVisibleQueries as useQueries,
+  useReadVisibility,
+} from "../../app-shell/visible-queries";
 import { EmptyState } from "../../components/empty-state";
 import { PillButton } from "../../components/pill-button";
 import { SurfaceCard } from "../../components/surface-card";
@@ -152,15 +157,7 @@ const useSearch = () => {
   const features = useFeatures();
   const timeZone = useOrgTimeZone();
   const clock = useClock();
-  const [focused, setFocused] = useState(false);
-  useFocusEffect(
-    useCallback(() => {
-      setFocused(true);
-      return () => {
-        setFocused(false);
-      };
-    }, [])
-  );
+  const focused = useReadVisibility();
   const [text, setText] = useState("");
   const [settled, setSettled] = useState("");
   const [domain, setDomain] = useState<SearchDomain>("all");
@@ -214,11 +211,14 @@ const useSearch = () => {
     enabled: focused,
   });
   const available = availableDomains(features, access.data);
-  const showPlans = domain === "all" || domain === "plans";
+  const effectiveDomain = available.includes(domain) ? domain : "all";
+  const showPlans = effectiveDomain === "all" || effectiveDomain === "plans";
   const showPeople =
-    available.includes("people") && (domain === "all" || domain === "people");
+    available.includes("people") &&
+    (effectiveDomain === "all" || effectiveDomain === "people");
   const showSongs =
-    available.includes("songs") && (domain === "all" || domain === "songs");
+    available.includes("songs") &&
+    (effectiveDomain === "all" || effectiveDomain === "songs");
   const searching = focused && query !== "" && query === settled;
   const serviceTypes = useQuery({
     ...searchReads.serviceTypes(context),
@@ -300,7 +300,7 @@ const useSearch = () => {
     query,
     open,
     available,
-    domain,
+    domain: effectiveDomain,
     setDomain,
     text,
     setText,
