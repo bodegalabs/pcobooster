@@ -1,8 +1,8 @@
 appId: com.pcobooster.ios
 ---
-# Songs previews against fixtures: Planning Center's chart PDF, then an arrangement's files: a
-# key's PDF (bundled fixture bytes), audio in the system player, and a file Planning Center
-# won't release. Fixture audio and video links do not resolve, so the player shows its failure.
+# Songs previews against fixtures: Planning Center's chart PDF in PDFKit with its Find bar, then
+# an arrangement's files: a key's PDF (bundled fixture bytes), audio and video in the system
+# player (synthetic local media, so they play offline), and a file Planning Center won't release.
 - tapOn: "Songs"
 - tapOn: "Search songs, writers, or themes"
 - inputText: "morning light"
@@ -13,6 +13,9 @@ appId: com.pcobooster.ios
 - assertVisible:
     id: "chart-pdf"
 - takeScreenshot: songs-chart-pdf
+- tapOn: "Find in the PDF"
+- inputText: "Morning"
+- takeScreenshot: songs-chart-pdf-find
 - openLink: "pcobooster://songs/5501/files?arrangement=55011"
 - assertVisible:
     id: "song-file-88005"
@@ -25,7 +28,14 @@ appId: com.pcobooster.ios
     id: "song-file-document"
 - takeScreenshot: songs-file-pdf
 - openLink: "pcobooster://songs/5501/files/88001?arrangement=55011"
-- assertVisible: "Demo recording"
+- assertVisible:
+    id: "media-player"
+- assertNotVisible: "Couldn’t play this file"
 - takeScreenshot: songs-file-audio
+- openLink: "pcobooster://songs/5501/files/88002?arrangement=55011"
+- assertVisible:
+    id: "media-player"
+- assertNotVisible: "Couldn’t play this file"
+- takeScreenshot: songs-file-video
 - openLink: "pcobooster://songs/5501/files/88007?arrangement=55011&key=550111"
 - assertVisible: "Planning Center doesn’t allow downloading this file. Open it in Planning Center."
