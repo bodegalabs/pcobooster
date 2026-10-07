@@ -1,5 +1,16 @@
 import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import type {
+  PlanDayGroup,
+  ServicePlanRow,
+} from "@pcobooster/planning-center-models/service-plans";
+import {
+  formatPlanDate,
+  formatPlanDateTile,
+  formatPlanDetail,
+  formatPlanRelativeDay,
+  groupPlansByMonthAndDay,
+} from "@pcobooster/planning-center-models/service-plans";
 import { ChevronRight, Search } from "lucide-react";
 
 import { PageScrollArea } from "@/components/page-shell";
@@ -28,18 +39,8 @@ import { selectionPickerSectionTitleClass } from "@/components/ui/selection-pick
 import { Skeleton } from "@/components/ui/skeleton";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useServicePlanSelection } from "@/hooks/use-service-plan-selection";
-import type {
-  PlanDayGroup,
-  ServicePlanRow,
-  ServicePlanTableSelectorProps,
-} from "@/lib/service-plan-selection";
-import {
-  dateRangeSchema,
-  formatPlanDate,
-  formatPlanDateTile,
-  formatPlanRelativeDay,
-  groupPlansByMonthAndDay,
-} from "@/lib/service-plan-selection";
+import type { ServicePlanTableSelectorProps } from "@/lib/service-plan-selection";
+import { dateRangeSchema } from "@/lib/service-plan-selection";
 import { cn } from "@/lib/utils";
 
 interface PlanListProps {
@@ -96,11 +97,6 @@ const ScheduledBadge = () => (
   </span>
 );
 
-const planDetailText = (row: ServicePlanRow): string | null => {
-  const parts = [row.planTitle, row.seriesTitle].filter(isNonEmptyString);
-  return parts.length > 0 ? parts.join(" · ") : null;
-};
-
 const PlanAgendaRow = ({
   row,
   isActive,
@@ -116,7 +112,7 @@ const PlanAgendaRow = ({
   getPlanIntentProps: GetIntentPrefetchProps<ServicePlanRow>;
   orgTimeZone: string;
 }) => {
-  const detail = planDetailText(row);
+  const detail = formatPlanDetail(row);
   const label = `${row.serviceTypeName}, ${formatPlanDate(row.sortDate, orgTimeZone)}`;
   return (
     <Item

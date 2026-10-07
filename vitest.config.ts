@@ -17,6 +17,7 @@ export default defineConfig({
       "apps/web/src/**/*.test.ts",
       "apps/admin/src/**/*.test.ts",
       "apps/marketing/src/**/*.test.ts",
+      "apps/mobile/src/**/*.test.ts",
       "lint/**/*.test.ts",
       "scripts/**/*.test.ts",
     ],
