@@ -1,7 +1,10 @@
 import { hashKey, useQueryClient } from "@tanstack/react-query";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
-import type { NativeStackHeaderItem } from "expo-router";
+import type {
+  NativeStackHeaderItem,
+  NativeStackNavigationOptions,
+} from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode, RefObject } from "react";
@@ -534,6 +537,17 @@ export const SongFileScreen = () => {
     (candidate) => candidate.id === attachmentId && candidate.keyId === keyId
   );
   const planningCenterUrl = planningCenterArrangementUrl(songId, arrangementId);
+  const hasDocumentHeader =
+    features.chordCharts &&
+    attachment !== undefined &&
+    attachmentPreview(attachment).kind === "document";
+  const headerOptions: NativeStackNavigationOptions = {
+    title: attachment?.name ?? "File",
+  };
+  if (!hasDocumentHeader) {
+    // Native navigation retains options when a dynamic route changes its file ID.
+    headerOptions.unstable_headerRightItems = () => [];
+  }
 
   let body: ReactNode = <Loading label="Loading the file" />;
   if (!(features.isPending || features.chordCharts)) {
@@ -581,7 +595,7 @@ export const SongFileScreen = () => {
 
   return (
     <>
-      <Stack.Screen options={{ title: attachment?.name ?? "File" }} />
+      <Stack.Screen options={headerOptions} />
       <View style={styles.fill} testID={`song-file-${attachmentId}`}>
         {body}
       </View>
