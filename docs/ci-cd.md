@@ -70,7 +70,21 @@ A deploy you run yourself (`bun run deploy:production`, `bun run infra:deploy`) 
 
 ## iOS releases (TestFlight)
 
-The Swift app and its `testflight` CI job were removed with the move to Effect RPC; the Expo app will bring its own release job. `alchemy.ci.ts` still declares the `testflight` environment, its OIDC binding (shared with production), and the `TESTFLIGHT_RELEASES` variable, and Infisical Production `/` keeps the App Store Connect key (`ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8_BASE64`, Admin role) for that job to use.
+Release the Expo app locally on a Mac with Xcode and CocoaPods, from a clean committed checkout after `bun run ci` and `bun run build`:
+
+```bash
+infisical run --env=prod --path=/ --path=/apple --projectId=2eca20e1-20ac-4f06-a086-99ea5c590483 -- bun run ios:release
+```
+
+`apps/mobile/scripts/release-ios.sh` generates the native workspace with Expo when native inputs change, installs Pods when needed, archives Release for arm64 iOS without development signing, then automatically signs for team `6C46GY4Z38` and uploads to App Store Connect. The app keeps version `0.1.0`, bundle ID `com.pcobooster.ios`, and the production API origin `https://pcobooster.com`. No simulator or Swift app dependencies are used.
+
+`BUILD_NUMBER` defaults to the committed HEAD's ancestry count and must exceed the previous native release build 292. Set a new positive integer explicitly when releasing more than once from the same revision or when App Store Connect has already used the default. Expo also validates `BUILD_NUMBER` when generating native configuration; ordinary development builds default to `1`.
+
+Pass `--no-upload` to sign and export an IPA only. Pass `--skip-build` to export or upload the existing archive without compiling again; it refuses a different revision or build number. Archives, revision metadata, and exports live in ignored `apps/mobile/build/release/`. Ignored generated files are allowed, but tracked changes and untracked source block release. The archive requires at least 15 GiB of free space.
+
+Infisical Production `/apple` supplies `ASC_KEY_ID`, `ASC_ISSUER_ID`, and `ASC_KEY_P8_BASE64` (Admin role for cloud signing). `ASC_KEY_PATH` can replace the base64 key. Credentials are kept out of native generation and compilation; decoded keys use a private temporary directory removed on exit. With no API key, a local export uses the Apple account signed into Xcode; CI requires the key. Export does not retry a failed upload automatically.
+
+An upload does not establish TestFlight availability: separately verify processing, build version/number, and tester-group access in App Store Connect. There is no automatic Expo release CI job yet. `alchemy.ci.ts` retains the `testflight` environment, its production OIDC binding, and the `TESTFLIGHT_RELEASES` variable for a future job.
 
 ## OIDC and token scope
 

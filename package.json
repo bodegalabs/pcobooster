@@ -33,6 +33,7 @@
     "verification:create": "bun run scripts/verification/create-verification-skill.ts",
     "dev:marketing": "bun run --cwd apps/marketing dev",
     "build:marketing": "turbo run build --filter=@pcobooster/marketing",
+    "ios:release": "bun run --cwd apps/mobile ios:release",
     "cloud:run": "bash scripts/codex-cloud/with-infisical.sh",
     "cloud:dev": "bash scripts/codex-cloud/with-infisical.sh bun run scripts/cloudflare/dev.ts --oauth",
     "cloud:build": "bash scripts/codex-cloud/with-infisical.sh bun run build",

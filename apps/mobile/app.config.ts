@@ -1,10 +1,13 @@
 import { execFileSync } from "node:child_process";
 import { cpSync, readdirSync } from "node:fs";
 import path from "node:path";
+import process from "node:process";
 
 import type { ExpoConfig } from "expo/config";
 import type { ConfigPlugin } from "expo/config-plugins.js";
 import { withDangerousMod } from "expo/config-plugins.js";
+
+import { iosBuildNumber } from "./scripts/build-number.ts";
 
 const catalogDirectory = path.join(import.meta.dirname, "assets/catalog");
 const catalogEntry = /\.(?:symbolset|imageset)$/u;
@@ -81,6 +84,13 @@ const config: ExpoConfig = {
   experiments: { typedRoutes: false },
 };
 
-const appConfig = (): ExpoConfig => withCatalogAssets(config);
+const appConfig = (): ExpoConfig =>
+  withCatalogAssets({
+    ...config,
+    ios: {
+      ...config.ios,
+      buildNumber: iosBuildNumber(String(process.env.BUILD_NUMBER ?? "1")),
+    },
+  });
 
 export default appConfig;
