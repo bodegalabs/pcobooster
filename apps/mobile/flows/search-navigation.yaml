@@ -1,0 +1,22 @@
+appId: com.pcobooster.ios
+---
+# Searches and opens a fixture song, then returns to its scoped recent result.
+- tapOn: "Search"
+- tapOn:
+    id: "search-input"
+- inputText: "morning light"
+- extendedWaitUntil:
+    visible:
+      id: "search-result-5501"
+    timeout: 30000
+- takeScreenshot: search-keyboard
+- tapOn:
+    id: "search-result-5501"
+- extendedWaitUntil:
+    visible:
+      id: "song-facts"
+    timeout: 30000
+- takeScreenshot: search-song-destination
+- tapOn: "Search"
+- assertVisible:
+    id: "search-input"

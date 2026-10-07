@@ -1,0 +1,30 @@
+appId: com.pcobooster.ios
+---
+# Read-only fixture traversal; no Planning Center writes.
+- tapOn: "People"
+- extendedWaitUntil:
+    visible:
+      id: "people-list"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "people-row-4100104"
+    centerElement: true
+- tapOn:
+    id: "people-row-4100104"
+- extendedWaitUntil:
+    visible:
+      id: "person-4100104"
+    timeout: 30000
+- takeScreenshot: people-person
+- scrollUntilVisible:
+    element:
+      id: "person-month-previous"
+    centerElement: true
+- tapOn:
+    id: "person-month-previous"
+- assertVisible: "September 2026"
+- tapOn:
+    id: "person-month-next"
+- assertVisible: "October 2026"
+- takeScreenshot: people-month
