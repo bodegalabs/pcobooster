@@ -213,7 +213,7 @@ const sendHttp = (
   } = {}
 ) =>
   Effect.promise(async (): Promise<HttpAnswer> => {
-    const sent = new Headers({ "x-pcobooster-client": "web;api=1" });
+    const sent = new Headers({ "x-pcobooster-client": "web;api=2" });
     if (body !== undefined) {
       sent.set("content-type", "application/json");
     }
@@ -276,7 +276,7 @@ test(
   Effect.gen(function* outdatedClient() {
     const url = yield* apiUrl;
     const answers = yield* Effect.all(
-      ["expo;api=0", "expo", "android;api=1"].map((client) =>
+      ["expo;api=0", "web;api=1", "expo", "android;api=1"].map((client) =>
         sendHttp(url, "/api/v1/health", {
           headers: { "x-pcobooster-client": client },
         })
@@ -286,6 +286,7 @@ test(
     assert.deepStrictEqual(
       answers.map((answer) => [answer.status, answer.tag]),
       [
+        [426, "ClientOutdated"],
         [426, "ClientOutdated"],
         [426, "ClientOutdated"],
         [426, "ClientOutdated"],
@@ -303,7 +304,7 @@ test(
       async () =>
         await fetch(`${url}/api/v1/demo/session`, {
           method: "DELETE",
-          headers: { "x-pcobooster-client": "web;api=1" },
+          headers: { "x-pcobooster-client": "web;api=2" },
         })
     );
     const body = yield* Effect.promise(async () =>
@@ -982,7 +983,7 @@ test(
           code: null,
           priority: "speculative",
           kind: "read",
-          client: "expo;api=1",
+          client: "expo;api=2",
           planningCenterRequests: 1,
         },
       ]
@@ -1090,7 +1091,12 @@ test(
             api.people.planWindowHistory({
               payload: {
                 date: "2026-10-11T10:00:00-07:00",
-                continuation: { plans: [], serviceTypeIds: ["st-2"] },
+                continuation: {
+                  plans: [],
+                  ranges: [
+                    { serviceTypeId: "st-2", offset: 0, boundaryPlanId: null },
+                  ],
+                },
               },
             }),
           { priority: "speculative" }
@@ -1103,11 +1109,7 @@ test(
     );
 
     assert.deepStrictEqual(
-      [
-        batch.loadedPlanCount,
-        batch.deferredPlans,
-        batch.deferredServiceTypeIds,
-      ],
+      [batch.loadedPlanCount, batch.deferredPlans, batch.deferredRanges],
       [0, [], []]
     );
     assert.deepStrictEqual(
@@ -1134,7 +1136,7 @@ test(
           200,
           "speculative",
           "read",
-          "expo;api=1",
+          "expo;api=2",
         ],
       ]
     );

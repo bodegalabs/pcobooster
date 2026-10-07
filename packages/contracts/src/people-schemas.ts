@@ -109,6 +109,15 @@ export const windowPlanRefSchema = z.object({
   planId: z.string().trim().min(1),
   /** Roster pages the plan needs; a follow-up call reserves them before locating plans. */
   rosterRequests: z.number().int().min(0).max(100),
+  /** The range page that listed the plan, where the next call finds it again. */
+  rangeOffset: z.number().int().nonnegative(),
+});
+
+/** A service type whose window plans are listed up to `offset`. */
+export const windowRangeRefSchema = z.object({
+  serviceTypeId: z.string().trim().min(1),
+  offset: z.number().int().nonnegative(),
+  boundaryPlanId: z.string().trim().min(1).nullable(),
 });
 
 export const windowPlanSummarySchema = z.object({
@@ -148,8 +157,8 @@ export const planWindowHistoryBatchSchema = z.object({
   ),
   /** Listed plans left for a follow-up call, in window order. */
   deferredPlans: z.array(windowPlanRefSchema),
-  /** Service types not listed yet; their plans follow `deferredPlans`. */
-  deferredServiceTypeIds: z.array(z.string()),
+  /** Ranges not listed to their end yet, and their next page; after `deferredPlans`. */
+  deferredRanges: z.array(windowRangeRefSchema),
   requestBudget: z.object({
     limit: z.number(),
     /** Planning Center requests the call sent; cached reads cost none. */
@@ -166,30 +175,70 @@ export const candidateDetailSchema = z.object({
   history: candidateHistorySchema.optional(),
 });
 
-/** Blockout checks a previous call already did for a person it left unfinished. */
-export const blockoutProgressSchema = z.object({
+const pageOffset = z.number().int().nonnegative();
+
+/**
+ * Plans whose times earlier calls read page by page for one person (`nextOffset` is `null` once
+ * read to the end), and the times found that the person's schedules list.
+ */
+export const planTimesProgressSchema = z.object({
+  plans: z
+    .array(
+      z.object({
+        planId: z.string().trim().min(1),
+        nextOffset: pageOffset.nullable(),
+      })
+    )
+    .max(1000),
+  times: z
+    .array(
+      z.object({
+        id: z.string().trim().min(1),
+        timeType: z.string().nullable(),
+        startsAt: z.string().nullable(),
+      })
+    )
+    .max(5000),
+});
+
+/** What earlier calls learned about a person they left unfinished. */
+export const candidatePersonProgressSchema = z.object({
   personId: z.string().trim().min(1),
-  /** Repeating blockouts read and found not to cover the plan day. */
-  checkedBlockoutIds: z.array(z.string().trim().min(1)).max(1000),
-  /** A blockout was found to cover the plan day. */
+  /** A blockout covers the plan day. */
   blocked: z.boolean(),
+  /** The next page of the person's blockout list, or `null` once it is all read. */
+  blockoutsOffset: pageOffset.nullable(),
+  /** Repeating blockouts whose dates may still cover the plan day, and their next date page. */
+  pendingBlockouts: z
+    .array(
+      z.object({
+        blockoutId: z.string().trim().min(1),
+        timeZone: z.string().nullable(),
+        datesOffset: pageOffset,
+      })
+    )
+    .max(1000),
+  /** For schedule history: the rehearsal plans whose times were read, and the times found. */
+  rehearsalTimes: planTimesProgressSchema,
+});
+
+/** Where a candidate details call stopped; a follow-up call resumes from it alone. */
+export const candidateDetailsContinuationSchema = z.object({
+  people: z.array(candidatePersonProgressSchema),
 });
 
 export const candidateDetailsBatchSchema = z.object({
   generatedAt: z.string(),
+  /** People whose details are complete. */
   people: z.array(candidateDetailSchema),
   /** Requested people left for a follow-up call to stay within the budget. */
   deferredPersonIds: z.array(z.string()),
-  /** Pass back with `deferredPersonIds`; the next call skips checks already done. */
-  blockoutProgress: z.array(blockoutProgressSchema),
+  /** Pass back with `deferredPersonIds`; empty once nobody is deferred. */
+  continuation: candidateDetailsContinuationSchema,
   requestBudget: z.object({
     limit: z.number(),
     /** Planning Center requests the call sent; cached reads cost none. */
     planningCenterRequests: z.number(),
-    /** Blockout lists and schedule pages. */
-    firstReadRequests: z.number(),
-    blockoutDateRequests: z.number(),
-    planTimeRequests: z.number(),
   }),
 });
 
@@ -308,11 +357,13 @@ export const peopleDashboardPersonDetailSchema = z.object({
     /** Planning Center requests the call sent; cached reads cost none. */
     planningCenterRequests: z.number(),
     /**
-     * Rehearsal (and other) times the budget left unread; their assignments show on their
-     * plan's date. Zero when the detail is complete.
+     * Rehearsal (and other) times their plans do not list, or not read yet while
+     * `continuation` is set; their assignments show on their plan's date.
      */
     unresolvedRehearsalTimes: z.number(),
   }),
+  /** Plan pages left for a follow-up call; `null` once the detail is complete. */
+  continuation: planTimesProgressSchema.nullable(),
 });
 
 export const peopleSearchResultSchema = z.object({

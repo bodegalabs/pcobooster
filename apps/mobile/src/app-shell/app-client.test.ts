@@ -52,7 +52,7 @@ describe("the product client's requests", () => {
       first?.headers.get("authorization"),
       first?.headers.get("x-pcobooster-account"),
       first?.headers.get("x-pcobooster-client"),
-    ]).toStrictEqual(["Bearer tok.sig", "acct_1", "expo;api=1"]);
+    ]).toStrictEqual(["Bearer tok.sig", "acct_1", "expo;api=2"]);
     expect(first?.headers.get("cookie")).toBeNull();
     expect([first?.credentials, second?.credentials]).toStrictEqual([
       "omit",

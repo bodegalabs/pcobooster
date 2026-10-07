@@ -512,7 +512,7 @@
       }
     ],
     "deferredPlans": [],
-    "deferredServiceTypeIds": [],
+    "deferredRanges": [],
     "requestBudget": {"limit": 36, "planningCenterRequests": 20, "planRangeRequests": 2, "rosterRequests": 18}
   },
   "cases": [
@@ -521,14 +521,14 @@
         "date": "2026-10-04T16:00:00.000Z",
         "continuation": {
           "plans": [
-            {"serviceTypeId": "1102", "planId": "882261014", "rosterRequests": 1},
-            {"serviceTypeId": "1101", "planId": "881261018", "rosterRequests": 1},
-            {"serviceTypeId": "1102", "planId": "882261021", "rosterRequests": 1},
-            {"serviceTypeId": "1101", "planId": "881261025", "rosterRequests": 1},
-            {"serviceTypeId": "1102", "planId": "882261028", "rosterRequests": 1},
-            {"serviceTypeId": "1101", "planId": "881261101", "rosterRequests": 1}
+            {"serviceTypeId": "1102", "planId": "882261014", "rosterRequests": 1, "rangeOffset": 0},
+            {"serviceTypeId": "1101", "planId": "881261018", "rosterRequests": 1, "rangeOffset": 0},
+            {"serviceTypeId": "1102", "planId": "882261021", "rosterRequests": 1, "rangeOffset": 0},
+            {"serviceTypeId": "1101", "planId": "881261025", "rosterRequests": 1, "rangeOffset": 0},
+            {"serviceTypeId": "1102", "planId": "882261028", "rosterRequests": 1, "rangeOffset": 0},
+            {"serviceTypeId": "1101", "planId": "881261101", "rosterRequests": 1, "rangeOffset": 0}
           ],
-          "serviceTypeIds": ["1103"]
+          "ranges": [{"serviceTypeId": "1103", "offset": 0}]
         }
       },
       "output": {
@@ -842,7 +842,7 @@
           }
         ],
         "deferredPlans": [],
-        "deferredServiceTypeIds": [],
+        "deferredRanges": [],
         "requestBudget": {"limit": 36, "planningCenterRequests": 9, "planRangeRequests": 2, "rosterRequests": 7}
       }
     },
@@ -1285,14 +1285,14 @@
           }
         ],
         "deferredPlans": [
-          {"serviceTypeId": "1102", "planId": "882261014", "rosterRequests": 1},
-          {"serviceTypeId": "1101", "planId": "881261018", "rosterRequests": 1},
-          {"serviceTypeId": "1102", "planId": "882261021", "rosterRequests": 1},
-          {"serviceTypeId": "1101", "planId": "881261025", "rosterRequests": 1},
-          {"serviceTypeId": "1102", "planId": "882261028", "rosterRequests": 1},
-          {"serviceTypeId": "1101", "planId": "881261101", "rosterRequests": 1}
+          {"serviceTypeId": "1102", "planId": "882261014", "rosterRequests": 1, "rangeOffset": 0},
+          {"serviceTypeId": "1101", "planId": "881261018", "rosterRequests": 1, "rangeOffset": 0},
+          {"serviceTypeId": "1102", "planId": "882261021", "rosterRequests": 1, "rangeOffset": 0},
+          {"serviceTypeId": "1101", "planId": "881261025", "rosterRequests": 1, "rangeOffset": 0},
+          {"serviceTypeId": "1102", "planId": "882261028", "rosterRequests": 1, "rangeOffset": 0},
+          {"serviceTypeId": "1101", "planId": "881261101", "rosterRequests": 1, "rangeOffset": 0}
         ],
-        "deferredServiceTypeIds": ["1103"],
+        "deferredRanges": [{"serviceTypeId": "1103", "offset": 0, "boundaryPlanId": null}],
         "requestBudget": {"limit": 36, "planningCenterRequests": 13, "planRangeRequests": 2, "rosterRequests": 11}
       }
     }

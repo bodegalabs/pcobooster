@@ -4,8 +4,10 @@ import type {
   PlanningCenterError,
 } from "@pcobooster/api/planning-center/core-client";
 import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
+import { pagesFor } from "@pcobooster/api/planning-center/request-budget";
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
+import { MAX_SERVICE_TYPES } from "@pcobooster/contracts/http/people-schemas";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
@@ -77,7 +79,11 @@ export class PlanningCenterCatalogService {
   getServiceTypes(
     params: Record<string, string> = {}
   ): Effect.Effect<PCResource[], PlanningCenterError> {
-    return this.core.fetchAll("/services/v2/service_types", params, 10);
+    return this.core.fetchAll(
+      "/services/v2/service_types",
+      params,
+      pagesFor(MAX_SERVICE_TYPES)
+    );
   }
 
   getServiceTypesCached(

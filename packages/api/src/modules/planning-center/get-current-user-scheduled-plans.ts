@@ -59,7 +59,8 @@ export interface CurrentUserScheduledPlansDependencies extends CurrentUserIdenti
 
 /**
  * Two pages of 100 upcoming schedules reach well past the 60 days the plan list shows, even
- * for someone on several teams every week.
+ * for someone on several teams every week; a longer list fails the read rather than leave
+ * plans unmarked.
  */
 const UPCOMING_SCHEDULE_PAGES = 2;
 

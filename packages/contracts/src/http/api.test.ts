@@ -115,6 +115,7 @@ describe("the procedures route table", () => {
     ).toStrictEqual([
       ["people.planWindowHistory", "POST", "body"],
       ["people.candidateDetails", "POST", "body"],
+      ["people.dashboardPerson", "POST", "body"],
     ]);
     expect(
       procedureRoutes

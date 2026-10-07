@@ -27,7 +27,7 @@ export interface PlanningCenterRequestLogFields {
 
 /** What one Worker invocation spent on Planning Center. */
 export interface PlanningCenterRequestTotals {
-  /** Requests sent to Planning Center, retries included. Each is one subrequest. */
+  /** Explicit Planning Center API attempts, retries included. Core refuses redirect hops. */
   readonly requests: number;
   /** Requests the pacer held before sending. */
   readonly pacedRequests: number;

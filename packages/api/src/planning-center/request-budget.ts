@@ -6,46 +6,23 @@ import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center
 import { Effect, Option } from "effect";
 
 /**
- * Subrequests one Worker invocation may make on Workers Free: Planning Center fetches, D1, KV,
- * Flagship, and service-binding calls together.
+ * Independent product policy, not the Cloudflare account ceiling. Each explicit Planning Center
+ * API attempt counts, retries included; core redirects are refused rather than followed unseen.
+ * Transport and standalone budgeted programs both enforce this cap. The API Worker separately
+ * configures 80 total subrequests on the verified Workers Paid Standard account.
  */
-export const WORKER_SUBREQUEST_LIMIT = 50;
-
-/**
- * Subrequests a procedure makes besides Planning Center API reads, counted from the code that
- * runs before and around them:
- *
- * - Account and token (Better Auth over D1): `listUserAccounts` reads the accounts (1), and
- *   `getAccessToken` bypasses the session cookie cache, so it reads the session and the accounts
- *   (2). The first `getSession` is served from the signed session cookie.
- * - An expiring access token (every 2 hours per account): the token refresh and the account
- *   update (2).
- * - An expired session cookie cache (every 5 minutes per browser): the session reads behind
- *   `getSession` and `listUserAccounts` (2).
- * - The shared read tier: one KV read and, on a miss, one write (2). No procedure reads both
- *   shared caches.
- * - One feature flag evaluation (1).
- *
- * The rare fallback after `getAccessToken` fails (`refreshToken`) adds four more; if that
- * coincides with a full procedure, Cloudflare refuses the fetch and the procedure fails with a
- * typed fault instead of returning partial data.
- */
-export const NON_PLANNING_CENTER_SUBREQUEST_RESERVE = 3 + 2 + 2 + 2 + 1;
-
-/**
- * Planning Center requests one procedure may send, retries included. Past it the client fails
- * with `PlanningCenterSubrequestLimitError` (`source: "budget"`) before Cloudflare would refuse
- * the fetch. Transport sets it on every procedure's accounting.
- */
-export const PLANNING_CENTER_REQUEST_CAP =
-  WORKER_SUBREQUEST_LIMIT - NON_PLANNING_CENTER_SUBREQUEST_RESERVE;
+export const PLANNING_CENTER_REQUEST_CAP = 40;
 
 /** Room under the cap for retries of reads a progressive procedure already admitted. */
 const RETRY_HEADROOM = 4;
 
 /**
  * What a progressive procedure plans a call against. It admits work by upper-bound costs and
- * then counts what was really sent, so cached reads leave room for more work.
+ * then counts what was really sent, so cached reads leave room for more work. A call goes past
+ * it only to finish or advance its first unit (a person, a roster), which a follow-up call
+ * could not fit either; that unit may use the retry headroom up to `PLANNING_CENTER_REQUEST_CAP`,
+ * which transport enforces, leaving that call fewer retries. So a call's reported
+ * `planningCenterRequests` can exceed this, never the cap.
  */
 export const PROGRESSIVE_REQUEST_BUDGET =
   PLANNING_CENTER_REQUEST_CAP - RETRY_HEADROOM;
@@ -79,6 +56,8 @@ export const withPlanningCenterRequestCount = <Value, Failure, Requirements>(
         : Effect.provideService(
             program,
             PlanningCenterAccounting,
-            new PlanningCenterRequestAccounting()
+            new PlanningCenterRequestAccounting({
+              requestBudget: PLANNING_CENTER_REQUEST_CAP,
+            })
           )
   );

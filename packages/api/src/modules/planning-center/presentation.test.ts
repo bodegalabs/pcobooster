@@ -159,7 +159,7 @@ const windowHistory: PlanWindowHistoryBatch = {
     },
   ],
   deferredPlans: [],
-  deferredServiceTypeIds: [],
+  deferredRanges: [],
   requestBudget: {
     limit: 40,
     planningCenterRequests: 1,
@@ -192,14 +192,8 @@ const candidateDetails: CandidateDetailsBatch = {
     },
   ],
   deferredPersonIds: [],
-  blockoutProgress: [],
-  requestBudget: {
-    limit: 36,
-    planningCenterRequests: 1,
-    firstReadRequests: 1,
-    blockoutDateRequests: 0,
-    planTimeRequests: 0,
-  },
+  continuation: { people: [] },
+  requestBudget: { limit: 36, planningCenterRequests: 1 },
 };
 const dashboardPerson: PeopleDashboardPerson = {
   id: "person-1",
@@ -255,6 +249,7 @@ const detail: PeopleDashboardPersonDetail = {
     planningCenterRequests: 4,
     unresolvedRehearsalTimes: 0,
   },
+  continuation: null,
 };
 
 const setupPresentationEnvironment = () => {

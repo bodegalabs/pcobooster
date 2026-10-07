@@ -18,10 +18,27 @@ export interface CandidateDetailsBatch {
     isBlockedForDate: boolean;
     history?: CandidateHistory;
   }[];
-  blockoutProgress: {
+  continuation: CandidateDetailsContinuation;
+}
+
+/**
+ * Where a candidate details call stopped: each unfinished person's next blockout pages and the
+ * rehearsal plan times read so far. Clients pass it back unchanged with `deferredPersonIds`.
+ */
+export interface CandidateDetailsContinuation {
+  people: {
     personId: string;
-    checkedBlockoutIds: string[];
     blocked: boolean;
+    blockoutsOffset: number | null;
+    pendingBlockouts: {
+      blockoutId: string;
+      timeZone: string | null;
+      datesOffset: number;
+    }[];
+    rehearsalTimes: {
+      plans: { planId: string; nextOffset: number | null }[];
+      times: { id: string; timeType: string | null; startsAt: string | null }[];
+    };
   }[];
 }
 export interface PlanWindowHistoryBatch extends PlanWindowRosters {
@@ -30,8 +47,13 @@ export interface PlanWindowHistoryBatch extends PlanWindowRosters {
     planId: string;
     serviceTypeId: string;
     rosterRequests: number;
+    rangeOffset: number;
   }[];
-  deferredServiceTypeIds: string[];
+  deferredRanges: {
+    serviceTypeId: string;
+    offset: number;
+    boundaryPlanId: string | null;
+  }[];
 }
 export interface PositionCandidates {
   candidates: PositionCandidate[];
@@ -83,45 +105,64 @@ export const needsScheduleHistory = (
   windowCalls !== undefined &&
   windowCalls.every(({ loadedPlanCount }) => loadedPlanCount === 0);
 
-type WindowPlanRef = PlanWindowHistoryBatch["deferredPlans"][number];
+/** Where a window call stopped; clients pass it back unchanged as the next `continuation`. */
+export interface PlanWindowContinuation {
+  plans: PlanWindowHistoryBatch["deferredPlans"];
+  ranges: PlanWindowHistoryBatch["deferredRanges"];
+}
+
+/** The cursor a window call returned, or `null` once the window is read. */
+export const nextWindowContinuation = (
+  batch: PlanWindowHistoryBatch
+): PlanWindowContinuation | null =>
+  batch.deferredPlans.length === 0 && batch.deferredRanges.length === 0
+    ? null
+    : { plans: batch.deferredPlans, ranges: batch.deferredRanges };
+
+type ReadonlyWindowContinuation = {
+  readonly [
+    Key in keyof PlanWindowContinuation
+  ]: readonly PlanWindowContinuation[Key][number][];
+};
+
+const cursorKey = ({ plans, ranges }: ReadonlyWindowContinuation): string =>
+  [
+    ...plans.map(
+      ({ serviceTypeId, planId, rangeOffset }) =>
+        `plan:${serviceTypeId}:${planId}:${rangeOffset}`
+    ),
+    ...ranges.map(
+      ({ serviceTypeId, offset, boundaryPlanId }) =>
+        `range:${serviceTypeId}:${offset}:${boundaryPlanId ?? ""}`
+    ),
+  ].join("|");
 
 /**
- * Whether a follow-up window call got anywhere: it read a roster, dropped a plan that left the
- * window, or listed another service type's plans. A call that did none would repeat forever.
+ * Whether a follow-up window call got anywhere: it read a roster or listed another range page.
+ * A call that did neither would repeat forever.
  */
 export const windowHistoryAdvanced = (
-  continuation: {
-    readonly plans: readonly WindowPlanRef[];
-    readonly serviceTypeIds: readonly string[];
-  },
+  continuation: ReadonlyWindowContinuation,
   batch: PlanWindowHistoryBatch
 ): boolean => {
-  const stillDeferred = new Set(
-    batch.deferredPlans.map(({ planId }) => planId)
-  );
+  const next = nextWindowContinuation(batch);
   return (
     batch.loadedPlanCount > 0 ||
-    batch.deferredServiceTypeIds.length < continuation.serviceTypeIds.length ||
-    continuation.plans.some(({ planId }) => !stillDeferred.has(planId))
+    next === null ||
+    cursorKey(continuation) !== cursorKey(next)
   );
 };
 
-type BlockoutProgress = CandidateDetailsBatch["blockoutProgress"];
-
-/** Whether a candidate details call checked another blockout or found a block. */
-export const advancedBlockoutChecks = (
-  before: BlockoutProgress,
-  after: BlockoutProgress
-): boolean => {
-  const earlier = new Map(before.map((entry) => [entry.personId, entry]));
-  return after.some(({ personId, checkedBlockoutIds, blocked }) => {
-    const previous = earlier.get(personId);
-    return (
-      blocked !== (previous?.blocked ?? false) ||
-      checkedBlockoutIds.length > (previous?.checkedBlockoutIds.length ?? 0)
-    );
-  });
-};
+/**
+ * Whether a candidate details call finished someone or moved its continuation: read another
+ * blockout, date, or plan-time page. A call that did neither would repeat forever.
+ */
+export const candidateDetailsAdvanced = (
+  continuation: CandidateDetailsContinuation | undefined,
+  batch: CandidateDetailsBatch
+): boolean =>
+  batch.people.length > 0 ||
+  JSON.stringify(continuation) !== JSON.stringify(batch.continuation);
 
 export interface CandidateListProgress {
   candidateCount: number;

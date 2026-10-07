@@ -6,12 +6,14 @@ import type {
   CandidateDetailsInput,
 } from "@pcobooster/api/modules/planning-center/get-candidate-details";
 import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
+import type { PlanningCenterPage } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
 import {
   PLANNING_CENTER_REQUEST_CAP,
   PROGRESSIVE_REQUEST_BUDGET,
 } from "@pcobooster/api/planning-center/request-budget";
 import { countedRead } from "@pcobooster/api/testing/planning-center-requests";
+import { candidateDetailsAdvanced } from "@pcobooster/planning-center-models/candidate-list";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
@@ -102,6 +104,13 @@ const blockoutDate = (id: string, day: string): PCResource => ({
 
 type People = CandidateDetailsDependencies["people"];
 
+/** A collection that fits one page. */
+const onlyPage = (data: PCResource[]): PlanningCenterPage => ({
+  data,
+  included: [],
+  nextOffset: null,
+});
+
 interface PersonFixture {
   readonly plans?: readonly ServedPlan[];
   readonly repeatingBlockouts?: number;
@@ -118,40 +127,47 @@ const createPeople = (fixtures: Readonly<Record<string, PersonFixture>>) => {
     }
   }
   const people = {
-    getPersonBlockouts: vi.fn<People["getPersonBlockouts"]>((personId) => {
-      const { repeatingBlockouts = 0, oneTimeBlockout } =
-        fixtures[personId] ?? {};
-      return countedRead([
-        ...(oneTimeBlockout === undefined ? [] : [oneTimeBlockout]),
-        ...Array.from({ length: repeatingBlockouts }, (_, index) =>
-          weeklyBlockout(`${personId}-blockout-${index}`)
-        ),
-      ]);
-    }),
-    getPersonBlockoutDates: vi.fn<People["getPersonBlockoutDates"]>(
+    getPersonBlockoutsPage: vi.fn<People["getPersonBlockoutsPage"]>(
+      (personId) => {
+        const { repeatingBlockouts = 0, oneTimeBlockout } =
+          fixtures[personId] ?? {};
+        return countedRead(
+          onlyPage([
+            ...(oneTimeBlockout === undefined ? [] : [oneTimeBlockout]),
+            ...Array.from({ length: repeatingBlockouts }, (_, index) =>
+              weeklyBlockout(`${personId}-blockout-${index}`)
+            ),
+          ])
+        );
+      }
+    ),
+    getPersonBlockoutDatesPage: vi.fn<People["getPersonBlockoutDatesPage"]>(
       (personId, blockoutId) => {
         const { coveringBlockout } = fixtures[personId] ?? {};
         const covers =
           blockoutId === `${personId}-blockout-${coveringBlockout}`;
         return countedRead(
-          covers
-            ? [blockoutDate(`${blockoutId}-date`, PLAN_DATE.slice(0, 10))]
-            : [blockoutDate(`${blockoutId}-date`, "2026-05-05")]
+          onlyPage(
+            covers
+              ? [blockoutDate(`${blockoutId}-date`, PLAN_DATE.slice(0, 10))]
+              : [blockoutDate(`${blockoutId}-date`, "2026-05-05")]
+          )
         );
       }
     ),
-    getPersonSchedulesAfter: vi.fn<People["getPersonSchedulesAfter"]>(
+    getPersonSchedulesPage: vi.fn<People["getPersonSchedulesPage"]>(
       (personId) => {
         const { plans = [] } = fixtures[personId] ?? {};
         // `include=plan_times` sideloads only service times.
         return countedRead({
           data: plans.map(({ schedule }) => schedule),
           included: plans.map(({ service }) => service),
+          nextOffset: null,
         });
       }
     ),
-    getPlanPlanTimes: vi.fn<People["getPlanPlanTimes"]>((planId) =>
-      countedRead(planTimesById.get(planId) ?? [])
+    getPlanPlanTimesPage: vi.fn<People["getPlanPlanTimesPage"]>((planId) =>
+      countedRead(onlyPage(planTimesById.get(planId) ?? []))
     ),
   };
   return people;
@@ -173,26 +189,13 @@ const runCall = async (
   return { batch, requests: accounting.requestCount };
 };
 
-const advanced = (
-  before: CandidateDetailsInput["blockoutProgress"],
-  batch: CandidateDetailsBatch
-): boolean =>
-  batch.people.length > 0 ||
-  batch.blockoutProgress.some(({ personId, checkedBlockoutIds, blocked }) => {
-    const previous = before?.find((entry) => entry.personId === personId);
-    return (
-      blocked !== (previous?.blocked ?? false) ||
-      checkedBlockoutIds.length > (previous?.checkedBlockoutIds.length ?? 0)
-    );
-  });
-
 /** Follows continuations the way the browser does, one Worker invocation per call. */
 const loadAll = async (
   input: CandidateDetailsInput,
   people: People
 ): Promise<{ details: CandidateDetail[]; requests: number[] }> => {
   const { batch, requests } = await runCall(input, people);
-  if (!advanced(input.blockoutProgress, batch)) {
+  if (!candidateDetailsAdvanced(input.continuation, batch)) {
     throw new Error("Candidate details made no progress");
   }
   if (batch.deferredPersonIds.length === 0) {
@@ -202,7 +205,7 @@ const loadAll = async (
     {
       ...input,
       personIds: batch.deferredPersonIds,
-      blockoutProgress: batch.blockoutProgress,
+      continuation: batch.continuation,
     },
     people
   );
@@ -275,11 +278,13 @@ describe(getCandidateDetails, () => {
     );
 
     expect({
-      schedules: people.getPersonSchedulesAfter.mock.calls,
-      planReads: people.getPlanPlanTimes.mock.calls.map(([planId]) => planId),
+      schedules: people.getPersonSchedulesPage.mock.calls,
+      planReads: people.getPlanPlanTimesPage.mock.calls.map(
+        ([planId]) => planId
+      ),
       rehearsals: rehearsalItems(batch.people[0]),
     }).toStrictEqual({
-      schedules: [["p1", "2026-04-05", 2]],
+      schedules: [["p1", "2026-04-05", 0]],
       planReads: [plans[0]?.planId],
       rehearsals: [`${plans[0]?.schedule.id}:${plans[0]?.rehearsal.id}`],
     });
@@ -324,7 +329,7 @@ describe(getCandidateDetails, () => {
         { personId: "p2", isBlockedForDate: false },
       ]);
       expect(batch.deferredPersonIds).toStrictEqual([]);
-      expect(people.getPersonBlockoutDates).not.toHaveBeenCalled();
+      expect(people.getPersonBlockoutDatesPage).not.toHaveBeenCalled();
       expect(requests).toBe(scheduleHistory ? 6 : 3);
       expect(rehearsalItems(batch.people[0])).toStrictEqual(
         scheduleHistory
@@ -360,9 +365,10 @@ describe(getCandidateDetails, () => {
       people
     );
     expect(batch.people[0]?.isBlockedForDate).toBeTruthy();
-    expect(people.getPersonBlockoutDates).toHaveBeenCalledExactlyOnceWith(
+    expect(people.getPersonBlockoutDatesPage).toHaveBeenCalledExactlyOnceWith(
       "p1",
-      "p1-blockout-0"
+      "p1-blockout-0",
+      0
     );
     expect(requests).toBe(3);
   });
@@ -395,8 +401,9 @@ describe(getCandidateDetails, () => {
       ),
       calls: requests.length,
       datesReadOnce:
-        new Set(people.getPersonBlockoutDates.mock.calls.map(([, id]) => id))
-          .size === people.getPersonBlockoutDates.mock.calls.length,
+        new Set(
+          people.getPersonBlockoutDatesPage.mock.calls.map(([, id]) => id)
+        ).size === people.getPersonBlockoutDatesPage.mock.calls.length,
     }).toStrictEqual({
       blocked: { p1: true, p2: false },
       everyCallUnderCap: true,
@@ -405,7 +412,7 @@ describe(getCandidateDetails, () => {
     });
   });
 
-  it("admits the first person even when the procedure already spent its budget", async () => {
+  it("advances the first person even when the procedure already spent its budget", async () => {
     const people = createPeople({ p1: { repeatingBlockouts: 1 }, p2: {} });
     const accounting = new PlanningCenterRequestAccounting({
       requestBudget: PLANNING_CENTER_REQUEST_CAP,
@@ -428,6 +435,22 @@ describe(getCandidateDetails, () => {
     expect({
       detailed: batch.people.map(({ personId }) => personId),
       deferred: batch.deferredPersonIds,
-    }).toStrictEqual({ detailed: ["p1"], deferred: ["p2"] });
+      progress: batch.continuation.people,
+    }).toStrictEqual({
+      detailed: [],
+      deferred: ["p1", "p2"],
+      // Only the blockout list fit: its one repeating blockout is left to read.
+      progress: [
+        {
+          personId: "p1",
+          blocked: false,
+          blockoutsOffset: null,
+          pendingBlockouts: [
+            { blockoutId: "p1-blockout-0", timeZone: "UTC", datesOffset: 0 },
+          ],
+          rehearsalTimes: { plans: [], times: [] },
+        },
+      ],
+    });
   });
 });

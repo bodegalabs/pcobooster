@@ -366,8 +366,8 @@ export const PersonDetailBody = ({
                 <CommitmentList month={month} monthDays={person.monthDays} />
                 {data.requestBudget.unresolvedRehearsalTimes > 0 ? (
                   <p className="text-muted-foreground px-1.5 text-xs">
-                    Some rehearsal times couldn&apos;t be loaded, so those show
-                    on the service date.
+                    Planning Center doesn&apos;t list some rehearsal times, so
+                    those show on the service date.
                   </p>
                 ) : null}
               </div>

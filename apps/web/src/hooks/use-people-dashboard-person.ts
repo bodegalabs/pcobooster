@@ -19,20 +19,46 @@ import { queryKeys } from "@/lib/query-keys";
 import { computeMemberPaces } from "@/lib/team-health";
 import { productClient } from "@/product-client";
 
+/**
+ * Follows the detail's `continuation` until every rehearsal time is read. Each call is its own
+ * Worker invocation within the per-call request budget; the last answer is the whole detail.
+ */
+const fetchPeopleDashboardPerson = async (
+  personId: string,
+  month: string | null,
+  context: QueryFunctionContext,
+  continuation?: PeopleDashboardPersonDetail["continuation"]
+): Promise<PeopleDashboardPersonDetail> => {
+  const detail = await callForQuery(context, productClient, (api) =>
+    api.people.dashboardPerson({
+      params: { personId },
+      payload: {
+        month: month !== null && month !== "" ? month : undefined,
+        continuation: continuation ?? undefined,
+      },
+    })
+  );
+  if (detail.continuation === null) {
+    return detail;
+  }
+  if (JSON.stringify(continuation) === JSON.stringify(detail.continuation)) {
+    throw new Error("Person detail made no progress.");
+  }
+  return await fetchPeopleDashboardPerson(
+    personId,
+    month,
+    context,
+    detail.continuation
+  );
+};
+
 export const createPeopleDashboardPersonQueryOptions = (
   personId: string,
   month: string | null
 ) => ({
   queryKey: queryKeys.peopleDashboardPerson(personId, month),
   queryFn: async (context: QueryFunctionContext) => {
-    const detail = await callForQuery(context, productClient, (api) =>
-      api.people.dashboardPerson({
-        params: { personId },
-        query: {
-          month: month !== null && month !== "" ? month : undefined,
-        },
-      })
-    );
+    const detail = await fetchPeopleDashboardPerson(personId, month, context);
     writeCachedPeopleDashboardPerson(personId, month, detail);
     return detail;
   },

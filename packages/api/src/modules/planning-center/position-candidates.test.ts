@@ -5,9 +5,12 @@ import type {
   CandidateListInput,
 } from "@pcobooster/api/modules/planning-center/load-position-candidates.test-support";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import type {
+  PlanningCenterError,
+  PlanningCenterPage,
+} from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
-import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   PCResource,
@@ -16,40 +19,73 @@ import type {
 import { Effect } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+type CollectionRead = Effect.Effect<PCResource[], PlanningCenterError>;
+
+const onlyPage = (data: PCResource[]): PlanningCenterPage => ({
+  data,
+  included: [],
+  nextOffset: null,
+});
+
 const createFixture = () => {
   const mocks = {
     getServiceTypesCached:
       vi.fn<PlanningCenterCatalogService["getServiceTypesCached"]>(),
     getPeopleForTeamPosition:
       vi.fn<PlanningCenterPeopleService["getPeopleForTeamPosition"]>(),
-    getPersonBlockouts:
-      vi.fn<PlanningCenterPeopleService["getPersonBlockouts"]>(),
+    // Whole collections; `dependencies` serves each as its only page.
+    getPersonBlockouts: vi.fn<(personId: string) => CollectionRead>(),
     getPersonBlockoutDates:
-      vi.fn<PlanningCenterPeopleService["getPersonBlockoutDates"]>(),
-    getPersonSchedulesAfter:
-      vi.fn<PlanningCenterPeopleService["getPersonSchedulesAfter"]>(),
-    getPlanPlanTimes: vi.fn<PlanningCenterPeopleService["getPlanPlanTimes"]>(),
+      vi.fn<(personId: string, blockoutId: string) => CollectionRead>(),
+    // A person's schedules whole; `dependencies` serves them as their only page.
+    getPersonSchedules:
+      vi.fn<
+        (
+          personId: string,
+          after: string
+        ) => Effect.Effect<{ data: PCResource[]; included: PCResource[] }>
+      >(),
+    getPlanPlanTimes: vi.fn<(planId: string) => CollectionRead>(),
     getPlanTeamMembers:
       vi.fn<PlanningCenterPeopleService["getPlanTeamMembers"]>(),
     getPlanWindowRoster:
       vi.fn<PlanningCenterPeopleService["getPlanWindowRoster"]>(),
-    getPlansWithIncludedInDateRange:
-      vi.fn<PlanningCenterPlansService["getPlansWithIncludedInDateRange"]>(),
+    // A service type's plans in the window whole; `dependencies` serves them as one page.
+    getPlanRange:
+      vi.fn<
+        (
+          serviceTypeId: string
+        ) => Effect.Effect<{ data: PCResource[]; included: PCResource[] }>
+      >(),
     resolveTimeZone: vi.fn<() => string>(),
   };
   const dependencies = {
     catalog: { getServiceTypesCached: mocks.getServiceTypesCached },
     people: {
       getPeopleForTeamPosition: mocks.getPeopleForTeamPosition,
-      getPersonBlockouts: mocks.getPersonBlockouts,
-      getPersonBlockoutDates: mocks.getPersonBlockoutDates,
-      getPersonSchedulesAfter: mocks.getPersonSchedulesAfter,
-      getPlanPlanTimes: mocks.getPlanPlanTimes,
+      getPersonBlockoutsPage: (personId: string) =>
+        Effect.map(mocks.getPersonBlockouts(personId), onlyPage),
+      getPersonBlockoutDatesPage: (personId: string, blockoutId: string) =>
+        Effect.map(
+          mocks.getPersonBlockoutDates(personId, blockoutId),
+          onlyPage
+        ),
+      getPersonSchedulesPage: (personId: string, after: string) =>
+        Effect.map(mocks.getPersonSchedules(personId, after), (schedules) => ({
+          ...schedules,
+          nextOffset: null,
+        })),
+      getPlanPlanTimesPage: (planId: string) =>
+        Effect.map(mocks.getPlanPlanTimes(planId), onlyPage),
       getPlanTeamMembers: mocks.getPlanTeamMembers,
       getPlanWindowRoster: mocks.getPlanWindowRoster,
     },
     plans: {
-      getPlansWithIncludedInDateRange: mocks.getPlansWithIncludedInDateRange,
+      getPlanRangePage: (serviceTypeId: string) =>
+        Effect.map(mocks.getPlanRange(serviceTypeId), (range) => ({
+          ...range,
+          nextOffset: null,
+        })),
     },
     resolveTimeZone: Effect.sync(() => mocks.resolveTimeZone()),
   } satisfies CandidateListDependencies;
@@ -271,14 +307,14 @@ describe("position candidate list", () => {
         },
       ])
     );
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({ data: [], included: [] })
     );
     mocks.getPlanPlanTimes.mockReturnValue(Effect.succeed([]));
     mocks.getPlanTeamMembers.mockReturnValue(
       Effect.succeed({ data: [], included: [] })
     );
-    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+    mocks.getPlanRange.mockReturnValue(
       Effect.succeed({
         data: [],
         included: [],
@@ -349,7 +385,7 @@ describe("position candidate list", () => {
         included: [],
       };
     };
-    mocks.getPersonSchedulesAfter.mockImplementation((personId: string) =>
+    mocks.getPersonSchedules.mockImplementation((personId: string) =>
       Effect.succeed(scheduleResponseForPerson(personId))
     );
 
@@ -411,7 +447,7 @@ describe("position candidate list", () => {
       })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({
         data: [
           scheduleEntry({
@@ -465,7 +501,7 @@ describe("position candidate list", () => {
         })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({
         data: [
           scheduleEntry({
@@ -524,7 +560,7 @@ describe("position candidate list", () => {
         ],
       })
     );
-    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+    mocks.getPlanRange.mockReturnValue(
       Effect.succeed({
         data: [
           planEntry(previousPlanId, "2026-02-15"),
@@ -586,7 +622,7 @@ describe("position candidate list", () => {
       date: "2026-02-22",
     });
 
-    expect(mocks.getPersonSchedulesAfter).not.toHaveBeenCalled();
+    expect(mocks.getPersonSchedules).not.toHaveBeenCalled();
     // The selected plan is read fresh; window reads mark plans that already happened.
     expect({
       window: mocks.getPlanWindowRoster.mock.calls.toSorted((a, b) =>
@@ -643,7 +679,7 @@ describe("position candidate list", () => {
         ],
       })
     );
-    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+    mocks.getPlanRange.mockReturnValue(
       Effect.succeed({
         data: [
           planEntry(previousPlanId, "2026-02-15"),
@@ -744,9 +780,8 @@ describe("position candidate list", () => {
 
       return { data: [], included: [] };
     };
-    mocks.getPlansWithIncludedInDateRange.mockImplementation(
-      (requestedServiceTypeId: string) =>
-        Effect.succeed(plansForServiceType(requestedServiceTypeId))
+    mocks.getPlanRange.mockImplementation((requestedServiceTypeId: string) =>
+      Effect.succeed(plansForServiceType(requestedServiceTypeId))
     );
     const planMembersForServiceType = (
       requestedServiceTypeId: string,
@@ -807,7 +842,7 @@ describe("position candidate list", () => {
       date: "2026-05-04",
     });
 
-    expect(mocks.getPersonSchedulesAfter).not.toHaveBeenCalled();
+    expect(mocks.getPersonSchedules).not.toHaveBeenCalled();
     expect(result).toHaveLength(1);
     expect(result[0]?.serviceHistory).toContainEqual(
       expect.objectContaining({ sourceScheduleId: "pp-may-3" })
@@ -846,7 +881,7 @@ describe("position candidate list", () => {
       })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({ data: [], included: [] })
     );
 
@@ -979,7 +1014,7 @@ describe("position candidate list", () => {
       })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({ data: [], included: [] })
     );
 
@@ -1011,7 +1046,7 @@ describe("position candidate list", () => {
       })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({
         data: [
           scheduleEntry({
@@ -1060,7 +1095,7 @@ describe("position candidate list", () => {
       })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({
         data: [
           scheduleEntry({
@@ -1109,7 +1144,7 @@ describe("position candidate list", () => {
       })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({
         data: [
           scheduleEntry({
@@ -1135,8 +1170,8 @@ describe("position candidate list", () => {
 
     // Without a filter Planning Center returns only upcoming schedules, so past services
     // never counted; `after` from the window start makes them visible.
-    expect(mocks.getPersonSchedulesAfter.mock.calls).toStrictEqual([
-      [personId, "2026-03-08", 2],
+    expect(mocks.getPersonSchedules.mock.calls).toStrictEqual([
+      [personId, "2026-03-08"],
     ]);
     const [personRow] = result;
     if (!personRow?.serviceHistory || !personRow.frequency) {
@@ -1185,7 +1220,7 @@ describe("position candidate list", () => {
       ])
     );
     mocks.getPersonBlockoutDates.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({
         data: [],
         included: [],
@@ -1236,7 +1271,7 @@ describe("position candidate list", () => {
         ),
       ])
     );
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({ data: [], included: [] })
     );
 
@@ -1349,7 +1384,7 @@ describe("position candidate list", () => {
 
   it("reads the selected plan's roster fresh while reusing the window's cached roster", async () => {
     singleCandidate();
-    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+    mocks.getPlanRange.mockReturnValue(
       Effect.succeed({
         data: [planEntry("plan-target", "2026-02-22")],
         included: [],
@@ -1393,7 +1428,7 @@ describe("position candidate list", () => {
 
   it("fails instead of falling back when the fresh selected-plan read fails", async () => {
     singleCandidate();
-    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+    mocks.getPlanRange.mockReturnValue(
       Effect.succeed({
         data: [planEntry("plan-target", "2026-02-22")],
         included: [],

@@ -100,28 +100,35 @@ const activityDependencies = ({
     { data: PCResource[]; included: PCResource[] }
   >;
 }) => {
-  const getPersonSchedulesAfter = vi.fn<
-    PlanningCenterPeopleService["getPersonSchedulesAfter"]
+  const getPersonSchedulesFirstPages = vi.fn<
+    PlanningCenterPeopleService["getPersonSchedulesFirstPages"]
   >((personId) => {
     const data = schedulesByPerson[personId]?.data ?? [];
     return countedRead(
-      { data, included: schedulesByPerson[personId]?.included ?? [] },
+      {
+        data,
+        included: schedulesByPerson[personId]?.included ?? [],
+        complete: true,
+      },
       pagesFor(data.length)
     );
   });
   const getPlansWithIncludedInDateRange = vi.fn<
     PlanningCenterPlansService["getPlansWithIncludedInDateRange"]
   >((serviceTypeId) =>
-    countedRead(plansByServiceType[serviceTypeId] ?? { data: [], included: [] })
+    countedRead({
+      ...(plansByServiceType[serviceTypeId] ?? { data: [], included: [] }),
+      complete: true,
+    })
   );
   const dependencies: PeopleDashboardActivityDependencies = {
-    peopleService: { getPersonSchedulesAfter },
+    peopleService: { getPersonSchedulesFirstPages },
     plansService: { getPlansWithIncludedInDateRange },
     resolveTimeZone: countedRead(orgTimeZone),
   };
   return {
     dependencies,
-    getPersonSchedulesAfter,
+    getPersonSchedulesFirstPages,
     getPlansWithIncludedInDateRange,
   };
 };
@@ -302,8 +309,8 @@ describe(getPeopleDashboardActivity, () => {
     const dependencies: PeopleDashboardActivityDependencies = {
       ...base,
       peopleService: {
-        getPersonSchedulesAfter: () =>
-          countedRead({ data, included: [] }).pipe(
+        getPersonSchedulesFirstPages: () =>
+          countedRead({ data, included: [], complete: true }).pipe(
             Effect.map((response) => ({ ...response, included }))
           ),
       },
@@ -341,7 +348,7 @@ describe(getPeopleDashboardActivity, () => {
     const dependencies: PeopleDashboardActivityDependencies = {
       ...base,
       peopleService: {
-        getPersonSchedulesAfter: () =>
+        getPersonSchedulesFirstPages: () =>
           countedRead({
             data: [
               schedule("past", "2026-05-10T17:00:00Z", {
@@ -349,6 +356,7 @@ describe(getPeopleDashboardActivity, () => {
               }),
             ],
             included: [],
+            complete: true,
           }).pipe(
             Effect.map((response) => ({ ...response, included: [included] }))
           ),
@@ -367,22 +375,24 @@ describe(getPeopleDashboardActivity, () => {
 
   it("reads the rhythm, roles, and month from schedules after the history window start", async () => {
     vi.useFakeTimers({ now: new Date("2026-05-23T12:00:00.000Z") });
-    const { dependencies, getPersonSchedulesAfter } = activityDependencies({
-      schedulesByPerson: {
-        "person-1": {
-          data: [
-            schedule("past", "2026-05-10T17:00:00.000Z"),
-            schedule("next", "2026-05-31T17:00:00.000Z", { status: "U" }),
-          ],
+    const { dependencies, getPersonSchedulesFirstPages } = activityDependencies(
+      {
+        schedulesByPerson: {
+          "person-1": {
+            data: [
+              schedule("past", "2026-05-10T17:00:00.000Z"),
+              schedule("next", "2026-05-31T17:00:00.000Z", { status: "U" }),
+            ],
+          },
         },
-      },
-    });
+      }
+    );
 
     const batch = await Effect.runPromise(
       getPeopleDashboardActivity({ personIds: ["person-1"], dependencies })
     );
 
-    expect(getPersonSchedulesAfter.mock.calls).toStrictEqual([
+    expect(getPersonSchedulesFirstPages.mock.calls).toStrictEqual([
       [
         "person-1",
         "2025-11-23",
@@ -652,13 +662,15 @@ describe(getPeopleDashboardActivity, () => {
       { length: 25 },
       (_, index) => `person-${index}`
     );
-    const { dependencies, getPersonSchedulesAfter } = activityDependencies({});
+    const { dependencies, getPersonSchedulesFirstPages } = activityDependencies(
+      {}
+    );
 
     const batch = await Effect.runPromise(
       getPeopleDashboardActivity({ personIds, dependencies })
     );
 
-    expect(getPersonSchedulesAfter).toHaveBeenCalledTimes(16);
+    expect(getPersonSchedulesFirstPages).toHaveBeenCalledTimes(16);
     expect(batch.people).toHaveLength(16);
     expect(batch.deferredPersonIds).toStrictEqual(personIds.slice(16));
   });
@@ -724,8 +736,10 @@ describe(getPeopleDashboardActivity, () => {
     const failure = new PlanningCenterNetworkError({
       cause: new Error("Too many subrequests"),
     });
-    const { dependencies, getPersonSchedulesAfter } = activityDependencies({});
-    getPersonSchedulesAfter.mockReturnValue(Effect.fail(failure));
+    const { dependencies, getPersonSchedulesFirstPages } = activityDependencies(
+      {}
+    );
+    getPersonSchedulesFirstPages.mockReturnValue(Effect.fail(failure));
 
     await expect(
       Effect.runPromise(

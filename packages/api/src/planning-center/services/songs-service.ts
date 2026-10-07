@@ -87,8 +87,9 @@ export class PlanningCenterSongsService {
     );
     const load = () =>
       this.core
-        .fetchAll("/services/v2/songs", { order: "title" }, maxPages)
+        .fetchFirstPages("/services/v2/songs", { order: "title" }, maxPages)
         .pipe(
+          Effect.map(({ data }) => data),
           Effect.tap((songs) =>
             log.info("Songs catalog cached", {
               cacheKey: scopedCacheKey,
@@ -248,11 +249,13 @@ export class PlanningCenterSongsService {
       this.buildSongCacheKey("schedules", songId, afterDayKey),
       SONG_SCHEDULES_CACHE_TTL_MS,
       () =>
-        this.core.fetchAll(
-          `/services/v2/songs/${songId}/song_schedules`,
-          { filter: "after", after: afterDayKey, order: "-plan_sort_date" },
-          SONG_SCHEDULES_PAGES
-        )
+        this.core
+          .fetchFirstPages(
+            `/services/v2/songs/${songId}/song_schedules`,
+            { filter: "after", after: afterDayKey, order: "-plan_sort_date" },
+            SONG_SCHEDULES_PAGES
+          )
+          .pipe(Effect.map(({ data }) => data))
     ).pipe(Effect.map((schedules) => structuredClone(schedules)));
   }
 

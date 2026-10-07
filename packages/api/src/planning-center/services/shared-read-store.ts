@@ -64,8 +64,8 @@ export type SharedReadErrorReporter = (message: string, error: Error) => void;
 const MINIMUM_KV_EXPIRATION_SECONDS = 60;
 /**
  * After a failed read or write, the isolate stops using that half of the store for a while.
- * Workers Free caps KV at 1,000 writes and 100,000 reads a day, and every KV call counts
- * toward the 50-subrequest limit, so a failing store must not keep spending them.
+ * Every KV call consumes internal-service subrequests (the configured limit on Workers Paid),
+ * so a failing store must not keep spending them. Free-tier daily KV quotas also require this.
  */
 export const SHARED_READ_FAILURE_COOLDOWN_MS = 15 * 60 * 1000;
 const KEY_VERSION = "pc1";
