@@ -93,10 +93,34 @@ interface ResourceCollectionResponse {
   included: PCResource[];
 }
 
+/** The start of a collection; `complete` is false when pages were left unread. */
+export interface ResourceCollectionPrefix extends ResourceCollectionResponse {
+  complete: boolean;
+}
+
+export interface PersonSchedulesOptions {
+  /** Also read declined schedules (status `D`). */
+  readonly includeDeclined?: boolean;
+  /** Read the latest schedules first. */
+  readonly newestFirst?: boolean;
+}
+
+const personSchedulesParams = (
+  after: string,
+  { includeDeclined = false, newestFirst = false }: PersonSchedulesOptions
+) => ({
+  filter: includeDeclined ? "after,with_declined" : "after",
+  after,
+  include: "plan_times",
+  order: newestFirst ? "-starts_at" : "starts_at",
+});
+
 export interface PlanningCenterPeopleServiceCaches {
   readonly people: PlanningCenterReadCache<PCResource>;
   readonly resourceLists: PlanningCenterReadCache<PCResource[]>;
   readonly collections: PlanningCenterReadCache<ResourceCollectionResponse>;
+  /** Collections read only from their start, with whether that was all of them. */
+  readonly collectionPrefixes: PlanningCenterReadCache<ResourceCollectionPrefix>;
   /** Single pages of collections read page by page. */
   readonly pages: PlanningCenterReadCache<PlanningCenterPage>;
   readonly allTeamPeople: PlanningCenterReadCache<AllTeamPeopleResponse>;
@@ -109,6 +133,7 @@ export const createPlanningCenterPeopleServiceCaches =
     people: new PlanningCenterReadCache<PCResource>(),
     resourceLists: new PlanningCenterReadCache<PCResource[]>(),
     collections: new PlanningCenterReadCache<ResourceCollectionResponse>(),
+    collectionPrefixes: new PlanningCenterReadCache<ResourceCollectionPrefix>(),
     pages: new PlanningCenterReadCache<PlanningCenterPage>(),
     allTeamPeople: new PlanningCenterReadCache<AllTeamPeopleResponse>(),
     planWindowRosters:
@@ -377,32 +402,21 @@ export class PlanningCenterPeopleService {
   }
 
   /**
-   * Schedules from `after` (a YYYY-MM-DD day or an ISO instant) onward, with service PlanTimes
-   * sideloaded. Rehearsal PlanTimes are listed in `relationships.times` but not sideloaded;
-   * callers that need them resolve them within their request budget. Planning Center's default
-   * scope returns only future schedules, so the explicit `after` filter is what makes past
-   * schedules visible. Declined schedules stay excluded unless `includeDeclined` asks for them
-   * (status `D`). `newestFirst` reads the latest schedules first, so a read cut off at
-   * `maxPages` drops the oldest history instead of upcoming dates.
+   * Every schedule from `after` (a YYYY-MM-DD day or an ISO instant) onward, with service
+   * PlanTimes sideloaded; fails with `PlanningCenterPaginationError` rather than return part of
+   * them when more than `maxPages` pages remain. Only a complete read is cached. Rehearsal
+   * PlanTimes are listed in `relationships.times` but not sideloaded; callers that need them
+   * resolve them within their request budget. Planning Center's default scope returns only
+   * future schedules, so the explicit `after` filter is what makes past schedules visible.
+   * Declined schedules stay excluded unless `includeDeclined` asks for them (status `D`).
    */
   getPersonSchedulesAfter(
     personId: string,
     after: string,
     maxPages = 3,
-    {
-      includeDeclined = false,
-      newestFirst = false,
-    }: {
-      readonly includeDeclined?: boolean;
-      readonly newestFirst?: boolean;
-    } = {}
+    options: PersonSchedulesOptions = {}
   ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
-    const params = {
-      filter: includeDeclined ? "after,with_declined" : "after",
-      after,
-      include: "plan_times",
-      order: newestFirst ? "-starts_at" : "starts_at",
-    };
+    const params = personSchedulesParams(after, options);
     return cachedRead(
       this.caches.collections,
       this.buildCacheKey(
@@ -415,13 +429,76 @@ export class PlanningCenterPeopleService {
       PERSON_READ_CACHE_TTL_MS,
       () =>
         this.core
-          .fetchFirstPages(
+          .fetchAllWithIncluded(
             `/services/v2/people/${personId}/schedules`,
             params,
             maxPages
           )
           .pipe(Effect.map(({ data, included }) => ({ data, included })))
     ).pipe(Effect.map(cloneResourceCollectionResponse));
+  }
+
+  /**
+   * The first `maxPages` pages of the schedules `getPersonSchedulesAfter` reads, for callers
+   * whose order puts what they need first; `complete` is false when more pages follow, so the
+   * caller decides what the missing tail means. `newestFirst` reads the latest schedules first.
+   */
+  getPersonSchedulesFirstPages(
+    personId: string,
+    after: string,
+    maxPages: number,
+    options: PersonSchedulesOptions = {}
+  ): Effect.Effect<ResourceCollectionPrefix, PlanningCenterError> {
+    const params = personSchedulesParams(after, options);
+    return cachedRead(
+      this.caches.collectionPrefixes,
+      this.buildCacheKey(
+        "person-schedules",
+        personId,
+        "first-pages",
+        stableParams(params),
+        String(maxPages)
+      ),
+      PERSON_READ_CACHE_TTL_MS,
+      () =>
+        this.core
+          .fetchFirstPages(
+            `/services/v2/people/${personId}/schedules`,
+            params,
+            maxPages
+          )
+          .pipe(
+            Effect.map(({ data, included, next }) => ({
+              data,
+              included,
+              complete: next === null,
+            }))
+          )
+    ).pipe(Effect.map((prefix) => structuredClone(prefix)));
+  }
+
+  /**
+   * One page of the schedules `getPersonSchedulesAfter` reads, cached per page, for reads that
+   * go page by page within a request budget and stop once they pass the dates they need.
+   */
+  getPersonSchedulesPage(
+    personId: string,
+    after: string,
+    offset: number,
+    options: PersonSchedulesOptions = {}
+  ): Effect.Effect<PlanningCenterPage, PlanningCenterError> {
+    const params = personSchedulesParams(after, options);
+    return this.cachedPage(
+      ["person-schedules", personId, "page", stableParams(params)],
+      PERSON_READ_CACHE_TTL_MS,
+      offset,
+      () =>
+        this.core.fetchPage(
+          `/services/v2/people/${personId}/schedules`,
+          params,
+          offset
+        )
+    );
   }
 
   /**
@@ -739,6 +816,12 @@ export class PlanningCenterPeopleService {
           ? key.startsWith(personSchedulesPrefix)
           : false) || key === planTeamMembersKey
     );
+    if (isNonEmptyString(personSchedulesPrefix)) {
+      const isPersonSchedules = (key: string) =>
+        key.startsWith(personSchedulesPrefix);
+      this.caches.collectionPrefixes.deleteWhere(isPersonSchedules);
+      this.caches.pages.deleteWhere(isPersonSchedules);
+    }
     this.caches.planWindowRosters.deleteWhere(
       (key) => key === planWindowRosterKey
     );
@@ -755,12 +838,15 @@ export class PlanningCenterPeopleService {
   invalidatePlanTimeSensitiveReadCaches(planId: string) {
     const scope = this.core.getCacheScope();
     const planTimesPagePrefix = `${this.buildCacheKey("plan-plan-times", planId)}:`;
-    const personSchedulesPrefix = [scope, "person-schedules"].join(":");
+    const personSchedulesPrefix = [scope, "person-schedules", ""].join(":");
+    const isPersonSchedules = (key: string) =>
+      key.startsWith(personSchedulesPrefix);
 
-    this.caches.pages.deleteWhere((key) => key.startsWith(planTimesPagePrefix));
-    this.caches.collections.deleteWhere((key) =>
-      key.startsWith(personSchedulesPrefix)
+    this.caches.pages.deleteWhere(
+      (key) => key.startsWith(planTimesPagePrefix) || isPersonSchedules(key)
     );
+    this.caches.collections.deleteWhere(isPersonSchedules);
+    this.caches.collectionPrefixes.deleteWhere(isPersonSchedules);
   }
 
   /**

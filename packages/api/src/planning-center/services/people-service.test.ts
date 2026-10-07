@@ -6,6 +6,7 @@ import {
   PlanningCenterPeopleService,
 } from "@pcobooster/api/planning-center/services/people-service";
 import {
+  httpClientFor,
   noContentResponse,
   unreachableHttpClient,
 } from "@pcobooster/api/testing/http-client";
@@ -334,6 +335,141 @@ describe("PlanningCenterPeopleService.getPersonSchedulesAfter", () => {
       after: "2026-03-24",
       include: "plan_times",
       order: "-starts_at",
+    });
+  });
+});
+
+/** Serves `schedules` in pages of `per_page`, the way Planning Center pages, counting requests. */
+const pagedSchedules = (schedules: readonly PCResource[]) => {
+  const sent: { path: string; offset: number }[] = [];
+  const fetch: typeof globalThis.fetch = async (input, init) => {
+    await Promise.resolve();
+    const url = new URL(
+      (input instanceof Request ? input : new Request(input, init)).url
+    );
+    const offset = Number(url.searchParams.get("offset") ?? 0);
+    const perPage = Number(url.searchParams.get("per_page"));
+    sent.push({ path: url.pathname, offset });
+    const next = new URL(url);
+    next.searchParams.set("offset", String(offset + perPage));
+    return Response.json({
+      data: schedules.slice(offset, offset + perPage),
+      included: [],
+      links:
+        offset + perPage < schedules.length ? { next: next.toString() } : {},
+    });
+  };
+  const service = new PlanningCenterPeopleService(
+    createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      httpClientFor(fetch)
+    )
+  );
+  return { sent, service };
+};
+
+const manySchedules = (count: number) =>
+  Array.from({ length: count }, (_, index) =>
+    resource(`schedule-${index}`, "Schedule")
+  );
+
+describe("PlanningCenterPeopleService schedule reads past one page", () => {
+  it("fails a whole read that has more pages than allowed, and caches only complete reads", async () => {
+    const { sent, service } = pagedSchedules(manySchedules(201));
+
+    const capped = await Effect.runPromiseExit(
+      service.getPersonSchedulesAfter("person-1", "2026-04-05", 2)
+    );
+    const again = await Effect.runPromiseExit(
+      service.getPersonSchedulesAfter("person-1", "2026-04-05", 2)
+    );
+    const whole = await Effect.runPromise(
+      service.getPersonSchedulesAfter("person-1", "2026-04-05", 3)
+    );
+    const sentBeforeWarm = sent.length;
+    await Effect.runPromise(
+      service.getPersonSchedulesAfter("person-1", "2026-04-05", 3)
+    );
+
+    expect({
+      capped,
+      retried: Exit.isFailure(again),
+      whole: whole.data.length,
+      sentByWarm: sent.length - sentBeforeWarm,
+    }).toStrictEqual({
+      capped: Exit.fail(
+        new PlanningCenterPaginationError({
+          reason: "page-limit",
+          path: "/services/v2/people/person-1/schedules",
+          pages: 2,
+        })
+      ),
+      retried: true,
+      whole: 201,
+      sentByWarm: 0,
+    });
+    // The failed reads were not cached: the second one asked again.
+    expect(sent.filter(({ offset }) => offset === 0)).toHaveLength(3);
+  });
+
+  it("says when a read of the first pages left schedules unread", async () => {
+    const { service } = pagedSchedules(manySchedules(201));
+
+    const prefix = await Effect.runPromise(
+      service.getPersonSchedulesFirstPages("person-1", "2026-04-05", 2)
+    );
+    const whole = await Effect.runPromise(
+      service.getPersonSchedulesFirstPages("person-1", "2026-04-05", 3)
+    );
+
+    expect([
+      [prefix.data.length, prefix.complete],
+      [whole.data.length, whole.complete],
+    ]).toStrictEqual([
+      [200, false],
+      [201, true],
+    ]);
+  });
+
+  it("caches schedule pages until the person's schedule or a plan's times change", async () => {
+    const { sent, service } = pagedSchedules(manySchedules(150));
+    const readPages = async () => {
+      const first = await Effect.runPromise(
+        service.getPersonSchedulesPage("person-1", "2026-04-05", 0)
+      );
+      const second = await Effect.runPromise(
+        service.getPersonSchedulesPage(
+          "person-1",
+          "2026-04-05",
+          first.nextOffset ?? 0
+        )
+      );
+      return [first.data.length, first.nextOffset, second.nextOffset];
+    };
+
+    const pages = await readPages();
+    await readPages();
+    const afterWarm = sent.length;
+    service.invalidateScheduleReadCaches({
+      personId: "person-1",
+      serviceTypeId: "st-1",
+      planId: "plan-1",
+    });
+    await readPages();
+    const afterScheduleWrite = sent.length;
+    service.invalidatePlanTimeSensitiveReadCaches("plan-1");
+    await readPages();
+
+    expect({
+      pages,
+      afterWarm,
+      afterScheduleWrite,
+      afterPlanTimeWrite: sent.length,
+    }).toStrictEqual({
+      pages: [100, 100, null],
+      afterWarm: 2,
+      afterScheduleWrite: 4,
+      afterPlanTimeWrite: 6,
     });
   });
 });

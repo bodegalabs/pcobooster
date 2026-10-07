@@ -50,7 +50,6 @@ import { Effect } from "effect";
  * oldest history, never their upcoming dates.
  */
 const SCHEDULE_MAX_PAGES = 2;
-const SCHEDULE_PAGE_SIZE = 100;
 /**
  * A Worker keeps at most 6 connections waiting for response headers; more would queue, not
  * fail. The count of requests is the same at any concurrency, so use every connection.
@@ -83,7 +82,7 @@ export interface PeopleDashboardRosterDependencies {
 export interface PeopleDashboardActivityDependencies {
   readonly peopleService: Pick<
     PlanningCenterPeopleService,
-    "getPersonSchedulesAfter"
+    "getPersonSchedulesFirstPages"
   >;
   readonly plansService: Pick<
     PlanningCenterPlansService,
@@ -548,6 +547,8 @@ interface PersonSchedules {
   readonly personId: string;
   readonly data: PCResource[];
   readonly included: PCResource[];
+  /** False when the cap left the oldest schedules unread. */
+  readonly complete: boolean;
 }
 
 /**
@@ -646,16 +647,17 @@ export const getPeopleDashboardActivity = ({
       admitted,
       (personId) =>
         Effect.map(
-          peopleService.getPersonSchedulesAfter(
+          peopleService.getPersonSchedulesFirstPages(
             personId,
             historyDayKey,
             SCHEDULE_MAX_PAGES,
             { includeDeclined: true, newestFirst: true }
           ),
-          ({ data, included }): PersonSchedules => ({
+          ({ data, included, complete }): PersonSchedules => ({
             personId,
             data,
             included,
+            complete,
           })
         ),
       { concurrency: READ_CONCURRENCY }
@@ -758,9 +760,9 @@ export const getPeopleDashboardActivity = ({
       hydratedPeopleCount: people.length,
       deferredPeopleCount: deferred.size,
       unreadFirstPersonServiceTypeCount: unreadFirstPersonTypes,
-      // Full reads may have stopped at the page cap, dropping oldest history.
+      // People whose reads stopped at the page cap, dropping oldest history.
       scheduleCapReachedPeopleCount: schedules.filter(
-        ({ data }) => data.length >= SCHEDULE_MAX_PAGES * SCHEDULE_PAGE_SIZE
+        ({ complete }) => !complete
       ).length,
     });
     return {

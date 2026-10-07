@@ -570,7 +570,15 @@ describe(getPeopleDashboardPerson, () => {
         getPeopleDashboardActivity({
           personIds: ["person-1"],
           dependencies: {
-            peopleService: fixture.dependencies.peopleService,
+            peopleService: {
+              getPersonSchedulesFirstPages: (...args) =>
+                Effect.map(
+                  fixture.dependencies.peopleService.getPersonSchedulesAfter(
+                    ...args
+                  ),
+                  (schedules) => ({ ...schedules, complete: true })
+                ),
+            },
             plansService: fixture.dependencies.plansService,
             resolveTimeZone: Effect.succeed(LOS_ANGELES),
           },
