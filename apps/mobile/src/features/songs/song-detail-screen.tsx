@@ -15,6 +15,7 @@ import { colors } from "../../design/colors";
 import { Spacing } from "../../design/metrics";
 import { planningCenterSongUrl, songLoadFailureCopy } from "./detail";
 import { songChartHref } from "./reads";
+import { copySongTitle } from "./song-actions";
 import {
   SongArrangementsSection,
   SongChartCard,
@@ -63,6 +64,21 @@ const headerItems = (
     icon: { type: "sfSymbol", name: "ellipsis" },
     menu: {
       items: [
+        ...(model.title === null
+          ? []
+          : [
+              {
+                type: "action" as const,
+                label: "Copy Title",
+                icon: {
+                  type: "sfSymbol" as const,
+                  name: "doc.on.doc" as const,
+                },
+                onPress: () => {
+                  copySongTitle(model.title ?? "");
+                },
+              },
+            ]),
         {
           type: "action",
           label: "Open in Planning Center",

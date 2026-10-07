@@ -1,10 +1,21 @@
+import * as Clipboard from "expo-clipboard";
 import { ActionSheetIOS, Linking } from "react-native";
 
+import { playHaptic } from "../../design/haptics";
 import { planningCenterSongUrl } from "./detail";
+
+/** Copies a song's title (Swift "Copy Title"); success is a haptic, not a toast. */
+export const copySongTitle = (title: string): void => {
+  void (async () => {
+    await Clipboard.setStringAsync(title);
+    playHaptic("success");
+  })();
+};
 
 /**
  * A song row's long-press actions (Swift `contextMenu`): open it, its chord chart (with the
- * `chordCharts` flag), and its page in Planning Center, where hiding a song happens.
+ * `chordCharts` flag), copy its title, and its page in Planning Center, where hiding a song
+ * happens.
  */
 export const showSongActions = ({
   title,
@@ -28,12 +39,20 @@ export const showSongActions = ({
   if (chartsEnabled) {
     actions.push({ label: "Chord Chart", run: onChart });
   }
-  actions.push({
-    label: tidying ? "Hide in Planning Center" : "Open in Planning Center",
-    run: () => {
-      void Linking.openURL(planningCenterSongUrl(songId));
+  actions.push(
+    {
+      label: "Copy Title",
+      run: () => {
+        copySongTitle(title);
+      },
     },
-  });
+    {
+      label: tidying ? "Hide in Planning Center" : "Open in Planning Center",
+      run: () => {
+        void Linking.openURL(planningCenterSongUrl(songId));
+      },
+    }
+  );
   ActionSheetIOS.showActionSheetWithOptions(
     {
       title,
