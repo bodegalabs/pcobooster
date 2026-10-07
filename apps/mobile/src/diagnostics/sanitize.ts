@@ -3,9 +3,13 @@
  * allowlist; anything not named here (source context, absolute paths, module names, variables,
  * thread IDs, SDK extras) is dropped rather than scrubbed.
  *
- * Messages lose URLs, email addresses, paths, UUIDs, token-like strings, long digit runs
- * (Planning Center IDs), and quoted or JSON-looking values (decode errors quote the data they
- * failed on), then are truncated. Frame file names keep only their last path segment without
+ * Messages lose credentials first: whatever follows an authorization scheme (`Bearer`, `Basic`,
+ * `Digest`), a credential header name, or a label such as `token`, `password`, `secret`, or
+ * `api_key`, however short and whatever its characters. Then URLs, email addresses, paths, UUIDs,
+ * long opaque strings, long digit runs (Planning Center IDs), and long quoted or JSON-looking
+ * values (decode errors quote the data they failed on) go, and the result is truncated. These are
+ * filters, not a guarantee: a short unlabelled value can survive, so error messages never
+ * deliberately carry request data, and API failures are reported with synthetic messages. Frame file names keep only their last path segment without
  * query or fragment, so the device's app-container path never leaves it; chunk IDs, lines, and
  * columns are kept because symbolication needs exactly those.
  */
@@ -22,11 +26,21 @@ const FILENAME_MAX_LENGTH = 80;
 export const MAX_EXCEPTIONS = 3;
 export const MAX_FRAMES = 50;
 
+/** An HTTP authorization scheme and its credential, whatever the credential looks like. */
+const AUTH_SCHEME_PATTERN =
+  /\b(?<scheme>[Bb]earer|Basic|Digest)\s+[^\s,;"'`]+/gu;
+/** A credential header and its whole value (`Authorization: Bearer …`, `x-pcobooster-demo=…`). */
+const CREDENTIAL_HEADER_PATTERN =
+  /\b(?<name>(?:proxy-)?authorization|(?:set-)?cookie|x-pcobooster-(?:account|demo)|x-api-key)\b["']?\s*[:=]\s*(?:(?:[Bb]earer|Basic|Digest)\s+)?[^\s,;]*/giu;
+/** A labelled secret (`token=…`, `"password": "…"`, `apiKey: …`), quoted or not. */
+const LABELLED_SECRET_PATTERN =
+  /\b(?<label>[\w-]*(?:token|secret|passw(?:or)?d|pwd|api[-_]?key|credential|signature|session[-_]?id|auth)[\w-]*)(?<separator>["']?\s*[:=]\s*)(?:"[^"]*"|'[^']*'|`[^`]*`|[^\s,;&)}\]]+)/giu;
 const URL_PATTERN = /\b[a-z][a-z\d+.-]*:\/\/\S+/giu;
 const EMAIL_PATTERN = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/gu;
 const UUID_PATTERN =
   /\b[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}\b/giu;
-const TOKEN_PATTERN = /(?=[\w+/=.-]*\d)[\w+/=.-]{24,}/gu;
+/** Long opaque strings: 24 or more characters with a digit or base64 punctuation, or any 32. */
+const TOKEN_PATTERN = /(?=[\w+/=.-]*[\d+/=])[\w+/=.-]{24,}|[\w+/=.-]{32,}/gu;
 const DIGITS_PATTERN = /\d{4,}/gu;
 const JSON_PATTERN = /[{[][^{}[\]]*[}\]]/gu;
 const LONG_QUOTED_PATTERN = /(?<quote>["'`])[^"'`]{25,}\k<quote>/gu;
@@ -41,6 +55,9 @@ const CHUNK_ID = /^[\da-f-]{8,64}$/iu;
 /** A message safe to send, or the empty string. */
 export const sanitizeMessage = (message: string): string =>
   message
+    .replace(CREDENTIAL_HEADER_PATTERN, "$<name>: <secret>")
+    .replace(AUTH_SCHEME_PATTERN, "$<scheme> <secret>")
+    .replace(LABELLED_SECRET_PATTERN, "$<label>$<separator><secret>")
     .replace(URL_PATTERN, "<url>")
     .replace(EMAIL_PATTERN, "<email>")
     .replace(UUID_PATTERN, "<id>")

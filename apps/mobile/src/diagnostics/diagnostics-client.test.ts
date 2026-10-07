@@ -134,6 +134,37 @@ describe(makeDiagnostics, () => {
     });
   });
 
+  it("never sends or keeps a credential from an error message, however it looks", async () => {
+    const { diagnostics, sent, file } = harness();
+    const secrets = ["abcdefghijklmnopqrstuvwxyzABCDEF", "hunter", "s3cr"];
+    diagnostics.recordFatal(
+      new Error(`Authorization: Bearer ${secrets[0]} password=${secrets[1]}`)
+    );
+    signIn(diagnostics);
+    diagnostics.captureException(
+      new Error(`refresh failed: token=${secrets[2]}`),
+      "handled"
+    );
+    await diagnostics.settled();
+    const leaving = JSON.stringify(sent);
+    expect([
+      sent.flatMap((event) =>
+        (event.properties.$exception_list ?? []).map(
+          (exception) => exception.value
+        )
+      ),
+      secrets.filter((secret) => leaving.includes(secret)),
+      file.text,
+    ]).toStrictEqual([
+      [
+        "Authorization: <secret> password=<secret>",
+        "refresh failed: token=<secret>",
+      ],
+      [],
+      null,
+    ]);
+  });
+
   it("purges held and kept reports on opt-out, so a later sign-in never sends them", async () => {
     const { diagnostics, sent, file } = harness();
     diagnostics.captureException(new Error("held"), "handled");

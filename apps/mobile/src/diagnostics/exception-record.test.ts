@@ -114,7 +114,25 @@ describe(buildExceptionRecord, () => {
 
 describe(sanitizeMessage, () => {
   it.each([
-    ["Bearer eyJhbGciOiJIUzI1NiJ9.abc123def456ghi789", "Bearer <token>"],
+    ["Bearer eyJhbGciOiJIUzI1NiJ9.abc123def456ghi789", "Bearer <secret>"],
+    [
+      "Authorization: Bearer abcdefghijklmnopqrstuvwxyzABCDEF",
+      "Authorization: <secret>",
+    ],
+    ["authorization=Basic dXNlcjpwYXNz", "authorization: <secret>"],
+    ["bearer abc", "bearer <secret>"],
+    [
+      `token=abc password: hunter "apiKey": "xyz" secret='s3'`,
+      `token=<secret> password: <secret> "apiKey": <secret> secret=<secret>`,
+    ],
+    ["x-pcobooster-demo: demo", "x-pcobooster-demo: <secret>"],
+    ["Cookie: session=abc; theme=dark", "Cookie: <secret>; theme=dark"],
+    [
+      "callback access_token=short&state=1",
+      "callback access_token=<secret>&state=1",
+    ],
+    ["opaque ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef here", "opaque <token> here"],
+    ["The token expired", "The token expired"],
     ["plan 1234567 missing", "plan <n> missing"],
     ["id 3f2c9b1a-1111-2222-3333-444455556666", "id <id>"],
     ["read /Users/jordan/Library/file.json failed", "read <path> failed"],
@@ -122,7 +140,7 @@ describe(sanitizeMessage, () => {
       "Cannot read property 'title' of undefined",
       "Cannot read property 'title' of undefined",
     ],
-    ["x".repeat(400), "x".repeat(200)],
+    ["word ".repeat(80), "word ".repeat(40)],
   ])("%s", (input, expected) => {
     expect(sanitizeMessage(input)).toBe(expected);
   });
