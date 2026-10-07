@@ -1,5 +1,3 @@
-import { TransportFailure } from "@pcobooster/client/product-client";
-import { isProductFault } from "@pcobooster/contracts/faults";
 import type { ErrorBoundaryProps } from "expo-router";
 import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
@@ -24,11 +22,8 @@ const styles = StyleSheet.create({
  */
 export const RenderFailure = ({ error, retry }: ErrorBoundaryProps) => {
   useEffect(() => {
-    // API failures are reported once, from the query cache with their request ID, never again
-    // as render errors.
-    if (!isProductFault(error) && !(error instanceof TransportFailure)) {
-      deviceDiagnostics.captureException(error, "react-error-boundary");
-    }
+    // API failures are skipped here: the query cache reports them once, with their request ID.
+    deviceDiagnostics.captureException(error, "react-error-boundary");
   }, [error]);
   return (
     <View style={styles.root}>

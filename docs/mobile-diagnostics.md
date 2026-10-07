@@ -72,6 +72,8 @@ A failed call leaves its request ID, procedure, and duration with its rejection.
 | Undecodable answer | `$exception` `ApiDecodeError` |
 | Any other error thrown from a query or mutation | `$exception` with the error itself, so bugs are not hidden |
 
+API failures and cancellations reach diagnostics only through the caches. An unawaited `mutateAsync` rejection, an uncaught error, or the render boundary skips them, so an expected 4xx or an offline failure never becomes an exception there. A fatal is always recorded.
+
 Details are `operation` (the procedure, such as `catalog.plans`), `error_code`, `http_status`, `request_id`, `duration_ms`, and `failure_kind`. Exception messages are synthetic (`catalog.plans failed (UNDECODABLE)`), fingerprinted `mobile-api:<procedure>:<code>`. Request priority, cancellation, pinned credentials, pacing, and the request budget are unchanged: the headers add no requests.
 
 ### Finding a mobile failure in Workers Logs

@@ -11,7 +11,7 @@ import { ClientOutdated } from "@pcobooster/contracts/faults/client-outdated";
 import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
-import { QueryCache, QueryClient } from "@tanstack/react-query";
+import { CancelledError, QueryCache, QueryClient } from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
 
 import { makeAppClient } from "../app-shell/app-client";
@@ -19,6 +19,7 @@ import { makeFixtureFetch } from "../harness/fixture-transport";
 import { noCredentials } from "../session/session-store";
 import {
   classifyApiFailure,
+  isApiFailureOrCancellation,
   makeApiFailureReporter,
   NETWORK_REPORT_INTERVAL_MS,
   operationFromQueryKey,
@@ -46,6 +47,9 @@ const badGateway = new ExternalServiceFailure({
   cause: null,
 });
 
+const networkFailure = () =>
+  new TransportFailure({ procedure: null, reason: "network", cause: null });
+
 describe(classifyApiFailure, () => {
   it("reports a 5xx as a non-exception event joined to the Worker line by request ID", () => {
     expect(classifyApiFailure(badGateway, context)).toStrictEqual({
@@ -68,6 +72,7 @@ describe(classifyApiFailure, () => {
       new RateLimited({ message: "Slow down", service: "planning-center" }),
     ],
     ["an abort", new DOMException("The call was aborted", "AbortError")],
+    ["a TanStack Query cancellation", new CancelledError()],
   ])("ignores %s", (_name, cause) => {
     expect(classifyApiFailure(cause, context)).toStrictEqual({
       kind: "ignore",
@@ -135,6 +140,20 @@ describe(classifyApiFailure, () => {
   });
 });
 
+describe(isApiFailureOrCancellation, () => {
+  it("claims faults, transport failures, and cancellations, and nothing else", () => {
+    expect(
+      [
+        badGateway,
+        networkFailure(),
+        new DOMException("The call was aborted", "AbortError"),
+        new TypeError("x is undefined"),
+        "thrown string",
+      ].map(isApiFailureOrCancellation)
+    ).toStrictEqual([true, true, true, false, false]);
+  });
+});
+
 describe(operationFromQueryKey, () => {
   it("reads the procedure tag a query key carries second", () => {
     expect([
@@ -143,9 +162,6 @@ describe(operationFromQueryKey, () => {
     ]).toStrictEqual(["catalog.plans", null]);
   });
 });
-
-const networkFailure = () =>
-  new TransportFailure({ procedure: null, reason: "network", cause: null });
 
 const recorder = () => {
   const events: { details: ReportDetails; dedupeKey: string }[] = [];

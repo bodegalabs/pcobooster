@@ -274,6 +274,20 @@ describe(makeDiagnostics, () => {
     ).toStrictEqual([true, true, false]);
   });
 
+  it("skips non-fatal reports another path owns, but still records them as fatals", async () => {
+    const { diagnostics, sent, file } = harness();
+    signIn(diagnostics);
+    diagnostics.setReportedElsewhere(
+      (cause) => cause instanceof Error && cause.message === "api"
+    );
+    diagnostics.captureException(new Error("api"), "unhandled-rejection");
+    diagnostics.captureException(new Error("api"), "react-error-boundary");
+    diagnostics.recordFatal(new Error("api"));
+    await diagnostics.settled();
+    // The fatal waits on disk for the next launch; neither non-fatal was sent.
+    expect([sent.length, file.text !== null]).toStrictEqual([0, true]);
+  });
+
   it("never throws to its caller when the transport fails", async () => {
     const { diagnostics } = harness();
     const failing = makeDiagnostics({

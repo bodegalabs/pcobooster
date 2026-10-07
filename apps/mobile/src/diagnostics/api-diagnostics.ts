@@ -25,6 +25,7 @@ import {
   TransportFailure,
 } from "@pcobooster/client/product-client";
 import { isProductFault } from "@pcobooster/contracts/faults";
+import { CancelledError } from "@tanstack/react-query";
 import type { QueryKey } from "@tanstack/react-query";
 import { Option, Schema } from "effect";
 
@@ -68,10 +69,10 @@ const decodeTag = Schema.decodeUnknownOption(Schema.String);
 export const operationFromQueryKey = (queryKey: QueryKey): string | null =>
   Option.getOrNull(decodeTag(queryKey[1]));
 
+/** TanStack Query's cancellation, or an aborted call (`AbortError`). */
 const isCancellation = (cause: unknown): boolean =>
-  cause instanceof Object &&
-  "name" in cause &&
-  (cause.name === "AbortError" || cause.name === "CancelledError");
+  cause instanceof CancelledError ||
+  (cause instanceof Object && "name" in cause && cause.name === "AbortError");
 
 const operationName = (context: ApiFailureContext): string => {
   const name = context.call?.procedure ?? context.operation;
@@ -101,6 +102,17 @@ const detailsFor = (
   }
   return details;
 };
+
+/**
+ * Whether the query and mutation caches own this failure: a product fault, a transport failure,
+ * or a cancellation. Other paths (uncaught errors, unhandled rejections of an unawaited
+ * `mutateAsync`, the render boundary) skip it, so an expected 4xx or an offline failure is never
+ * reported as an exception there.
+ */
+export const isApiFailureOrCancellation = (cause: unknown): boolean =>
+  isCancellation(cause) ||
+  isProductFault(cause) ||
+  cause instanceof TransportFailure;
 
 /** The report a terminal failure gets under the table above. */
 export const classifyApiFailure = (

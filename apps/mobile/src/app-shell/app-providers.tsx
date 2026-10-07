@@ -33,6 +33,7 @@ import { Alert, AppState, StyleSheet, View } from "react-native";
 import { ErrorToastProvider } from "../components/error-toast";
 import { colors } from "../design/colors";
 import {
+  isApiFailureOrCancellation,
   makeApiFailureReporter,
   operationFromQueryKey,
 } from "../diagnostics/api-diagnostics";
@@ -175,6 +176,9 @@ if (!runtime.isFixtureMode) {
 }
 
 const reportApiFailure = makeApiFailureReporter(deviceDiagnostics);
+// API failures and cancellations are reported by the query caches alone, never again as
+// uncaught errors, unhandled rejections, or render errors.
+deviceDiagnostics.setReportedElsewhere(isApiFailureOrCancellation);
 
 /**
  * A query cache that reports each terminal failure once (`diagnostics/api-diagnostics.ts`);

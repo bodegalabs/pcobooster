@@ -156,9 +156,16 @@ export interface Diagnostics {
   ) => void;
   /** Synchronously keeps a fatal on disk; the app is about to terminate. */
   readonly recordFatal: (cause: unknown) => void;
+  /**
+   * Skips uncaught errors, unhandled rejections, and render errors that another path reports
+   * (API failures and cancellations, `api-diagnostics.ts`). Fatals are always recorded.
+   */
+  readonly setReportedElsewhere: (test: (cause: unknown) => boolean) => void;
   /** Resolves when deliveries in flight finish (tests). */
   readonly settled: () => Promise<void>;
 }
+
+const reportedNowhere = () => false;
 
 const sameSession = (
   left: CaptureContext["session"],
@@ -196,6 +203,7 @@ export const makeDiagnostics = ({
   const inFlight = new Set<Promise<void>>();
   let sentThisSession = 0;
   let replaying = false;
+  let reportedElsewhere: (cause: unknown) => boolean = reportedNowhere;
 
   const propertiesFor = (parts: EventParts): DiagnosticsEventProperties => {
     const properties: EventPropertiesDraft = {
@@ -438,6 +446,9 @@ export const makeDiagnostics = ({
         return;
       }
       try {
+        if (source !== "handled" && reportedElsewhere(cause)) {
+          return;
+        }
         if (cause instanceof Object) {
           if (reported.has(cause)) {
             return;
@@ -529,6 +540,9 @@ export const makeDiagnostics = ({
       } catch {
         /* The fatal still reaches React Native; only this report is lost. */
       }
+    },
+    setReportedElsewhere: (test) => {
+      reportedElsewhere = test;
     },
     settled: async () => {
       while (inFlight.size > 0) {
