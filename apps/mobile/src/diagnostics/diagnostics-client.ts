@@ -13,6 +13,11 @@
  *   always recorded: a fatal replaces a not-yet-sent report of the same error rather than being
  *   suppressed by it. A fingerprint is sent at most once per `REPEAT_WINDOW_MS`, and an app
  *   session sends at most `SESSION_LIMIT` reports.
+ * - A report of work that started earlier (an API call, a mutation) is captured under the context
+ *   that work started in (`origin`), never the one current when it fails: it is dropped if that
+ *   context could not report, if a purge happened since, or if it belongs to another account.
+ * - A purge (opt-out, demo) aborts deliveries already in flight. A delivery PostHog has already
+ *   received cannot be taken back.
  * - Nothing here throws to its caller or waits on the network in the caller's path.
  */
 import { uuidv7 } from "@posthog/core/vendor/uuidv7";
@@ -100,10 +105,21 @@ export interface CapturedEvent {
   readonly properties: DiagnosticsEventProperties;
 }
 
-/** Posts events to PostHog; resolves whether PostHog accepted them. */
+/** Posts events to PostHog; resolves whether PostHog accepted them. Aborts with `signal`. */
 export type DiagnosticsTransport = (
-  events: readonly CapturedEvent[]
+  events: readonly CapturedEvent[],
+  signal: AbortSignal
 ) => Promise<boolean>;
+
+/**
+ * The context work started in, pinned when it starts (`Diagnostics.origin`) and passed with its
+ * report: whose report it would be, or null when nothing could be reported then, and how many
+ * purges had happened.
+ */
+export interface ReportOrigin {
+  readonly owner: ReportOwner | null;
+  readonly purges: number;
+}
 
 export interface DiagnosticsDependencies {
   /** False in development builds, fixture mode, and builds without a project key. */
@@ -135,11 +151,14 @@ export interface Diagnostics {
   readonly appSessionId: string;
   readonly setPreference: (preference: CaptureContext["preference"]) => void;
   readonly setSession: (session: CaptureContext["session"]) => void;
-  /** Reports a non-fatal error. */
+  /** The current context, for work that reports later to pin when it starts. */
+  readonly origin: () => ReportOrigin;
+  /** Reports a non-fatal error; under `origin` when it comes from earlier work. */
   readonly captureException: (
     cause: unknown,
     source: ExceptionSource,
-    details?: ReportDetails
+    details?: ReportDetails,
+    origin?: ReportOrigin
   ) => void;
   /** Reports a failure with no useful thrown value, under its own message and fingerprint. */
   readonly captureFailure: (failure: {
@@ -147,12 +166,14 @@ export interface Diagnostics {
     readonly message: string;
     readonly fingerprint: string;
     readonly details: ReportDetails;
+    readonly origin?: ReportOrigin;
   }) => void;
   /** Reports a non-exception diagnostic event such as `api request failed`. */
   readonly captureEvent: (
     event: "api request failed",
     details: ReportDetails,
-    dedupeKey: string
+    dedupeKey: string,
+    origin?: ReportOrigin
   ) => void;
   /** Synchronously keeps a fatal on disk; the app is about to terminate. */
   readonly recordFatal: (cause: unknown) => void;
@@ -201,6 +222,8 @@ export const makeDiagnostics = ({
   const heldFor = new WeakMap<object, HeldReport>();
   const lastSent = new Map<string, number>();
   const inFlight = new Set<Promise<void>>();
+  const deliveries = new Set<AbortController>();
+  let purges = 0;
   let sentThisSession = 0;
   let replaying = false;
   let reportedElsewhere: (cause: unknown) => boolean = reportedNowhere;
@@ -249,10 +272,14 @@ export const makeDiagnostics = ({
   const deliver = async (
     events: readonly CapturedEvent[]
   ): Promise<boolean> => {
+    const controller = new AbortController();
+    deliveries.add(controller);
     try {
-      return await transport(events);
+      return await transport(events, controller.signal);
     } catch {
       return false;
+    } finally {
+      deliveries.delete(controller);
     }
   };
 
@@ -383,7 +410,11 @@ export const makeDiagnostics = ({
     }
     const disposition = dispositionFor(context);
     if (disposition.kind === "purge") {
+      purges += 1;
       held.length = 0;
+      for (const delivery of deliveries) {
+        delivery.abort();
+      }
       try {
         pending?.clear();
       } catch {
@@ -397,12 +428,23 @@ export const makeDiagnostics = ({
     track(replayFatals(disposition));
   };
 
+  const currentOrigin = (): ReportOrigin => ({
+    owner: ownerFor(context),
+    purges,
+  });
+
   const enqueue = (
     report: Omit<HeldReport, "id" | "capturedAt" | "owner">,
-    dedupeKey: string
+    dedupeKey: string,
+    origin: ReportOrigin = currentOrigin()
   ): HeldReport | null => {
-    const owner = ownerFor(context);
-    if (owner === null || !allowRepeat(dedupeKey)) {
+    const { owner } = origin;
+    if (owner === null || origin.purges !== purges) {
+      return null;
+    }
+    const disposition = dispositionFor(context);
+    const decision = replayDecision(owner, disposition);
+    if (decision.kind === "delete" || !allowRepeat(dedupeKey)) {
       return null;
     }
     const kept: HeldReport = {
@@ -411,11 +453,12 @@ export const makeDiagnostics = ({
       capturedAt: now(),
       owner,
     };
-    const disposition = dispositionFor(context);
-    if (disposition.kind === "send") {
+    if (decision.kind === "send" && disposition.kind === "send") {
       track(
         (async () => {
-          await deliver([heldEvent(kept, disposition.userId, false)]);
+          await deliver([
+            heldEvent(kept, disposition.userId, decision.beforeSignIn),
+          ]);
         })()
       );
     } else if (held.length < MAX_HELD) {
@@ -441,7 +484,8 @@ export const makeDiagnostics = ({
       context = { ...context, session };
       apply();
     },
-    captureException: (cause, source, details = {}) => {
+    origin: currentOrigin,
+    captureException: (cause, source, details, origin) => {
       if (!enabled) {
         return;
       }
@@ -461,9 +505,10 @@ export const makeDiagnostics = ({
             event: "$exception",
             record,
             fingerprint: null,
-            details,
+            details: details ?? {},
           },
-          record.fingerprint
+          record.fingerprint,
+          origin
         );
         if (kept !== null && cause instanceof Object) {
           heldFor.set(cause, kept);
@@ -472,7 +517,7 @@ export const makeDiagnostics = ({
         /* Reporting never breaks the app. */
       }
     },
-    captureFailure: ({ type, message, fingerprint, details }) => {
+    captureFailure: ({ type, message, fingerprint, details, origin }) => {
       if (!enabled) {
         return;
       }
@@ -493,16 +538,18 @@ export const makeDiagnostics = ({
           fingerprint,
           details,
         },
-        fingerprint
+        fingerprint,
+        origin
       );
     },
-    captureEvent: (event, details, dedupeKey) => {
+    captureEvent: (event, details, dedupeKey, origin) => {
       if (!enabled) {
         return;
       }
       enqueue(
         { event, record: null, fingerprint: null, details },
-        `${event}|${dedupeKey}`
+        `${event}|${dedupeKey}`,
+        origin
       );
     },
     recordFatal: (cause) => {

@@ -319,6 +319,80 @@ describe(makeDiagnostics, () => {
     expect([sent.length, file.text !== null]).toStrictEqual([0, true]);
   });
 
+  it("captures earlier work under the context it started in", async () => {
+    const { diagnostics, sent } = harness();
+    const beforeSignIn = diagnostics.origin();
+    diagnostics.setPreference("opted-in");
+    diagnostics.setSession({ kind: "signed-in", userId: "A" });
+    const startedForA = diagnostics.origin();
+    diagnostics.setSession({ kind: "signed-out" });
+    diagnostics.captureEvent(
+      "api request failed",
+      {},
+      "held-for-a",
+      startedForA
+    );
+    diagnostics.setSession({ kind: "signed-in", userId: "B" });
+    diagnostics.captureEvent("api request failed", {}, "late-a", startedForA);
+    diagnostics.captureEvent("api request failed", {}, "early", beforeSignIn);
+    await diagnostics.settled();
+    expect(
+      sent.map((event) => [
+        event.distinct_id,
+        event.properties.captured_before_sign_in,
+      ])
+    ).toStrictEqual([["B", true]]);
+  });
+
+  it("drops earlier work from a context that could not report, or from before a purge", async () => {
+    const { diagnostics, sent } = harness();
+    diagnostics.setPreference("opted-out");
+    diagnostics.setSession({ kind: "signed-in", userId: "A" });
+    const optedOut = diagnostics.origin();
+    diagnostics.setPreference("opted-in");
+    const beforeDemo = diagnostics.origin();
+    diagnostics.setSession({ kind: "demo" });
+    diagnostics.setSession({ kind: "signed-in", userId: "A" });
+    diagnostics.captureEvent("api request failed", {}, "opted-out", optedOut);
+    diagnostics.captureFailure({
+      type: "ApiTransportError",
+      message: "catalog.plans failed (NETWORK_ERROR)",
+      fingerprint: "before-demo",
+      details: {},
+      origin: beforeDemo,
+    });
+    diagnostics.captureException(
+      new Error("before demo"),
+      "handled",
+      {},
+      beforeDemo
+    );
+    diagnostics.captureEvent("api request failed", {}, "now");
+    await diagnostics.settled();
+    expect(sent.map((event) => event.distinct_id)).toStrictEqual(["A"]);
+  });
+
+  it("aborts a delivery in flight when the person opts out", async () => {
+    const signals: AbortSignal[] = [];
+    const answer = Promise.withResolvers<null>();
+    const diagnostics = makeDiagnostics({
+      enabled: true,
+      release,
+      pending: null,
+      transport: async (_events, signal) => {
+        signals.push(signal);
+        await answer.promise;
+        return !signal.aborted;
+      },
+    });
+    signIn(diagnostics);
+    diagnostics.captureException(new Error("in flight"), "handled");
+    diagnostics.setPreference("opted-out");
+    answer.resolve(null);
+    await diagnostics.settled();
+    expect(signals.map((signal) => signal.aborted)).toStrictEqual([true]);
+  });
+
   it("never throws to its caller when the transport fails", async () => {
     const { diagnostics } = harness();
     const failing = makeDiagnostics({

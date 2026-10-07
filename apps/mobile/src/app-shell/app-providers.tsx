@@ -7,9 +7,7 @@ import { addEventListener } from "@react-native-community/netinfo";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import {
   focusManager,
-  MutationCache,
   onlineManager,
-  QueryCache,
   QueryClient,
   QueryClientProvider,
   useIsRestoring,
@@ -35,9 +33,7 @@ import { colors } from "../design/colors";
 import {
   isApiFailureOrCancellation,
   makeApiFailureReporter,
-  operationFromQueryKey,
 } from "../diagnostics/api-diagnostics";
-import { callFailureOf } from "../diagnostics/call-failures";
 import { deviceDiagnostics } from "../diagnostics/device-diagnostics";
 import { withApiProbe } from "../diagnostics/probe-transport";
 import type { ApiProbe } from "../diagnostics/probe-transport";
@@ -82,6 +78,8 @@ import {
   queryCacheKey,
   serializeQueryCache,
 } from "./query-persistence";
+import { makeScopedQueryClient } from "./scoped-query-client";
+import type { ScopedQueryReporting } from "./scoped-query-client";
 import { SessionContext } from "./session";
 import type { SessionValue, SignInActivity } from "./session";
 
@@ -117,6 +115,7 @@ const runtime: AppRuntime = launchOptions.mock
         void cacheStorage.forget(userIds);
       },
       appRelease: formatAppRelease(releaseMetadata),
+      reportOrigin: deviceDiagnostics.origin,
       productFetch: isApiProbe(diagnosticsProbe)
         ? withApiProbe(globalThis.fetch, diagnosticsProbe)
         : globalThis.fetch,
@@ -180,36 +179,12 @@ const reportApiFailure = makeApiFailureReporter(deviceDiagnostics);
 // uncaught errors, unhandled rejections, or render errors.
 deviceDiagnostics.setReportedElsewhere(isApiFailureOrCancellation);
 
-/**
- * A query cache that reports each terminal failure once (`diagnostics/api-diagnostics.ts`);
- * TanStack Query calls `onError` only after the last automatic retry.
- */
-const makeScopedQueryClient = () =>
-  new QueryClient({
-    defaultOptions: queryClient.getDefaultOptions(),
-    queryCache: new QueryCache({
-      onError: (error, query) => {
-        reportApiFailure(error, {
-          call: callFailureOf(error),
-          operation: operationFromQueryKey(query.queryKey),
-          speculative:
-            query.meta?.requestPriority === "speculative" &&
-            query.getObserversCount() === 0,
-          online: onlineManager.isOnline(),
-        });
-      },
-    }),
-    mutationCache: new MutationCache({
-      onError: (error) => {
-        reportApiFailure(error, {
-          call: callFailureOf(error),
-          operation: null,
-          speculative: false,
-          online: onlineManager.isOnline(),
-        });
-      },
-    }),
-  });
+const scopedQueryReporting: ScopedQueryReporting = {
+  report: reportApiFailure,
+  origin: deviceDiagnostics.origin,
+  currentScope: () => runtime.session.getSnapshot().scope,
+  online: () => onlineManager.isOnline(),
+};
 
 const styles = StyleSheet.create({
   cover: {
@@ -236,7 +211,15 @@ const ScopedQueries = ({
   persisted: boolean;
   children: ReactNode;
 }) => {
-  const cache = useMemo(() => makeScopedQueryClient(), []);
+  const cache = useMemo(
+    () =>
+      makeScopedQueryClient(
+        scope,
+        queryClient.getDefaultOptions(),
+        scopedQueryReporting
+      ),
+    [scope]
+  );
   const persister = useMemo(
     () =>
       createAsyncStoragePersister({
@@ -333,7 +316,7 @@ const AccountSync = () => {
  */
 const SessionProvider = ({ children }: { children: ReactNode }) => {
   const toasts = useToasts();
-  const { session, client, scheduler } = runtime;
+  const { session, scheduler } = runtime;
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot);
   const [activity, setActivity] = useState<SignInActivity>({ kind: "idle" });
   const activityRef = useRef(activity);
@@ -524,8 +507,8 @@ const SessionProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const clientContext = useMemo(
-    () => ({ client, scope, scheduler }),
-    [client, scheduler, scope]
+    () => ({ client: runtime.clientForScope(scope), scope, scheduler }),
+    [scheduler, scope]
   );
 
   return (

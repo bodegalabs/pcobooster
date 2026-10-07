@@ -49,12 +49,15 @@ const openPendingFile = (): SyncTextFile | null => {
 };
 
 const sendToPostHog = async (
-  events: readonly CapturedEvent[]
+  events: readonly CapturedEvent[],
+  cancelled: AbortSignal
 ): Promise<boolean> => {
   const controller = new AbortController();
-  const timer = setTimeout(() => {
+  const abort = () => {
     controller.abort();
-  }, SEND_TIMEOUT_MS);
+  };
+  cancelled.addEventListener("abort", abort);
+  const timer = setTimeout(abort, SEND_TIMEOUT_MS);
   try {
     const response = await fetch(`${POSTHOG_HOST}/batch/`, {
       method: "POST",
@@ -68,6 +71,7 @@ const sendToPostHog = async (
     return false;
   } finally {
     clearTimeout(timer);
+    cancelled.removeEventListener("abort", abort);
   }
 };
 

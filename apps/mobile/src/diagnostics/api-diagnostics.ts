@@ -17,7 +17,9 @@
  *
  * Reports carry only the procedure name, the failure's code and HTTP status, the request ID,
  * and the duration: never inputs, URLs, headers, or answer bodies. Exception messages are
- * synthetic (`plans.list failed (UNDECODABLE)`).
+ * synthetic (`plans.list failed (UNDECODABLE)`). Each is captured under the diagnostics context
+ * its work started in (`origin`), so a failure that settles after an account switch is never
+ * reported as the new account's.
  */
 import {
   failureCode,
@@ -29,8 +31,13 @@ import { CancelledError } from "@tanstack/react-query";
 import type { QueryKey } from "@tanstack/react-query";
 import { Option, Schema } from "effect";
 
+import { ScopeChangedError } from "../app-shell/scope-changed";
 import type { CallFailure } from "./call-failures";
-import type { Diagnostics, ReportDetails } from "./diagnostics-client";
+import type {
+  Diagnostics,
+  ReportDetails,
+  ReportOrigin,
+} from "./diagnostics-client";
 
 export const NETWORK_REPORT_INTERVAL_MS = 5 * 60 * 1000;
 const SERVER_ERROR_STATUS = 500;
@@ -45,6 +52,8 @@ export interface ApiFailureContext {
   readonly speculative: boolean;
   /** The device reports a network connection (`onlineManager`). */
   readonly online: boolean;
+  /** The diagnostics context the failed work started in; null reports under the current one. */
+  readonly origin: ReportOrigin | null;
 }
 
 export type ApiFailureReport =
@@ -69,9 +78,13 @@ const decodeTag = Schema.decodeUnknownOption(Schema.String);
 export const operationFromQueryKey = (queryKey: QueryKey): string | null =>
   Option.getOrNull(decodeTag(queryKey[1]));
 
-/** TanStack Query's cancellation, or an aborted call (`AbortError`). */
+/**
+ * TanStack Query's cancellation, an aborted call (`AbortError`), or a call never sent because the
+ * account changed first.
+ */
 const isCancellation = (cause: unknown): boolean =>
   cause instanceof CancelledError ||
+  cause instanceof ScopeChangedError ||
   (cause instanceof Object && "name" in cause && cause.name === "AbortError");
 
 const operationName = (context: ApiFailureContext): string => {
@@ -179,6 +192,7 @@ export const makeApiFailureReporter = (
   let reportedOutdated = false;
   let lastNetworkReport = Number.NEGATIVE_INFINITY;
   return (cause: unknown, context: ApiFailureContext) => {
+    const origin = context.origin ?? undefined;
     try {
       const report = classifyApiFailure(cause, context);
       switch (report.kind) {
@@ -195,7 +209,8 @@ export const makeApiFailureReporter = (
           diagnostics.captureEvent(
             "api request failed",
             report.details,
-            report.dedupeKey
+            report.dedupeKey,
+            origin
           );
           return;
         }
@@ -206,11 +221,16 @@ export const makeApiFailureReporter = (
             }
             lastNetworkReport = now();
           }
-          diagnostics.captureFailure(report);
+          diagnostics.captureFailure({ ...report, origin });
           return;
         }
         case "defect": {
-          diagnostics.captureException(cause, "handled", report.details);
+          diagnostics.captureException(
+            cause,
+            "handled",
+            report.details,
+            origin
+          );
           return;
         }
         default: {

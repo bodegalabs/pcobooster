@@ -96,6 +96,7 @@ describe(makeAppClient, () => {
         handleUnauthorized: (sent) => {
           reported.push(sent);
         },
+        scope: () => "user:u1",
       },
       createRequestScheduler({ quietMs: 0 })
     );
@@ -207,7 +208,11 @@ describe("the app client's request IDs", () => {
     });
     const client = makeAppClient(
       product,
-      { credentials: () => signedIn, handleUnauthorized: () => {} },
+      {
+        credentials: () => signedIn,
+        handleUnauthorized: () => {},
+        scope: () => "user:u1",
+      },
       createRequestScheduler({ quietMs: 0 }),
       identity()
     );
@@ -237,7 +242,11 @@ describe("the app client's request IDs", () => {
     });
     const client = makeAppClient(
       product,
-      { credentials: () => signedIn, handleUnauthorized: () => {} },
+      {
+        credentials: () => signedIn,
+        handleUnauthorized: () => {},
+        scope: () => "user:u1",
+      },
       createRequestScheduler({ quietMs: 0 }),
       identity()
     );
@@ -249,7 +258,12 @@ describe("the app client's request IDs", () => {
       callFailureOf(failure),
     ]).toStrictEqual([
       true,
-      { requestId: "req-1", procedure: "session.status", durationMs: 5 },
+      {
+        requestId: "req-1",
+        procedure: "session.status",
+        durationMs: 5,
+        origin: null,
+      },
     ]);
   });
 
@@ -266,7 +280,11 @@ describe("the app client's request IDs", () => {
     });
     const client = makeAppClient(
       product,
-      { credentials: () => signedIn, handleUnauthorized: () => {} },
+      {
+        credentials: () => signedIn,
+        handleUnauthorized: () => {},
+        scope: () => "user:u1",
+      },
       createRequestScheduler({ quietMs: 0 }),
       identity()
     );

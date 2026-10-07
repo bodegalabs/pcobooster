@@ -11,10 +11,12 @@ import { ClientOutdated } from "@pcobooster/contracts/faults/client-outdated";
 import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
-import { CancelledError, QueryCache, QueryClient } from "@tanstack/react-query";
+import { CancelledError } from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
 
 import { makeAppClient } from "../app-shell/app-client";
+import { ScopeChangedError } from "../app-shell/scope-changed";
+import { makeScopedQueryClient } from "../app-shell/scoped-query-client";
 import { makeFixtureFetch } from "../harness/fixture-transport";
 import { noCredentials } from "../session/session-store";
 import {
@@ -25,7 +27,6 @@ import {
   operationFromQueryKey,
 } from "./api-diagnostics";
 import type { ApiFailureContext } from "./api-diagnostics";
-import { callFailureOf } from "./call-failures";
 import type { ReportDetails } from "./diagnostics-client";
 import { syntheticBadGateway, syntheticUndecodable } from "./synthetic-answers";
 
@@ -33,12 +34,14 @@ const call = {
   requestId: "req-1",
   procedure: "catalog.plans",
   durationMs: 42.4,
+  origin: null,
 };
 const context: ApiFailureContext = {
   call,
   operation: null,
   speculative: false,
   online: true,
+  origin: null,
 };
 
 const badGateway = new ExternalServiceFailure({
@@ -73,6 +76,7 @@ describe(classifyApiFailure, () => {
     ],
     ["an abort", new DOMException("The call was aborted", "AbortError")],
     ["a TanStack Query cancellation", new CancelledError()],
+    ["a call never sent because the account changed", new ScopeChangedError()],
   ])("ignores %s", (_name, cause) => {
     expect(classifyApiFailure(cause, context)).toStrictEqual({
       kind: "ignore",
@@ -147,10 +151,11 @@ describe(isApiFailureOrCancellation, () => {
         badGateway,
         networkFailure(),
         new DOMException("The call was aborted", "AbortError"),
+        new ScopeChangedError(),
         new TypeError("x is undefined"),
         "thrown string",
       ].map(isApiFailureOrCancellation)
-    ).toStrictEqual([true, true, true, false, false]);
+    ).toStrictEqual([true, true, true, true, false, false]);
   });
 });
 
@@ -229,7 +234,11 @@ const queryHarness = (answers: (() => Response | Promise<Response>)[]) => {
   });
   const client = makeAppClient(
     product,
-    { credentials: () => noCredentials, handleUnauthorized: () => {} },
+    {
+      credentials: () => noCredentials,
+      handleUnauthorized: () => {},
+      scope: () => "scope",
+    },
     createRequestScheduler({ quietMs: 0 }),
     {
       newRequestId: () => {
@@ -240,21 +249,16 @@ const queryHarness = (answers: (() => Response | Promise<Response>)[]) => {
     }
   );
   const { report, events, failures } = recorder();
-  const queries = new QueryClient({
-    defaultOptions: {
-      queries: { retry: retryTransientReadFailure, retryDelay: 0 },
-    },
-    queryCache: new QueryCache({
-      onError: (error, query) => {
-        report(error, {
-          call: callFailureOf(error),
-          operation: operationFromQueryKey(query.queryKey),
-          speculative: false,
-          online: true,
-        });
-      },
-    }),
-  });
+  const queries = makeScopedQueryClient(
+    "scope",
+    { queries: { retry: retryTransientReadFailure, retryDelay: 0 } },
+    {
+      report,
+      origin: () => ({ owner: null, purges: 0 }),
+      currentScope: () => "scope",
+      online: () => true,
+    }
+  );
   const fetchOrganization = async () => {
     try {
       await queries.query({
