@@ -27,7 +27,7 @@ describe("PlanningCenterPlansService.getPlansWithIncludedInDateRange", () => {
       testPlanningCenterToken,
       unreachableHttpClient
     );
-    const fetchFirstPages = vi.spyOn(core, "fetchFirstPages").mockReturnValue(
+    const fetchPage = vi.spyOn(core, "fetchPage").mockReturnValue(
       Effect.succeed({
         data: [
           planResource("plan-1", "2026-05-24T10:00:00-07:00"),
@@ -43,7 +43,7 @@ describe("PlanningCenterPlansService.getPlansWithIncludedInDateRange", () => {
             },
           },
         ],
-        next: null,
+        nextOffset: null,
       })
     );
     const service = new PlanningCenterPlansService(core, resolveTimeZone);
@@ -68,11 +68,55 @@ describe("PlanningCenterPlansService.getPlansWithIncludedInDateRange", () => {
       )
     );
 
-    expect(fetchFirstPages).toHaveBeenCalledOnce();
+    expect(fetchPage).toHaveBeenCalledOnce();
     expect(second.data[0].attributes.sort_date).toBe(
       "2026-05-24T10:00:00-07:00"
     );
     expect(second.included[0].attributes.title).toBe("Original Series");
+  });
+});
+
+describe("PlanningCenterPlansService.getPlanRangePage", () => {
+  it("caches each page per account until the service type's plan times change", async () => {
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
+    );
+    const fetchPage = vi.spyOn(core, "fetchPage").mockReturnValue(
+      Effect.succeed({
+        data: [planResource("plan-1", "2026-05-24T10:00:00-07:00")],
+        included: [],
+        nextOffset: 100,
+      })
+    );
+    const service = new PlanningCenterPlansService(core, resolveTimeZone);
+    const read = async (offset: number) =>
+      await Effect.runPromise(
+        service.getPlanRangePage("st-1", "2026-05-01", "plan_times", offset)
+      );
+
+    await read(0);
+    await read(100);
+    const page = await read(0);
+    page.data[0].attributes.sort_date = "mutated";
+    service.invalidatePlanTimesCache("st-1", "plan-1");
+    const again = await read(0);
+
+    expect({
+      calls: fetchPage.mock.calls.map(([, params, offset]) => [params, offset]),
+      copy: again.data[0].attributes.sort_date,
+    }).toStrictEqual({
+      calls: [0, 100, 0].map((offset) => [
+        {
+          order: "sort_date",
+          filter: "after",
+          after: "2026-05-01",
+          include: "plan_times",
+        },
+        offset,
+      ]),
+      copy: "2026-05-24T10:00:00-07:00",
+    });
   });
 });
 

@@ -78,8 +78,10 @@ const setup = ({
       ])
     );
   const planRanges = vi
-    .spyOn(services.plans, "getPlansWithIncludedInDateRange")
-    .mockReturnValue(Effect.succeed({ data: [], included: [] }));
+    .spyOn(services.plans, "getPlanRangePage")
+    .mockReturnValue(
+      Effect.succeed({ data: [], included: [], nextOffset: null })
+    );
   const updateStatus = vi
     .spyOn(services.people, "updatePlanPersonStatus")
     .mockReturnValue(
@@ -163,8 +165,15 @@ const raw = async (
   });
 
 const continuation = {
-  plans: [{ serviceTypeId: "st-2", planId: "plan-9", rosterRequests: 1 }],
-  serviceTypeIds: ["st-3"],
+  plans: [
+    {
+      serviceTypeId: "st-2",
+      planId: "plan-9",
+      rosterRequests: 1,
+      rangeOffset: 0,
+    },
+  ],
+  ranges: [{ serviceTypeId: "st-3", offset: 0 }],
 };
 
 const HISTORY = "/api/v1/people/plan-window-history";
@@ -181,14 +190,15 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
       { priority: "speculative" }
     );
 
-    // Only the continuation's service types are read: st-2 to locate plan-9, then st-3.
+    // Only the continuation's pages are read: st-2's to locate plan-9 (gone, so its
+    // neighbor too), then st-3's first.
     expect(
-      planRanges.mock.calls.map(([serviceTypeId]) => serviceTypeId)
-    ).toStrictEqual(["st-2", "st-3"]);
+      planRanges.mock.calls.map((call) => `${call[0]}@${call[3]}`)
+    ).toStrictEqual(["st-2@0", "st-2@100", "st-3@0"]);
     expect(batch).toMatchObject({
       loadedPlanCount: 0,
       deferredPlans: [],
-      deferredServiceTypeIds: [],
+      deferredRanges: [],
     });
     expect(
       app.logs

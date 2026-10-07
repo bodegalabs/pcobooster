@@ -13,6 +13,12 @@ import type {
   CandidateDetailsInput,
 } from "@pcobooster/api/modules/planning-center/get-candidate-details";
 import { getPeopleDashboardPerson } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
+import { getPlanWindowHistory } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
+import type {
+  PlanWindowHistoryBatch,
+  PlanWindowHistoryDependencies,
+  PlanWindowHistoryInput,
+} from "@pcobooster/api/modules/planning-center/get-plan-window-history";
 import type { PeopleDashboardPersonDetail } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
 import type { PlanTimesProgress } from "@pcobooster/api/modules/planning-center/people/plan-time-pages";
 import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
@@ -29,12 +35,25 @@ import {
   PlanningCenterPeopleService,
 } from "@pcobooster/api/planning-center/services/people-service";
 import type { PlanningCenterPeopleServiceCaches } from "@pcobooster/api/planning-center/services/people-service";
+import {
+  createPlanningCenterPlansServiceCaches,
+  PlanningCenterPlansService,
+} from "@pcobooster/api/planning-center/services/plans-service";
+import type { PlanningCenterPlansServiceCaches } from "@pcobooster/api/planning-center/services/plans-service";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import { httpClientFor } from "@pcobooster/api/testing/http-client";
 import { countedRead } from "@pcobooster/api/testing/planning-center-requests";
-import { peopleCandidateDetailsInputSchema } from "@pcobooster/contracts/http/people";
+import {
+  peopleCandidateDetailsInputSchema,
+  peoplePlanWindowHistoryInputSchema,
+} from "@pcobooster/contracts/http/people";
 import { MAX_PENDING_BLOCKOUTS } from "@pcobooster/contracts/http/people-schemas";
-import { candidateDetailsAdvanced } from "@pcobooster/planning-center-models/candidate-list";
+import {
+  candidateDetailsAdvanced,
+  nextWindowContinuation,
+  windowHistoryAdvanced,
+} from "@pcobooster/planning-center-models/candidate-list";
+import { expandPlanWindowHistory } from "@pcobooster/planning-center-models/plan-window-history";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect, Exit, Option, Schema } from "effect";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -268,6 +287,9 @@ const MAX_CALLS = 20;
 
 const decodeCandidateDetailsInput = Schema.decodeUnknownOption(
   peopleCandidateDetailsInputSchema
+);
+const decodeWindowHistoryInput = Schema.decodeUnknownOption(
+  peoplePlanWindowHistoryInputSchema
 );
 
 /** Follows the continuation the way the browser does, each call its own invocation. */
@@ -1077,5 +1099,342 @@ describe("person detail over paged plan times", () => {
       everyCallWithinBudget: true,
       partialsContinue: true,
     });
+  });
+});
+
+/**
+ * Two service types: Sunday with 250 plans in the window (three range pages) and 100 after it,
+ * unless told otherwise,
+ * and Midweek with 30. Every plan has one person on its roster, spread over twenty people.
+ */
+const windowOrg = (
+  sundayPlans = 250
+): FakeOrg & { readonly windowPlanIds: string[] } => {
+  const collections = new Map<string, Collection>();
+  const windowPlanIds: string[] = [];
+  const addServiceType = (
+    serviceTypeId: string,
+    inWindow: number,
+    after: number
+  ) => {
+    const plans = Array.from(
+      { length: inWindow + after },
+      (_, index): PCResource => {
+        const id = `${serviceTypeId}-plan-${index}`;
+        const sortDate =
+          index < inWindow
+            ? atDay("2026-04-06T17:00:00Z", (index * 55) / inWindow)
+            : atDay("2026-06-15T17:00:00Z", index - inWindow);
+        if (index < inWindow) {
+          windowPlanIds.push(id);
+        }
+        collections.set(
+          `/services/v2/service_types/${serviceTypeId}/plans/${id}/team_members`,
+          {
+            data: [
+              {
+                type: "PlanPerson",
+                id: `${id}-pp`,
+                attributes: {
+                  status: "C",
+                  team_position_name: "Band - Vocals",
+                  created_at: "2026-01-01T00:00:00Z",
+                },
+                relationships: {
+                  person: {
+                    data: { type: "Person", id: `person-${index % 20}` },
+                  },
+                  plan: { data: { type: "Plan", id } },
+                },
+              },
+            ],
+          }
+        );
+        return {
+          type: "Plan",
+          id,
+          attributes: { sort_date: sortDate, plan_people_count: 1 },
+        };
+      }
+    );
+    collections.set(`/services/v2/service_types/${serviceTypeId}/plans`, {
+      data: plans,
+    });
+  };
+  addServiceType("st-sunday", sundayPlans, 100);
+  addServiceType("st-midweek", 30, 0);
+  return { collections, resources: new Map(), windowPlanIds };
+};
+
+const windowServiceTypes: PCResource[] = ["st-sunday", "st-midweek"].map(
+  (id) => ({
+    type: "ServiceType",
+    id,
+    attributes: { archived_at: null, name: id },
+  })
+);
+
+const windowServices = (
+  fetch: typeof globalThis.fetch,
+  caches?: {
+    readonly people: PlanningCenterPeopleServiceCaches;
+    readonly plans: PlanningCenterPlansServiceCaches;
+  }
+): PlanWindowHistoryDependencies => {
+  const core = createBasicPlanningCenterClient(
+    { applicationId: "test-client", secret: "test-token" },
+    httpClientFor(fetch)
+  );
+  return {
+    catalog: {
+      getServiceTypesCached: () => Effect.succeed(windowServiceTypes),
+    },
+    people: new PlanningCenterPeopleService(
+      core,
+      caches?.people ?? createPlanningCenterPeopleServiceCaches()
+    ),
+    plans: new PlanningCenterPlansService(
+      core,
+      Effect.succeed(ORG_TIME_ZONE),
+      caches?.plans ?? createPlanningCenterPlansServiceCaches()
+    ),
+    resolveTimeZone: Effect.succeed(ORG_TIME_ZONE),
+  };
+};
+
+/** Follows the window's continuation the way the browser does, each call its own invocation. */
+const continueWindowHistory = async (
+  servicesForCall: () => PlanWindowHistoryDependencies,
+  continuation?: PlanWindowHistoryInput["continuation"],
+  calls = 0
+): Promise<{ batch: PlanWindowHistoryBatch; requests: number }[]> => {
+  if (calls === MAX_CALLS) {
+    throw new Error("Plan window history did not finish");
+  }
+  const accounting = new PlanningCenterRequestAccounting({
+    requestBudget: PLANNING_CENTER_REQUEST_CAP,
+  });
+  const batch = await Effect.runPromise(
+    getPlanWindowHistory(
+      { date: PLAN_DATE, continuation },
+      servicesForCall()
+    ).pipe(Effect.provideService(PlanningCenterAccounting, accounting))
+  );
+  const call = { batch, requests: accounting.requestCount };
+  const next = nextWindowContinuation(batch);
+  if (next === null) {
+    return [call];
+  }
+  if (
+    continuation !== undefined &&
+    !windowHistoryAdvanced(continuation, batch)
+  ) {
+    throw new Error("Plan window history made no progress");
+  }
+  if (
+    Option.isNone(
+      decodeWindowHistoryInput({ date: PLAN_DATE, continuation: next })
+    )
+  ) {
+    throw new Error(`Call ${calls + 1} returned a cursor the API rejects`);
+  }
+  return [
+    call,
+    ...(await continueWindowHistory(servicesForCall, next, calls + 1)),
+  ];
+};
+
+/** Each person's history item ids, sorted: one per roster row the window read. */
+const historyRows = (calls: readonly { batch: PlanWindowHistoryBatch }[]) =>
+  Object.fromEntries(
+    [
+      ...expandPlanWindowHistory(
+        calls.map(({ batch }) => batch),
+        SELECTED_PLAN
+      ),
+    ]
+      .map(([personId, history]): [string, string[]] => [
+        personId,
+        history.serviceHistory.map(({ id }) => id).toSorted(),
+      ])
+      .toSorted(([a], [b]) => a.localeCompare(b))
+  );
+
+describe("plan window history over paged plan ranges", () => {
+  it("lists every range page and reads every roster across calls, from fresh and warm caches", async () => {
+    const org = windowOrg();
+    const server = fakePlanningCenter(org);
+    const caches = {
+      people: createPlanningCenterPeopleServiceCaches(),
+      plans: createPlanningCenterPlansServiceCaches(),
+    };
+
+    const fresh = await continueWindowHistory(() =>
+      windowServices(server.fetch)
+    );
+    await continueWindowHistory(() => windowServices(server.fetch, caches));
+    const sentBeforeWarm = server.sent.length;
+    const warm = await continueWindowHistory(() =>
+      windowServices(server.fetch, caches)
+    );
+    const expected = Object.fromEntries(
+      Array.from({ length: 20 }, (_, person): [string, string[]] => [
+        `person-${person}`,
+        org.windowPlanIds
+          .filter((id) => Number(id.split("-plan-")[1]) % 20 === person)
+          .map((id) => `${id}-pp`)
+          .toSorted(),
+      ]).toSorted(([a], [b]) => a.localeCompare(b))
+    );
+
+    expect({
+      fresh: historyRows(fresh),
+      warm: historyRows(warm),
+      loaded: fresh.reduce((sum, { batch }) => sum + batch.loadedPlanCount, 0),
+      sentByWarm: server.sent.length - sentBeforeWarm,
+      severalCalls: fresh.length > 1,
+      everyCallWithinBudget: fresh.every(
+        ({ requests }) => requests <= PROGRESSIVE_REQUEST_BUDGET
+      ),
+      // The third page passes the window; the plans after it are never listed.
+      sundayPages: new Set(
+        pagesRead(server.sent, "/services/v2/service_types/st-sunday/plans")
+      ),
+    }).toStrictEqual({
+      fresh: expected,
+      warm: expected,
+      loaded: 280,
+      sentByWarm: 0,
+      severalCalls: true,
+      everyCallWithinBudget: true,
+      sundayPages: new Set([0, 100, 200]),
+    });
+  });
+
+  it("finds a deferred plan that moved to the page before after plans were deleted", async () => {
+    // Two range pages: once the second is listed, the range is done and no listing can skip.
+    const org = windowOrg(150);
+    const server = fakePlanningCenter(org);
+    const sundayPath = "/services/v2/service_types/st-sunday/plans";
+    // Read until Sunday is listed and the next deferred plan is one its second page listed.
+    const readUntilSecondPage = async (
+      continuation?: PlanWindowHistoryInput["continuation"]
+    ): Promise<PlanWindowHistoryBatch[]> => {
+      const batch = await Effect.runPromise(
+        getPlanWindowHistory(
+          { date: PLAN_DATE, continuation },
+          windowServices(server.fetch)
+        )
+      );
+      const after = nextWindowContinuation(batch);
+      return after === null ||
+        (after.plans[0]?.rangeOffset === 100 &&
+          after.ranges[0]?.serviceTypeId !== "st-sunday")
+        ? [batch]
+        : [batch, ...(await readUntilSecondPage(after))];
+    };
+    const firstCalls = await readUntilSecondPage();
+    const calls = firstCalls.map((batch) => ({ batch }));
+    const last = calls.at(-1)?.batch;
+    const next = last === undefined ? null : nextWindowContinuation(last);
+    const [moving] = next?.plans ?? [];
+    const sunday = org.collections.get(sundayPath)?.data ?? [];
+    const movingIndex = sunday.findIndex(({ id }) => id === moving?.planId);
+    // Deleting plans already read moves the next deferred one onto the first page.
+    org.collections.set(sundayPath, {
+      data: sunday.slice(movingIndex - 99),
+    });
+    const rest =
+      next === null
+        ? []
+        : await continueWindowHistory(() => windowServices(server.fetch), next);
+    const rows = Object.values(historyRows([...calls, ...rest])).flat();
+
+    expect({
+      moved: movingIndex >= 100,
+      everyPlanOnce: rows.length === new Set(rows).size,
+      rows: rows.length,
+    }).toStrictEqual({ moved: true, everyPlanOnce: true, rows: 180 });
+  });
+});
+
+describe("plan ranges read whole", () => {
+  const rangeOrg = (count: number): FakeOrg => ({
+    collections: new Map([
+      [
+        "/services/v2/service_types/st-1/plans",
+        {
+          data: Array.from({ length: count }, (_, index) => ({
+            type: "Plan",
+            id: `plan-${index}`,
+            attributes: {
+              sort_date: atDay("2026-04-01T17:00:00Z", index / 10),
+            },
+          })),
+        },
+      ],
+    ]),
+    resources: new Map(),
+  });
+  const plansService = (fetch: typeof globalThis.fetch) =>
+    new PlanningCenterPlansService(
+      createBasicPlanningCenterClient(
+        { applicationId: "test-client", secret: "test-token" },
+        httpClientFor(fetch)
+      ),
+      Effect.succeed(ORG_TIME_ZONE)
+    );
+
+  it("stops at the page that passes the range and says when the range went on past its cap", async () => {
+    const server = fakePlanningCenter(rangeOrg(1000));
+    const service = plansService(server.fetch);
+
+    const short = await Effect.runPromise(
+      service.getPlansWithIncludedInDateRange(
+        "st-1",
+        "2026-04-01",
+        "2026-04-10",
+        "",
+        ORG_TIME_ZONE
+      )
+    );
+    const long = await Effect.runPromise(
+      service.getPlansWithIncludedInDateRange(
+        "st-1",
+        "2026-04-01",
+        "2026-08-01",
+        "",
+        ORG_TIME_ZONE
+      )
+    );
+    const listed = await Effect.runPromiseExit(
+      service.getPlansInDateRange(
+        "st-1",
+        "2026-04-01",
+        "2026-08-01",
+        ORG_TIME_ZONE
+      )
+    );
+
+    expect({
+      short: [short.data.length, short.complete],
+      long: [long.data.length, long.complete],
+      listed,
+      pages: pagesRead(server.sent, "/services/v2/service_types/st-1/plans"),
+    }).toStrictEqual({
+      // Ten plans a day from April 1 (in Los Angeles, the first falls on March 31).
+      short: [short.data.length, true],
+      long: [300, false],
+      listed: Exit.fail(
+        new PlanningCenterPaginationError({
+          reason: "page-limit",
+          path: "/services/v2/service_types/st-1/plans",
+          pages: 3,
+        })
+      ),
+      // One page covers April 1 to 10; the long range reads three, then cached pages.
+      pages: [0, 100, 200],
+    });
+    expect(short.data.length).toBeGreaterThan(90);
   });
 });

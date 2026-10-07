@@ -15,7 +15,10 @@ import type { PositionCandidatesDependencies } from "@pcobooster/api/modules/pla
 import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
-import { candidateDetailsAdvanced } from "@pcobooster/planning-center-models/candidate-list";
+import {
+  candidateDetailsAdvanced,
+  nextWindowContinuation,
+} from "@pcobooster/planning-center-models/candidate-list";
 import { expandPlanWindowHistory } from "@pcobooster/planning-center-models/plan-window-history";
 import {
   assemblePositionCandidates,
@@ -74,18 +77,13 @@ const loadWindowHistory = async (
     spent
   );
   progress.calls += 1;
-  if (
-    batch.deferredPlans.length === 0 &&
-    batch.deferredServiceTypeIds.length === 0
-  ) {
+  const next = nextWindowContinuation(batch);
+  if (next === null) {
     return [batch];
   }
   return [
     batch,
-    ...(await loadWindowHistory(dependencies, date, spent, progress, {
-      plans: batch.deferredPlans,
-      serviceTypeIds: batch.deferredServiceTypeIds,
-    })),
+    ...(await loadWindowHistory(dependencies, date, spent, progress, next)),
   ];
 };
 

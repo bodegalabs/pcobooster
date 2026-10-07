@@ -3,6 +3,7 @@ import { callForQuery, speculativeQuery } from "@pcobooster/client/query";
 import {
   CANDIDATE_DETAILS_BATCH_CONCURRENCY,
   candidateDetailsAdvanced,
+  nextWindowContinuation,
   windowHistoryAdvanced,
 } from "@pcobooster/planning-center-models/candidate-list";
 import { queryOptions } from "@tanstack/react-query";
@@ -44,10 +45,8 @@ export const fetchWindowHistory = async (
   const batch = await callForQuery(context, targetClientNative1, (api) =>
     api.people.planWindowHistory({ payload: inputNative1 })
   );
-  if (
-    batch.deferredPlans.length === 0 &&
-    batch.deferredServiceTypeIds.length === 0
-  ) {
+  const next = nextWindowContinuation(batch);
+  if (next === null) {
     return [batch];
   }
   if (
@@ -56,13 +55,7 @@ export const fetchWindowHistory = async (
   ) {
     throw new Error("Plan window history made no progress.");
   }
-  return [
-    batch,
-    ...(await fetchWindowHistory(read, date, context, {
-      plans: batch.deferredPlans,
-      serviceTypeIds: batch.deferredServiceTypeIds,
-    })),
-  ];
+  return [batch, ...(await fetchWindowHistory(read, date, context, next))];
 };
 
 export const fetchCandidateDetails = async (

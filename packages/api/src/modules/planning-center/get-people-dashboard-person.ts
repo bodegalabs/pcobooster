@@ -330,7 +330,9 @@ const resolveMissingPlanTimes = (
               window.orgTimeZone
             )
             .pipe(
-              Effect.map((response) => response.included),
+              // A range cut off at its page cap still helps: the times it lacks are read plan
+              // by plan below.
+              Effect.map((range) => range.included),
               recoverPlanningCenterFailure({
                 kinds: ["not-found"],
                 reason:

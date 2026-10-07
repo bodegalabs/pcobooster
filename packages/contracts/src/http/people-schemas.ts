@@ -102,6 +102,9 @@ export const candidateHistorySchema = Schema.Struct({
   selectedPlanAssignments: mutableArray(selectedPlanAssignmentSchema),
 });
 
+/** The page a follow-up call reads next: an offset into a Planning Center collection. */
+const pageOffset = nonNegativeInteger;
+
 /** A plan a `people.planWindowHistory` call left for the next one: part of its cursor. */
 export const windowPlanRefSchema = Schema.Struct({
   serviceTypeId: requiredId,
@@ -111,6 +114,14 @@ export const windowPlanRefSchema = Schema.Struct({
     Schema.isGreaterThanOrEqualTo(0),
     Schema.isLessThanOrEqualTo(MAX_ROSTER_REQUESTS)
   ),
+  /** The range page that listed the plan, where the next call finds it again. */
+  rangeOffset: pageOffset,
+});
+
+/** A service type whose window plans are listed up to `offset`: part of the cursor. */
+export const windowRangeRefSchema = Schema.Struct({
+  serviceTypeId: requiredId,
+  offset: pageOffset,
 });
 
 export const windowPlanSummarySchema = Schema.Struct({
@@ -153,8 +164,8 @@ export const planWindowHistoryBatchSchema = Schema.Struct({
   ),
   /** Listed plans left for a follow-up call, in window order. */
   deferredPlans: mutableArray(windowPlanRefSchema),
-  /** Service types not listed yet; their plans follow `deferredPlans`. */
-  deferredServiceTypeIds: mutableArray(Schema.String),
+  /** Ranges not listed to their end yet, and their next page; after `deferredPlans`. */
+  deferredRanges: mutableArray(windowRangeRefSchema),
   requestBudget: Schema.Struct({
     limit: finiteNumber,
     /** Planning Center requests the call sent; cached reads cost none. */
@@ -170,9 +181,6 @@ export const candidateDetailSchema = Schema.Struct({
   /** The person's own schedule history, only when it was asked for. */
   history: Schema.optional(candidateHistorySchema),
 });
-
-/** The page a follow-up call reads next: an offset into a Planning Center collection. */
-const pageOffset = nonNegativeInteger;
 
 /**
  * Plans whose times earlier calls read page by page for one person (`nextOffset` is `null` once

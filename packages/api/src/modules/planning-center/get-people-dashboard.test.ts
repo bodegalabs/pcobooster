@@ -116,7 +116,10 @@ const activityDependencies = ({
   const getPlansWithIncludedInDateRange = vi.fn<
     PlanningCenterPlansService["getPlansWithIncludedInDateRange"]
   >((serviceTypeId) =>
-    countedRead(plansByServiceType[serviceTypeId] ?? { data: [], included: [] })
+    countedRead({
+      ...(plansByServiceType[serviceTypeId] ?? { data: [], included: [] }),
+      complete: true,
+    })
   );
   const dependencies: PeopleDashboardActivityDependencies = {
     peopleService: { getPersonSchedulesFirstPages },

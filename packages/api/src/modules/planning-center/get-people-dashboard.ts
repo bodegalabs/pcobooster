@@ -30,7 +30,10 @@ import type {
   TeamRoster,
 } from "@pcobooster/api/planning-center/services/people-service";
 import { PLAN_RANGE_MAX_PAGES } from "@pcobooster/api/planning-center/services/plans-service";
-import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
+import type {
+  PlanningCenterPlansService,
+  PlanRange,
+} from "@pcobooster/api/planning-center/services/plans-service";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import {
   formatCalendarDateLabel,
@@ -725,7 +728,11 @@ export const getPeopleDashboardActivity = ({
               reason:
                 "Service type not found; its schedules keep their plan dates without rehearsal times",
               details: { serviceTypeId },
-              fallback: () => ({ data: [], included: [] }),
+              fallback: (): PlanRange => ({
+                data: [],
+                included: [],
+                complete: true,
+              }),
             })
           ),
       { concurrency: READ_CONCURRENCY }
@@ -760,6 +767,9 @@ export const getPeopleDashboardActivity = ({
       hydratedPeopleCount: people.length,
       deferredPeopleCount: deferred.size,
       unreadFirstPersonServiceTypeCount: unreadFirstPersonTypes,
+      // Ranges past their page cap: their later plans keep dates without rehearsal times.
+      incompletePlanRangeCount: planRanges.filter(({ complete }) => !complete)
+        .length,
       // People whose reads stopped at the page cap, dropping oldest history.
       scheduleCapReachedPeopleCount: schedules.filter(
         ({ complete }) => !complete

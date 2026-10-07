@@ -80,7 +80,12 @@ describe("Assign reads through the product client", () => {
     call.mockResolvedValueOnce({
       ...windowFixture.default,
       deferredPlans: [
-        { serviceTypeId: "1101", planId: "later", rosterRequests: 1 },
+        {
+          serviceTypeId: "1101",
+          planId: "later",
+          rosterRequests: 1,
+          rangeOffset: 0,
+        },
       ],
     });
     call.mockResolvedValueOnce({
@@ -92,8 +97,15 @@ describe("Assign reads through the product client", () => {
     expect(call).toHaveBeenLastCalledWith("people.planWindowHistory", {
       date: slot.date,
       continuation: {
-        plans: [{ serviceTypeId: "1101", planId: "later", rosterRequests: 1 }],
-        serviceTypeIds: [],
+        plans: [
+          {
+            serviceTypeId: "1101",
+            planId: "later",
+            rosterRequests: 1,
+            rangeOffset: 0,
+          },
+        ],
+        ranges: [],
       },
     });
     // Only a date page advanced: nobody finished, and the cursor still counts as progress.

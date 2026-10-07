@@ -48,7 +48,7 @@ describe(makeProductClient, () => {
             planTimes: [],
             people: [],
             deferredPlans: [],
-            deferredServiceTypeIds: [],
+            deferredRanges: [],
             requestBudget: {
               limit: 40,
               planningCenterRequests: 0,
@@ -69,7 +69,10 @@ describe(makeProductClient, () => {
       api.people.planWindowHistory({
         payload: {
           date: "2026-10-11T17:00:00Z",
-          continuation: { plans: [], serviceTypeIds: ["st-2"] },
+          continuation: {
+            plans: [],
+            ranges: [{ serviceTypeId: "st-2", offset: 0 }],
+          },
         },
       })
     );
@@ -98,7 +101,10 @@ describe(makeProductClient, () => {
         "https://api.example/api/v1/people/plan-window-history",
         JSON.stringify({
           date: "2026-10-11T17:00:00Z",
-          continuation: { plans: [], serviceTypeIds: ["st-2"] },
+          continuation: {
+            plans: [],
+            ranges: [{ serviceTypeId: "st-2", offset: 0 }],
+          },
         }),
       ],
       [

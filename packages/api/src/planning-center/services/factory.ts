@@ -108,7 +108,7 @@ export const planningCenterReadCachesForRequest = (
   },
   planItems: { items: caches.planItems.items.forRequest() },
   plans: {
-    ranges: caches.plans.ranges.forRequest(),
+    rangePages: caches.plans.rangePages.forRequest(),
     planTimes: caches.plans.planTimes.forRequest(),
   },
   songs: {

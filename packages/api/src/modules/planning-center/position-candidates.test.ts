@@ -11,7 +11,6 @@ import type {
 } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
-import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   PCResource,
@@ -51,8 +50,13 @@ const createFixture = () => {
       vi.fn<PlanningCenterPeopleService["getPlanTeamMembers"]>(),
     getPlanWindowRoster:
       vi.fn<PlanningCenterPeopleService["getPlanWindowRoster"]>(),
-    getPlansWithIncludedInDateRange:
-      vi.fn<PlanningCenterPlansService["getPlansWithIncludedInDateRange"]>(),
+    // A service type's plans in the window whole; `dependencies` serves them as one page.
+    getPlanRange:
+      vi.fn<
+        (
+          serviceTypeId: string
+        ) => Effect.Effect<{ data: PCResource[]; included: PCResource[] }>
+      >(),
     resolveTimeZone: vi.fn<() => string>(),
   };
   const dependencies = {
@@ -77,7 +81,11 @@ const createFixture = () => {
       getPlanWindowRoster: mocks.getPlanWindowRoster,
     },
     plans: {
-      getPlansWithIncludedInDateRange: mocks.getPlansWithIncludedInDateRange,
+      getPlanRangePage: (serviceTypeId: string) =>
+        Effect.map(mocks.getPlanRange(serviceTypeId), (range) => ({
+          ...range,
+          nextOffset: null,
+        })),
     },
     resolveTimeZone: Effect.sync(() => mocks.resolveTimeZone()),
   } satisfies CandidateListDependencies;
@@ -306,7 +314,7 @@ describe("position candidate list", () => {
     mocks.getPlanTeamMembers.mockReturnValue(
       Effect.succeed({ data: [], included: [] })
     );
-    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+    mocks.getPlanRange.mockReturnValue(
       Effect.succeed({
         data: [],
         included: [],
@@ -552,7 +560,7 @@ describe("position candidate list", () => {
         ],
       })
     );
-    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+    mocks.getPlanRange.mockReturnValue(
       Effect.succeed({
         data: [
           planEntry(previousPlanId, "2026-02-15"),
@@ -671,7 +679,7 @@ describe("position candidate list", () => {
         ],
       })
     );
-    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+    mocks.getPlanRange.mockReturnValue(
       Effect.succeed({
         data: [
           planEntry(previousPlanId, "2026-02-15"),
@@ -772,9 +780,8 @@ describe("position candidate list", () => {
 
       return { data: [], included: [] };
     };
-    mocks.getPlansWithIncludedInDateRange.mockImplementation(
-      (requestedServiceTypeId: string) =>
-        Effect.succeed(plansForServiceType(requestedServiceTypeId))
+    mocks.getPlanRange.mockImplementation((requestedServiceTypeId: string) =>
+      Effect.succeed(plansForServiceType(requestedServiceTypeId))
     );
     const planMembersForServiceType = (
       requestedServiceTypeId: string,
@@ -1377,7 +1384,7 @@ describe("position candidate list", () => {
 
   it("reads the selected plan's roster fresh while reusing the window's cached roster", async () => {
     singleCandidate();
-    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+    mocks.getPlanRange.mockReturnValue(
       Effect.succeed({
         data: [planEntry("plan-target", "2026-02-22")],
         included: [],
@@ -1421,7 +1428,7 @@ describe("position candidate list", () => {
 
   it("fails instead of falling back when the fresh selected-plan read fails", async () => {
     singleCandidate();
-    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+    mocks.getPlanRange.mockReturnValue(
       Effect.succeed({
         data: [planEntry("plan-target", "2026-02-22")],
         included: [],

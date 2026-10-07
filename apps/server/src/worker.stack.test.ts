@@ -1091,7 +1091,10 @@ test(
             api.people.planWindowHistory({
               payload: {
                 date: "2026-10-11T10:00:00-07:00",
-                continuation: { plans: [], serviceTypeIds: ["st-2"] },
+                continuation: {
+                  plans: [],
+                  ranges: [{ serviceTypeId: "st-2", offset: 0 }],
+                },
               },
             }),
           { priority: "speculative" }
@@ -1104,11 +1107,7 @@ test(
     );
 
     assert.deepStrictEqual(
-      [
-        batch.loadedPlanCount,
-        batch.deferredPlans,
-        batch.deferredServiceTypeIds,
-      ],
+      [batch.loadedPlanCount, batch.deferredPlans, batch.deferredRanges],
       [0, [], []]
     );
     assert.deepStrictEqual(

@@ -5,6 +5,7 @@ import {
   planTimesProgressSchema,
   peopleSearchResultSchema,
   windowPlanRefSchema,
+  windowRangeRefSchema,
 } from "@pcobooster/contracts/people-schemas";
 import { z } from "zod";
 
@@ -24,7 +25,7 @@ export const peoplePlanWindowHistoryInputSchema = z.object({
   continuation: z
     .object({
       plans: z.array(windowPlanRefSchema).max(1000),
-      serviceTypeIds: z.array(z.string().trim().min(1)).max(200),
+      ranges: z.array(windowRangeRefSchema).max(200),
     })
     .optional(),
 });

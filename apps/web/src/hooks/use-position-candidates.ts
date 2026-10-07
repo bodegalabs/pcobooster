@@ -15,6 +15,7 @@ import {
   needsScheduleHistory,
   planCandidateDetailsBatches,
   prefetchCandidateDetailBatches,
+  nextWindowContinuation,
   windowHistoryAdvanced,
 } from "@pcobooster/planning-center-models/candidate-list";
 import type {
@@ -124,8 +125,8 @@ const fetchPlanWindowHistory = async (
       payload: { date: dateKey, continuation },
     })
   );
-  const { deferredPlans, deferredServiceTypeIds } = batch;
-  if (deferredPlans.length === 0 && deferredServiceTypeIds.length === 0) {
+  const next = nextWindowContinuation(batch);
+  if (next === null) {
     return [batch];
   }
   if (
@@ -134,13 +135,7 @@ const fetchPlanWindowHistory = async (
   ) {
     throw new Error("Plan window history made no progress.");
   }
-  return [
-    batch,
-    ...(await fetchPlanWindowHistory(dateKey, context, {
-      plans: deferredPlans,
-      serviceTypeIds: deferredServiceTypeIds,
-    })),
-  ];
+  return [batch, ...(await fetchPlanWindowHistory(dateKey, context, next))];
 };
 
 /** History from the rosters around one plan date; every position and plan on it shares it. */

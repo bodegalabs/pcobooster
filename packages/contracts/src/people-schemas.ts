@@ -109,6 +109,14 @@ export const windowPlanRefSchema = z.object({
   planId: z.string().trim().min(1),
   /** Roster pages the plan needs; a follow-up call reserves them before locating plans. */
   rosterRequests: z.number().int().min(0).max(100),
+  /** The range page that listed the plan, where the next call finds it again. */
+  rangeOffset: z.number().int().nonnegative(),
+});
+
+/** A service type whose window plans are listed up to `offset`. */
+export const windowRangeRefSchema = z.object({
+  serviceTypeId: z.string().trim().min(1),
+  offset: z.number().int().nonnegative(),
 });
 
 export const windowPlanSummarySchema = z.object({
@@ -148,8 +156,8 @@ export const planWindowHistoryBatchSchema = z.object({
   ),
   /** Listed plans left for a follow-up call, in window order. */
   deferredPlans: z.array(windowPlanRefSchema),
-  /** Service types not listed yet; their plans follow `deferredPlans`. */
-  deferredServiceTypeIds: z.array(z.string()),
+  /** Ranges not listed to their end yet, and their next page; after `deferredPlans`. */
+  deferredRanges: z.array(windowRangeRefSchema),
   requestBudget: z.object({
     limit: z.number(),
     /** Planning Center requests the call sent; cached reads cost none. */

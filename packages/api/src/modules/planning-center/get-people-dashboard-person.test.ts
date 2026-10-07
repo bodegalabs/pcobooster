@@ -158,7 +158,9 @@ const dependenciesFor = ({
     .fn<
       PeopleDashboardPersonDependencies["plansService"]["getPlansWithIncludedInDateRange"]
     >()
-    .mockReturnValue(Effect.succeed({ data: [], included: rangeIncluded }));
+    .mockReturnValue(
+      Effect.succeed({ data: [], included: rangeIncluded, complete: true })
+    );
   const dependencies: PeopleDashboardPersonDependencies = {
     peopleService: {
       getCacheScope: () => cacheScope,
@@ -648,6 +650,7 @@ describe(getPeopleDashboardPerson, () => {
           {
             data: [],
             included: plansOf(serviceTypeId).map(({ rehearsal }) => rehearsal),
+            complete: true,
           },
           3
         )

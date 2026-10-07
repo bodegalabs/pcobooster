@@ -47,8 +47,9 @@ export interface PlanWindowHistoryBatch extends PlanWindowRosters {
     planId: string;
     serviceTypeId: string;
     rosterRequests: number;
+    rangeOffset: number;
   }[];
-  deferredServiceTypeIds: string[];
+  deferredRanges: { serviceTypeId: string; offset: number }[];
 }
 export interface PositionCandidates {
   candidates: PositionCandidate[];
@@ -100,26 +101,50 @@ export const needsScheduleHistory = (
   windowCalls !== undefined &&
   windowCalls.every(({ loadedPlanCount }) => loadedPlanCount === 0);
 
-type WindowPlanRef = PlanWindowHistoryBatch["deferredPlans"][number];
+/** Where a window call stopped; clients pass it back unchanged as the next `continuation`. */
+export interface PlanWindowContinuation {
+  plans: PlanWindowHistoryBatch["deferredPlans"];
+  ranges: PlanWindowHistoryBatch["deferredRanges"];
+}
+
+/** The cursor a window call returned, or `null` once the window is read. */
+export const nextWindowContinuation = (
+  batch: PlanWindowHistoryBatch
+): PlanWindowContinuation | null =>
+  batch.deferredPlans.length === 0 && batch.deferredRanges.length === 0
+    ? null
+    : { plans: batch.deferredPlans, ranges: batch.deferredRanges };
+
+type ReadonlyWindowContinuation = {
+  readonly [
+    Key in keyof PlanWindowContinuation
+  ]: readonly PlanWindowContinuation[Key][number][];
+};
+
+const cursorKey = ({ plans, ranges }: ReadonlyWindowContinuation): string =>
+  [
+    ...plans.map(
+      ({ serviceTypeId, planId, rangeOffset }) =>
+        `plan:${serviceTypeId}:${planId}:${rangeOffset}`
+    ),
+    ...ranges.map(
+      ({ serviceTypeId, offset }) => `range:${serviceTypeId}:${offset}`
+    ),
+  ].join("|");
 
 /**
  * Whether a follow-up window call got anywhere: it read a roster, dropped a plan that left the
- * window, or listed another service type's plans. A call that did none would repeat forever.
+ * window, or listed another range page. A call that did none would repeat forever.
  */
 export const windowHistoryAdvanced = (
-  continuation: {
-    readonly plans: readonly WindowPlanRef[];
-    readonly serviceTypeIds: readonly string[];
-  },
+  continuation: ReadonlyWindowContinuation,
   batch: PlanWindowHistoryBatch
 ): boolean => {
-  const stillDeferred = new Set(
-    batch.deferredPlans.map(({ planId }) => planId)
-  );
+  const next = nextWindowContinuation(batch);
   return (
     batch.loadedPlanCount > 0 ||
-    batch.deferredServiceTypeIds.length < continuation.serviceTypeIds.length ||
-    continuation.plans.some(({ planId }) => !stillDeferred.has(planId))
+    next === null ||
+    cursorKey(continuation) !== cursorKey(next)
   );
 };
 

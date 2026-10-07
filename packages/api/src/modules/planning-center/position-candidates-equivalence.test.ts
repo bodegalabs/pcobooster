@@ -641,13 +641,14 @@ const createOrg = ({ emptyWindow = false }: OrgFixture = {}) => {
     getServiceTypesCached: () => Effect.succeed(structuredClone(serviceTypes)),
   };
   const plans = {
-    getPlansWithIncludedInDateRange: (serviceTypeId: string) => {
+    getPlanRangePage: (serviceTypeId: string) => {
       const inRange = emptyWindow
         ? []
         : PLANS.filter((plan) => plan.serviceTypeId === serviceTypeId);
       return Effect.succeed({
         data: inRange.map(planResource),
         included: inRange.flatMap(({ times }) => times),
+        nextOffset: null,
       });
     },
   };

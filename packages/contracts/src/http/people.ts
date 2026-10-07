@@ -14,6 +14,7 @@ import {
   candidateDetailsContinuationSchema,
   planTimesProgressSchema,
   windowPlanRefSchema,
+  windowRangeRefSchema,
 } from "@pcobooster/contracts/http/people-schemas";
 import {
   mutableArray,
@@ -50,7 +51,7 @@ export const peoplePlanWindowHistoryInputSchema = Schema.Struct({
       plans: mutableArray(windowPlanRefSchema).check(
         Schema.isMaxLength(MAX_CONTINUATION_PLANS)
       ),
-      serviceTypeIds: mutableArray(requiredId).check(
+      ranges: mutableArray(windowRangeRefSchema).check(
         Schema.isMaxLength(MAX_CONTINUATION_SERVICE_TYPES)
       ),
     })
@@ -122,7 +123,8 @@ export const people = planningCenterGroup(
     }
   ),
   /**
-   * Partial with a continuation cursor: pass `deferredPlans` and the ids back as `continuation`.
+   * Partial with a continuation cursor: pass `deferredPlans` and `deferredRanges` back as
+   * `continuation`.
    * A POST read: the cursor can outgrow a URL.
    */
   read.post("planWindowHistory", "/people/plan-window-history", {
