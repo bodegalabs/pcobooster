@@ -54,7 +54,9 @@ export const SchedulingNotificationNote = ({
         className
       )}
     >
-      <Mail className="mt-px size-3.5 shrink-0" aria-hidden />
+      <span aria-hidden className="flex h-lh shrink-0 items-center">
+        <Mail className="size-3.5" />
+      </span>
       <span>{description}</span>
     </p>
   );

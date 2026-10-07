@@ -88,15 +88,16 @@ export const PersonMonthCalendar = ({
             <div className="text-muted-foreground mt-1 grid gap-1 text-xs max-md:gap-2 max-md:text-sm">
               {entries.map((entry) => (
                 <div key={entryKey(entry)} className="flex items-start gap-2">
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "mt-1.5 size-1.5 shrink-0 rounded-full",
-                      commitmentDotClassName[
-                        commitmentDot(entry.kind, entry.status)
-                      ]
-                    )}
-                  />
+                  <span aria-hidden className="flex h-lh shrink-0 items-center">
+                    <span
+                      className={cn(
+                        "size-1.5 rounded-full",
+                        commitmentDotClassName[
+                          commitmentDot(entry.kind, entry.status)
+                        ]
+                      )}
+                    />
+                  </span>
                   <p>
                     <span className="text-foreground font-medium">
                       {engagementLabel(entry.kind, entry.status)}

@@ -89,10 +89,9 @@ export const PersonSignalList = ({
       const { label, detail } = describePersonSignal(signal);
       return (
         <li key={signal.kind} className="flex items-start gap-2.5">
-          <PersonSignalIcon
-            signal={signal}
-            className="mt-0.5 size-4 shrink-0"
-          />
+          <span aria-hidden className="flex h-lh shrink-0 items-center text-sm">
+            <PersonSignalIcon signal={signal} className="size-4" />
+          </span>
           <span className="min-w-0">
             <span className="block text-sm font-medium">{label}</span>
             <span className="text-muted-foreground block text-sm">

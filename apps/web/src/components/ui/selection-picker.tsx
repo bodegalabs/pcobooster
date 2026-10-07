@@ -47,24 +47,23 @@ export const SelectionPickerOption = ({
   />
 );
 
+/** Centered on the first line of the row's text, whether the row aligns to the top or center. */
 export const SelectionPickerCheckbox = ({
   selected,
-  className,
 }: {
   selected: boolean;
-  className?: string;
 }) => (
-  <span
-    className={cn(
-      "border-border mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-sm border",
-      selected
-        ? "border-foreground bg-foreground text-background"
-        : "bg-background",
-      className
-    )}
-    aria-hidden
-  >
-    {selected ? <Check className="size-2.5" /> : null}
+  <span aria-hidden className="flex h-lh shrink-0 items-center">
+    <span
+      className={cn(
+        "border-border flex size-4 items-center justify-center rounded-sm border",
+        selected
+          ? "border-foreground bg-foreground text-background"
+          : "bg-background"
+      )}
+    >
+      {selected ? <Check className="size-2.5" /> : null}
+    </span>
   </span>
 );
 

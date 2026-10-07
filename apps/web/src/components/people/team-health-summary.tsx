@@ -106,7 +106,9 @@ export const TeamHealthSummary = ({
       <CardHeader>
         <CardTitle>
           <span className="flex items-start gap-2">
-            <Activity className="text-muted-foreground mt-1 size-4 shrink-0" />
+            <span aria-hidden className="flex h-lh shrink-0 items-center">
+              <Activity className="text-muted-foreground size-4" />
+            </span>
             <span className="min-w-0">
               {scopeLabel}
               {status === null ? null : (

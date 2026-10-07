@@ -277,10 +277,7 @@ export const TimeAssignmentSelector = ({
                             setTeams(toggleId(value.teamIds, group.teamId));
                           }}
                         >
-                          <SelectionPickerCheckbox
-                            selected={selected}
-                            className="mt-0"
-                          />
+                          <SelectionPickerCheckbox selected={selected} />
                           <TeamPickerIcon teamName={group.teamName} />
                           <span className="min-w-0 flex-1 truncate">
                             {group.teamName}
@@ -337,10 +334,7 @@ export const TimeAssignmentSelector = ({
                             position.source !== "team_position" && !isNeeded
                           }
                         >
-                          <SelectionPickerCheckbox
-                            selected={selected}
-                            className="mt-0"
-                          />
+                          <SelectionPickerCheckbox selected={selected} />
                           <PositionPickerIcon
                             positionName={position.name}
                             teamName={position.teamName}
@@ -380,10 +374,7 @@ export const TimeAssignmentSelector = ({
                             );
                           }}
                         >
-                          <SelectionPickerCheckbox
-                            selected={selected}
-                            className="mt-0"
-                          />
+                          <SelectionPickerCheckbox selected={selected} />
                           <Avatar size="sm" className="shrink-0">
                             <AvatarImage
                               src={person.photoThumbnailUrl ?? undefined}
