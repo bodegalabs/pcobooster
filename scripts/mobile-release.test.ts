@@ -303,6 +303,12 @@ const pages = (routes: Readonly<Record<string, Json>>) => {
   return { fetch, requests };
 };
 
+const uploadOf = (version: string, state: string) => ({
+  id: `u${version}${state}`,
+  type: "buildUploads",
+  attributes: { cfBundleVersion: version, state: { state } },
+});
+
 describe("App Store Connect reads", () => {
   it("signs a 20-minute ES256 token App Store Connect accepts", () => {
     const token = ascToken(key, new Date("2026-10-06T00:00:00.000Z"));
@@ -360,6 +366,49 @@ describe("App Store Connect reads", () => {
     expect(requests.map((request) => new URL(request.url).pathname)).toContain(
       "/v1/apps/app1/buildUploads"
     );
+  });
+
+  it("ignores only the AWAITING_UPLOAD record this release's own export created", async () => {
+    const { fetch } = pages({
+      "/v1/builds": {
+        data: [{ id: "b1", type: "builds", attributes: { version: "373" } }],
+      },
+      "/v1/apps/app1/buildUploads": {
+        data: [uploadOf("374", "AWAITING_UPLOAD"), uploadOf("373", "COMPLETE")],
+      },
+    });
+    const client = makeAscClient(key, fetch);
+    await expect(takenBuildNumbers(client, "app1")).resolves.toStrictEqual([
+      373, 374, 373,
+    ]);
+    await expect(takenBuildNumbers(client, "app1", 374)).resolves.toStrictEqual(
+      [373, 373]
+    );
+    // Another number's reservation still blocks.
+    await expect(takenBuildNumbers(client, "app1", 375)).resolves.toContain(
+      374
+    );
+  });
+
+  it("still counts an own-number upload that is past AWAITING_UPLOAD", async () => {
+    const { fetch } = pages({
+      "/v1/builds": { data: [] },
+      "/v1/apps/app1/buildUploads": {
+        data: [
+          {
+            id: "u1",
+            type: "buildUploads",
+            attributes: {
+              cfBundleVersion: "374",
+              state: { state: "PROCESSING" },
+            },
+          },
+        ],
+      },
+    });
+    await expect(
+      takenBuildNumbers(makeAscClient(key, fetch), "app1", 374)
+    ).resolves.toStrictEqual([374]);
   });
 
   it("fails instead of treating a refused read as no builds", async () => {
