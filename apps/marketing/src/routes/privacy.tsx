@@ -66,6 +66,17 @@ const PrivacyPage = () => (
       Not Track. Analytics uses cookies or similar browser storage to recognize
       a returning browser.
     </p>
+    <p>
+      <strong>iPhone app errors.</strong> When the iPhone app hits an error, it
+      reports the kind of error, a shortened message with links, addresses,
+      numbers, and quoted values removed, the places in the app&apos;s code
+      where it happened, how long a failed request took, and the app version,
+      build, and iOS version, to PostHog under your account. Reports from before
+      you sign in wait on your phone for up to seven days and are sent only once
+      you sign in. Nothing is reported in a demo or when &ldquo;Share usage
+      analytics&rdquo; is off, and turning it off deletes reports still waiting
+      on the phone.
+    </p>
 
     <h2>Why we use it</h2>
     <ul>
