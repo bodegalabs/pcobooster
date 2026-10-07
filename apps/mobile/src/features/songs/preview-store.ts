@@ -1,3 +1,5 @@
+import { throwIfAborted } from "@pcobooster/client/abort-signal";
+
 import { PreviewError } from "./previews";
 import type { PreviewFiles, PreviewWriter } from "./previews";
 
@@ -52,7 +54,7 @@ export const guardPreviewStore = (store: PreviewStore): GuardedPreviews => {
   const begin = (scope: string, signal: AbortSignal): PreviewWriter => {
     const started = generation;
     const check = () => {
-      signal.throwIfAborted();
+      throwIfAborted(signal);
       if (generation !== started) {
         throw new PreviewError("forgotten");
       }

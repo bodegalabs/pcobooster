@@ -7,4 +7,7 @@ appId: com.pcobooster.ios
     timeout: 30000
 - assertNotVisible:
     id: "sign-in-button"
+- extendedWaitUntil:
+    visible: "Sunday Gathering"
+    timeout: 30000
 - takeScreenshot: initial-screen

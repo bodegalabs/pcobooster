@@ -1,6 +1,10 @@
+import { throwIfAborted } from "@pcobooster/client/abort-signal";
 import { Directory, File, Paths } from "expo-file-system";
 
-import { launchOptions } from "../../harness/current-launch-options";
+import {
+  launchOptions,
+  releaseSmokeNetwork,
+} from "../../harness/current-launch-options";
 import { fixturePreviewStore } from "../../harness/fixture-preview-files";
 import { downloadPreview } from "./native-preview";
 import { guardPreviewStore } from "./preview-store";
@@ -63,7 +67,7 @@ const deviceStore: PreviewStore = {
     if (secureUrl(url.href) === null) {
       throw new PreviewError("insecure-link");
     }
-    signal.throwIfAborted();
+    throwIfAborted(signal);
     const directory = freshFolder(scope, folder);
     const file = new File(directory, name);
     try {
@@ -108,7 +112,9 @@ const deviceStore: PreviewStore = {
 
 /** The device's files; fixture launches draw the attachment fixtures from bundled bytes. */
 const previews = guardPreviewStore(
-  launchOptions.mock ? fixturePreviewStore(deviceStore) : deviceStore
+  launchOptions.mock || releaseSmokeNetwork !== null
+    ? fixturePreviewStore(deviceStore)
+    : deviceStore
 );
 
 export const previewFiles = previews.files;

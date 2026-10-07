@@ -5,6 +5,8 @@
  */
 import type { RequestPriority } from "@pcobooster/contracts/request-priority";
 
+import { throwIfAborted } from "./abort-signal";
+
 /**
  * How long the app must have no interactive call in flight before speculative work starts.
  * It covers the gap between one response and the query the next render starts from it (for
@@ -79,7 +81,7 @@ export const createRequestScheduler = ({
     }
   };
   const admit = async (priority: RequestPriority, signal?: AbortSignal) => {
-    signal?.throwIfAborted();
+    throwIfAborted(signal);
     if (activeCalls < maxConcurrentRequests && admissions.length === 0) {
       activeCalls += 1;
       return;
@@ -166,7 +168,7 @@ export const createRequestScheduler = ({
     try {
       await admit(priority, signal);
       admitted = true;
-      signal?.throwIfAborted();
+      throwIfAborted(signal);
       return await call();
     } finally {
       if (admitted) {

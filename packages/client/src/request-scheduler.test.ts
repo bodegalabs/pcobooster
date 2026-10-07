@@ -14,6 +14,29 @@ describe(createRequestScheduler, () => {
     vi.useRealTimers();
   });
 
+  it("admits calls with the native AbortSignal that lacks throwIfAborted", async () => {
+    const controller = new AbortController();
+    Object.defineProperty(controller.signal, "throwIfAborted", {
+      value: undefined,
+    });
+    const scheduler = createRequestScheduler({ quietMs: QUIET_MS });
+    await expect(
+      scheduler.track(
+        "interactive",
+        async () => await Promise.resolve("loaded"),
+        controller.signal
+      )
+    ).resolves.toBe("loaded");
+    controller.abort();
+    const call = vi.fn<() => Promise<string>>(
+      async () => await Promise.resolve("unexpected")
+    );
+    await expect(
+      scheduler.track("interactive", call, controller.signal)
+    ).rejects.toMatchObject({ name: "AbortError" });
+    expect(call).not.toHaveBeenCalled();
+  });
+
   it("starts speculative work only after interactive calls have been quiet", async () => {
     const scheduler = createRequestScheduler({ quietMs: QUIET_MS });
     const started: string[] = [];

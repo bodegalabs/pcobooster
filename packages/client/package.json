@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./abort-signal": "./src/abort-signal.ts",
     "./product-client": "./src/product-client.ts",
     "./query": "./src/query.ts",
     "./request-scheduler": "./src/request-scheduler.ts"

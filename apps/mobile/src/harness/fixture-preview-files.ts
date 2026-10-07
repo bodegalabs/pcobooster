@@ -1,4 +1,6 @@
-/** Development-only stored files for the attachment fixtures, so previews draw without a network. */
+import { throwIfAborted } from "@pcobooster/client/abort-signal";
+
+/** Bundled files for development and Release smoke fixtures, so previews draw without a network. */
 import type { PreviewStore } from "../features/songs/preview-store";
 import { fixtureMedia } from "./fixture-media";
 import pdfFixture from "./fixtures/chordCharts.pdf.json";
@@ -31,7 +33,7 @@ export const fixturePreviewStore = (device: PreviewStore): PreviewStore => ({
     if (id === null) {
       return await device.download(scope, folder, name, url, signal);
     }
-    signal.throwIfAborted();
+    throwIfAborted(signal);
     const bytes = fixtureFileBytes.get(id);
     if (bytes === undefined) {
       throw new Error("The fixture has no stored file at this link.");
@@ -43,7 +45,7 @@ export const fixturePreviewStore = (device: PreviewStore): PreviewStore => ({
     if (id === null) {
       return await device.playable(scope, folder, name, url, signal);
     }
-    signal.throwIfAborted();
+    throwIfAborted(signal);
     const media = fixtureMedia.get(id);
     if (media === undefined) {
       throw new Error("The fixture has no media at this link.");

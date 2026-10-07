@@ -417,6 +417,7 @@ const ScopedSearch = () => {
         }}
       />
       <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.content}
       >

@@ -15,4 +15,7 @@ appId: com.pcobooster.ios
     visible:
       id: "services-agenda"
     timeout: 30000
+- extendedWaitUntil:
+    visible: "Sunday Gathering"
+    timeout: 30000
 - takeScreenshot: initial-screen

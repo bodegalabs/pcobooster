@@ -1,3 +1,4 @@
+import { throwIfAborted } from "@pcobooster/client/abort-signal";
 import { requireNativeView, requireOptionalNativeModule } from "expo";
 import type { ComponentType, Ref } from "react";
 import type { NativeSyntheticEvent, ViewProps } from "react-native";
@@ -30,7 +31,7 @@ export const downloadPreview = async (
   if (nativeModule === null) {
     throw new Error("This build can’t download previews; update the app.");
   }
-  signal.throwIfAborted();
+  throwIfAborted(signal);
   downloads += 1;
   const id = `preview-${downloads}`;
   const cancel = () => {
@@ -42,7 +43,7 @@ export const downloadPreview = async (
   } finally {
     signal.removeEventListener("abort", cancel);
   }
-  signal.throwIfAborted();
+  throwIfAborted(signal);
 };
 
 export interface PdfPage {
