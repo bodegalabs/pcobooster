@@ -19,7 +19,10 @@
     "./scheduling-preferences": "./src/scheduling-preferences.ts",
     "./service-plans": "./src/service-plans.ts",
     "./song-search": "./src/song-search.ts",
-    "./types": "./src/types.ts"
+    "./types": "./src/types.ts",
+    "./plan-overview": "./src/plan-overview.ts",
+    "./scheduling-notifications": "./src/scheduling-notifications.ts",
+    "./position-icon": "./src/position-icon.ts"
   },
   "scripts": {
     "test": "vitest run --root ../.. packages/planning-center-models/src",

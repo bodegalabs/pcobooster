@@ -1,7 +1,6 @@
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import type { PlanView } from "@pcobooster/planning-center-models/plan-overview";
 import { linkOptions } from "@tanstack/react-router";
-
-import type { PlanView } from "@/lib/app-routes";
 
 export type DashboardView = PlanView;
 

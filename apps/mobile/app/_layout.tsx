@@ -32,6 +32,18 @@ const RootStack = () => {
         <Stack.Protected guard={isSignedIn}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen
+            name="lineup-person"
+            options={{
+              presentation: "formSheet",
+              sheetAllowedDetents: [0.5, 1],
+              sheetGrabberVisible: true,
+              headerShown: true,
+              headerShadowVisible: false,
+              headerTintColor: colors.ink,
+              contentStyle: { backgroundColor: colors.surfaceCanvas },
+            }}
+          />
+          <Stack.Screen
             name="account"
             options={{
               presentation: "formSheet",

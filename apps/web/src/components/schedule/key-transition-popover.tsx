@@ -1,5 +1,6 @@
 import { Key01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { keyOptionLabelOf } from "@pcobooster/planning-center-models/plan-overview";
 import type {
   ArrangementOption,
   KeyOption,
@@ -35,7 +36,6 @@ import type {
   AdviceSegment,
   KeyTransitionLevel,
 } from "@/lib/key-transition-advice";
-import { keyOptionLabelOf } from "@/lib/plan-overview";
 import type { KeyTransition } from "@/lib/plan-set-insights";
 
 /** One key icon for every key change, toned by how rough the change is. */

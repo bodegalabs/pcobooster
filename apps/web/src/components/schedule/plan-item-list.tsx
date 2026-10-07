@@ -4,6 +4,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { formatDuration } from "@pcobooster/planning-center-models/plan-overview";
 import type {
   ArrangementOption,
   KeyOption,
@@ -39,7 +40,6 @@ import { HoverLabel } from "@/components/ui/hover-card";
 import { Item } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { IntentPrefetchProps } from "@/hooks/use-intent-prefetch";
-import { formatDuration } from "@/lib/plan-overview";
 import type { KeyTransition } from "@/lib/plan-set-insights";
 import { cn } from "@/lib/utils";
 

@@ -8,6 +8,8 @@ interface HairlineProps {
   readonly inset?: number;
   readonly trailing?: number;
   readonly color?: ColorValue;
+  readonly thickness?: number;
+  readonly overlap?: boolean;
   readonly axis?: "horizontal" | "vertical";
 }
 
@@ -17,6 +19,8 @@ export const Hairline = ({
   trailing = 0,
   color = colors.hairline,
   axis = "horizontal",
+  thickness = StyleSheet.hairlineWidth,
+  overlap = false,
 }: HairlineProps) => (
   <View
     accessibilityElementsHidden
@@ -25,14 +29,15 @@ export const Hairline = ({
       axis === "horizontal"
         ? {
             backgroundColor: color,
-            height: StyleSheet.hairlineWidth,
+            height: thickness,
+            marginTop: overlap ? -thickness : 0,
             marginLeft: inset,
             marginRight: trailing,
           }
         : {
             alignSelf: "stretch",
             backgroundColor: color,
-            width: StyleSheet.hairlineWidth,
+            width: thickness,
           }
     }
   />

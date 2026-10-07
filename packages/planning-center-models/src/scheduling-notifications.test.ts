@@ -1,15 +1,14 @@
+import {
+  collectUnnotifiedPeople,
+  getPositionNotificationStates,
+  getSchedulingNotificationState,
+} from "@pcobooster/planning-center-models/scheduling-notifications";
 import type {
   FilledPositionPerson,
   PlanPersonNotification,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
-
-import {
-  collectUnnotifiedPeople,
-  getPositionNotificationStates,
-  getSchedulingNotificationState,
-} from "@/lib/schedule/scheduling-notifications";
 
 const unsent: PlanPersonNotification = {
   prepared: true,

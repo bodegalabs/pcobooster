@@ -14,6 +14,8 @@ export interface GlyphProps {
   /** Overrides the box width, for narrow glyphs such as chevrons beside text. */
   readonly width?: number;
   readonly height?: number;
+  /** Font point size for custom symbol assets, independently of their layout box. */
+  readonly pointSize?: number;
   readonly color: ColorValue;
   readonly weight?: SymbolWeight;
   readonly style?: StyleProp<ViewStyle>;
@@ -31,6 +33,7 @@ export const Glyph = ({
   size,
   width,
   height,
+  pointSize,
   color,
   weight,
   style,
@@ -52,7 +55,11 @@ export const Glyph = ({
         style={[box, style]}
       >
         <Host style={box}>
-          <SwiftImage assetName={source.asset} color={color} size={size} />
+          <SwiftImage
+            assetName={source.asset}
+            color={color}
+            size={pointSize ?? size}
+          />
         </Host>
       </View>
     );

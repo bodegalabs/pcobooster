@@ -6,6 +6,7 @@
 # - Prebuild and `pod install` run only when their inputs changed, never with --clean by
 #   default, so the generated ios/ folder and its Pods stay put; pass --clean to regenerate
 #   both from scratch (after removing a native module, for example).
+# - --no-debug-symbols omits symbol and index data when disk space is limited.
 # - Xcode keeps one derived-data folder per worktree in build/derived (git-ignored).
 # - ccache is on when it is installed (app.config.ts asks `command -v ccache`). React Native's
 #   compiler wrapper (scripts/xcode/ccache-clang.sh) runs `$CCACHE_BINARY clang`, but Xcode does
@@ -18,10 +19,12 @@ cd "$(dirname "$0")/.."
 
 clean=0
 configuration=Debug
+extra_settings=()
 udid="${SIM_UDID:-}"
 while [ $# -gt 0 ]; do
   case "$1" in
     --clean) clean=1 ;;
+    --no-debug-symbols) extra_settings+=(GCC_GENERATE_DEBUGGING_SYMBOLS=NO DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_SERIALIZE_DEBUGGING_OPTIONS=NO) ;;
     --configuration) configuration="$2"; shift ;;
     --udid) udid="$2"; shift ;;
     *) echo "Unknown option: $1" >&2; exit 64 ;;
@@ -70,5 +73,6 @@ xcodebuild \
   -destination "$destination" \
   -derivedDataPath build/derived \
   RCT_METRO_PORT="$(bash scripts/metro-port.sh)" \
+  ${extra_settings[@]+"${extra_settings[@]}"} \
   build
 echo "build/derived/Build/Products/$configuration-iphonesimulator/PCOBooster.app"

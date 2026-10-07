@@ -3,7 +3,7 @@
 # arguments as the Swift reference (.audit/capture-swift.sh), so the two line up image for image.
 #
 # Usage: scripts/capture.sh [--appearance light|dark] [--udid <simulator>] [--out <dir>]
-#                           [--swift <PCOBooster.app>]
+#                           [--swift <PCOBooster.app>] [--screens "<names>"]
 #
 # - Default: the Expo app from build/derived (scripts/build-ios.sh), in .captures/expo-<appearance>.
 #   Screens that arrive in a later layer are skipped with a note.
@@ -11,7 +11,7 @@
 # - The status bar is pinned (9:41, full bars and battery) for both, so only the app differs.
 # - A Debug Expo build loads JavaScript from Metro; the script starts Metro on this checkout's
 #   port (scripts/metro-port.sh) when it is not running, and stops it again at the end.
-# - WAIT (seconds, default 4) is the pause after each launch.
+# - WAIT (seconds, default 12) lets the initial native route transition and fixture reads settle.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -19,19 +19,21 @@ appearance="${APPEARANCE:-light}"
 udid="${SIM_UDID:-}"
 out=""
 swift_app=""
+screens=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --appearance) appearance="$2"; shift ;;
     --udid) udid="$2"; shift ;;
     --out) out="$2"; shift ;;
     --swift) swift_app="$2"; shift ;;
+    --screens) screens="$2"; shift ;;
     *) echo "Unknown option: $1" >&2; exit 64 ;;
   esac
   shift
 done
 
 if [ -z "$udid" ]; then
-  udid="$(xcrun simctl list devices available | awk -F '[()]' '/pcob-expo-foundation/ { print $2; exit }')"
+  udid="$(xcrun simctl list devices available | awk -F '[()]' '/pcob-expo-plan/ { print $2; exit }')"
 fi
 if [ -z "$udid" ]; then
   echo "No simulator: pass --udid or set SIM_UDID." >&2
@@ -90,16 +92,19 @@ if [ -z "$swift_app" ]; then
 fi
 
 # Screens the Expo app has so far; the rest arrive in later layers.
-built="01-services 13-account 14-signin"
+built="01-services 02-plan-overview 03-plan-lineup 13-account 14-signin"
 shot() {
   local name="$1"
   shift
+  if [ -n "$screens" ] && [[ " $screens " != *" $name "* ]]; then
+    return
+  fi
   if [ -z "$swift_app" ] && [[ " $built " != *" $name "* ]]; then
     echo "skipped $name: arrives in a later layer"
     return
   fi
   launch "$@"
-  sleep "${WAIT:-4}"
+  sleep "${WAIT:-12}"
   xcrun simctl io "$udid" screenshot "$out/$name.png" >/dev/null 2>&1
   echo "$out/$name.png"
 }

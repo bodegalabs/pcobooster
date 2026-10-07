@@ -6,8 +6,7 @@ import {
   UserAdd01Icon,
 } from "@hugeicons/core-free-icons";
 import type { IconSvgElement } from "@hugeicons/react";
-
-import type { PlanView } from "@/lib/app-routes";
+import type { PlanView } from "@pcobooster/planning-center-models/plan-overview";
 
 export const planViewIcons: Record<PlanView, IconSvgElement> = {
   overview: DashboardSquare01Icon,
