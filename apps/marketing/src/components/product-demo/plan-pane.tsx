@@ -67,6 +67,7 @@ const SongFields = ({
         accessory={
           transition === undefined ? null : (
             <KeyTransitionButton
+              align="end"
               transition={transition}
               song={song}
               notes={item.notes}

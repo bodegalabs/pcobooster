@@ -2,7 +2,8 @@ import Calendar03Icon from "@hugeicons/core-free-icons/Calendar03Icon";
 import HeartCheckIcon from "@hugeicons/core-free-icons/HeartCheckIcon";
 import Mail01Icon from "@hugeicons/core-free-icons/Mail01Icon";
 import PulseRectangle01Icon from "@hugeicons/core-free-icons/PulseRectangle01Icon";
-import { Search } from "lucide-react";
+import { Flame, Search, ThumbsDown } from "lucide-react";
+import type { CSSProperties, ReactNode } from "react";
 import { useState } from "react";
 
 import { DemoSearchInput } from "../ui/demo-control";
@@ -17,6 +18,9 @@ const DAYS_PER_WEEK = 7;
 /** Planning Center's 90 days, in whole weeks. */
 const NINETY_DAYS_WEEKS = 13;
 const HEAVY_LOAD_SERVICES = 3;
+/** Weeks without serving, and with nothing scheduled, before someone is due for a slot. */
+const DUE_AFTER_WEEKS = 6;
+const DECLINED_SHARE = 11;
 const TABLE_ROWS = 8;
 
 const positionNames = (entry: DemoPerson): string =>
@@ -54,12 +58,18 @@ const nextScheduled = (entry: DemoPerson): string => {
 };
 
 const signalFor = (entry: DemoPerson): string | null => {
+  if (entry.declined !== undefined) {
+    return "Declining";
+  }
   if (services(entry).length === 0) {
     return "Not serving";
   }
   const lastFourWeeks = services(entry).filter((item) => item.weeksAgo <= 4);
   return lastFourWeeks.length >= HEAVY_LOAD_SERVICES ? "Heavy load" : null;
 };
+
+const weeksSinceServed = (entry: DemoPerson): number =>
+  Math.min(Infinity, ...services(entry).map((item) => item.weeksAgo));
 
 const roster = people.filter((entry) => entry.blockedOut !== true);
 const servedCount = roster.filter(
@@ -75,16 +85,47 @@ const pendingEntries = people.filter((entry) =>
     )
   )
 );
-const heavyLoad = roster.filter((entry) => signalFor(entry) === "Heavy load");
-const due = roster.filter(
-  (entry) => !assignedOnPlan(entry) && entry.upcoming.length === 0
+const checkIn = people.filter((entry) =>
+  ["Heavy load", "Declining"].includes(signalFor(entry) ?? "")
 );
+const due = roster.filter(
+  (entry) =>
+    !assignedOnPlan(entry) &&
+    entry.upcoming.length === 0 &&
+    weeksSinceServed(entry) >= DUE_AFTER_WEEKS
+);
+
+const share = (count: number) => Math.round((count / roster.length) * 100);
 
 interface AttentionRow {
   readonly person: DemoPerson;
   readonly detail: string;
-  readonly trailing: string;
+  readonly trailing: ReactNode;
 }
+
+const Meter = ({
+  value,
+  tone,
+}: {
+  value: number;
+  tone: "confirmed" | "neutral" | "declined";
+}) => {
+  const style: CSSProperties & { "--value": string } = {
+    "--value": `${value}%`,
+  };
+  return <span className={styles.meter} data-tone={tone} style={style} />;
+};
+
+const SignalPill = ({ signal }: { signal: string }) => (
+  <span className={styles["signal-pill"]}>
+    {signal === "Declining" ? (
+      <ThumbsDown aria-hidden size={12} />
+    ) : (
+      <Flame aria-hidden size={12} />
+    )}
+    {signal}
+  </span>
+);
 
 const AttentionCard = ({
   icon,
@@ -142,16 +183,19 @@ const HealthSummary = () => (
         <dd>
           {servedCount} of {roster.length}
         </dd>
+        <Meter value={share(servedCount)} tone="confirmed" />
       </div>
       <div>
         <dt>Scheduled next 30 days</dt>
         <dd>
           {scheduledCount} of {roster.length}
         </dd>
+        <Meter value={share(scheduledCount)} tone="neutral" />
       </div>
       <div>
         <dt>Declined in 6 months</dt>
-        <dd>11%</dd>
+        <dd>{DECLINED_SHARE}%</dd>
+        <Meter value={DECLINED_SHARE} tone="declined" />
       </div>
       <div>
         <dt>Unanswered requests</dt>
@@ -161,8 +205,8 @@ const HealthSummary = () => (
   </section>
 );
 
-/** Team health: who to check in with and who is due to serve. */
-export const PeopleView = () => {
+/** Team health: who to check in with and who is due to serve. `compact` keeps the cards only. */
+export const PeopleView = ({ compact = false }: { compact?: boolean }) => {
   const [query, setQuery] = useState("");
   const normalized = query.trim().toLowerCase();
   const rows = roster
@@ -175,19 +219,23 @@ export const PeopleView = () => {
 
   return (
     <div className={styles.page}>
-      <header className={styles["page-head"]}>
-        <h3>People</h3>
-        <p>Team health, who to check in with, and who is due to serve.</p>
-      </header>
-      <DemoSearchInput
-        icon={<Search aria-hidden size={15} />}
-        placeholder="Search people, teams, or roles"
-        aria-label="Search people"
-        value={query}
-        onChange={(event) => {
-          setQuery(event.target.value);
-        }}
-      />
+      {compact ? null : (
+        <header className={styles["page-head"]}>
+          <h3>People</h3>
+          <p>Team health, who to check in with, and who is due to serve.</p>
+        </header>
+      )}
+      {compact ? null : (
+        <DemoSearchInput
+          icon={<Search aria-hidden size={15} />}
+          placeholder="Search people, teams, or roles"
+          aria-label="Search people"
+          value={query}
+          onChange={(event) => {
+            setQuery(event.target.value);
+          }}
+        />
+      )}
       <HealthSummary />
       <div className={styles["attention-grid"]}>
         <AttentionCard
@@ -204,10 +252,13 @@ export const PeopleView = () => {
           icon={HeartCheckIcon}
           title="Check in"
           description="Declining, drifting, or carrying a heavy load."
-          rows={heavyLoad.map((entry) => ({
+          rows={checkIn.map((entry) => ({
             person: entry,
-            detail: `Served ${services(entry).filter((item) => item.weeksAgo <= 4).length} days in the last 30.`,
-            trailing: "Heavy load",
+            detail:
+              signalFor(entry) === "Declining"
+                ? "Declined 2 of 5 requests in 6 months."
+                : `Served ${services(entry).filter((item) => item.weeksAgo <= 4).length} days in the last 30.`,
+            trailing: <SignalPill signal={signalFor(entry) ?? ""} />,
           }))}
         />
         <AttentionCard
@@ -220,45 +271,58 @@ export const PeopleView = () => {
               services(entry).length === 0
                 ? "No serving in the last 6 months"
                 : `Last served ${lastServed(entry)}`,
-            trailing: positionNames(entry).split(", ")[0] ?? "",
+            trailing: (
+              <span className={styles["due-trailing"]}>
+                {findPosition(entry.positionIds[0] ?? "")?.team.name}
+                <Meter value={100} tone="declined" />
+              </span>
+            ),
           }))}
         />
       </div>
-      <table className={styles["people-table"]}>
-        <thead>
-          <tr>
-            <th scope="col">Person</th>
-            <th scope="col">Last served</th>
-            <th scope="col">Next</th>
-            <th scope="col">90 days</th>
-            <th scope="col">Signals</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((entry) => (
-            <tr key={entry.id}>
-              <th scope="row">
-                <span className={styles["person-cell"]}>
-                  <Avatar person={entry} />
-                  <span className={styles["attention-who"]}>
-                    <strong className={styles.truncate}>
-                      {fullName(entry)}
-                    </strong>
-                    <span className={styles.truncate}>
-                      {positionNames(entry)}
+      {compact ? null : (
+        <table className={styles["people-table"]}>
+          <thead>
+            <tr>
+              <th scope="col">Person</th>
+              <th scope="col">Last served</th>
+              <th scope="col">Next</th>
+              <th scope="col">90 days</th>
+              <th scope="col">Signals</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((entry) => (
+              <tr key={entry.id}>
+                <th scope="row">
+                  <span className={styles["person-cell"]}>
+                    <Avatar person={entry} />
+                    <span className={styles["attention-who"]}>
+                      <strong className={styles.truncate}>
+                        {fullName(entry)}
+                      </strong>
+                      <span className={styles.truncate}>
+                        {positionNames(entry)}
+                      </span>
                     </span>
                   </span>
-                </span>
-              </th>
-              <td>{lastServed(entry)}</td>
-              <td>{nextScheduled(entry)}</td>
-              <td>{servedRecently(entry).length}</td>
-              <td>{signalFor(entry) ?? "-"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {rows.length === 0 ? (
+                </th>
+                <td>{lastServed(entry)}</td>
+                <td>{nextScheduled(entry)}</td>
+                <td>{servedRecently(entry).length}</td>
+                <td>
+                  {signalFor(entry) === null ? (
+                    "-"
+                  ) : (
+                    <SignalPill signal={signalFor(entry) ?? ""} />
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {!compact && rows.length === 0 ? (
         <p className={styles.empty}>No one matches “{query.trim()}”.</p>
       ) : null}
     </div>
