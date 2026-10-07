@@ -459,6 +459,13 @@ const ScopedSearch = () => {
             />
           </View>
         )}
+        {!access.isPending && available.length === 1 ? (
+          <EmptyState
+            artwork="alert"
+            title="No searchable areas"
+            description="Your Planning Center access and account features do not enable plan, people, or song searches."
+          />
+        ) : null}
         {query === "" ? (
           <SearchIntro
             recents={recents}
