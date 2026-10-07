@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import { ActionSheetIOS, Pressable, StyleSheet, View } from "react-native";
 
@@ -9,8 +10,10 @@ import { PersonAvatar } from "../../components/person-avatar";
 import { StatusBadge } from "../../components/status-badge";
 import { AppText } from "../../design/app-text";
 import { colors } from "../../design/colors";
+import { playHaptic } from "../../design/haptics";
 import { Metrics, Spacing } from "../../design/metrics";
 import type { StatusTone } from "../../design/status";
+import { useToasts } from "../../lib/toasts";
 import { useOpenPlanningCenterPerson } from "../plan/roster-links";
 import { describeRoles, SEPARATOR } from "./dashboard";
 import type { PeopleRow } from "./dashboard";
@@ -90,6 +93,15 @@ const usePersonActions = () => {
   const cache = useQueryClient();
   const readSignal = useVisibleReadSignal();
   const openPlanningCenter = useOpenPlanningCenterPerson();
+  const toasts = useToasts();
+  const copyName = async (name: string) => {
+    try {
+      await Clipboard.setStringAsync(name);
+      playHaptic("success");
+    } catch {
+      toasts.showError("Couldn’t copy the name. Try again.");
+    }
+  };
   return {
     open: (personId: string) => {
       router.push(peopleDestinations.person(personId));
@@ -99,7 +111,12 @@ const usePersonActions = () => {
       ActionSheetIOS.showActionSheetWithOptions(
         {
           title: person.name,
-          options: ["Cancel", "Show Details", "Open in Planning Center"],
+          options: [
+            "Cancel",
+            "Show Details",
+            "Open in Planning Center",
+            "Copy Name",
+          ],
           cancelButtonIndex: 0,
         },
         (index) => {
@@ -107,6 +124,8 @@ const usePersonActions = () => {
             router.push(peopleDestinations.person(person.id));
           } else if (index === 2) {
             openPlanningCenter(person.id);
+          } else if (index === 3) {
+            void copyName(person.name);
           }
         }
       );

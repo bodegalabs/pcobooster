@@ -31,7 +31,7 @@ People replaces the Expo placeholder with the Swift People feature (`apps/ios/PC
 | Commitments split into Coming up and Earlier this month, each opening the plan's Lineup | Ported |
 | Blocked-out days in the month, each blockout read on its own Planning Center zone, all-day ranges as entered | Ported as a "Blocked out on" line and per-commitment marks; the striped calendar grid is out of scope |
 | Unresolved rehearsal times note | Ported |
-| Context menu preview with Show Details, Open in Planning Center, Copy Name | Changed: a long press action sheet with Show Details and Open in Planning Center; Copy Name needs a clipboard module the app does not include |
+| Context menu preview with Show Details, Open in Planning Center, Copy Name | Ported as a long-press action sheet with Show Details, Open in Planning Center, and Copy Name. Context preview styling remains out of scope |
 | iPad inspector beside the dashboard | Out of scope: iPad pushes the person screen like iPhone |
 | Swipe between months, haptics, transitions | Out of scope (visual polish) |
 | Launch overrides (`-PCOBPeopleScope`, `-PCOBPeopleView`) | Out of scope for the fixture harness |
