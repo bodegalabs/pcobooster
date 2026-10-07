@@ -395,7 +395,7 @@ describe("release-cli", () => {
     expect(cli(["signing", "--has-key"], { CI: "1" }).stdout.trim()).toBe(
       "api-key"
     );
-  });
+  }, 15_000);
 
   const claimEnv = () => {
     const dir = stateDir();

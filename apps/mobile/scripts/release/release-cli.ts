@@ -13,12 +13,15 @@
  * App Store Connect reads use ASC_KEY_ID, ASC_ISSUER_ID, and ASC_KEY_PATH or ASC_KEY_P8_BASE64
  * from the environment this command alone receives.
  */
-import { readFileSync } from "node:fs";
 import process from "node:process";
 
-import { Schema } from "effect";
-
-import { buildState, findAppId, makeAscClient, takenBuildNumbers } from "./asc";
+import {
+  ascKeyFromEnv,
+  buildState,
+  findAppId,
+  makeAscClient,
+  takenBuildNumbers,
+} from "./asc";
 import type { AscClient } from "./asc";
 import {
   chooseBuildNumber,
@@ -65,42 +68,16 @@ const pidOption = (args: readonly string[]): number => {
   return pid;
 };
 
-const decodeString = Schema.decodeUnknownSync(Schema.String);
-
-/** An environment variable's value, or empty when unset. */
-const environment = (name: string): string =>
-  decodeString(process.env[name] ?? "");
-
 /** The App Store Connect reader and the app's id, or null without a key. */
 const appStoreConnect = async (): Promise<{
   client: AscClient;
   appId: string;
 } | null> => {
-  const keyId = environment("ASC_KEY_ID");
-  const issuerId = environment("ASC_ISSUER_ID");
-  const keyPath = environment("ASC_KEY_PATH");
-  const keyBase64 = environment("ASC_KEY_P8_BASE64");
-  if (`${keyId}${issuerId}${keyPath}${keyBase64}` === "") {
+  const key = ascKeyFromEnv(process.env);
+  if (key === null) {
     return null;
   }
-  if (
-    keyId === "" ||
-    issuerId === "" ||
-    (keyPath === "") === (keyBase64 === "")
-  ) {
-    throw new Error(
-      "Supply ASC_KEY_ID, ASC_ISSUER_ID, and one of ASC_KEY_PATH or ASC_KEY_P8_BASE64."
-    );
-  }
-  const client = makeAscClient({
-    keyId,
-    issuerId,
-    // The base64 key is decoded in memory and never written to disk.
-    privateKey:
-      keyPath === ""
-        ? Buffer.from(keyBase64, "base64").toString("utf-8")
-        : readFileSync(keyPath, "utf-8"),
-  });
+  const client = makeAscClient(key);
   return { client, appId: await findAppId(client, BUNDLE_ID) };
 };
 

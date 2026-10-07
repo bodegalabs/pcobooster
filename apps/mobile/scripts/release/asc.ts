@@ -4,6 +4,7 @@
  * Never writes. https://developer.apple.com/documentation/appstoreconnectapi
  */
 import { createPrivateKey, sign } from "node:crypto";
+import { readFileSync } from "node:fs";
 
 import { Schema } from "effect";
 
@@ -19,6 +20,39 @@ export interface AscKey {
   /** The `.p8` file's PEM text. */
   readonly privateKey: string;
 }
+
+/**
+ * The key `ASC_KEY_ID`, `ASC_ISSUER_ID`, and one of `ASC_KEY_PATH` or `ASC_KEY_P8_BASE64` supply,
+ * or null when none is set. A base64 key is decoded in memory and never written to disk.
+ */
+export const ascKeyFromEnv = (
+  env: Readonly<Record<string, string | undefined>>
+): AscKey | null => {
+  const keyId = env.ASC_KEY_ID ?? "";
+  const issuerId = env.ASC_ISSUER_ID ?? "";
+  const keyPath = env.ASC_KEY_PATH ?? "";
+  const keyBase64 = env.ASC_KEY_P8_BASE64 ?? "";
+  if (`${keyId}${issuerId}${keyPath}${keyBase64}` === "") {
+    return null;
+  }
+  if (
+    keyId === "" ||
+    issuerId === "" ||
+    (keyPath === "") === (keyBase64 === "")
+  ) {
+    throw new Error(
+      "Supply ASC_KEY_ID, ASC_ISSUER_ID, and one of ASC_KEY_PATH or ASC_KEY_P8_BASE64."
+    );
+  }
+  return {
+    keyId,
+    issuerId,
+    privateKey:
+      keyPath === ""
+        ? Buffer.from(keyBase64, "base64").toString("utf-8")
+        : readFileSync(keyPath, "utf-8"),
+  };
+};
 
 const base64url = (value: string | Buffer): string =>
   Buffer.from(value).toString("base64url");
