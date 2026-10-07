@@ -119,13 +119,23 @@ describe(toSongAttachment, () => {
       pco_type: "AttachmentLink",
       linked_url: "http://example.com/chart",
     });
+    const withCredentials = file("906", {
+      pco_type: "AttachmentLink",
+      linked_url: "https://user:secret@example.com/chart",
+    });
+    const withUserName = file("907", {
+      pco_type: "AttachmentLink",
+      linked_url: "https://user@example.com/chart",
+    });
     expect(
-      [youtube, insecure].map((resource) => {
+      [youtube, insecure, withCredentials, withUserName].map((resource) => {
         const attachment = toSongAttachment(resource, null);
         return [attachment?.kind, attachment?.linkUrl];
       })
     ).toStrictEqual([
       ["link", "https://www.youtube.com/watch?v=abc"],
+      ["link", null],
+      ["link", null],
       ["link", null],
     ]);
   });
@@ -266,5 +276,21 @@ describe(getSongAttachmentLink, () => {
       )
     );
     expect(JSON.stringify(exit)).toContain("secure link");
+  });
+
+  it("refuses a signed link with an embedded user name or password", async () => {
+    const songs = createSongs();
+    songs.openChartAttachment.mockReturnValue(
+      Effect.succeed("https://user:secret@files.example/901?sig=abc")
+    );
+    const exit = await Effect.runPromiseExit(
+      getSongAttachmentLink(
+        { songId: "5501", arrangementId: "55011", attachmentId: "901" },
+        songs
+      )
+    );
+    expect(Exit.isFailure(exit)).toBeTruthy();
+    expect(JSON.stringify(exit)).toContain("secure link");
+    expect(JSON.stringify(exit)).not.toContain("secret");
   });
 });

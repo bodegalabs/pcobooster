@@ -130,13 +130,21 @@ export const storedFileKind = (
   return "other";
 };
 
-/** Only https addresses leave the server as links. */
+/**
+ * Only https addresses with a host and no embedded user name or password leave the server as
+ * links: a link carries no credentials but its own signature.
+ */
 const secureLink = (value: string | null): string | null => {
   if (value === null || !URL.canParse(value)) {
     return null;
   }
   const url = new URL(value);
-  return url.protocol === "https:" ? url.href : null;
+  const secure =
+    url.protocol === "https:" &&
+    url.hostname !== "" &&
+    url.username === "" &&
+    url.password === "";
+  return secure ? url.href : null;
 };
 
 /** A Planning Center attachment as the app lists it; null for chart renders and broken rows. */
