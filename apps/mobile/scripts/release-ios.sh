@@ -145,7 +145,7 @@ if [[ "$skip_build" == 0 ]]; then
     export CCACHE_BINARY
   fi
   rm -rf "$out"
-  mkdir -p "$out"
+  mkdir -p "$out/maps/hermes"
   bun run scripts/release/artifact-cli.ts source > "$out/artifact.json"
   echo "==> Archiving pcobooster.com $revision (build $build)"
   EXPO_PUBLIC_POSTHOG_KEY="${EXPO_PUBLIC_POSTHOG_KEY:-${POSTHOG_PROJECT_KEY:-}}" \
