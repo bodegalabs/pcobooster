@@ -1597,7 +1597,8 @@ describe("plan window history over paged plan ranges", () => {
       everyCallWithinBudget: fresh.every(
         ({ requests }) => requests <= PROGRESSIVE_REQUEST_BUDGET
       ),
-      // The third page passes the window; the plans after it are never listed.
+      // Each page after the first starts at the last plan listed, so a moved plan shows. The
+      // third passes the window; the plans after it are never listed.
       sundayPages: new Set(
         pagesRead(server.sent, "/services/v2/service_types/st-sunday/plans")
       ),
@@ -1608,7 +1609,7 @@ describe("plan window history over paged plan ranges", () => {
       sentByWarm: 0,
       severalCalls: true,
       everyCallWithinBudget: true,
-      sundayPages: new Set([0, 100, 200]),
+      sundayPages: new Set([0, 99, 198]),
     });
   });
 
@@ -1629,7 +1630,7 @@ describe("plan window history over paged plan ranges", () => {
       );
       const after = nextWindowContinuation(batch);
       return after === null ||
-        (after.plans[0]?.rangeOffset === 100 &&
+        (after.plans[0]?.rangeOffset === 99 &&
           after.ranges[0]?.serviceTypeId !== "st-sunday")
         ? [batch]
         : [batch, ...(await readUntilSecondPage(after))];
@@ -1656,6 +1657,161 @@ describe("plan window history over paged plan ranges", () => {
       everyPlanOnce: rows.length === new Set(rows).size,
       rows: rows.length,
     }).toStrictEqual({ moved: true, everyPlanOnce: true, rows: 180 });
+  });
+});
+
+describe("plan window history when plans change between calls", () => {
+  const sundayPath = "/services/v2/service_types/st-sunday/plans";
+  /** A Sunday plan on the selected day with one person on its roster. */
+  const sameDayPlan = (org: FakeOrg, id: string): PCResource => {
+    org.collections.set(`${sundayPath}/${id}/team_members`, {
+      data: [
+        {
+          type: "PlanPerson",
+          id: `${id}-pp`,
+          attributes: {
+            status: "C",
+            team_position_name: "Band - Vocals",
+            created_at: "2026-01-01T00:00:00Z",
+          },
+          relationships: {
+            person: { data: { type: "Person", id: "person-0" } },
+            plan: { data: { type: "Plan", id } },
+          },
+        },
+      ],
+    });
+    return {
+      type: "Plan",
+      id,
+      attributes: { sort_date: PLAN_DATE, plan_people_count: 1 },
+    };
+  };
+  const sameDayOrg = (count: number) => {
+    const org: FakeOrg = { collections: new Map(), resources: new Map() };
+    const plans = Array.from({ length: count }, (_, index) =>
+      sameDayPlan(org, `plan-${index}`)
+    );
+    org.collections.set(sundayPath, { data: plans });
+    const change = (edit: (current: PCResource[]) => PCResource[]) => {
+      org.collections.set(sundayPath, {
+        data: edit([...(org.collections.get(sundayPath)?.data ?? [])]),
+      });
+    };
+    const inserted = (ids: readonly string[]) =>
+      ids.map((id) => sameDayPlan(org, id));
+    return { org, change, inserted };
+  };
+  type WindowExit = Exit.Exit<PlanWindowHistoryBatch, unknown>;
+  /**
+   * Follows the window call by call with fresh caches, editing the plans after the first call;
+   * stops at the end or at the first failure.
+   */
+  const readChangedWindow = async (
+    fetch: typeof globalThis.fetch,
+    afterFirstCall: () => void,
+    continuation?: PlanWindowHistoryInput["continuation"],
+    calls = 0
+  ): Promise<WindowExit[]> => {
+    if (calls === MAX_CALLS) {
+      throw new Error("Plan window history did not finish");
+    }
+    const exit = await Effect.runPromiseExit(
+      getPlanWindowHistory(
+        { date: PLAN_DATE, continuation },
+        windowServices(fetch)
+      )
+    );
+    if (calls === 0) {
+      afterFirstCall();
+    }
+    const next = Exit.isSuccess(exit)
+      ? nextWindowContinuation(exit.value)
+      : null;
+    return next === null
+      ? [exit]
+      : [
+          exit,
+          ...(await readChangedWindow(fetch, afterFirstCall, next, calls + 1)),
+        ];
+  };
+  const changed = (pages: number) =>
+    new PlanningCenterPaginationError({
+      reason: "changed",
+      path: sundayPath,
+      pages,
+    });
+  /** What a read from the start finds once the plans stopped changing. */
+  const readAgain = async (fetch: typeof globalThis.fetch) => {
+    const calls = await continueWindowHistory(() => windowServices(fetch));
+    const rows = Object.values(historyRows(calls)).flat();
+    return {
+      rows: rows.length,
+      everyPlanOnce: rows.length === new Set(rows).size,
+      loaded: calls.reduce((sum, { batch }) => sum + batch.loadedPlanCount, 0),
+    };
+  };
+
+  // The first call lists the first page and reads some rosters; a later one resumes the range
+  // on the page starting at plan-99, after finding the rest of the first page's plans (deleted:
+  // all on it still; added: plan-99 on the next page).
+  it.each([
+    ["deleted", 199, 2],
+    ["added", 201, 3],
+  ] as const)(
+    "fails typed when a plan before an unlisted page is %s, and a fresh read finds every plan once",
+    async (change, plans, pagesBeforeFailing) => {
+      const window = sameDayOrg(200);
+      const server = fakePlanningCenter(window.org);
+      const [added] = window.inserted(["plan-new"]);
+
+      const exits = await readChangedWindow(server.fetch, () => {
+        window.change((current) =>
+          change === "deleted" || added === undefined
+            ? current.slice(1)
+            : [added, ...current]
+        );
+      });
+
+      expect({
+        last: exits.at(-1),
+        earlierSucceeded: exits.slice(0, -1).every(Exit.isSuccess),
+        again: await readAgain(server.fetch),
+      }).toStrictEqual({
+        last: Exit.fail(changed(pagesBeforeFailing)),
+        earlierSucceeded: true,
+        again: { rows: plans, everyPlanOnce: true, loaded: plans },
+      });
+    }
+  );
+
+  it("fails typed when a deferred plan moved past its neighboring pages, rather than drop it", async () => {
+    // One range page, listed whole by the first call, which defers some rosters.
+    const window = sameDayOrg(50);
+    const server = fakePlanningCenter(window.org);
+    // Enough plans ahead of the deferred ones to put them two pages on.
+    const added = window.inserted(
+      Array.from({ length: 170 }, (_, index) => `plan-new-${index}`)
+    );
+
+    const exits = await readChangedWindow(server.fetch, () => {
+      window.change((current) => [...added, ...current]);
+    });
+    const [first] = exits;
+
+    expect({
+      firstDeferred:
+        first !== undefined && Exit.isSuccess(first)
+          ? first.value.deferredPlans.length > 0 &&
+            first.value.deferredRanges.length === 0
+          : false,
+      last: exits.at(-1),
+      again: await readAgain(server.fetch),
+    }).toStrictEqual({
+      firstDeferred: true,
+      last: Exit.fail(changed(2)),
+      again: { rows: 220, everyPlanOnce: true, loaded: 220 },
+    });
   });
 });
 

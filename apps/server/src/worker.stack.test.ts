@@ -1093,7 +1093,9 @@ test(
                 date: "2026-10-11T10:00:00-07:00",
                 continuation: {
                   plans: [],
-                  ranges: [{ serviceTypeId: "st-2", offset: 0 }],
+                  ranges: [
+                    { serviceTypeId: "st-2", offset: 0, boundaryPlanId: null },
+                  ],
                 },
               },
             }),

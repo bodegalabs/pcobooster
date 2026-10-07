@@ -49,7 +49,11 @@ export interface PlanWindowHistoryBatch extends PlanWindowRosters {
     rosterRequests: number;
     rangeOffset: number;
   }[];
-  deferredRanges: { serviceTypeId: string; offset: number }[];
+  deferredRanges: {
+    serviceTypeId: string;
+    offset: number;
+    boundaryPlanId: string | null;
+  }[];
 }
 export interface PositionCandidates {
   candidates: PositionCandidate[];
@@ -128,13 +132,14 @@ const cursorKey = ({ plans, ranges }: ReadonlyWindowContinuation): string =>
         `plan:${serviceTypeId}:${planId}:${rangeOffset}`
     ),
     ...ranges.map(
-      ({ serviceTypeId, offset }) => `range:${serviceTypeId}:${offset}`
+      ({ serviceTypeId, offset, boundaryPlanId }) =>
+        `range:${serviceTypeId}:${offset}:${boundaryPlanId ?? ""}`
     ),
   ].join("|");
 
 /**
- * Whether a follow-up window call got anywhere: it read a roster, dropped a plan that left the
- * window, or listed another range page. A call that did none would repeat forever.
+ * Whether a follow-up window call got anywhere: it read a roster or listed another range page.
+ * A call that did neither would repeat forever.
  */
 export const windowHistoryAdvanced = (
   continuation: ReadonlyWindowContinuation,

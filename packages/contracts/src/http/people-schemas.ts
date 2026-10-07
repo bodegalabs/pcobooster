@@ -126,10 +126,15 @@ export const windowPlanRefSchema = Schema.Struct({
   rangeOffset: pageOffset,
 });
 
-/** A service type whose window plans are listed up to `offset`: part of the cursor. */
+/**
+ * A service type whose window plans are listed up to `offset`: part of the cursor. Once plans
+ * are listed, `offset` is the position of the last one, `boundaryPlanId`, which the next page
+ * must start with.
+ */
 export const windowRangeRefSchema = Schema.Struct({
   serviceTypeId: requiredId,
   offset: pageOffset,
+  boundaryPlanId: Schema.NullOr(requiredId),
 });
 
 export const windowPlanSummarySchema = Schema.Struct({

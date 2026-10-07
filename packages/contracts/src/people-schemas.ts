@@ -117,6 +117,7 @@ export const windowPlanRefSchema = z.object({
 export const windowRangeRefSchema = z.object({
   serviceTypeId: z.string().trim().min(1),
   offset: z.number().int().nonnegative(),
+  boundaryPlanId: z.string().trim().min(1).nullable(),
 });
 
 export const windowPlanSummarySchema = z.object({

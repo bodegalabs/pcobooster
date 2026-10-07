@@ -16,7 +16,10 @@ import { presentationCacheKey } from "@/lib/presentation-cache";
  */
 /** Every version's entries; clearing also drops the single-call list's `v1` entries. */
 const STORAGE_PREFIX = "pcobooster:people:";
-/** v5: window history continues by range page (`deferredRanges`, `rangeOffset`). */
+/**
+ * v5: window history continues by range page (`deferredRanges` with the plan each stopped at,
+ * `rangeOffset`).
+ */
 const CACHE_VERSION = "v5";
 const KEY_PREFIX = `${STORAGE_PREFIX}${CACHE_VERSION}:`;
 const CANDIDATES_KEY_PREFIX = `${KEY_PREFIX}candidates:`;

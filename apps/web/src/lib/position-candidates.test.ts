@@ -200,10 +200,10 @@ const planRef = (planId: string, serviceTypeId = "st-1", rangeOffset = 0) => ({
 describe(windowHistoryAdvanced, () => {
   const continuation = {
     plans: [planRef("plan-1"), planRef("plan-2")],
-    ranges: [{ serviceTypeId: "st-2", offset: 100 }],
+    ranges: [{ serviceTypeId: "st-2", offset: 99, boundaryPlanId: "plan-9" }],
   };
 
-  it("counts rosters read, plans that left the window, and range pages listed", () => {
+  it("counts rosters read and range pages listed", () => {
     expect([
       windowHistoryAdvanced(continuation, windowCall(1)),
       windowHistoryAdvanced(continuation, {
@@ -214,7 +214,9 @@ describe(windowHistoryAdvanced, () => {
       windowHistoryAdvanced(continuation, {
         ...windowCall(0),
         deferredPlans: [...continuation.plans, planRef("plan-3", "st-2", 100)],
-        deferredRanges: [{ serviceTypeId: "st-2", offset: 200 }],
+        deferredRanges: [
+          { serviceTypeId: "st-2", offset: 198, boundaryPlanId: "plan-10" },
+        ],
       }),
       windowHistoryAdvanced(continuation, {
         ...windowCall(0),

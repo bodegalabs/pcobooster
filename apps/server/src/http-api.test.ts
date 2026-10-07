@@ -173,7 +173,7 @@ const continuation = {
       rangeOffset: 0,
     },
   ],
-  ranges: [{ serviceTypeId: "st-3", offset: 0 }],
+  ranges: [{ serviceTypeId: "st-3", offset: 0, boundaryPlanId: null }],
 };
 
 const HISTORY = "/api/v1/people/plan-window-history";
@@ -181,6 +181,26 @@ const HISTORY = "/api/v1/people/plan-window-history";
 describe("people.planWindowHistory (a paginated POST read)", () => {
   it("carries the continuation in the body and answers the next batch", async () => {
     const { app, client, planRanges } = setup();
+    // plan-9 is still on the page that listed it, with no one to read a roster for.
+    planRanges.mockImplementation((serviceTypeId) =>
+      Effect.succeed({
+        data:
+          serviceTypeId === "st-2"
+            ? [
+                {
+                  type: "Plan",
+                  id: "plan-9",
+                  attributes: {
+                    sort_date: "2026-10-11T17:00:00Z",
+                    plan_people_count: 0,
+                  },
+                },
+              ]
+            : [],
+        included: [],
+        nextOffset: null,
+      })
+    );
 
     const batch = await client.run(
       (api) =>
@@ -190,13 +210,12 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
       { priority: "speculative" }
     );
 
-    // Only the continuation's pages are read: st-2's to locate plan-9 (gone, so its
-    // neighbor too), then st-3's first.
+    // Only the continuation's pages are read: st-2's to locate plan-9, then st-3's first.
     expect(
       planRanges.mock.calls.map((call) => `${call[0]}@${call[3]}`)
-    ).toStrictEqual(["st-2@0", "st-2@100", "st-3@0"]);
+    ).toStrictEqual(["st-2@0", "st-3@0"]);
     expect(batch).toMatchObject({
-      loadedPlanCount: 0,
+      loadedPlanCount: 1,
       deferredPlans: [],
       deferredRanges: [],
     });

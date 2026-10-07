@@ -71,7 +71,9 @@ describe(makeProductClient, () => {
           date: "2026-10-11T17:00:00Z",
           continuation: {
             plans: [],
-            ranges: [{ serviceTypeId: "st-2", offset: 0 }],
+            ranges: [
+              { serviceTypeId: "st-2", offset: 0, boundaryPlanId: null },
+            ],
           },
         },
       })
@@ -103,7 +105,9 @@ describe(makeProductClient, () => {
           date: "2026-10-11T17:00:00Z",
           continuation: {
             plans: [],
-            ranges: [{ serviceTypeId: "st-2", offset: 0 }],
+            ranges: [
+              { serviceTypeId: "st-2", offset: 0, boundaryPlanId: null },
+            ],
           },
         }),
       ],
