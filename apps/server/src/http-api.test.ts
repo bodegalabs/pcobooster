@@ -78,8 +78,10 @@ const setup = ({
       ])
     );
   const planRanges = vi
-    .spyOn(services.plans, "getPlansWithIncludedInDateRange")
-    .mockReturnValue(Effect.succeed({ data: [], included: [] }));
+    .spyOn(services.plans, "getPlanRangePage")
+    .mockReturnValue(
+      Effect.succeed({ data: [], included: [], nextOffset: null })
+    );
   const updateStatus = vi
     .spyOn(services.people, "updatePlanPersonStatus")
     .mockReturnValue(
@@ -150,7 +152,7 @@ const raw = async (
   app: Setup["app"],
   method: string,
   path: string,
-  { body, client = "web;api=1" }: { body?: unknown; client?: string } = {}
+  { body, client = "web;api=2" }: { body?: unknown; client?: string } = {}
 ) =>
   await app.request(path, {
     method,
@@ -163,8 +165,15 @@ const raw = async (
   });
 
 const continuation = {
-  plans: [{ serviceTypeId: "st-2", planId: "plan-9", rosterRequests: 1 }],
-  serviceTypeIds: ["st-3"],
+  plans: [
+    {
+      serviceTypeId: "st-2",
+      planId: "plan-9",
+      rosterRequests: 1,
+      rangeOffset: 0,
+    },
+  ],
+  ranges: [{ serviceTypeId: "st-3", offset: 0, boundaryPlanId: null }],
 };
 
 const HISTORY = "/api/v1/people/plan-window-history";
@@ -172,6 +181,26 @@ const HISTORY = "/api/v1/people/plan-window-history";
 describe("people.planWindowHistory (a paginated POST read)", () => {
   it("carries the continuation in the body and answers the next batch", async () => {
     const { app, client, planRanges } = setup();
+    // plan-9 is still on the page that listed it, with no one to read a roster for.
+    planRanges.mockImplementation((serviceTypeId) =>
+      Effect.succeed({
+        data:
+          serviceTypeId === "st-2"
+            ? [
+                {
+                  type: "Plan",
+                  id: "plan-9",
+                  attributes: {
+                    sort_date: "2026-10-11T17:00:00Z",
+                    plan_people_count: 0,
+                  },
+                },
+              ]
+            : [],
+        included: [],
+        nextOffset: null,
+      })
+    );
 
     const batch = await client.run(
       (api) =>
@@ -181,14 +210,14 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
       { priority: "speculative" }
     );
 
-    // Only the continuation's service types are read: st-2 to locate plan-9, then st-3.
+    // Only the continuation's pages are read: st-2's to locate plan-9, then st-3's first.
     expect(
-      planRanges.mock.calls.map(([serviceTypeId]) => serviceTypeId)
-    ).toStrictEqual(["st-2", "st-3"]);
+      planRanges.mock.calls.map((call) => `${call[0]}@${call[3]}`)
+    ).toStrictEqual(["st-2@0", "st-3@0"]);
     expect(batch).toMatchObject({
-      loadedPlanCount: 0,
+      loadedPlanCount: 1,
       deferredPlans: [],
-      deferredServiceTypeIds: [],
+      deferredRanges: [],
     });
     expect(
       app.logs
@@ -200,7 +229,7 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
           fields.client,
         ])
     ).toStrictEqual([
-      ["people.planWindowHistory", 200, "speculative", "web;api=1"],
+      ["people.planWindowHistory", 200, "speculative", "web;api=2"],
     ]);
   });
 
@@ -347,6 +376,7 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
 
   it.each([
     ["an older API version", "web;api=0"],
+    ["the API version before paged candidate and dashboard reads", "web;api=1"],
     ["a header without a version", "web"],
   ])("answers 426 ClientOutdated to %s", async (_case, header) => {
     const { app, serviceTypes } = setup();
@@ -359,7 +389,7 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
     expect(response.status).toBe(426);
     await expect(response.json()).resolves.toMatchObject({
       _tag: "ClientOutdated",
-      minimumProtocolVersion: 1,
+      minimumProtocolVersion: 2,
     });
     expect(serviceTypes).not.toHaveBeenCalled();
   });
@@ -438,7 +468,7 @@ describe("schedule.updateStatus (an audited write)", () => {
       method: "PATCH",
       headers: {
         "content-type": "application/json",
-        "x-pcobooster-client": "web;api=1",
+        "x-pcobooster-client": "web;api=2",
       },
       body,
     });

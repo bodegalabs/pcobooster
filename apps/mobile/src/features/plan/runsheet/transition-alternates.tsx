@@ -5,9 +5,9 @@ import type {
   ArrangementOption,
   KeyOption,
 } from "@pcobooster/planning-center-models/types";
-import { useQuery } from "@tanstack/react-query";
 
 import { useProductClient } from "../../../app-shell/queries";
+import { useVisibleQuery as useQuery } from "../../../app-shell/visible-queries";
 import { PillButton } from "../../../components/pill-button";
 import { EditorSection } from "../editor-sheet";
 import { ReadStatus } from "../read-status";

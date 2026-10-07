@@ -14,6 +14,29 @@ describe(createRequestScheduler, () => {
     vi.useRealTimers();
   });
 
+  it("admits calls with the native AbortSignal that lacks throwIfAborted", async () => {
+    const controller = new AbortController();
+    Object.defineProperty(controller.signal, "throwIfAborted", {
+      value: undefined,
+    });
+    const scheduler = createRequestScheduler({ quietMs: QUIET_MS });
+    await expect(
+      scheduler.track(
+        "interactive",
+        async () => await Promise.resolve("loaded"),
+        controller.signal
+      )
+    ).resolves.toBe("loaded");
+    controller.abort();
+    const call = vi.fn<() => Promise<string>>(
+      async () => await Promise.resolve("unexpected")
+    );
+    await expect(
+      scheduler.track("interactive", call, controller.signal)
+    ).rejects.toMatchObject({ name: "AbortError" });
+    expect(call).not.toHaveBeenCalled();
+  });
+
   it("starts speculative work only after interactive calls have been quiet", async () => {
     const scheduler = createRequestScheduler({ quietMs: QUIET_MS });
     const started: string[] = [];
@@ -140,5 +163,84 @@ describe(createRequestScheduler, () => {
     await expect(
       scheduler.track("interactive", async () => await Promise.reject(failure))
     ).rejects.toBe(failure);
+  });
+});
+
+describe("bounded request admission", () => {
+  it("bounds all product calls and admits queued interactive work before speculative work", async () => {
+    const scheduler = createRequestScheduler({
+      quietMs: 0,
+      maxConcurrentRequests: 2,
+    });
+    const first = deferred();
+    const second = deferred();
+    const started: string[] = [];
+    const one = scheduler.track("interactive", async () => {
+      started.push("one");
+      await first.promise;
+    });
+    const two = scheduler.track("interactive", async () => {
+      started.push("two");
+      await second.promise;
+    });
+    const speculative = scheduler.track("speculative", async () => {
+      started.push("speculative");
+      await Promise.resolve();
+    });
+    const visible = scheduler.track("interactive", async () => {
+      started.push("visible");
+      await Promise.resolve();
+    });
+    await Promise.resolve();
+    expect(started).toStrictEqual(["one", "two"]);
+    first.resolve(null);
+    await one;
+    await visible;
+    await speculative;
+    expect(started).toStrictEqual(["one", "two", "visible", "speculative"]);
+    second.resolve(null);
+    await Promise.all([two, speculative]);
+  });
+
+  it("drops an obsolete queued read without sending it or holding up the next read", async () => {
+    const scheduler = createRequestScheduler({
+      quietMs: 0,
+      maxConcurrentRequests: 1,
+    });
+    const first = deferred();
+    const obsolete = new AbortController();
+    const sent: string[] = [];
+    const running = scheduler.track("interactive", async () => {
+      await first.promise;
+    });
+    const dropped = scheduler.track(
+      "interactive",
+      async () => {
+        sent.push("obsolete");
+        await Promise.resolve();
+      },
+      obsolete.signal
+    );
+    const rejection = new DOMException("Left route", "AbortError");
+    const rejected = async () => {
+      try {
+        await dropped;
+        return null;
+      } catch (error) {
+        return error;
+      }
+    };
+    const observed = rejected();
+    obsolete.abort(rejection);
+    const next = scheduler.track("interactive", async () => {
+      sent.push("next");
+      return await Promise.resolve(7);
+    });
+    await expect(observed).resolves.toBe(rejection);
+    expect(sent).toStrictEqual([]);
+    first.resolve(null);
+    await running;
+    await expect(next).resolves.toBe(7);
+    expect(sent).toStrictEqual(["next"]);
   });
 });

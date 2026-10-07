@@ -1,5 +1,5 @@
 import type { TeamPositionGroup } from "@pcobooster/planning-center-models/types";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActionSheetIOS, AppState, Linking, Settings } from "react-native";
@@ -9,6 +9,7 @@ import {
   sharedReads,
   useProductClient,
 } from "../../app-shell/queries";
+import { useVisibleQuery as useQuery } from "../../app-shell/visible-queries";
 import { playHaptic } from "../../design/haptics";
 import { useClock, useOrgTimeZone } from "../../lib/environment";
 import { useToasts } from "../../lib/toasts";

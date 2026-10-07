@@ -10,11 +10,15 @@ import type { RequestScheduler } from "@pcobooster/client/request-scheduler";
  * sign-in. Fixture mode (`-PCOBMock YES`, development builds) swaps the network and the Keychain
  * for the fixture transport and memory, and keeps everything else.
  */
+import { APP_RELEASE_HEADER } from "@pcobooster/contracts/http/request-diagnostics";
 import { Effect, Schema } from "effect";
 import type { Json } from "effect/Schema";
 
+import type { ReportOrigin } from "../diagnostics/diagnostics-client";
 import { makeFixtureFetch } from "../harness/fixture-transport";
 import type { FeatureOverride, LaunchOptions } from "../harness/launch-options";
+import { offlineFetch } from "../harness/release-smoke";
+import type { SmokeNetwork } from "../harness/release-smoke";
 import {
   clearIfFreshInstall,
   makeCredentialStore,
@@ -37,8 +41,12 @@ import { pkceChallenge } from "../session/pkce";
 import type { SignInCrypto } from "../session/pkce";
 import { credentialHeaders, SessionStore } from "../session/session-store";
 import type { SessionStoreDependencies } from "../session/session-store";
-import { DemoLinkFailureError, makeAppClient } from "./app-client";
-import type { AppClient } from "./app-client";
+import {
+  DemoLinkFailureError,
+  liveCallIdentity,
+  makeAppClient,
+} from "./app-client";
+import type { AppClient, AppClients } from "./app-client";
 import { mockSignInResult, mockStoredSession } from "./device-accounts";
 
 const TRAILING_SLASHES = /\/+$/u;
@@ -73,6 +81,8 @@ export interface AppRuntime {
   readonly checksDevelopmentSignIn: boolean;
   readonly session: SessionStore;
   readonly client: AppClient;
+  /** The client for one account scope's query cache; it never sends for another scope. */
+  readonly clientForScope: (scope: string) => AppClient;
   readonly scheduler: RequestScheduler;
   readonly signIn: () => Promise<NativeSignInResult>;
   /** Starts the session: clears a reinstall's Keychain, then reads it. */
@@ -89,6 +99,10 @@ interface RuntimeParts {
   readonly seed: StoredSession | null;
   readonly onForget?: SessionStoreDependencies["onForget"];
   readonly beforeRestore?: () => Promise<void>;
+  /** The installed release sent as `x-pcobooster-app`; null sends none. */
+  readonly appRelease: string | null;
+  /** The diagnostics context each call starts in (`Diagnostics.origin`). */
+  readonly reportOrigin?: () => ReportOrigin;
 }
 
 const MOCK_SIGN_IN_DELAY_MS = 500;
@@ -98,10 +112,13 @@ const buildRuntime = (
   parts: RuntimeParts
 ): AppRuntime => {
   const { fetch, secrets, signIn, now, origin } = parts;
-  const scheduler = createRequestScheduler({ quietMs: SPECULATIVE_QUIET_MS });
+  const scheduler = createRequestScheduler({
+    quietMs: SPECULATIVE_QUIET_MS,
+    maxConcurrentRequests: 2,
+  });
   // The session and the client refer to each other: the client's header getter reads the
   // session, and the session's own calls go through the client.
-  let client: AppClient | null = null;
+  let client: AppClients | null = null;
   const run: AppClient["run"] = async (call, runOptions) => {
     if (client === null) {
       throw new Error("The product client is not ready");
@@ -176,9 +193,24 @@ const buildRuntime = (
       }
       return response;
     },
-    httpHeaders: () => credentialHeaders(session.credentials()),
+    httpHeaders: () => {
+      const headers = new Headers(credentialHeaders(session.credentials()));
+      if (parts.appRelease !== null) {
+        headers.set(APP_RELEASE_HEADER, parts.appRelease);
+      }
+      return headers;
+    },
   });
-  client = makeAppClient(product, session, scheduler);
+  client = makeAppClient(
+    product,
+    {
+      credentials: session.credentials,
+      handleUnauthorized: session.handleUnauthorized,
+      scope: () => session.getSnapshot().scope,
+    },
+    scheduler,
+    { ...liveCallIdentity, origin: parts.reportOrigin }
+  );
   if (parts.seed !== null) {
     // The fixture session is known up front, so the first frame is already signed in.
     session.seed(parts.seed);
@@ -190,6 +222,7 @@ const buildRuntime = (
     checksDevelopmentSignIn: __DEV__ && !options.mock && isLocalOrigin(origin),
     session,
     client,
+    clientForScope: client.forScope,
     scheduler,
     signIn: async () => {
       if (signIn === null) {
@@ -227,6 +260,7 @@ export const makeFixtureRuntime = (
     now,
     credentialIdentity: async () => await Promise.resolve("fixture"),
     seed: mockStoredSession(options.mockSession, now()),
+    appRelease: null,
   });
 
 export interface DeviceServices {
@@ -235,6 +269,12 @@ export interface DeviceServices {
   readonly crypto: SignInCrypto;
   readonly authenticate: WebAuthentication;
   readonly onForget: SessionStoreDependencies["onForget"];
+  /** The product client's fetch; a verification build's API probe wraps it. */
+  readonly productFetch?: typeof globalThis.fetch;
+  /** The installed release (`0.1.0(372)+1a2b3c4`) the API logs with each request. */
+  readonly appRelease: string | null;
+  /** The diagnostics context each call starts in. */
+  readonly reportOrigin?: () => ReportOrigin;
 }
 
 /** The real runtime: the network, the Keychain, and native sign-in. */
@@ -244,7 +284,7 @@ export const makeLiveRuntime = (
 ): AppRuntime =>
   buildRuntime(options, {
     origin: API_ORIGIN,
-    fetch: globalThis.fetch,
+    fetch: device.productFetch ?? globalThis.fetch,
     secrets: device.secrets,
     signIn: makeNativeSignIn({
       origin: API_ORIGIN,
@@ -258,6 +298,39 @@ export const makeLiveRuntime = (
     credentialIdentity: async (token) =>
       await pkceChallenge(device.crypto, token),
     seed: null,
+    onForget: device.onForget,
+    beforeRestore: async () => {
+      await clearIfFreshInstall(device.secrets, device.appStorage);
+    },
+    appRelease: device.appRelease,
+    reportOrigin: device.reportOrigin,
+  });
+
+/**
+ * A release smoke build's runtime (`harness/release-smoke.ts`): the device's Keychain, app
+ * storage, and fresh-install check, as the real runtime has, with the fixtures (or a lost
+ * connection) for the network and the fixture sign-in for the browser.
+ */
+export const makeReleaseSmokeRuntime = (
+  options: LaunchOptions,
+  device: DeviceServices,
+  network: SmokeNetwork,
+  now: () => Date
+): AppRuntime =>
+  buildRuntime(options, {
+    origin: "https://fixtures.invalid",
+    fetch:
+      network === "online"
+        ? makeFixtureFetch({ latencyMs: options.mockLatencyMs })
+        : offlineFetch,
+    secrets: device.secrets,
+    signIn: null,
+    now,
+    credentialIdentity: async (token) =>
+      await pkceChallenge(device.crypto, token),
+    seed: null,
+    appRelease: device.appRelease,
+    reportOrigin: device.reportOrigin,
     onForget: device.onForget,
     beforeRestore: async () => {
       await clearIfFreshInstall(device.secrets, device.appStorage);

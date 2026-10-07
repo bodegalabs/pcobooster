@@ -3,7 +3,9 @@ import { buildPlanningCenterUrl } from "@pcobooster/api/planning-center/core-cli
 import type {
   PlanningCenterCoreClient,
   PlanningCenterError,
+  PlanningCenterPage,
 } from "@pcobooster/api/planning-center/core-client";
+import { PlanningCenterPaginationError } from "@pcobooster/api/planning-center/pagination-error";
 import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import {
@@ -26,23 +28,22 @@ interface ResourceCollection {
   included: PCResource[];
 }
 
+/** A range's plans; `complete` is false when the range went on past the pages read. */
+export interface PlanRange extends ResourceCollection {
+  complete: boolean;
+}
+
 export interface PlanningCenterPlansServiceCaches {
-  readonly ranges: PlanningCenterReadCache<ResourceCollection>;
+  /** Pages of a service type's plans from a day on, in date order. */
+  readonly rangePages: PlanningCenterReadCache<PlanningCenterPage>;
   readonly planTimes: PlanningCenterReadCache<PCResource[]>;
 }
 
 export const createPlanningCenterPlansServiceCaches =
   (): PlanningCenterPlansServiceCaches => ({
-    ranges: new PlanningCenterReadCache<ResourceCollection>(),
+    rangePages: new PlanningCenterReadCache<PlanningCenterPage>(),
     planTimes: new PlanningCenterReadCache<PCResource[]>(),
   });
-
-const cloneResourceResponse = (
-  response: ResourceCollection
-): ResourceCollection => ({
-  data: structuredClone(response.data),
-  included: structuredClone(response.included),
-});
 
 const buildPlanTimeAssignmentRelationships = (
   assignedTeamIds?: string[],
@@ -70,22 +71,47 @@ const buildPlanTimeAssignmentRelationships = (
   return Object.keys(relationships).length > 0 ? relationships : null;
 };
 
-const isInOrganizationDayRange = (
+/** The plan's sort date as an organization calendar day, or null without one. */
+const planDayKey = (
+  plan: PCResource,
+  organizationTimeZone: string
+): string | null => {
+  const sortDateStr = plan.attributes.sort_date;
+  if (!isNonEmptyString(sortDateStr)) {
+    return null;
+  }
+  const sortDate = new Date(sortDateStr);
+  return Number.isNaN(sortDate.getTime())
+    ? null
+    : formatCalendarDayInTimeZone(sortDate, organizationTimeZone);
+};
+
+export const isInOrganizationDayRange = (
   plan: PCResource,
   afterDayKey: string,
   beforeDayKey: string,
   organizationTimeZone: string
 ): boolean => {
-  const sortDateStr = plan.attributes.sort_date;
-  if (!isNonEmptyString(sortDateStr)) {
-    return false;
-  }
-  const sortDate = new Date(sortDateStr);
-  if (Number.isNaN(sortDate.getTime())) {
-    return false;
-  }
-  const planDay = formatCalendarDayInTimeZone(sortDate, organizationTimeZone);
-  return planDay >= afterDayKey && planDay <= beforeDayKey;
+  const day = planDayKey(plan, organizationTimeZone);
+  return day !== null && day >= afterDayKey && day <= beforeDayKey;
+};
+
+/**
+ * Where a range read goes after `page`: `null` once the range is read, either because the
+ * collection ended or because the page's last dated plan falls after `beforeDayKey` (pages come
+ * in date order, so later pages hold only later plans).
+ */
+export const nextRangeOffset = (
+  page: PlanningCenterPage,
+  beforeDayKey: string,
+  organizationTimeZone: string
+): number | null => {
+  const lastDay = page.data
+    .map((plan) => planDayKey(plan, organizationTimeZone))
+    .findLast((day) => day !== null);
+  return lastDay !== undefined && lastDay !== null && lastDay > beforeDayKey
+    ? null
+    : page.nextOffset;
 };
 
 export class PlanningCenterPlansService {
@@ -107,10 +133,13 @@ export class PlanningCenterPlansService {
     serviceTypeId: string,
     params: Record<string, string> = {}
   ): Effect.Effect<PCResource[], PlanningCenterError> {
-    return this.core.fetchAll(
-      `/services/v2/service_types/${serviceTypeId}/plans`,
-      { ...params, order: "-sort_date" },
-      3
+    return Effect.map(
+      this.core.fetchFirstPages(
+        `/services/v2/service_types/${serviceTypeId}/plans`,
+        { ...params, order: "-sort_date" },
+        3
+      ),
+      ({ data }) => data
     );
   }
 
@@ -146,7 +175,7 @@ export class PlanningCenterPlansService {
     beforeDayKey: string,
     organizationTimeZone?: string
   ): Effect.Effect<PCResource[], PlanningCenterError> {
-    return Effect.map(
+    return Effect.flatMap(
       this.getPlansWithIncludedInDateRange(
         serviceTypeId,
         afterDayKey,
@@ -154,75 +183,117 @@ export class PlanningCenterPlansService {
         "",
         organizationTimeZone
       ),
-      (response) => response.data
+      (range) =>
+        range.complete
+          ? Effect.succeed(range.data)
+          : Effect.fail(
+              new PlanningCenterPaginationError({
+                reason: "page-limit",
+                path: `/services/v2/service_types/${serviceTypeId}/plans`,
+                pages: PLAN_RANGE_MAX_PAGES,
+              })
+            )
     );
   }
 
+  /**
+   * One page of a service type's plans from `afterDayKey` (YYYY-MM-DD in the organization's
+   * zone) on, in date order, via `filter=after`. Cached per page and shared by every range
+   * that starts that day, so reads that go page by page across calls resume from cache.
+   */
+  getPlanRangePage(
+    serviceTypeId: string,
+    afterDayKey: string,
+    include: string,
+    offset: number
+  ): Effect.Effect<PlanningCenterPage, PlanningCenterError> {
+    const params = {
+      order: "sort_date",
+      filter: "after",
+      after: afterDayKey,
+      ...(include ? { include } : undefined),
+    };
+    return cachedRead(
+      this.caches.rangePages,
+      [
+        this.core.getCacheScope(),
+        "plans-range",
+        encodeURIComponent(serviceTypeId),
+        stableParams(params),
+        String(offset),
+      ].join(":"),
+      PLANS_RANGE_CACHE_TTL_MS,
+      () =>
+        this.core.fetchPage(
+          `/services/v2/service_types/${serviceTypeId}/plans`,
+          params,
+          offset
+        )
+    ).pipe(Effect.map((page) => structuredClone(page)));
+  }
+
+  /**
+   * The plans whose sort date falls on [`afterDayKey`, `beforeDayKey`] in the organization's
+   * zone, with what `include` sideloads for them. Pages are read until one passes
+   * `beforeDayKey`, at most `PLAN_RANGE_MAX_PAGES`; `complete` is false when the range went on
+   * past them, so each caller decides whether the plans read are enough.
+   */
   getPlansWithIncludedInDateRange(
     serviceTypeId: string,
     afterDayKey: string,
     beforeDayKey: string,
     include = "",
     organizationTimeZone?: string
-  ): Effect.Effect<ResourceCollection, PlanningCenterError> {
-    const { core, caches } = this;
+  ): Effect.Effect<PlanRange, PlanningCenterError> {
     const resolveTimeZone =
       organizationTimeZone === undefined
         ? this.resolveTimeZone
         : Effect.succeed(organizationTimeZone);
+    const readPage = (offset: number) =>
+      this.getPlanRangePage(serviceTypeId, afterDayKey, include, offset);
     return Effect.gen(function* readPlansInDateRange() {
       const orgTz = yield* resolveTimeZone;
-      const params = {
-        order: "sort_date",
-        per_page: "100",
-        filter: "after",
-        after: afterDayKey,
-        ...(include ? { include } : undefined),
-      };
-      const cacheKey = [
-        core.getCacheScope(),
-        "plans-range",
-        encodeURIComponent(serviceTypeId),
-        encodeURIComponent(afterDayKey),
-        encodeURIComponent(beforeDayKey),
-        stableParams(params),
-      ].join(":");
-      const load = Effect.gen(function* loadPlansInDateRange() {
-        yield* log.info("Fetching plans in date range", {
+      const data: PCResource[] = [];
+      const included: PCResource[] = [];
+      const seenIncluded = new Set<string>();
+      let offset: number | null = 0;
+      for (
+        let pages = 0;
+        offset !== null && pages < PLAN_RANGE_MAX_PAGES;
+        pages += 1
+      ) {
+        const page: PlanningCenterPage = yield* readPage(offset);
+        data.push(...page.data);
+        for (const resource of page.included) {
+          const key = `${resource.type}:${resource.id}`;
+          if (!seenIncluded.has(key)) {
+            seenIncluded.add(key);
+            included.push(resource);
+          }
+        }
+        offset = nextRangeOffset(page, beforeDayKey, orgTz);
+      }
+      const plans = data.filter((plan) =>
+        isInOrganizationDayRange(plan, afterDayKey, beforeDayKey, orgTz)
+      );
+      const planIds = new Set(plans.map((plan) => plan.id));
+      if (offset !== null) {
+        yield* log.info("Plan range read stopped at its page limit", {
           serviceTypeId,
           after: afterDayKey,
           before: beforeDayKey,
-          include: include || null,
+          pages: PLAN_RANGE_MAX_PAGES,
         });
-        const fetched = yield* core.fetchAllWithIncluded(
-          `/services/v2/service_types/${serviceTypeId}/plans`,
-          params,
-          PLAN_RANGE_MAX_PAGES
-        );
-        const plans = fetched.data.filter((plan) =>
-          isInOrganizationDayRange(plan, afterDayKey, beforeDayKey, orgTz)
-        );
-        const planIds = new Set(plans.map((plan) => plan.id));
-        const included = fetched.included.filter((resource) => {
+      }
+      return {
+        data: plans,
+        included: included.filter((resource) => {
           const planRel = resource.relationships?.plan?.data;
           const planId = Array.isArray(planRel) ? planRel[0]?.id : planRel?.id;
           return !isNonEmptyString(planId) || planIds.has(planId);
-        });
-        yield* log.info("Plans fetched", {
-          serviceTypeId,
-          count: plans.length,
-          rawCount: fetched.data.length,
-          includedCount: included.length,
-        });
-        return { data: plans, included };
-      });
-      const response = yield* cachedRead(
-        caches.ranges,
-        cacheKey,
-        PLANS_RANGE_CACHE_TTL_MS,
-        () => load
-      );
-      return cloneResourceResponse(response);
+        }),
+        complete: offset === null,
+      };
     });
   }
 
@@ -382,7 +453,9 @@ export class PlanningCenterPlansService {
     ].join(":");
 
     this.caches.planTimes.deleteWhere((key) => key === planTimesKey);
-    this.caches.ranges.deleteWhere((key) => key.startsWith(plansRangePrefix));
+    this.caches.rangePages.deleteWhere((key) =>
+      key.startsWith(plansRangePrefix)
+    );
   }
 
   private buildCacheKey(namespace: string, ...parts: string[]): string {

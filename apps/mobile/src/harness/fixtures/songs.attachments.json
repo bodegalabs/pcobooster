@@ -1,0 +1,125 @@
+{
+  "default": {
+    "attachments": [],
+    "truncated": false
+  },
+  "cases": [
+    {
+      "match": {
+        "songId": "5501",
+        "arrangementId": "55011"
+      },
+      "output": {
+        "attachments": [
+          {
+            "id": "88001",
+            "keyId": null,
+            "name": "Demo recording",
+            "filename": "Morning Light - Demo.mp3",
+            "kind": "audio",
+            "contentType": "audio/mpeg",
+            "fileSize": 4200000,
+            "linkUrl": null,
+            "downloadable": true,
+            "streamable": true
+          },
+          {
+            "id": "88002",
+            "keyId": null,
+            "name": "Rehearsal video",
+            "filename": "Morning Light - Rehearsal.mp4",
+            "kind": "video",
+            "contentType": "video/mp4",
+            "fileSize": 48000000,
+            "linkUrl": null,
+            "downloadable": true,
+            "streamable": true
+          },
+          {
+            "id": "88003",
+            "keyId": null,
+            "name": "Original recording",
+            "filename": "",
+            "kind": "link",
+            "contentType": null,
+            "fileSize": null,
+            "linkUrl": "https://www.youtube.com/watch?v=fixture-morning-light",
+            "downloadable": false,
+            "streamable": false
+          },
+          {
+            "id": "88004",
+            "keyId": null,
+            "name": "Stage plot",
+            "filename": "Stage plot.png",
+            "kind": "image",
+            "contentType": "image/png",
+            "fileSize": 378,
+            "linkUrl": null,
+            "downloadable": true,
+            "streamable": false
+          },
+          {
+            "id": "88006",
+            "keyId": null,
+            "name": "Multitracks",
+            "filename": "Morning Light - Stems.zip",
+            "kind": "other",
+            "contentType": "application/zip",
+            "fileSize": 250000000,
+            "linkUrl": null,
+            "downloadable": true,
+            "streamable": false
+          },
+          {
+            "id": "88007",
+            "keyId": "550111",
+            "name": "Licensed chart",
+            "filename": "Morning Light (G).pdf",
+            "kind": "pdf",
+            "contentType": "application/pdf",
+            "fileSize": 30000,
+            "linkUrl": null,
+            "downloadable": false,
+            "streamable": false
+          },
+          {
+            "id": "88005",
+            "keyId": "550112",
+            "name": "Lead sheet",
+            "filename": "Morning Light - Lead Sheet (A).pdf",
+            "kind": "pdf",
+            "contentType": "application/pdf",
+            "fileSize": 20000,
+            "linkUrl": null,
+            "downloadable": true,
+            "streamable": false
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "match": {
+        "songId": "5502"
+      },
+      "output": {
+        "attachments": [
+          {
+            "id": "88001",
+            "keyId": null,
+            "name": "Demo recording",
+            "filename": "Morning Light - Demo.mp3",
+            "kind": "audio",
+            "contentType": "audio/mpeg",
+            "fileSize": 4200000,
+            "linkUrl": null,
+            "downloadable": true,
+            "streamable": true
+          }
+        ],
+        "truncated": true
+      }
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-erro
 import type { PlanningCenterRateLimitInfo } from "@pcobooster/api/planning-center/api-error";
 import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
 import { PlanningCenterPacing } from "@pcobooster/api/planning-center/pacing";
+import { PlanningCenterPaginationError } from "@pcobooster/api/planning-center/pagination-error";
 import { PlanningCenterRateLimitError } from "@pcobooster/api/planning-center/rate-limit-error";
 import { DEFAULT_MAX_RATE_LIMIT_WAIT_MS } from "@pcobooster/api/planning-center/rate-pacer";
 import type { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
@@ -36,6 +37,7 @@ import type {
   PCResource,
 } from "@pcobooster/planning-center-models/types";
 import { Clock, Duration, Effect, Exit, Option, Schedule } from "effect";
+import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
 import * as HttpClient from "effect/unstable/http/HttpClient";
 import type { HttpClientError } from "effect/unstable/http/HttpClientError";
 import * as HttpClientRequest from "effect/unstable/http/HttpClientRequest";
@@ -56,6 +58,7 @@ const errorBodySchema = z.record(z.string(), z.json());
 export type PlanningCenterError =
   | PlanningCenterApiError
   | PlanningCenterNetworkError
+  | PlanningCenterPaginationError
   | PlanningCenterRateLimitError
   | PlanningCenterReadOnlyError
   | PlanningCenterSubrequestLimitError;
@@ -72,11 +75,29 @@ export const isPlanningCenterError = (
 ): value is PlanningCenterError =>
   value instanceof PlanningCenterApiError ||
   value instanceof PlanningCenterNetworkError ||
+  value instanceof PlanningCenterPaginationError ||
   value instanceof PlanningCenterRateLimitError ||
   value instanceof PlanningCenterReadOnlyError ||
   value instanceof PlanningCenterSubrequestLimitError;
 
 type ResponseHeaders = HttpClientResponse["headers"];
+
+/** Planning Center's largest page; every collection read asks for it. */
+export const PLANNING_CENTER_PAGE_SIZE = 100;
+
+/** One page of a collection, and the offset of the next when there is one. */
+export interface PlanningCenterPage {
+  readonly data: PCResource[];
+  readonly included: PCResource[];
+  readonly nextOffset: number | null;
+}
+
+/** The first pages of a collection, and the next page's link when it goes on. */
+export interface PlanningCenterPages {
+  readonly data: PCResource[];
+  readonly included: PCResource[];
+  readonly next: string | null;
+}
 
 interface SentResponse {
   readonly response: HttpClientResponse;
@@ -370,7 +391,8 @@ const readJsonBody =
 /** Fails before sending when this invocation may not make another request. */
 const ensureSubrequestAvailable = (
   { accounting, endpoint }: AttemptContext,
-  method: HttpMethod
+  method: HttpMethod,
+  reserve = false
 ): Effect.Effect<void, PlanningCenterSubrequestLimitError> =>
   Effect.suspend(() => {
     if (accounting === undefined) {
@@ -384,6 +406,10 @@ const ensureSubrequestAvailable = (
     }
     const limit = accounting.requestBudget;
     if (limit === undefined || requests < limit) {
+      // Check and charge in the same synchronous turn: paced callers may wake together.
+      if (reserve) {
+        accounting.recordRequest();
+      }
       return Effect.void;
     }
     accounting.recordSubrequestLimit("budget");
@@ -570,7 +596,13 @@ export class PlanningCenterCoreClient {
     this.cacheScope = `${auth.kind}:${createHash("sha256").update(credential).digest("hex")}`;
     // Trace headers would leak internal span IDs to a third party.
     this.httpClient = HttpClient.transform(options.httpClient, (effect) =>
-      Effect.provideService(effect, HttpClient.TracerPropagationEnabled, false)
+      effect.pipe(
+        Effect.provideService(HttpClient.TracerPropagationEnabled, false),
+        // Canonical API URLs must answer directly; implicit redirect hops evade accounting.
+        Effect.provideService(FetchHttpClient.RequestInit, {
+          redirect: "manual",
+        })
+      )
     );
     this.readOnly = options.readOnly ?? false;
   }
@@ -587,8 +619,8 @@ export class PlanningCenterCoreClient {
     const { method } = request;
     const { accounting, endpoint, pacer } = context;
     const execute = Effect.gen(function* sendRequest() {
-      accounting?.recordRequest();
       const startedAt = yield* Clock.currentTimeMillis;
+      yield* ensureSubrequestAvailable(context, method, true);
       const response = yield* httpClient.execute(request).pipe(
         Effect.mapError((error) => transportFailure(error, context)),
         Effect.tapError((failure) =>
@@ -744,6 +776,7 @@ export class PlanningCenterCoreClient {
     return this.fetchJson(endpoint, options, pcCollectionResponseSchema);
   }
 
+  /** Every page of a collection; fails rather than return part of it past `maxPages`. */
   fetchAll(
     endpoint: string,
     params: Record<string, string> = {},
@@ -755,7 +788,11 @@ export class PlanningCenterCoreClient {
     );
   }
 
-  /** Follows `links.next` once per URL, deduplicating included resources. */
+  /**
+   * Every page of a collection with its included resources, deduplicated. A collection longer
+   * than `maxPages` fails with `PlanningCenterPaginationError`; callers that only need its start
+   * read `fetchFirstPages` instead.
+   */
   fetchAllWithIncluded(
     endpoint: string,
     params: Record<string, string> = {},
@@ -764,20 +801,53 @@ export class PlanningCenterCoreClient {
     { data: PCResource[]; included: PCResource[] },
     PlanningCenterError
   > {
+    return Effect.flatMap(
+      this.fetchFirstPages(endpoint, params, maxPages),
+      ({ data, included, next }) =>
+        next === null
+          ? Effect.succeed({ data, included })
+          : Effect.fail(
+              new PlanningCenterPaginationError({
+                reason: "page-limit",
+                path: describePlanningCenterEndpoint(endpoint).path,
+                pages: maxPages,
+              })
+            )
+    );
+  }
+
+  /**
+   * At most `maxPages` pages from the start of a collection, for reads whose order puts what
+   * they need first. `next` is the following page's link when the collection goes on.
+   */
+  fetchFirstPages(
+    endpoint: string,
+    params: Record<string, string> = {},
+    maxPages = 5
+  ): Effect.Effect<PlanningCenterPages, PlanningCenterError> {
     const fetchPage = (url: string) => this.fetchCollection(url);
     return Effect.gen(function* fetchPages() {
       const data: PCResource[] = [];
       const included: PCResource[] = [];
       const seenIncluded = new Set<string>();
       const seenUrls = new Set<string>();
-      let pagesRemaining = maxPages;
-      let url: string | undefined = buildPlanningCenterUrl(endpoint, {
+      let pages = 0;
+      let url: string | null = buildPlanningCenterUrl(endpoint, {
         ...params,
-        per_page: "100",
+        per_page: String(PLANNING_CENTER_PAGE_SIZE),
       });
-      while (url !== undefined && pagesRemaining > 0 && !seenUrls.has(url)) {
+      while (url !== null && pages < maxPages) {
+        if (seenUrls.has(url)) {
+          return yield* Effect.fail(
+            new PlanningCenterPaginationError({
+              reason: "invalid-next",
+              path: describePlanningCenterEndpoint(url).path,
+              pages,
+            })
+          );
+        }
         seenUrls.add(url);
-        pagesRemaining -= 1;
+        pages += 1;
         const response: PCApiResponse<PCResource[]> = yield* fetchPage(url);
         data.push(...response.data);
         for (const resource of response.included ?? []) {
@@ -788,10 +858,65 @@ export class PlanningCenterCoreClient {
           }
         }
         const nextUrl: string | undefined = response.links?.next;
-        url = isNonEmptyString(nextUrl) ? nextUrl : undefined;
+        url = isNonEmptyString(nextUrl) ? nextUrl : null;
       }
-      return { data, included };
+      if (url !== null) {
+        yield* log.info("Planning Center read stopped at its page limit", {
+          endpoint: describePlanningCenterEndpoint(endpoint),
+          pages,
+        });
+      }
+      return { data, included, next: url };
     });
+  }
+
+  /**
+   * One page of a collection from `offset`. `nextOffset` comes from Planning Center's next
+   * link, so a caller can resume the collection in a later invocation from its endpoint and
+   * an offset alone, never from a link a client sent.
+   */
+  fetchPage(
+    endpoint: string,
+    params: Record<string, string>,
+    offset: number
+  ): Effect.Effect<PlanningCenterPage, PlanningCenterError> {
+    const firstPage = {
+      ...params,
+      per_page: String(PLANNING_CENTER_PAGE_SIZE),
+    };
+    const url = buildPlanningCenterUrl(
+      endpoint,
+      offset > 0 ? { ...firstPage, offset: String(offset) } : firstPage
+    );
+    return Effect.flatMap(
+      this.fetchCollection(url),
+      (response): Effect.Effect<PlanningCenterPage, PlanningCenterError> => {
+        const next = response.links?.next;
+        if (!isNonEmptyString(next)) {
+          return Effect.succeed({
+            data: response.data,
+            included: response.included ?? [],
+            nextOffset: null,
+          });
+        }
+        const nextOffset = Number(
+          new URL(next, PC_BASE_URL).searchParams.get("offset")
+        );
+        return Number.isSafeInteger(nextOffset) && nextOffset > offset
+          ? Effect.succeed({
+              data: response.data,
+              included: response.included ?? [],
+              nextOffset,
+            })
+          : Effect.fail(
+              new PlanningCenterPaginationError({
+                reason: "invalid-next",
+                path: describePlanningCenterEndpoint(url).path,
+                pages: 1,
+              })
+            );
+      }
+    );
   }
 }
 

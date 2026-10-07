@@ -1,5 +1,4 @@
 import type { ProductApi } from "@pcobooster/client/product-client";
-import { useQuery } from "@tanstack/react-query";
 import type { Effect } from "effect";
 import { useEffect, useState } from "react";
 import {
@@ -12,6 +11,7 @@ import {
 } from "react-native";
 
 import { useProductClient } from "../../app-shell/queries";
+import { useVisibleQuery as useQuery } from "../../app-shell/visible-queries";
 import { BottomActionBar } from "../../components/bottom-action-bar";
 import { PersonAvatar } from "../../components/person-avatar";
 import { AppText } from "../../design/app-text";

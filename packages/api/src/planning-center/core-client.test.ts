@@ -9,6 +9,7 @@ import {
 } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterPacing } from "@pcobooster/api/planning-center/pacing";
+import { PlanningCenterPaginationError } from "@pcobooster/api/planning-center/pagination-error";
 import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
 import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user-agent";
@@ -371,7 +372,7 @@ describe(PlanningCenterCoreClient, () => {
     ]);
   });
 
-  it("follows pagination once per URL and deduplicates included resources", async () => {
+  it("follows pagination to the end and deduplicates included resources", async () => {
     const firstUrl =
       "https://api.planningcenteronline.com/services/v2/people?per_page=100";
     const secondUrl =
@@ -389,7 +390,7 @@ describe(PlanningCenterCoreClient, () => {
         jsonResponse({
           data: [{ ...person, id: "2" }],
           included: [team],
-          links: { next: firstUrl },
+          links: {},
         })
       );
     const response = await run(
@@ -401,6 +402,125 @@ describe(PlanningCenterCoreClient, () => {
       firstUrl,
       secondUrl,
     ]);
+  });
+
+  it("fails rather than return part of a collection longer than its page limit", async () => {
+    const pageWithNext = (offset: number) =>
+      jsonResponse({
+        data: [{ ...person, id: String(offset) }],
+        links: {
+          next: `https://api.planningcenteronline.com/services/v2/people?offset=${offset + 100}`,
+        },
+      });
+    const fetch = fetchMock()
+      .mockResolvedValueOnce(pageWithNext(0))
+      .mockResolvedValueOnce(pageWithNext(100));
+
+    const exit = await Effect.runPromiseExit(
+      basicClient(fetch).fetchAllWithIncluded("/services/v2/people", {}, 2)
+    );
+
+    expect(exit).toStrictEqual(
+      Exit.fail(
+        new PlanningCenterPaginationError({
+          reason: "page-limit",
+          path: "/services/v2/people",
+          pages: 2,
+        })
+      )
+    );
+  });
+
+  it("returns the next link with the first pages of a collection that goes on", async () => {
+    const nextUrl =
+      "https://api.planningcenteronline.com/services/v2/people?offset=100";
+    const fetch = fetchMock().mockResolvedValueOnce(
+      jsonResponse({ data: [person], links: { next: nextUrl } })
+    );
+
+    const response = await run(
+      basicClient(fetch).fetchFirstPages("/services/v2/people", {}, 1)
+    );
+
+    expect(response).toStrictEqual({
+      data: [person],
+      included: [],
+      next: nextUrl,
+    });
+  });
+
+  it("fails on a next link that repeats a page instead of looping or stopping early", async () => {
+    const firstUrl =
+      "https://api.planningcenteronline.com/services/v2/people?per_page=100";
+    const fetch = fetchMock().mockResolvedValueOnce(
+      jsonResponse({ data: [person], links: { next: firstUrl } })
+    );
+
+    const exit = await Effect.runPromiseExit(
+      basicClient(fetch).fetchAllWithIncluded("/services/v2/people")
+    );
+
+    expect(exit).toStrictEqual(
+      Exit.fail(
+        new PlanningCenterPaginationError({
+          reason: "invalid-next",
+          path: "/services/v2/people",
+          pages: 1,
+        })
+      )
+    );
+    expect(fetch).toHaveBeenCalledOnce();
+  });
+
+  it("reads one page from an offset and returns the next page's offset", async () => {
+    const fetch = fetchMock().mockResolvedValueOnce(
+      jsonResponse({
+        data: [person],
+        included: [],
+        links: {
+          next: "https://api.planningcenteronline.com/services/v2/people/1/blockouts?offset=300&per_page=100",
+        },
+      })
+    );
+
+    const page = await run(
+      basicClient(fetch).fetchPage("/services/v2/people/1/blockouts", {}, 200)
+    );
+
+    expect({
+      page,
+      urls: fetch.mock.calls.map(([input]) => urlOf(input)),
+    }).toStrictEqual({
+      page: { data: [person], included: [], nextOffset: 300 },
+      urls: [
+        "https://api.planningcenteronline.com/services/v2/people/1/blockouts?per_page=100&offset=200",
+      ],
+    });
+  });
+
+  it("fails on a next page whose offset does not advance", async () => {
+    const fetch = fetchMock().mockResolvedValueOnce(
+      jsonResponse({
+        data: [person],
+        links: {
+          next: "https://api.planningcenteronline.com/services/v2/people?offset=100",
+        },
+      })
+    );
+
+    const exit = await Effect.runPromiseExit(
+      basicClient(fetch).fetchPage("/services/v2/people", {}, 100)
+    );
+
+    expect(exit).toStrictEqual(
+      Exit.fail(
+        new PlanningCenterPaginationError({
+          reason: "invalid-next",
+          path: "/services/v2/people",
+          pages: 1,
+        })
+      )
+    );
   });
 
   it("stops pagination and aborts the in-flight page when interrupted", async () => {
@@ -899,6 +1019,67 @@ describe("Planning Center pacing and accounting", () => {
     });
   });
 
+  it.each([1, 40])(
+    "keeps concurrent paced sends within budget %i",
+    async (budget) => {
+      const fetch = fetchMock().mockImplementation(
+        async () => await Promise.resolve(jsonResponse({ data: person }))
+      );
+      const scope = limits(
+        new PlanningCenterRequestAccounting({ requestBudget: budget })
+      );
+      const reserve = scope.pacer.reserve.bind(scope.pacer);
+      vi.spyOn(scope.pacer, "reserve").mockImplementation((...args) => {
+        const decision = reserve(...args);
+        return decision.kind === "send"
+          ? { ...decision, waitMs: 1000 }
+          : decision;
+      });
+      const client = pacedClient(fetch);
+      const outcomes = await Effect.runPromise(
+        Effect.gen(function* simultaneousPacedSends() {
+          const fiber = yield* Effect.forkChild(
+            Effect.forEach(
+              Array.from({ length: budget + 1 }, (_, index) => index),
+              (index) =>
+                client.fetch(`/services/v2/people/${index}`).pipe(
+                  Effect.match({
+                    onSuccess: () => "sent",
+                    onFailure: (error) =>
+                      error._tag === "PlanningCenterSubrequestLimitError"
+                        ? error.source
+                        : error._tag,
+                  })
+                ),
+              { concurrency: "unbounded" }
+            )
+          );
+          yield* settle;
+          expect(fetch).not.toHaveBeenCalled();
+          yield* TestClock.adjust("1 second");
+          const results = yield* Fiber.join(fiber);
+          const now = yield* Clock.currentTimeMillis;
+          expect(
+            reserve(client.getCacheScope(), now, "write").window.inFlight
+          ).toBe(0);
+          scope.pacer.complete(client.getCacheScope(), now);
+          return results;
+        }).pipe(withLimits(scope), Effect.provide(TestClock.layer()))
+      );
+      expect(outcomes.filter((outcome) => outcome === "sent")).toHaveLength(
+        budget
+      );
+      expect(outcomes.filter((outcome) => outcome === "budget")).toHaveLength(
+        1
+      );
+      expect(fetch).toHaveBeenCalledTimes(budget);
+      expect(scope.accounting.totals).toMatchObject({
+        requests: budget,
+        subrequestLimitHits: 1,
+      });
+    }
+  );
+
   it("stops at the invocation's request budget", async () => {
     const fetch = fetchMock().mockImplementation(
       async () => await Promise.resolve(jsonResponse({ data: person }))
@@ -937,6 +1118,30 @@ describe("Planning Center pacing and accounting", () => {
         },
       },
     ]);
+  });
+
+  it("refuses redirects without sending an uncounted hop or retry", async () => {
+    const fetch = fetchMock().mockResolvedValue(
+      new Response(null, {
+        status: 302,
+        headers: {
+          location: "https://api.planningcenteronline.com/services/v2/people/2",
+        },
+      })
+    );
+    const scope = limits(
+      new PlanningCenterRequestAccounting({ requestBudget: 1 })
+    );
+    await expect(
+      failureOf(
+        pacedClient(fetch)
+          .fetch("/services/v2/people/1")
+          .pipe(withLimits(scope))
+      )
+    ).resolves.toMatchObject({ _tag: "PlanningCenterApiError", status: 302 });
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch.mock.calls[0]?.[1]?.redirect).toBe("manual");
+    expect(scope.accounting.requestCount).toBe(1);
   });
 
   it("counts retries against the request budget and does not retry past it", async () => {
@@ -1041,7 +1246,10 @@ describe("Planning Center pacing and accounting", () => {
   it("releases a paced reservation when the wait is interrupted", async () => {
     const fetch = fetchMock().mockResolvedValue(rateLimitedResponse(100));
     const pacer = new PlanningCenterRatePacer({ maxWaitMs: 60_000 });
-    const scope = limits(new PlanningCenterRequestAccounting(), pacer);
+    const scope = limits(
+      new PlanningCenterRequestAccounting({ requestBudget: 2 }),
+      pacer
+    );
     const client = pacedClient(fetch);
     await Effect.runPromise(
       Effect.gen(function* interruptPacedRead() {
@@ -1058,5 +1266,7 @@ describe("Planning Center pacing and accounting", () => {
       }).pipe(withLimits(scope), Effect.provide(TestClock.layer()))
     );
     expect(fetch).toHaveBeenCalledOnce();
+    expect(scope.accounting.requestCount).toBe(1);
+    expect(scope.accounting.remainingBudget).toBe(1);
   });
 });

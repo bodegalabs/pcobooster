@@ -74,11 +74,11 @@
 - PRs should include: summary, behavior changes, test coverage notes, and screenshots for UI changes.
 - For visible or high-risk changes, use the repo-local `proofed-pr` workflow in `docs/proofed-delivery.md`; proof must match the current PR head and base.
 
-## Request Budget (Workers Free)
+## Request Budget
 
-The account is on Cloudflare Workers Free: each Worker invocation may make at most 50 subrequests (Planning Center calls, D1, KV, and service-binding calls all count), and Planning Center allows 100 requests per 20 seconds per user. Design within these limits; see `docs/research/planning-center-rate-limits.md`.
+Read-only account verification on 2026-10-06 confirmed Workers Paid with Standard usage; the zone's Free plan is unrelated. The API Worker declares an explicit limit of 80 total subrequests per invocation in source; deployment and live enforcement must be verified separately. Planning Center allows 100 requests per 20 seconds per user. See the dated ledger in `docs/research/planning-center-rate-limits.md`.
 
-- Transport caps every procedure at `PLANNING_CENTER_REQUEST_CAP` (40) Planning Center requests, retries included, leaving the rest for session, D1, KV, and flag subrequests; progressive procedures plan against `PROGRESSIVE_REQUEST_BUDGET` with real counts (`packages/api/src/planning-center/request-budget.ts`). Change the reserve there when a procedure adds non-Planning Center subrequests.
+- Transport and standalone budgeted programs cap Planning Center API attempts at `PLANNING_CENTER_REQUEST_CAP` (40), retries included. This is independent product policy; progressive procedures plan against `PROGRESSIVE_REQUEST_BUDGET` (36) with real counts (`packages/api/src/planning-center/request-budget.ts`). Review the overhead ledger when adding auth, D1, KV, flag, telemetry, or service-binding work; never raise the provider cap simply because the platform ceiling is higher.
 - Keep each procedure well under the cap. Split heavy screens into several small procedures the browser calls progressively (for example, list first, then details in batches) instead of one call that fans out.
 - Treat the budget as explicit: when a procedure cannot finish within it, return partial data with a continuation cursor. Never swallow a subrequest or rate-limit failure into empty data.
 - Fetch less per call: prefer Planning Center `include`, filters (such as future-only blockouts), and a person's own records over scanning every roster. Cache slow-changing data (past plans, service types) longer.

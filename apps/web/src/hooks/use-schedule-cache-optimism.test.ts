@@ -105,7 +105,7 @@ const windowHistory = (): PlanWindowHistoryBatch[] => [
       },
     ],
     deferredPlans: [],
-    deferredServiceTypeIds: [],
+    deferredRanges: [],
     requestBudget: {
       limit: 40,
       planningCenterRequests: 3,

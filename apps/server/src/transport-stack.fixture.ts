@@ -96,6 +96,7 @@ const outcomeLineSchema = Schema.Struct({
   priority: Schema.String,
   kind: Schema.NullOr(Schema.String),
   client: Schema.NullOr(Schema.String),
+  appRelease: Schema.NullOr(Schema.String),
   planningCenterRequests: Schema.Number,
 });
 

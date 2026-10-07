@@ -1,23 +1,41 @@
 import { moduleLog } from "@pcobooster/api/logging";
 import { mapSchedulesToServiceHistory } from "@pcobooster/api/modules/planning-center/people/history";
+import {
+  keepPlanTimesWithinCursor,
+  planTimePageReads,
+  PlanTimeProgress,
+} from "@pcobooster/api/modules/planning-center/people/plan-time-pages";
+import type {
+  PlanTimesProgress,
+  PlanTimesWanted,
+} from "@pcobooster/api/modules/planning-center/people/plan-time-pages";
 import { scheduleResourceSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import { selectedPlanAssignmentsFor } from "@pcobooster/api/modules/planning-center/people/selected-plan-assignments";
 import {
-  isBlockedOnPlanDate,
-  repeatingBlockoutsToRead,
+  blockoutDateCoversPlanDate,
+  isRepeatingBlockout,
+  repeatingBlockoutMayCover,
 } from "@pcobooster/api/modules/planning-center/people/transforms";
+import { PLANNING_CENTER_PAGE_SIZE } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import { readPagesWithinBudget } from "@pcobooster/api/planning-center/page-budget";
+import type { PageRead } from "@pcobooster/api/planning-center/page-budget";
+import { PlanningCenterPaginationError } from "@pcobooster/api/planning-center/pagination-error";
 import {
   planningCenterRequestsSpent,
   PROGRESSIVE_REQUEST_BUDGET,
   withPlanningCenterRequestCount,
 } from "@pcobooster/api/planning-center/request-budget";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import { MAX_PENDING_BLOCKOUTS } from "@pcobooster/contracts/http/people-schemas";
 import {
   addCalendarDaysToDayKey,
   formatCalendarDayInTimeZone,
 } from "@pcobooster/planning-center-models/calendar";
-import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import {
+  isNonEmptyString,
+  isString,
+} from "@pcobooster/planning-center-models/json";
 import type { CandidateHistory } from "@pcobooster/planning-center-models/position-candidates";
 import {
   PLAN_HISTORY_HALF_RANGE_DAYS,
@@ -33,20 +51,18 @@ import { Effect } from "effect";
 const log = moduleLog("planning-center/candidate-details");
 
 /**
- * Schedules are read from the start of the plan window in date order, so the first page (100
- * schedules) almost always covers the window; two leave room for heavy servers.
+ * Pages of 100 schedules one person may have from the start of the plan window on. Every page is
+ * read: schedules come in `starts_at` order while history dates them by `sort_date` and their
+ * times, so no page proves the rest hold nothing history or the selected plan needs. A person
+ * with more than this fails the read rather than leave history out.
  */
-const SCHEDULE_MAX_PAGES = 2;
+const SCHEDULE_MAX_PAGES = 10;
 /**
- * Plan-times reads for one person's rehearsals, at most: a plan every week of the window and a
- * midweek one on top. Later plans in the window keep their plan dates without rehearsal times.
+ * Starting another person leaves this much of the budget for the pages of people already
+ * started (about a plan every week of the window and a midweek one on top), so calls finish
+ * people instead of starting everyone.
  */
-const MAX_REHEARSAL_PLAN_READS_PER_PERSON = 12;
-/**
- * First reads leave this much of the budget for the first person's remaining reads, so every
- * call can finish or advance that person.
- */
-const FIRST_PERSON_RESERVE = MAX_REHEARSAL_PLAN_READS_PER_PERSON + 1;
+const START_RESERVE = 13;
 /** A Worker keeps at most 6 connections waiting for response headers. */
 const READ_CONCURRENCY = 6;
 
@@ -57,30 +73,44 @@ export interface CandidateDetail {
   history?: CandidateHistory;
 }
 
-/** Blockout checks already done for a person a previous call left unfinished. */
-export interface BlockoutProgress {
-  readonly personId: string;
-  /** Repeating blockouts read and found not to cover the plan day. */
-  readonly checkedBlockoutIds: string[];
-  /** A blockout was found to cover the plan day. */
-  readonly blocked: boolean;
+/** A repeating blockout whose dates are being read page by page. */
+export interface PendingBlockout {
+  blockoutId: string;
+  /** The parent's time zone, which its dates fall back to. */
+  timeZone: string | null;
+  datesOffset: number;
+}
+
+/** What earlier calls learned about a person they left unfinished. */
+export interface CandidatePersonProgress {
+  personId: string;
+  /** A blockout covers the plan day; no more blockout pages are needed. */
+  blocked: boolean;
+  /** The next page of the person's blockout list, or `null` once it is all read. */
+  blockoutsOffset: number | null;
+  /** Repeating blockouts from the list read so far whose dates may still cover the day. */
+  pendingBlockouts: PendingBlockout[];
+  /** For schedule history: the rehearsal plans whose times were read, and the times found. */
+  rehearsalTimes: PlanTimesProgress;
+}
+
+/** Everything a follow-up call needs to resume, with fresh caches, where this one stopped. */
+export interface CandidateDetailsContinuation {
+  people: CandidatePersonProgress[];
 }
 
 export interface CandidateDetailsBatch {
   generatedAt: string;
+  /** People whose details are complete. */
   people: CandidateDetail[];
   /** Requested people left for a follow-up call to stay within the request budget. */
   deferredPersonIds: string[];
-  /** Pass back with `deferredPersonIds` so the next call skips checks already done. */
-  blockoutProgress: BlockoutProgress[];
+  /** Pass back with `deferredPersonIds`; empty once nobody is deferred. */
+  continuation: CandidateDetailsContinuation;
   requestBudget: {
     limit: number;
     /** Planning Center requests this procedure sent; cached reads cost none. */
     planningCenterRequests: number;
-    /** Blockout lists and schedule pages. */
-    firstReadRequests: number;
-    blockoutDateRequests: number;
-    planTimeRequests: number;
   };
 }
 
@@ -94,40 +124,51 @@ export interface CandidateDetailsInput {
    * to take history from.
    */
   readonly scheduleHistory: boolean;
-  /** From the previous call's `blockoutProgress`. */
-  readonly blockoutProgress?: readonly BlockoutProgress[];
+  /** From the previous call's `continuation`. */
+  readonly continuation?: CandidateDetailsContinuation;
 }
 
 export interface CandidateDetailsDependencies {
   readonly people: Pick<
     PlanningCenterPeopleService,
-    | "getPersonBlockoutDates"
-    | "getPersonBlockouts"
-    | "getPersonSchedulesAfter"
-    | "getPlanPlanTimes"
+    | "getPersonBlockoutDatesPage"
+    | "getPersonBlockoutsPage"
+    | "getPersonSchedulesPage"
+    | "getPlanPlanTimesPage"
   >;
   readonly resolveTimeZone: Effect.Effect<string, PlanningCenterError>;
 }
 
-type PersonSchedules = Effect.Success<
-  ReturnType<CandidateDetailsDependencies["people"]["getPersonSchedulesAfter"]>
->;
-
-interface FirstRead {
-  readonly personId: string;
-  readonly blockouts: PCResource[];
-  readonly schedules: PersonSchedules | null;
+interface PersonSchedules {
+  readonly data: PCResource[];
+  readonly included: PCResource[];
 }
 
-/** What one person still needs, and what this call reads of it. */
-interface PersonReads {
-  readonly read: FirstRead;
-  readonly progress: BlockoutProgress;
-  /** Unchecked repeating blockouts whose dates this call reads. */
-  readonly blockoutIds: readonly string[];
-  /** Whether those are all of the person's unchecked repeating blockouts. */
-  readonly allBlockouts: boolean;
-  readonly planIds: readonly string[];
+/** A person's schedules in the window, read page by page during one call. */
+interface ScheduleRead {
+  /** The page to read next, or `null` once every schedule from the window's start is read. */
+  offset: number | null;
+  pages: number;
+  /** Schedules from the window's start, by id: pages read apart may repeat one. */
+  readonly data: Map<string, PCResource>;
+  readonly included: Map<string, PCResource>;
+}
+
+/** One person's reads during a call. */
+interface PersonState {
+  readonly personId: string;
+  /** Something was read for the person, in this call or an earlier one. */
+  started: boolean;
+  blocked: boolean;
+  blockoutsOffset: number | null;
+  readonly pendingBlockouts: Map<string, PendingBlockout>;
+  /** `null` when history was not asked for. */
+  readonly schedules: ScheduleRead | null;
+  /** The rehearsal plans whose times history reads, with the times it looks for. */
+  rehearsalPlans: ReadonlyMap<string, readonly string[]>;
+  readonly rehearsalTimes: PlanTimeProgress;
+  /** The times `rehearsalTimes` keeps: those the person's rehearsal plans list. */
+  readonly wantedTimeIds: Set<string>;
 }
 
 const relationshipIds = (data: PCRelationship["data"]): string[] => {
@@ -137,37 +178,66 @@ const relationshipIds = (data: PCRelationship["data"]): string[] => {
   return Array.isArray(data) ? data.map(({ id }) => id) : [data.id];
 };
 
+/** Every blockout page is read, or a blockout covers the plan day. */
+const availabilityDone = (state: PersonState): boolean =>
+  state.blocked ||
+  (state.blockoutsOffset === null && state.pendingBlockouts.size === 0);
+
+/** History was not asked for, or the schedules and every rehearsal time it needs are read. */
+const historyDone = (state: PersonState): boolean =>
+  state.schedules === null ||
+  (state.schedules.offset === null &&
+    [...state.rehearsalPlans].every(
+      ([id, timeIds]) => state.rehearsalTimes.nextPage(id, timeIds) === null
+    ));
+
+const done = (state: PersonState): boolean =>
+  availabilityDone(state) && historyDone(state);
+
+/** A covering blockout settles availability: no other blockout page can change it. */
+const markBlocked = (state: PersonState): void => {
+  state.blocked = true;
+  state.blockoutsOffset = null;
+  state.pendingBlockouts.clear();
+};
+
 /**
  * Plans in the rehearsal window whose schedules list PlanTimes that `include=plan_times` left
- * out: rehearsal times are listed in `times` but never sideloaded. In date order.
+ * out, with those times: rehearsal times are listed in `times` but never sideloaded. In date
+ * order.
  */
 const plansMissingRehearsalTimes = (
   { data, included }: PersonSchedules,
   lastDayKey: string,
   orgTimeZone: string
-): string[] => {
+): Map<string, string[]> => {
   const sideloaded = new Set(
     included.flatMap(({ type, id }) => (type === "PlanTime" ? [id] : []))
   );
-  const planIds = new Set<string>();
+  const byPlan = new Map<string, string[]>();
   for (const schedule of data) {
     const [planId] = relationshipIds(schedule.relationships?.plan?.data);
     const sortDate = schedule.attributes.sort_date;
-    const missing = relationshipIds(schedule.relationships?.times?.data).some(
+    const missing = relationshipIds(schedule.relationships?.times?.data).filter(
       (id) => !sideloaded.has(id)
     );
     if (
-      missing &&
+      missing.length > 0 &&
       isNonEmptyString(planId) &&
       isNonEmptyString(sortDate) &&
       !Number.isNaN(Date.parse(sortDate)) &&
       formatCalendarDayInTimeZone(new Date(sortDate), orgTimeZone) <= lastDayKey
     ) {
-      planIds.add(planId);
+      byPlan.set(planId, [...(byPlan.get(planId) ?? []), ...missing]);
     }
   }
-  return [...planIds];
+  return byPlan;
 };
+
+const schedulesOf = ({ data, included }: ScheduleRead): PersonSchedules => ({
+  data: [...data.values()],
+  included: [...included.values()],
+});
 
 const scheduleHistoryFrom = (
   { data, included }: PersonSchedules,
@@ -197,19 +267,27 @@ const scheduleHistoryFrom = (
 
 /**
  * Whether a blockout covers the plan date for a batch of candidates, and, when the plan window
- * has no plans, their history from their own schedules. Each call plans against
+ * has no plans, their history from their own schedules. Each call plans its page reads against
  * `PROGRESSIVE_REQUEST_BUDGET` Planning Center requests, counting what was really sent.
  *
- * Each person costs one blockout page (more for people with over 100 blockouts), one
- * `blockout_dates` read per repeating blockout that may reach the plan date, and for schedule
- * history up to two schedule pages plus one plan-times read per plan in the window with
- * rehearsal times (shared by everyone on that plan and cached; at most 12 per person). Blockout
- * lists are read unfiltered: Planning Center's `future` filter is not verified for repeating
- * blockouts that started in the past.
+ * A person's blockout list, each repeating blockout's generated dates, and each rehearsal
+ * plan's times are read a page at a time, so a person costs one request per page actually
+ * needed: a repeating blockout stops at the first date page that covers the plan day, and a
+ * person found blocked reads no more blockout pages. Blockout lists are read unfiltered:
+ * Planning Center's `future` filter is not verified for repeating blockouts that started in the
+ * past. A list page is read only while the cursor can hold the repeating blockouts it may add;
+ * until then the pending ones' dates are read. For schedule history a person also costs every
+ * schedule page from the window's start on, and the times of every plan in the rehearsal window
+ * whose times the schedules list but `include` left out (shared by everyone on that plan).
+ * History holds every schedule read, as it did when they were read whole.
  *
- * People who do not fit come back in `deferredPersonIds`. Every call finishes or advances its
- * first person: when even that person's blockout dates do not fit, it reads as many as fit and
- * returns what it learned in `blockoutProgress` for the next call. Failed reads fail the call.
+ * People who do not finish come back in `deferredPersonIds`, and `continuation` holds every
+ * page they still need, except schedule pages: a follow-up call reads those again (from cache
+ * when it can), and the first unfinished person's are always kept room for. Availability and
+ * history are complete only once every page they depend on is read. Every call finishes or
+ * advances someone. Failed reads fail the call, and a person with more than
+ * `SCHEDULE_MAX_PAGES` schedule pages, or with more rehearsal plans or times than the cursor
+ * carries, fails it typed.
  */
 export const getCandidateDetails = (
   {
@@ -217,7 +295,7 @@ export const getCandidateDetails = (
     planId,
     date,
     scheduleHistory,
-    blockoutProgress = [],
+    continuation,
   }: CandidateDetailsInput,
   { people, resolveTimeZone }: CandidateDetailsDependencies
 ): Effect.Effect<CandidateDetailsBatch, PlanningCenterError> =>
@@ -234,192 +312,307 @@ export const getCandidateDetails = (
       PLAN_HISTORY_HALF_RANGE_DAYS + REHEARSAL_WINDOW_MARGIN_DAYS
     );
     const progressByPersonId = new Map(
-      blockoutProgress.map((progress) => [progress.personId, progress])
-    );
-    const uniquePersonIds = [...new Set(personIds)];
-
-    // First reads, admitted by their upper-bound cost while leaving the first person room to
-    // finish; the first person is always admitted.
-    const firstReadCost = 1 + (scheduleHistory ? SCHEDULE_MAX_PAGES : 0);
-    const beforeFirstReads = yield* planningCenterRequestsSpent;
-    const admittedCount = Math.min(
-      uniquePersonIds.length,
-      Math.max(
-        1,
-        Math.floor(
-          (PROGRESSIVE_REQUEST_BUDGET -
-            beforeFirstReads -
-            FIRST_PERSON_RESERVE) /
-            firstReadCost
-        )
-      )
-    );
-    const firstReads = yield* Effect.forEach(
-      uniquePersonIds.slice(0, admittedCount),
-      (personId) =>
-        Effect.map(
-          Effect.all(
-            [
-              people.getPersonBlockouts(personId, {}),
-              scheduleHistory
-                ? people.getPersonSchedulesAfter(
-                    personId,
-                    windowStartDayKey,
-                    SCHEDULE_MAX_PAGES
-                  )
-                : Effect.succeed(null),
-            ],
-            { concurrency: "unbounded" }
-          ),
-          ([blockouts, schedules]): FirstRead => ({
-            personId,
-            blockouts,
-            schedules,
-          })
-        ),
-      { concurrency: READ_CONCURRENCY }
-    );
-    const afterFirstReads = yield* planningCenterRequestsSpent;
-
-    // Remaining reads go to people in order while they fit. Plans already queued cost nothing.
-    let remaining = PROGRESSIVE_REQUEST_BUDGET - afterFirstReads;
-    const queuedPlanIds = new Set<string>();
-    const admitted: PersonReads[] = [];
-    let unreadRehearsalPlans = 0;
-    for (const read of firstReads) {
-      const progress = progressByPersonId.get(read.personId) ?? {
-        personId: read.personId,
-        checkedBlockoutIds: [],
-        blocked: false,
-      };
-      const checked = new Set(progress.checkedBlockoutIds);
-      // One-time parents can already prove unavailability; recurring dates add no information.
-      const knownBlocked =
-        progress.blocked ||
-        isBlockedOnPlanDate(read.blockouts, new Map(), planSortAt);
-      const blockoutIds = knownBlocked
-        ? []
-        : repeatingBlockoutsToRead(read.blockouts, planSortAt).flatMap(
-            ({ id }) => (checked.has(id) ? [] : [id])
-          );
-      const rehearsalPlanIds =
-        read.schedules === null
-          ? []
-          : plansMissingRehearsalTimes(
-              read.schedules,
-              rehearsalLastDayKey,
-              orgTimeZone
-            );
-      unreadRehearsalPlans += Math.max(
-        0,
-        rehearsalPlanIds.length - MAX_REHEARSAL_PLAN_READS_PER_PERSON
-      );
-      const planIds = rehearsalPlanIds
-        .slice(0, MAX_REHEARSAL_PLAN_READS_PER_PERSON)
-        .filter((id) => !queuedPlanIds.has(id));
-      const cost = blockoutIds.length + planIds.length;
-      const first = admitted.length === 0;
-      if (cost > remaining && !first) {
-        continue;
-      }
-      // The first person always advances: its plans (which fit the reserve) and as many
-      // blockout dates as fit beside them, at least one.
-      const blockoutsNow =
-        cost <= remaining
-          ? blockoutIds
-          : blockoutIds.slice(0, Math.max(1, remaining - planIds.length));
-      admitted.push({
-        read,
+      (continuation?.people ?? []).map((progress) => [
+        progress.personId,
         progress,
-        blockoutIds: blockoutsNow,
-        allBlockouts: blockoutsNow.length === blockoutIds.length,
-        planIds,
-      });
-      remaining -= blockoutsNow.length + planIds.length;
-      for (const id of planIds) {
-        queuedPlanIds.add(id);
-      }
-    }
-
-    const dates = yield* Effect.forEach(
-      admitted.flatMap(({ read, blockoutIds }) =>
-        blockoutIds.map((blockoutId) => ({
-          personId: read.personId,
-          blockoutId,
-        }))
-      ),
-      ({ personId, blockoutId }) =>
-        Effect.map(
-          people.getPersonBlockoutDates(personId, blockoutId),
-          (blockoutDates) => [blockoutId, blockoutDates] as const
-        ),
-      { concurrency: READ_CONCURRENCY }
+      ])
     );
-    const datesByBlockoutId = new Map<string, readonly PCResource[]>(dates);
-    const afterBlockoutDates = yield* planningCenterRequestsSpent;
-    const planTimes = (yield* Effect.forEach(
-      [...queuedPlanIds],
-      (id) => people.getPlanPlanTimes(id),
-      { concurrency: READ_CONCURRENCY }
-    )).flat();
+    const states = [...new Set(personIds)].map((personId): PersonState => {
+      const progress = progressByPersonId.get(personId);
+      const wantedTimeIds = new Set<string>();
+      return {
+        personId,
+        started: progress !== undefined,
+        blocked: progress?.blocked ?? false,
+        blockoutsOffset: progress === undefined ? 0 : progress.blockoutsOffset,
+        pendingBlockouts: new Map(
+          (progress?.pendingBlockouts ?? []).map((pending) => [
+            pending.blockoutId,
+            pending,
+          ])
+        ),
+        schedules: scheduleHistory
+          ? { offset: 0, pages: 0, data: new Map(), included: new Map() }
+          : null,
+        rehearsalPlans: new Map(),
+        rehearsalTimes: new PlanTimeProgress(progress?.rehearsalTimes, (id) =>
+          wantedTimeIds.has(id)
+        ),
+        wantedTimeIds,
+      };
+    });
+    const pagesRead = {
+      blockoutLists: 0,
+      blockoutDates: 0,
+      schedules: 0,
+      planTimes: 0,
+    };
+
+    const readBlockoutList = (
+      state: PersonState,
+      offset: number
+    ): Effect.Effect<void, PlanningCenterError> =>
+      Effect.map(
+        Effect.suspend(() =>
+          people.getPersonBlockoutsPage(state.personId, offset)
+        ),
+        (page) => {
+          pagesRead.blockoutLists += 1;
+          state.started = true;
+          if (state.blocked) {
+            return;
+          }
+          for (const parent of page.data) {
+            if (!isRepeatingBlockout(parent)) {
+              if (blockoutDateCoversPlanDate(parent, null, planSortAt)) {
+                markBlocked(state);
+                return;
+              }
+            } else if (repeatingBlockoutMayCover(parent, planSortAt)) {
+              const { time_zone: timeZone } = parent.attributes;
+              state.pendingBlockouts.set(parent.id, {
+                blockoutId: parent.id,
+                timeZone: isString(timeZone) ? timeZone : null,
+                datesOffset: 0,
+              });
+            }
+          }
+          state.blockoutsOffset = page.nextOffset;
+        }
+      );
+
+    const readBlockoutDates = (
+      state: PersonState,
+      pending: PendingBlockout
+    ): Effect.Effect<void, PlanningCenterError> =>
+      Effect.map(
+        Effect.suspend(() =>
+          people.getPersonBlockoutDatesPage(
+            state.personId,
+            pending.blockoutId,
+            pending.datesOffset
+          )
+        ),
+        (page) => {
+          pagesRead.blockoutDates += 1;
+          state.started = true;
+          if (state.blocked) {
+            return;
+          }
+          if (
+            page.data.some((blockoutDate) =>
+              blockoutDateCoversPlanDate(
+                blockoutDate,
+                pending.timeZone,
+                planSortAt
+              )
+            )
+          ) {
+            markBlocked(state);
+          } else if (page.nextOffset === null) {
+            state.pendingBlockouts.delete(pending.blockoutId);
+          } else {
+            state.pendingBlockouts.set(pending.blockoutId, {
+              ...pending,
+              datesOffset: page.nextOffset,
+            });
+          }
+        }
+      );
+
+    const readSchedulePage = (
+      state: PersonState,
+      schedules: ScheduleRead,
+      offset: number
+    ): Effect.Effect<void, PlanningCenterError> =>
+      Effect.flatMap(
+        Effect.suspend(() =>
+          people.getPersonSchedulesPage(
+            state.personId,
+            windowStartDayKey,
+            offset
+          )
+        ),
+        (page) => {
+          pagesRead.schedules += 1;
+          state.started = true;
+          schedules.pages += 1;
+          for (const schedule of page.data) {
+            schedules.data.set(schedule.id, schedule);
+          }
+          for (const resource of page.included) {
+            schedules.included.set(`${resource.type}:${resource.id}`, resource);
+          }
+          if (page.nextOffset !== null) {
+            if (schedules.pages === SCHEDULE_MAX_PAGES) {
+              return Effect.fail(
+                new PlanningCenterPaginationError({
+                  reason: "page-limit",
+                  path: `/services/v2/people/${state.personId}/schedules`,
+                  pages: schedules.pages,
+                })
+              );
+            }
+            schedules.offset = page.nextOffset;
+            return Effect.void;
+          }
+          schedules.offset = null;
+          state.rehearsalPlans = plansMissingRehearsalTimes(
+            schedulesOf(schedules),
+            rehearsalLastDayKey,
+            orgTimeZone
+          );
+          for (const [, timeIds] of state.rehearsalPlans) {
+            for (const id of timeIds) {
+              state.wantedTimeIds.add(id);
+            }
+          }
+          return keepPlanTimesWithinCursor(
+            state.rehearsalTimes,
+            {
+              planIds: new Set(state.rehearsalPlans.keys()),
+              timeIds: state.wantedTimeIds,
+            },
+            {
+              path: `/services/v2/people/${state.personId}/schedules`,
+              pages: schedules.pages,
+            }
+          );
+        }
+      );
+
+    // Ready reads in priority order: people in order, each person's in the order they help.
+    // A plan-time page several people wait on is read once, in the first one's place.
+    const nextReads = (): PageRead[] => {
+      const reads: { reader: number; read: PageRead }[] = [];
+      const waitingOnPlans: PlanTimesWanted[] = [];
+      const readerIndex: number[] = [];
+      // Schedule pages are not part of the cursor, so the first unfinished person's are all
+      // kept room for: everyone else's reads leave it, and the person's progress survives.
+      const lead = states.findIndex((state) => !done(state));
+      const leadSchedules = states[lead]?.schedules;
+      const leadReserve =
+        leadSchedules === null ||
+        leadSchedules === undefined ||
+        leadSchedules.offset === null
+          ? 0
+          : SCHEDULE_MAX_PAGES - leadSchedules.pages + 1;
+      for (const [index, state] of states.entries()) {
+        if (done(state)) {
+          continue;
+        }
+        const starts = !state.started;
+        const add = (read: PageRead) => {
+          reads.push({ reader: index, read });
+        };
+        if (!availabilityDone(state)) {
+          // A list page adds up to a page of repeating blockouts; while the cursor could not
+          // hold them, the pending ones' dates are read first.
+          if (
+            state.blockoutsOffset !== null &&
+            state.pendingBlockouts.size + PLANNING_CENTER_PAGE_SIZE <=
+              MAX_PENDING_BLOCKOUTS
+          ) {
+            add({
+              pages: 1,
+              starts,
+              run: readBlockoutList(state, state.blockoutsOffset),
+            });
+          }
+          for (const pending of state.pendingBlockouts.values()) {
+            add({ pages: 1, starts, run: readBlockoutDates(state, pending) });
+          }
+        }
+        if (state.schedules !== null && state.schedules.offset !== null) {
+          add({
+            pages: 1,
+            starts,
+            run: readSchedulePage(
+              state,
+              state.schedules,
+              state.schedules.offset
+            ),
+          });
+        }
+        waitingOnPlans.push({
+          progress: state.rehearsalTimes,
+          plans: state.rehearsalPlans,
+        });
+        readerIndex.push(index);
+      }
+      const planReads = planTimePageReads(people, waitingOnPlans, () => {
+        pagesRead.planTimes += 1;
+      });
+      for (const { reader, read } of planReads) {
+        reads.push({ reader: readerIndex[reader] ?? 0, read });
+      }
+      return reads
+        .toSorted((a, b) => a.reader - b.reader)
+        .map(({ reader, read }) =>
+          reader === lead ? read : { ...read, reserve: leadReserve }
+        );
+    };
+
+    yield* readPagesWithinBudget(nextReads, {
+      concurrency: READ_CONCURRENCY,
+      startReserve: START_RESERVE,
+    });
 
     const details: CandidateDetail[] = [];
-    const nextProgress: BlockoutProgress[] = [];
-    for (const { read, progress, blockoutIds, allBlockouts } of admitted) {
-      // Checked blockouts do not cover the day, and unread ones are not in the map.
-      const blocked =
-        progress.blocked ||
-        isBlockedOnPlanDate(read.blockouts, datesByBlockoutId, planSortAt);
-      if (blocked || allBlockouts) {
-        details.push({
-          personId: read.personId,
-          isBlockedForDate: blocked,
-          ...(read.schedules === null
-            ? undefined
-            : {
-                history: scheduleHistoryFrom(read.schedules, planTimes, planId),
-              }),
-        });
+    const unfinished: PersonState[] = [];
+    for (const state of states) {
+      if (!done(state)) {
+        unfinished.push(state);
         continue;
       }
-      nextProgress.push({
-        personId: read.personId,
-        checkedBlockoutIds: [...progress.checkedBlockoutIds, ...blockoutIds],
-        blocked: false,
+      details.push({
+        personId: state.personId,
+        isBlockedForDate: state.blocked,
+        ...(state.schedules === null
+          ? undefined
+          : {
+              history: scheduleHistoryFrom(
+                schedulesOf(state.schedules),
+                state.rehearsalTimes.resources(),
+                planId
+              ),
+            }),
       });
     }
-    const detailed = new Set(details.map(({ personId }) => personId));
-    const deferredPersonIds = uniquePersonIds.filter((id) => !detailed.has(id));
-    const advanced = new Set(nextProgress.map(({ personId }) => personId));
     const spent = yield* planningCenterRequestsSpent;
     const batch: CandidateDetailsBatch = {
       generatedAt: new Date().toISOString(),
       people: details,
-      deferredPersonIds,
-      blockoutProgress: [
-        ...nextProgress,
-        ...deferredPersonIds.flatMap((personId) => {
-          const earlier = progressByPersonId.get(personId);
-          return earlier === undefined || advanced.has(personId)
-            ? []
-            : [earlier];
-        }),
-      ],
+      deferredPersonIds: unfinished.map(({ personId }) => personId),
+      continuation: {
+        people: unfinished.flatMap((state) =>
+          state.started
+            ? [
+                {
+                  personId: state.personId,
+                  blocked: state.blocked,
+                  blockoutsOffset: state.blockoutsOffset,
+                  pendingBlockouts: [...state.pendingBlockouts.values()],
+                  rehearsalTimes: state.rehearsalTimes.progress(),
+                },
+              ]
+            : []
+        ),
+      },
       requestBudget: {
         limit: PROGRESSIVE_REQUEST_BUDGET,
         planningCenterRequests: spent,
-        firstReadRequests: afterFirstReads - beforeFirstReads,
-        blockoutDateRequests: afterBlockoutDates - afterFirstReads,
-        planTimeRequests: spent - afterBlockoutDates,
       },
     };
     yield* log.info("Candidate details read", {
       ...batch.requestBudget,
-      requestedPeopleCount: uniquePersonIds.length,
+      blockoutListPages: pagesRead.blockoutLists,
+      blockoutDatePages: pagesRead.blockoutDates,
+      schedulePages: pagesRead.schedules,
+      planTimePages: pagesRead.planTimes,
+      requestedPeopleCount: states.length,
       detailedPeopleCount: details.length,
-      deferredPeopleCount: deferredPersonIds.length,
-      advancedPeopleCount: nextProgress.length,
-      unreadRehearsalPlanCount: unreadRehearsalPlans,
+      deferredPeopleCount: unfinished.length,
     });
     return batch;
   }).pipe(withPlanningCenterRequestCount);

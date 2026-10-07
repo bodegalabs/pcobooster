@@ -323,6 +323,23 @@ describe(getChordChartPdf, () => {
     expect(JSON.stringify(exit)).toContain("ExternalServiceFailure");
   });
 
+  it("never opens a crafted id: open is a POST the read-only demo allows", async () => {
+    const songs = createSongs();
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    const exit = await Effect.runPromiseExit(
+      getChordChartPdf(
+        {
+          songId: "song-1",
+          arrangementId: "arr-1",
+          keyId: "../../../../../people/v2/people/1",
+        },
+        { songs, fetch }
+      )
+    );
+    expect(JSON.stringify(exit)).toContain("NotFound");
+    expect(songs.openChartAttachment).not.toHaveBeenCalled();
+  });
+
   it("downloads only an https link", async () => {
     const songs = createSongs();
     vi.mocked(songs.openChartAttachment).mockReturnValue(

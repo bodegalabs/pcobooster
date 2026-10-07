@@ -48,7 +48,7 @@ describe(serverCall, () => {
       method: "GET",
       redirect: "manual",
       cookie: staleCookie,
-      client: "ssr;api=1",
+      client: "ssr;api=2",
       priority: "interactive",
     });
   });

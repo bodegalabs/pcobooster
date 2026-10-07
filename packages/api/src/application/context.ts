@@ -1,3 +1,7 @@
+import {
+  parseRequestId,
+  REQUEST_ID_HEADER,
+} from "@pcobooster/contracts/http/request-diagnostics";
 import { Context, Effect } from "effect";
 
 export interface RequestContextValue {
@@ -22,15 +26,17 @@ export class RequestContext extends Context.Service<
   RequestContextValue
 >()("@pcobooster/api/RequestContext") {}
 
+/**
+ * A client's `x-request-id` is kept only when it follows the shared grammar (letters, digits,
+ * and dashes, 8 to 64 long), so it can join a client report to this request's log line without
+ * letting a client write arbitrary text into the logs; anything else gets a fresh UUID.
+ */
 export const createRequestContext = (request: Request): RequestContextValue => {
-  const requestedId = request.headers.get("x-request-id")?.trim();
+  const requestedId = parseRequestId(request.headers.get(REQUEST_ID_HEADER));
   return {
     request,
     headers: new Headers(request.headers),
-    requestId:
-      requestedId !== undefined && requestedId !== ""
-        ? requestedId
-        : crypto.randomUUID(),
+    requestId: requestedId ?? crypto.randomUUID(),
     method: request.method,
     url: request.url,
     signal: request.signal,

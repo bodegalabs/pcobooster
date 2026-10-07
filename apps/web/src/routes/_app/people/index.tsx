@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_app/people/")({
   // Route checks run on the server; the page renders from browser caches.
   ssr: "data-only",
   beforeLoad: featureGuard("people"),
+  head: () => ({ meta: [{ title: "People · pcobooster.com" }] }),
   pendingComponent: PeoplePageSkeleton,
   component: PeopleRoute,
 });

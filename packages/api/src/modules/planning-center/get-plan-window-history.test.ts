@@ -13,6 +13,7 @@ import {
 } from "@pcobooster/api/planning-center/request-budget";
 import { countedRead } from "@pcobooster/api/testing/planning-center-requests";
 import { buildFrequencyFromServiceHistory } from "@pcobooster/planning-center-models/candidate-frequency";
+import { nextWindowContinuation } from "@pcobooster/planning-center-models/candidate-list";
 import { isString } from "@pcobooster/planning-center-models/json";
 import { expandPlanWindowHistory } from "@pcobooster/planning-center-models/plan-window-history";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
@@ -21,11 +22,12 @@ import { describe, expect, it, vi } from "vitest";
 
 /** Sunday May 3, 2026, 10:00 UTC. */
 const PLAN_DATE = "2026-05-03T10:00:00.000Z";
+const PAGE_SIZE = 100;
 
 interface OrgFixture {
   readonly serviceTypes: number;
   readonly plansPerServiceType: number;
-  /** Requests a plan-range read costs: 3 uncached, 0 cached. */
+  /** Requests a plan-range page costs: 1 uncached, 0 cached. */
   readonly rangeRequests: number;
   /** People scheduled on each plan, by plan index within its service type. */
   readonly planPeople?: (index: number) => number;
@@ -48,7 +50,7 @@ const createOrg = ({
         type: "Plan",
         id: `${serviceTypeId}-plan-${index}`,
         attributes: {
-          sort_date: `2026-04-${String(10 + index).padStart(2, "0")}T10:00:00Z`,
+          sort_date: new Date(Date.UTC(2026, 3, 10 + index, 10)).toISOString(),
           plan_people_count: planPeople(index),
         },
       })),
@@ -96,11 +98,23 @@ const createOrg = ({
         ),
     },
     plans: {
-      getPlansWithIncludedInDateRange: (serviceTypeId: string) =>
-        countedRead(
-          { data: plansByServiceType.get(serviceTypeId) ?? [], included: [] },
+      getPlanRangePage: (
+        serviceTypeId: string,
+        _afterDayKey: string,
+        _include: string,
+        offset: number
+      ) => {
+        const plans = plansByServiceType.get(serviceTypeId) ?? [];
+        return countedRead(
+          {
+            data: plans.slice(offset, offset + PAGE_SIZE),
+            included: [],
+            nextOffset:
+              offset + PAGE_SIZE < plans.length ? offset + PAGE_SIZE : null,
+          },
           rangeRequests
-        ),
+        );
+      },
     },
     resolveTimeZone: countedRead("UTC"),
   } satisfies PlanWindowHistoryDependencies;
@@ -133,16 +147,11 @@ const loadAll = async (
   if (continuation !== undefined && batch.loadedPlanCount === 0) {
     throw new Error("Plan window history read no roster");
   }
-  if (
-    batch.deferredPlans.length === 0 &&
-    batch.deferredServiceTypeIds.length === 0
-  ) {
+  const next = nextWindowContinuation(batch);
+  if (next === null) {
     return { loaded: batch.loadedPlanCount, requests: [requests] };
   }
-  const rest = await loadAll(dependencies, {
-    plans: batch.deferredPlans,
-    serviceTypeIds: batch.deferredServiceTypeIds,
-  });
+  const rest = await loadAll(dependencies, next);
   return {
     loaded: batch.loadedPlanCount + rest.loaded,
     requests: [requests, ...rest.requests],
@@ -228,15 +237,14 @@ describe(getPlanWindowHistory, () => {
 
     expect({
       loaded: batch.loadedPlanCount,
-      deferred:
-        batch.deferredPlans.length + batch.deferredServiceTypeIds.length,
+      deferred: batch.deferredPlans.length + batch.deferredRanges.length,
       reported: batch.requestBudget.planningCenterRequests,
     }).toStrictEqual({ loaded: 20, deferred: 0, reported: requests });
   });
 
   it("reads a roster in every follow-up call even when its plan ranges are not cached", async () => {
     const { loaded, requests } = await loadAll(
-      createOrg({ serviceTypes: 12, plansPerServiceType: 4, rangeRequests: 3 })
+      createOrg({ serviceTypes: 12, plansPerServiceType: 4, rangeRequests: 1 })
     );
 
     expect({
@@ -252,7 +260,7 @@ describe(getPlanWindowHistory, () => {
       createOrg({
         serviceTypes: 12,
         plansPerServiceType: 2,
-        rangeRequests: 3,
+        rangeRequests: 1,
         planPeople: (index) => (index === 0 ? 1500 : 10),
       })
     );
@@ -316,15 +324,11 @@ describe(getPlanWindowHistory, () => {
         },
       },
       plans: {
-        getPlansWithIncludedInDateRange: (
-          _serviceTypeId: string,
-          afterDayKey: string,
-          beforeDayKey: string
-        ) => {
+        getPlanRangePage: (_serviceTypeId: string, afterDayKey: string) => {
           const data = LATE_REHEARSAL_PLANS.filter(({ attributes }) => {
             const sortDate = attributes.sort_date;
             const day = isString(sortDate) ? sortDate.slice(0, 10) : "";
-            return day >= afterDayKey && day <= beforeDayKey;
+            return day >= afterDayKey;
           });
           const planIds = new Set(data.map(({ id }) => id));
           return countedRead({
@@ -338,6 +342,7 @@ describe(getPlanWindowHistory, () => {
                 planIds.has(related.id)
               );
             }),
+            nextOffset: null,
           });
         },
       },
@@ -403,8 +408,8 @@ describe("range plan-time parsing", () => {
     const dependencies: PlanWindowHistoryDependencies = {
       ...org,
       plans: {
-        getPlansWithIncludedInDateRange: (serviceTypeId) =>
-          org.plans.getPlansWithIncludedInDateRange(serviceTypeId).pipe(
+        getPlanRangePage: (...args) =>
+          org.plans.getPlanRangePage(...args).pipe(
             Effect.map((range) => ({
               ...range,
               included,
@@ -457,9 +462,9 @@ describe("range plan-time parsing", () => {
     const dependencies: PlanWindowHistoryDependencies = {
       ...org,
       plans: {
-        getPlansWithIncludedInDateRange: (serviceTypeId) =>
+        getPlanRangePage: (...args) =>
           org.plans
-            .getPlansWithIncludedInDateRange(serviceTypeId)
+            .getPlanRangePage(...args)
             .pipe(Effect.map((range) => ({ ...range, included }))),
       },
     };

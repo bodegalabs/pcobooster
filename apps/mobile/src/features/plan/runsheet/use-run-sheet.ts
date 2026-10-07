@@ -6,11 +6,15 @@ import type {
   KeyOption,
   PlanItem,
 } from "@pcobooster/planning-center-models/types";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { AppState } from "react-native";
 
 import { useProductClient } from "../../../app-shell/queries";
+import {
+  useVisibleQuery as useQuery,
+  useVisibleReadSignal,
+} from "../../../app-shell/visible-queries";
 import { playHaptic } from "../../../design/haptics";
 import { useContentAccess } from "../content-access";
 import { isPlaceholderId } from "../placeholder-ids";
@@ -39,6 +43,7 @@ const settledOnly =
 export const useRunSheet = (ids: PlanIds) => {
   const context = useProductClient();
   const cache = useQueryClient();
+  const readSignal = useVisibleReadSignal();
 
   const query = useQuery(planReads.items(context, ids));
   const plan = useQuery(planReads.plan(context, ids));
@@ -75,31 +80,6 @@ export const useRunSheet = (ids: PlanIds) => {
   }, [removals]);
   const hidden = new Set(removed.map((item) => item.id));
   const items = (query.data ?? []).filter((item) => !hidden.has(item.id));
-  const songIds = [
-    ...new Set(
-      (query.data ?? []).flatMap((item) =>
-        item.song === null ? [] : [item.song.id]
-      )
-    ),
-  ]
-    .slice(0, 6)
-    .join(":");
-  useEffect(() => {
-    if (songIds === "") {
-      return;
-    }
-    void context.scheduler.runSpeculative(async () => {
-      await Promise.all(
-        songIds.split(":").map(async (songId) => {
-          await cache.query(
-            speculativeQuery(
-              songReads.options(context, ids.serviceTypeId, songId)
-            )
-          );
-        })
-      );
-    });
-  }, [cache, context, ids.serviceTypeId, songIds]);
   const insert = (kind: "song" | "header" | "item", afterItemId?: string) => {
     if (afterItemId !== undefined && isPlaceholderId(afterItemId)) {
       return;
@@ -194,7 +174,7 @@ export const useRunSheet = (ids: PlanIds) => {
               songReads.options(context, ids.serviceTypeId, songId)
             )
           );
-        });
+        }, readSignal());
       }
     },
     transition: (item, value) => {

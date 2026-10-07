@@ -1,11 +1,5 @@
-import { UpcomingTab } from "../../../src/app-shell/upcoming-tab";
+import { SongsHome } from "../../../src/features/songs/songs-home";
 
-const SongsHome = () => (
-  <UpcomingTab
-    description="The song library and chord charts arrive in a later layer."
-    symbol="songs"
-    title="Songs"
-  />
-);
+const SongsRoute = () => <SongsHome />;
 
-export default SongsHome;
+export default SongsRoute;

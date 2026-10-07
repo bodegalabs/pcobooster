@@ -36,7 +36,7 @@ const raw = (
     method,
     headers: {
       "content-type": "application/json",
-      "x-pcobooster-client": "web;api=1",
+      "x-pcobooster-client": "web;api=2",
       ...headers,
     },
     body,
@@ -73,14 +73,14 @@ describe("health through the product API", () => {
         procedure: "health.get",
         status: 200,
         code: null,
-        client: "deploy;api=1",
+        client: "deploy;api=2",
       },
       {
         level: "info",
         procedure: "health.get",
         status: 200,
         code: null,
-        client: "web;api=1",
+        client: "web;api=2",
       },
     ]);
   });
@@ -104,7 +104,7 @@ describe("health through the product API", () => {
     ]);
   });
 
-  it.each(["expo;api=0", "expo", "android;api=1", "expo;v=1"])(
+  it.each(["expo;api=0", "expo;api=1", "expo", "android;api=1", "expo;v=1"])(
     "answers ClientOutdated (426) to a caller announcing %s, without running the procedure",
     async (header) => {
       const app = serveHttpForTest({ server: testServer() });
@@ -278,7 +278,7 @@ describe("requests HttpApi cannot read", () => {
             procedure: "planItems.reorder",
             status: 400,
             code: "BAD_REQUEST",
-            client: "web;api=1",
+            client: "web;api=2",
           },
         ],
       });

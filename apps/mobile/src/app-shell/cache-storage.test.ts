@@ -3,7 +3,11 @@ import { QueryClient, dehydrate, hydrate } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { makeCacheStorage } from "./cache-storage";
-import { queryCacheKey } from "./query-persistence";
+import {
+  serializeQueryCache,
+  deserializeQueryCache,
+  queryCacheKey,
+} from "./query-persistence";
 
 const setup = () => {
   const items = new Map<string, string>();
@@ -44,9 +48,14 @@ describe(makeCacheStorage, () => {
       storage: storage.forScope(key),
       key,
       throttleTime: 1000,
+      serialize: serializeQueryCache,
+      deserialize: deserializeQueryCache,
     });
     const client = new QueryClient();
-    client.setQueryData(["user:u1:a1:old", "read"], "private data");
+    client.setQueryData(
+      ["user:u1:a1:old", "search.recent"],
+      [{ kind: "query", text: "private search" }]
+    );
     await persister.persistClient({
       timestamp: 1,
       buster: "test",

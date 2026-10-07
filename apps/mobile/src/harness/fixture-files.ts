@@ -48,6 +48,8 @@ import scheduleAssign from "./fixtures/schedule.assign.json";
 import scheduleRemove from "./fixtures/schedule.remove.json";
 import scheduleUpdateStatus from "./fixtures/schedule.updateStatus.json";
 import sessionStatus from "./fixtures/session.status.json";
+import songsAttachmentLink from "./fixtures/songs.attachmentLink.json";
+import songsAttachments from "./fixtures/songs.attachments.json";
 import songsHistory from "./fixtures/songs.history.json";
 import songsLibrary from "./fixtures/songs.library.json";
 import songsOptions from "./fixtures/songs.options.json";
@@ -99,6 +101,8 @@ export const fixtureFiles = {
   "schedule.remove": scheduleRemove,
   "schedule.updateStatus": scheduleUpdateStatus,
   "session.status": sessionStatus,
+  "songs.attachmentLink": songsAttachmentLink,
+  "songs.attachments": songsAttachments,
   "songs.history": songsHistory,
   "songs.library": songsLibrary,
   "songs.options": songsOptions,

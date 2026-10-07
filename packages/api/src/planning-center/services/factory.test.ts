@@ -179,8 +179,12 @@ describe("createPlanningCenterServices shared tier", () => {
         readCaches
       );
     const first = servicesIn("token-a", isolate());
-    vi.spyOn(first.core, "fetchAll").mockReturnValue(
-      Effect.succeed([resource("first", "Song")])
+    vi.spyOn(first.core, "fetchFirstPages").mockReturnValue(
+      Effect.succeed({
+        data: [resource("first", "Song")],
+        included: [],
+        next: null,
+      })
     );
     await Effect.runPromise(
       first.songs
@@ -190,12 +194,24 @@ describe("createPlanningCenterServices shared tier", () => {
 
     const sameCredential = servicesIn("token-a", secondIsolate);
     const sameLoad = vi
-      .spyOn(sameCredential.core, "fetchAll")
-      .mockReturnValue(Effect.succeed([resource("reloaded", "Song")]));
+      .spyOn(sameCredential.core, "fetchFirstPages")
+      .mockReturnValue(
+        Effect.succeed({
+          data: [resource("reloaded", "Song")],
+          included: [],
+          next: null,
+        })
+      );
     const otherCredential = servicesIn("token-b", secondIsolate);
     const otherLoad = vi
-      .spyOn(otherCredential.core, "fetchAll")
-      .mockReturnValue(Effect.succeed([resource("other", "Song")]));
+      .spyOn(otherCredential.core, "fetchFirstPages")
+      .mockReturnValue(
+        Effect.succeed({
+          data: [resource("other", "Song")],
+          included: [],
+          next: null,
+        })
+      );
 
     await expect(
       Effect.runPromise(sameCredential.songs.getSongsCatalogCached("catalog"))

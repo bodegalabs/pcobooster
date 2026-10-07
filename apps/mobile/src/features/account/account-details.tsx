@@ -1,5 +1,4 @@
 import { FEEDBACK_MESSAGE_MAX_LENGTH } from "@pcobooster/contracts/feedback";
-import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
@@ -9,6 +8,7 @@ import {
   sharedReads,
   useProductClient,
 } from "../../app-shell/queries";
+import { useVisibleQuery as useQuery } from "../../app-shell/visible-queries";
 import { BottomActionBar } from "../../components/bottom-action-bar";
 import { AppText } from "../../design/app-text";
 import { colors } from "../../design/colors";

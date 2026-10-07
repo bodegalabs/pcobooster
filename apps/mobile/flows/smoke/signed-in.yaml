@@ -1,0 +1,13 @@
+# Release smoke: a cold launch restores the remembered session straight into the app.
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible:
+      id: "account-button"
+    timeout: 30000
+- assertNotVisible:
+    id: "sign-in-button"
+- extendedWaitUntil:
+    visible: ".*Sunday Gathering.*"
+    timeout: 30000
+- takeScreenshot: initial-screen

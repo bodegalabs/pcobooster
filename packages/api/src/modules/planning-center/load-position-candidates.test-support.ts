@@ -15,6 +15,10 @@ import type { PositionCandidatesDependencies } from "@pcobooster/api/modules/pla
 import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
+import {
+  candidateDetailsAdvanced,
+  nextWindowContinuation,
+} from "@pcobooster/planning-center-models/candidate-list";
 import { expandPlanWindowHistory } from "@pcobooster/planning-center-models/plan-window-history";
 import {
   assemblePositionCandidates,
@@ -73,18 +77,13 @@ const loadWindowHistory = async (
     spent
   );
   progress.calls += 1;
-  if (
-    batch.deferredPlans.length === 0 &&
-    batch.deferredServiceTypeIds.length === 0
-  ) {
+  const next = nextWindowContinuation(batch);
+  if (next === null) {
     return [batch];
   }
   return [
     batch,
-    ...(await loadWindowHistory(dependencies, date, spent, progress, {
-      plans: batch.deferredPlans,
-      serviceTypeIds: batch.deferredServiceTypeIds,
-    })),
+    ...(await loadWindowHistory(dependencies, date, spent, progress, next)),
   ];
 };
 
@@ -95,7 +94,7 @@ const loadDetails = async (
     planId: string;
     date: string;
     scheduleHistory: boolean;
-    blockoutProgress?: CandidateDetailsBatch["blockoutProgress"];
+    continuation?: CandidateDetailsBatch["continuation"];
   },
   spent: number,
   progress: Progress
@@ -111,11 +110,7 @@ const loadDetails = async (
   if (batch.deferredPersonIds.length === 0) {
     return batch.people;
   }
-  if (
-    batch.people.length === 0 &&
-    batch.blockoutProgress.length === 0 &&
-    batch.deferredPersonIds.length >= request.personIds.length
-  ) {
+  if (!candidateDetailsAdvanced(request.continuation, batch)) {
     throw new Error("Candidate details made no progress");
   }
   return [
@@ -125,7 +120,7 @@ const loadDetails = async (
       {
         ...request,
         personIds: batch.deferredPersonIds,
-        blockoutProgress: batch.blockoutProgress,
+        continuation: batch.continuation,
       },
       spent,
       progress

@@ -1,8 +1,11 @@
 import {
-  blockoutProgressSchema,
   blockoutSchema,
+  candidateDetailsContinuationSchema,
+  candidatePersonProgressSchema,
+  planTimesProgressSchema,
   peopleSearchResultSchema,
   windowPlanRefSchema,
+  windowRangeRefSchema,
 } from "@pcobooster/contracts/people-schemas";
 import { z } from "zod";
 
@@ -22,15 +25,15 @@ export const peoplePlanWindowHistoryInputSchema = z.object({
   continuation: z
     .object({
       plans: z.array(windowPlanRefSchema).max(1000),
-      serviceTypeIds: z.array(z.string().trim().min(1)).max(200),
+      ranges: z.array(windowRangeRefSchema).max(200),
     })
     .optional(),
 });
 
 /**
  * Candidates per `people.candidateDetails` call. Each costs one blockout page
- * plus one read per repeating blockout near the plan date, so a full batch
- * stays well under the per-call budget.
+ * plus one page per repeating blockout near the plan date (more for long
+ * lists), so a full batch usually fits one call; the rest continues.
  */
 export const PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE = 16;
 
@@ -43,10 +46,13 @@ export const peopleCandidateDetailsInputSchema = z.object({
   date: planDateSchema,
   /** Also read each person's own schedules; only when the plan window is empty. */
   scheduleHistory: z.boolean(),
-  /** From the previous call's `blockoutProgress`; omit on the first call. */
-  blockoutProgress: z
-    .array(blockoutProgressSchema)
-    .max(PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE)
+  /** From the previous call's `continuation`; omit on the first call. */
+  continuation: candidateDetailsContinuationSchema
+    .extend({
+      people: z
+        .array(candidatePersonProgressSchema)
+        .max(PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE),
+    })
     .optional(),
 });
 
@@ -77,6 +83,8 @@ export const peopleDashboardPersonInputSchema =
       .string()
       .regex(/^\d{4}-\d{2}$/u)
       .optional(),
+    /** From the previous call's `continuation`; omit on the first call. */
+    continuation: planTimesProgressSchema.optional(),
   });
 
 export const peopleMyScheduledPlansInputSchema = z.object({});

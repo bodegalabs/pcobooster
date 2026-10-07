@@ -3,7 +3,12 @@ import {
   planPersonResourceSchema,
   planTimeResourceSchema,
 } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
-import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import { PLANNING_CENTER_PAGE_SIZE } from "@pcobooster/api/planning-center/core-client";
+import type {
+  PlanningCenterError,
+  PlanningCenterPage,
+} from "@pcobooster/api/planning-center/core-client";
+import { PlanningCenterPaginationError } from "@pcobooster/api/planning-center/pagination-error";
 import {
   pagesFor,
   PLANNING_CENTER_REQUEST_CAP,
@@ -14,8 +19,12 @@ import {
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import { PLAN_ROSTER_MAX_PAGES } from "@pcobooster/api/planning-center/services/people-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
-import { PLAN_RANGE_MAX_PAGES } from "@pcobooster/api/planning-center/services/plans-service";
+import {
+  isInOrganizationDayRange,
+  nextRangeOffset,
+} from "@pcobooster/api/planning-center/services/plans-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
+import { MAX_WINDOW_CONTINUATION_PLANS } from "@pcobooster/contracts/http/people-schemas";
 import {
   addCalendarDaysToDayKey,
   formatCalendarDayInTimeZone,
@@ -50,6 +59,24 @@ export interface WindowPlanRef {
   readonly planId: string;
   /** Roster pages the plan needs, so the next call can reserve them before reading ranges. */
   readonly rosterRequests: number;
+  /** The offset of the range page that listed the plan, where the next call finds it again. */
+  readonly rangeOffset: number;
+}
+
+/**
+ * A service type's window plans still to list. `offset` is where the next page starts; once
+ * plans are listed it is the position of the last one, `boundaryPlanId`, so the next page shows
+ * whether that boundary moved. The ordered IDs of the preceding page also guard against tied
+ * sort-date reorderings across that page; this is not a snapshot of older pages.
+ */
+export interface WindowRangeRef {
+  readonly serviceTypeId: string;
+  readonly offset: number;
+  readonly boundaryPlanId: string | null;
+  readonly previousPage?: {
+    readonly offset: number;
+    readonly planIds: string[];
+  };
 }
 
 export interface PlanWindowHistoryBatch extends PlanWindowRosters {
@@ -58,8 +85,8 @@ export interface PlanWindowHistoryBatch extends PlanWindowRosters {
   loadedPlanCount: number;
   /** Listed plans whose rosters are left for the next call, in window order. */
   deferredPlans: WindowPlanRef[];
-  /** Service types whose plans are not listed yet; they come after `deferredPlans`. */
-  deferredServiceTypeIds: string[];
+  /** Ranges not listed to their end yet, with the page each goes on from; after `deferredPlans`. */
+  deferredRanges: WindowRangeRef[];
   requestBudget: {
     limit: number;
     /** Planning Center requests this procedure sent; cached reads cost none. */
@@ -75,17 +102,14 @@ export interface PlanWindowHistoryInput {
   /** Where the previous call stopped; omit on the first call. */
   readonly continuation?: {
     readonly plans: readonly WindowPlanRef[];
-    readonly serviceTypeIds: readonly string[];
+    readonly ranges: readonly WindowRangeRef[];
   };
 }
 
 export interface PlanWindowHistoryDependencies {
   readonly catalog: Pick<PlanningCenterCatalogService, "getServiceTypesCached">;
   readonly people: Pick<PlanningCenterPeopleService, "getPlanWindowRoster">;
-  readonly plans: Pick<
-    PlanningCenterPlansService,
-    "getPlansWithIncludedInDateRange"
-  >;
+  readonly plans: Pick<PlanningCenterPlansService, "getPlanRangePage">;
   readonly resolveTimeZone: Effect.Effect<string, PlanningCenterError>;
 }
 
@@ -228,6 +252,7 @@ interface WindowPlan {
   readonly serviceTypeId: string;
   readonly plan: PCResource;
   readonly planTimes: RawPlanTime[];
+  readonly rangeOffset: number;
 }
 
 /** Roster pages a plan needs; a plan with no one scheduled needs none. */
@@ -371,22 +396,410 @@ const buildRosters = (
   };
 };
 
-const serviceTypeIdsOf = (plans: readonly WindowPlanRef[]): string[] => [
-  ...new Set(plans.map((plan) => plan.serviceTypeId)),
-];
+/** One page of a range: its plans in the range, and where the range goes on (`null`: done). */
+interface RangePage {
+  /** The page's first plan, in the range or not; `null` for an empty page. */
+  readonly firstPlanId: string | null;
+  readonly planIds: string[];
+  readonly plans: WindowPlan[];
+  readonly next: WindowRangeRef | null;
+}
+
+interface PageRef {
+  readonly serviceTypeId: string;
+  readonly offset: number;
+}
+
+/** A pending plan: found on its page, or not yet. */
+interface PendingPlan {
+  readonly ref: WindowPlanRef;
+  plan: WindowPlan | undefined;
+}
+
+const pageKey = ({ serviceTypeId, offset }: PageRef) =>
+  `${serviceTypeId}:${offset}`;
+
+/** Where a plan may be now: the page that listed it, then its neighbors, in case plans moved. */
+const pagesToSearch = ({ serviceTypeId, rangeOffset }: WindowPlanRef) =>
+  [
+    ...new Set([
+      rangeOffset,
+      rangeOffset + PLANNING_CENTER_PAGE_SIZE,
+      Math.max(0, rangeOffset - PLANNING_CENTER_PAGE_SIZE),
+    ]),
+  ].map((offset): PageRef => ({ serviceTypeId, offset }));
+
+const requestsLeft = planningCenterRequestsSpent.pipe(
+  Effect.map((spent) => PROGRESSIVE_REQUEST_BUDGET - spent)
+);
+
+interface WindowDays {
+  readonly afterDayKey: string;
+  readonly beforeDayKey: string;
+  readonly rangeEndDayKey: string;
+  readonly orgTimeZone: string;
+}
+
+const rangePath = (serviceTypeId: string) =>
+  `/services/v2/service_types/${serviceTypeId}/plans`;
+
+/** The range pages one call has read, by service type and offset. */
+class RangePages {
+  private readonly pages = new Map<string, RangePage>();
+  private readonly plans: PlanWindowHistoryDependencies["plans"];
+  private readonly days: WindowDays;
+
+  constructor(plans: PlanWindowHistoryDependencies["plans"], days: WindowDays) {
+    this.plans = plans;
+    this.days = days;
+  }
+
+  get(page: PageRef): RangePage | undefined {
+    return this.pages.get(pageKey(page));
+  }
+
+  /** The pages among `wanted` not read yet, each once, in order. */
+  unread(wanted: readonly PageRef[]): PageRef[] {
+    const keys = new Set<string>();
+    return wanted.filter((page) => {
+      const key = pageKey(page);
+      if (this.pages.has(key) || keys.has(key)) {
+        return false;
+      }
+      keys.add(key);
+      return true;
+    });
+  }
+
+  read(wanted: readonly PageRef[]): Effect.Effect<void, PlanningCenterError> {
+    return Effect.forEach(wanted, (page) => this.readOne(page), {
+      concurrency: READ_CONCURRENCY,
+      discard: true,
+    });
+  }
+
+  private readOne(
+    page: PageRef
+  ): Effect.Effect<RangePage, PlanningCenterError> {
+    return this.plans
+      .getPlanRangePage(
+        page.serviceTypeId,
+        this.days.afterDayKey,
+        "plan_times",
+        page.offset
+      )
+      .pipe(Effect.flatMap((read) => this.store(page, read)));
+  }
+
+  /** Range pages of the service type this call has read. */
+  readOf(serviceTypeId: string): number {
+    return [...this.pages.keys()].filter((key) =>
+      key.startsWith(`${serviceTypeId}:`)
+    ).length;
+  }
+
+  /** Keeps a page's plans in the range, and where the range goes on: from its last plan. */
+  private store(
+    { serviceTypeId, offset }: PageRef,
+    page: PlanningCenterPage
+  ): Effect.Effect<RangePage, PlanningCenterPaginationError> {
+    const { afterDayKey, rangeEndDayKey, orgTimeZone } = this.days;
+    const planTimes = parseIncludedPlanTimes(page.included);
+    const next = nextRangeOffset(page, rangeEndDayKey, orgTimeZone);
+    const last = page.data.at(-1);
+    // Resuming at the last plan must still move on: a page of one plan would not.
+    if (next !== null && page.data.length === 1) {
+      return Effect.fail(
+        new PlanningCenterPaginationError({
+          reason: "invalid-next",
+          path: rangePath(serviceTypeId),
+          pages: this.readOf(serviceTypeId) + 1,
+        })
+      );
+    }
+    const stored: RangePage = {
+      firstPlanId: page.data[0]?.id ?? null,
+      planIds: page.data.map(({ id }) => id),
+      plans: page.data.flatMap((plan) =>
+        isInOrganizationDayRange(plan, afterDayKey, rangeEndDayKey, orgTimeZone)
+          ? [
+              {
+                serviceTypeId,
+                plan,
+                planTimes: getIncludedPlanTimesForPlan(plan, planTimes),
+                rangeOffset: offset,
+              },
+            ]
+          : []
+      ),
+      next:
+        next === null
+          ? null
+          : {
+              serviceTypeId,
+              offset: last === undefined ? next : offset + page.data.length - 1,
+              boundaryPlanId: last?.id ?? null,
+              previousPage: { offset, planIds: page.data.map(({ id }) => id) },
+            },
+    };
+    this.pages.set(pageKey({ serviceTypeId, offset }), stored);
+    return Effect.succeed(stored);
+  }
+}
+
+/** Plans listed before a cursor's position moved or left: what was listed no longer holds. */
+const rangeChanged = (serviceTypeId: string, pages: RangePages) =>
+  new PlanningCenterPaginationError({
+    reason: "changed",
+    path: rangePath(serviceTypeId),
+    pages: pages.readOf(serviceTypeId),
+  });
+
+/**
+ * Looks for each unresolved pending plan on the pages read so far. A plan on none of its pages
+ * was deleted or moved, so the window changed under the read and it fails typed.
+ */
+const resolvePending = (
+  pending: readonly PendingPlan[],
+  pages: RangePages
+): Effect.Effect<void, PlanningCenterPaginationError> => {
+  for (const entry of pending) {
+    if (entry.plan !== undefined) {
+      continue;
+    }
+    const search = pagesToSearch(entry.ref);
+    entry.plan = search
+      .map((page) =>
+        pages.get(page)?.plans.find(({ plan }) => plan.id === entry.ref.planId)
+      )
+      .find((found) => found !== undefined);
+    if (entry.plan === undefined && pages.unread(search).length === 0) {
+      return Effect.fail(rangeChanged(entry.ref.serviceTypeId, pages));
+    }
+  }
+  return Effect.void;
+};
+
+/** The pages a search pass reads for one pending plan: its own, or then its neighbors. */
+const searchPages = (
+  entry: PendingPlan,
+  pages: RangePages,
+  neighbors: boolean
+): PageRef[] => {
+  if (entry.plan !== undefined) {
+    return [];
+  }
+  const [own, ...around] = pagesToSearch(entry.ref);
+  if (own === undefined) {
+    return [];
+  }
+  if (!neighbors) {
+    return [own];
+  }
+  // Only a plan missing from its own page may have moved to a neighbor.
+  return pages.get(own) === undefined ? [] : around;
+};
+
+const firstUnresolved = (
+  pending: readonly PendingPlan[]
+): PendingPlan | undefined => {
+  for (const entry of pending) {
+    if (entry.plan === undefined) {
+      return entry;
+    }
+  }
+  return undefined;
+};
+
+/**
+ * Finds the plans earlier calls listed, keeping room for the first one's roster. The first
+ * unresolved plan's pages are read whatever the budget, so it always resolves.
+ */
+const locatePending = (
+  pending: readonly PendingPlan[],
+  pages: RangePages
+): Effect.Effect<void, PlanningCenterError> =>
+  Effect.gen(function* findPendingPlans() {
+    const firstRosterRequests = Math.min(
+      pending[0]?.ref.rosterRequests ?? 0,
+      PLAN_ROSTER_MAX_PAGES
+    );
+    for (const neighbors of [false, true]) {
+      const wanted = pages.unread(
+        pending.flatMap((entry) => searchPages(entry, pages, neighbors))
+      );
+      const first = firstUnresolved(pending);
+      const firstNeeds =
+        first === undefined
+          ? 0
+          : pages.unread(searchPages(first, pages, neighbors)).length;
+      const slots = Math.max(
+        firstNeeds,
+        (yield* requestsLeft) - firstRosterRequests
+      );
+      yield* pages.read(wanted.slice(0, Math.max(0, slots)));
+      yield* resolvePending(pending, pages);
+    }
+  });
+
+/**
+ * Lists range pages in order, a range's later pages before the next range, while the plans
+ * already collected leave room on rosters and the cursor has room for `planRoom` more plans
+ * (a page is listed whole or not at all). A first call always lists one page. Returns the
+ * plans listed; `ranges` is left holding what is still unlisted.
+ */
+const listRanges = (
+  ranges: WindowRangeRef[],
+  pages: RangePages,
+  collectedRosterRequests: number,
+  planRoom: number,
+  { beforeDayKey, orgTimeZone }: WindowDays
+): Effect.Effect<WindowPlan[], PlanningCenterError> =>
+  Effect.gen(function* listRangePages() {
+    const listed: WindowPlan[] = [];
+    let rosterRequests = collectedRosterRequests;
+    let mustList = collectedRosterRequests === 0;
+    while (ranges.length > 0) {
+      const room = (yield* requestsLeft) - rosterRequests;
+      const slots = Math.min(
+        mustList ? Math.max(room, 1) : room,
+        Math.floor((planRoom - listed.length) / PLANNING_CENTER_PAGE_SIZE)
+      );
+      if (slots < 1) {
+        break;
+      }
+      yield* pages.read(
+        pages
+          .unread(
+            ranges.flatMap((range) => [
+              ...(range.previousPage === undefined
+                ? []
+                : [
+                    {
+                      serviceTypeId: range.serviceTypeId,
+                      offset: range.previousPage.offset,
+                    },
+                  ]),
+              range,
+            ])
+          )
+          .slice(0, Math.min(slots, READ_CONCURRENCY))
+      );
+      mustList = false;
+      // Pages are taken in range order: a range's later pages come before the next range.
+      let range = ranges.at(0);
+      let page = range === undefined ? undefined : pages.get(range);
+      while (range !== undefined && page !== undefined) {
+        const { boundaryPlanId, previousPage } = range;
+        if (boundaryPlanId !== null) {
+          // One bounded page check catches tied sort-date reorderings across the frontier.
+          // Older pages can still change: the provider does not offer snapshot isolation.
+          if (previousPage === undefined) {
+            return yield* rangeChanged(range.serviceTypeId, pages);
+          }
+          const previous = pages.get({
+            serviceTypeId: range.serviceTypeId,
+            offset: previousPage.offset,
+          });
+          if (previous === undefined) {
+            break;
+          }
+          if (
+            previous.planIds.length !== previousPage.planIds.length ||
+            previous.planIds.some(
+              (id, index) => id !== previousPage.planIds[index]
+            )
+          ) {
+            return yield* rangeChanged(range.serviceTypeId, pages);
+          }
+        }
+        if (boundaryPlanId !== null && page.firstPlanId !== boundaryPlanId) {
+          return yield* rangeChanged(range.serviceTypeId, pages);
+        }
+        const adding = page.plans.filter(
+          ({ plan, planTimes }) =>
+            plan.id !== boundaryPlanId &&
+            addsWindowHistory(plan, planTimes, beforeDayKey, orgTimeZone)
+        );
+        if (listed.length + adding.length > planRoom) {
+          break;
+        }
+        listed.push(...adding);
+        rosterRequests += adding.reduce(
+          (sum, { plan }) => sum + rosterRequestsFor(plan),
+          0
+        );
+        if (page.next !== null) {
+          ranges[0] = page.next;
+          break;
+        }
+        ranges.shift();
+        range = ranges.at(0);
+        page = range === undefined ? undefined : pages.get(range);
+      }
+    }
+    return listed;
+  });
+
+/** How many plans, from the start of `ordered`, get their rosters read this call. */
+const admitRosters = (
+  ordered: readonly (WindowPlan | WindowPlanRef)[],
+  spent: number
+): number => {
+  let budget = PROGRESSIVE_REQUEST_BUDGET - spent;
+  let admitted = 0;
+  for (const entry of ordered) {
+    if (!("plan" in entry)) {
+      break;
+    }
+    const cost = rosterRequestsFor(entry.plan);
+    // The first roster may use the retry headroom up to the hard cap, so every call reads one:
+    // a follow-up call would have no more room for it. The call then spends past its budget.
+    const limit =
+      admitted === 0
+        ? Math.max(budget, PLANNING_CENTER_REQUEST_CAP - spent)
+        : budget;
+    if (cost > limit) {
+      break;
+    }
+    budget -= cost;
+    admitted += 1;
+  }
+  return admitted;
+};
+
+const toPlanRef = (entry: WindowPlan | WindowPlanRef): WindowPlanRef =>
+  "plan" in entry
+    ? {
+        serviceTypeId: entry.serviceTypeId,
+        planId: entry.plan.id,
+        rosterRequests: rosterRequestsFor(entry.plan),
+        rangeOffset: entry.rangeOffset,
+      }
+    : entry;
 
 /**
  * History for the candidate list from the rosters of every plan within 28 days either side of
  * the selected plan, across active service types, plus plans up to a week after the window that
- * hold a rehearsal inside it. Each call plans against
- * `PROGRESSIVE_REQUEST_BUDGET` Planning Center requests, counting what was really sent.
+ * hold a rehearsal inside it. Each call plans against `PROGRESSIVE_REQUEST_BUDGET` Planning
+ * Center requests, counting what was really sent; the first roster may go past it, up to the
+ * procedure cap, so every call reads one.
  *
- * The first call lists the window's plans (one plan-range read per service type) and reads
- * rosters in window order until the budget runs out. The rest comes back as `deferredPlans`
- * (and `deferredServiceTypeIds` when even the listing does not fit) for the caller's next
- * call, so concatenating every call's rows reproduces the window's order. A follow-up call
- * reserves the first deferred plan's roster pages before locating plans again, so it always
- * reads that roster. Failed reads fail the call.
+ * Each service type's plans are listed a range page at a time (100 plans, in date order, from
+ * the window's start), until a page passes the window. A call first finds the plans an earlier
+ * call deferred, on the range page that listed them (cached pages cost nothing), keeping room
+ * for the first one's roster; then, when all are found, lists further pages in service type
+ * order while their rosters could still fit; then reads rosters in window order until the budget
+ * runs out. What is left comes back as `deferredPlans` and `deferredRanges`.
+ *
+ * Planning Center pages ranges by offset in `sort_date` order, with no key to resume from, so a
+ * cursor holds positions and checks them: a range resumes on the page starting at the last plan
+ * it listed, and a deferred plan is looked for on the page that listed it and its neighbors.
+ * When either is not where it was, plans before it were added, deleted, or moved, and the call
+ * fails typed (`changed`) rather than skip or repeat plans; the browser retries the read from
+ * the start. So concatenating every call's rows reproduces the window as it stood, provided
+ * Planning Center lists unchanged plans in the same order each time (the documentation orders
+ * by `sort_date` only, saying nothing of ties). Failed reads fail the call.
  */
 export const getPlanWindowHistory = (
   { date, continuation }: PlanWindowHistoryInput,
@@ -395,141 +808,76 @@ export const getPlanWindowHistory = (
   Effect.gen(function* readPlanWindowHistory() {
     const orgTimeZone = yield* resolveTimeZone;
     const refDayKey = formatCalendarDayInTimeZone(new Date(date), orgTimeZone);
-    const afterDayKey = addCalendarDaysToDayKey(
-      refDayKey,
-      -PLAN_HISTORY_HALF_RANGE_DAYS
-    );
     const beforeDayKey = addCalendarDaysToDayKey(
       refDayKey,
       PLAN_HISTORY_HALF_RANGE_DAYS
     );
-    const rangeEndDayKey = addCalendarDaysToDayKey(
+    const days: WindowDays = {
+      afterDayKey: addCalendarDaysToDayKey(
+        refDayKey,
+        -PLAN_HISTORY_HALF_RANGE_DAYS
+      ),
       beforeDayKey,
-      REHEARSAL_WINDOW_MARGIN_DAYS
-    );
+      rangeEndDayKey: addCalendarDaysToDayKey(
+        beforeDayKey,
+        REHEARSAL_WINDOW_MARGIN_DAYS
+      ),
+      orgTimeZone,
+    };
     const activeServiceTypes = (yield* catalog.getServiceTypesCached()).filter(
       (resource) => !isNonEmptyString(resource.attributes.archived_at)
     );
     const activeIds = new Set(activeServiceTypes.map(({ id }) => id));
-
-    // Plans listed by an earlier call are located again (their ranges are usually cached) before
-    // any new service type is listed, which keeps the window order across calls.
-    const pendingPlans = (continuation?.plans ?? []).filter(
-      ({ serviceTypeId }) => activeIds.has(serviceTypeId)
-    );
-    const pendingServiceTypeIds = serviceTypeIdsOf(pendingPlans);
-    const unlistedServiceTypeIds =
-      continuation === undefined
-        ? activeServiceTypes.map(({ id }) => id)
-        : continuation.serviceTypeIds.filter((id) => activeIds.has(id));
-    const firstRosterRequests = Math.min(
-      pendingPlans[0]?.rosterRequests ?? 1,
-      PLAN_ROSTER_MAX_PAGES
-    );
+    const isActive = ({ serviceTypeId }: { serviceTypeId: string }) =>
+      activeIds.has(serviceTypeId);
+    const pages = new RangePages(plans, days);
     const beforeRanges = yield* planningCenterRequestsSpent;
-    const rangeSlots = Math.max(
-      1,
-      Math.floor(
-        (PROGRESSIVE_REQUEST_BUDGET - beforeRanges - firstRosterRequests) /
-          PLAN_RANGE_MAX_PAGES
-      )
-    );
-    const pendingRangeIds = pendingServiceTypeIds.slice(0, rangeSlots);
-    const listedIds =
-      pendingRangeIds.length < pendingServiceTypeIds.length
-        ? []
-        : unlistedServiceTypeIds.slice(0, rangeSlots - pendingRangeIds.length);
-    const rangeIds = [...pendingRangeIds, ...listedIds];
 
-    const ranges = yield* Effect.forEach(
-      rangeIds,
-      (serviceTypeId) =>
-        Effect.map(
-          plans.getPlansWithIncludedInDateRange(
-            serviceTypeId,
-            afterDayKey,
-            rangeEndDayKey,
-            "plan_times",
-            orgTimeZone
-          ),
-          (response) => ({
-            serviceTypeId,
-            ...response,
-            planTimes: parseIncludedPlanTimes(response.included),
-          })
-        ),
-      { concurrency: READ_CONCURRENCY }
+    const pending: PendingPlan[] = (continuation?.plans ?? []).flatMap((ref) =>
+      isActive(ref) ? [{ ref, plan: undefined }] : []
     );
-    const rangeByServiceTypeId = new Map(
-      ranges.map((range) => [range.serviceTypeId, range])
+    yield* locatePending(pending, pages);
+    const found = pending.flatMap(({ plan }) =>
+      plan === undefined ? [] : [plan]
     );
-    const toWindowPlan = (
-      serviceTypeId: string,
-      plan: PCResource,
-      included: readonly IncludedPlanTime[]
-    ): WindowPlan => ({
-      serviceTypeId,
-      plan,
-      planTimes: getIncludedPlanTimesForPlan(plan, included),
-    });
-
-    const windowPlans: WindowPlan[] = [];
-    const unlocatedPlans: WindowPlanRef[] = [];
-    for (const ref of pendingPlans) {
-      const range = rangeByServiceTypeId.get(ref.serviceTypeId);
-      if (range === undefined) {
-        unlocatedPlans.push(ref);
-        continue;
-      }
-      const plan = range.data.find(({ id }) => id === ref.planId);
-      // A plan that left the window since the last call has no history to add.
-      if (plan !== undefined) {
-        windowPlans.push(
-          toWindowPlan(ref.serviceTypeId, plan, range.planTimes)
-        );
-      }
-    }
-    for (const serviceTypeId of listedIds) {
-      const range = rangeByServiceTypeId.get(serviceTypeId);
-      for (const plan of range?.data ?? []) {
-        const windowPlan = toWindowPlan(
-          serviceTypeId,
-          plan,
-          range?.planTimes ?? []
-        );
-        if (
-          addsWindowHistory(
-            plan,
-            windowPlan.planTimes,
-            beforeDayKey,
-            orgTimeZone
-          )
-        ) {
-          windowPlans.push(windowPlan);
-        }
-      }
-    }
+    const ranges: WindowRangeRef[] = (
+      continuation?.ranges ??
+      activeServiceTypes.map(({ id }): WindowRangeRef => ({
+        serviceTypeId: id,
+        offset: 0,
+        boundaryPlanId: null,
+      }))
+    ).filter(isActive);
+    // New pages are listed only once every deferred plan is found, so the window's order holds.
+    const listed = pending.every(({ plan }) => plan !== undefined)
+      ? yield* listRanges(
+          ranges,
+          pages,
+          pending.length > 0
+            ? Math.max(
+                1,
+                found.reduce(
+                  (sum, { plan }) => sum + rosterRequestsFor(plan),
+                  0
+                )
+              )
+            : 0,
+          MAX_WINDOW_CONTINUATION_PLANS - pending.length,
+          days
+        )
+      : [];
 
     const afterRanges = yield* planningCenterRequestsSpent;
-    let remaining = PROGRESSIVE_REQUEST_BUDGET - afterRanges;
-    let admittedCount = 0;
-    for (const windowPlan of windowPlans) {
-      const cost = rosterRequestsFor(windowPlan.plan);
-      // The first roster may use the retry headroom, so a follow-up call always reads one.
-      const limit =
-        admittedCount === 0
-          ? Math.max(remaining, PLANNING_CENTER_REQUEST_CAP - afterRanges)
-          : remaining;
-      if (cost > limit) {
-        break;
-      }
-      remaining -= cost;
-      admittedCount += 1;
-    }
-    const admitted = windowPlans.slice(0, admittedCount);
+    const ordered: (WindowPlan | WindowPlanRef)[] = [
+      ...pending.map(({ ref, plan }) => plan ?? ref),
+      ...listed,
+    ];
+    const admittedCount = admitRosters(ordered, afterRanges);
     const todayDayKey = formatCalendarDayInTimeZone(new Date(), orgTimeZone);
     const loadedPlans = yield* Effect.forEach(
-      admitted,
+      ordered
+        .slice(0, admittedCount)
+        .flatMap((entry) => ("plan" in entry ? [entry] : [])),
       (windowPlan) =>
         loadWindowRoster(
           windowPlan,
@@ -549,15 +897,8 @@ export const getPlanWindowHistory = (
       generatedAt: new Date().toISOString(),
       loadedPlanCount: loadedPlans.length,
       ...buildRosters(activeServiceTypes, loadedPlans),
-      deferredPlans: [
-        ...windowPlans.slice(admittedCount).map(({ serviceTypeId, plan }) => ({
-          serviceTypeId,
-          planId: plan.id,
-          rosterRequests: rosterRequestsFor(plan),
-        })),
-        ...unlocatedPlans,
-      ],
-      deferredServiceTypeIds: unlistedServiceTypeIds.slice(listedIds.length),
+      deferredPlans: ordered.slice(admittedCount).map(toPlanRef),
+      deferredRanges: ranges,
       requestBudget: {
         limit: PROGRESSIVE_REQUEST_BUDGET,
         planningCenterRequests: spent,
@@ -569,7 +910,7 @@ export const getPlanWindowHistory = (
       ...batch.requestBudget,
       loadedPlanCount: batch.loadedPlanCount,
       deferredPlanCount: batch.deferredPlans.length,
-      deferredServiceTypeCount: batch.deferredServiceTypeIds.length,
+      deferredRangeCount: batch.deferredRanges.length,
       rosterPeopleCount: batch.people.length,
     });
     return batch;

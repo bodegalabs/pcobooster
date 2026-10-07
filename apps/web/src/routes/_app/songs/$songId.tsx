@@ -19,6 +19,7 @@ export const Route = createFileRoute("/_app/songs/$songId")({
   validateSearch: songChartSearchSchema,
   ssr: "data-only",
   beforeLoad: featureGuard("chordCharts"),
+  head: () => ({ meta: [{ title: "Chord chart · pcobooster.com" }] }),
   pendingComponent: ChordChartEditorPageSkeleton,
   component: SongChartRoute,
 });

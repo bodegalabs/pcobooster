@@ -85,6 +85,13 @@ export const AppSymbol = {
   songKey: sf("key"),
   keyTransitionNote: sf("square.and.pencil"),
   chartLayout: sf("slider.horizontal.3"),
+  // Song files
+  document: sf("doc.text"),
+  attachment: sf("paperclip"),
+  image: sf("photo"),
+  audio: sf("waveform"),
+  video: sf("film"),
+  link: sf("link"),
   readiness: sf("checkmark.circle"),
   readinessSeal: sf("checkmark.seal"),
   arrowUpRight: sf("arrow.up.right"),

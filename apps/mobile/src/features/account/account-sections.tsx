@@ -1,6 +1,5 @@
 import { Host, Label, Picker } from "@expo/ui/swift-ui";
 import { pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
-import { useQuery } from "@tanstack/react-query";
 import * as Application from "expo-application";
 import { useRouter } from "expo-router";
 import { Fragment } from "react";
@@ -13,6 +12,7 @@ import { appearances } from "../../app-shell/preference-values";
 import { usePreferences } from "../../app-shell/preferences";
 import { sharedReads, useProductClient } from "../../app-shell/queries";
 import { useSession } from "../../app-shell/session";
+import { useVisibleQuery as useQuery } from "../../app-shell/visible-queries";
 import { Glyph } from "../../components/glyph";
 import { Hairline } from "../../components/hairline";
 import { AppText } from "../../design/app-text";
@@ -243,10 +243,10 @@ export const AboutSection = () => {
             style={{ padding: 16, flexDirection: "row", alignItems: "center" }}
           >
             <AppText font="rowTitle" style={textStyle}>
-              Share usage analytics
+              Share usage analytics and error reports
             </AppText>
             <Switch
-              accessibilityLabel="Share usage analytics"
+              accessibilityLabel="Share usage analytics and error reports"
               value={preferences.analyticsOptedOut === false}
               disabled={preferences.analyticsOptedOut === null}
               onValueChange={(enabled) => {

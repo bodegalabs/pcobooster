@@ -48,7 +48,7 @@ describe(makeProductClient, () => {
             planTimes: [],
             people: [],
             deferredPlans: [],
-            deferredServiceTypeIds: [],
+            deferredRanges: [],
             requestBudget: {
               limit: 40,
               planningCenterRequests: 0,
@@ -69,7 +69,12 @@ describe(makeProductClient, () => {
       api.people.planWindowHistory({
         payload: {
           date: "2026-10-11T17:00:00Z",
-          continuation: { plans: [], serviceTypeIds: ["st-2"] },
+          continuation: {
+            plans: [],
+            ranges: [
+              { serviceTypeId: "st-2", offset: 0, boundaryPlanId: null },
+            ],
+          },
         },
       })
     );
@@ -98,7 +103,12 @@ describe(makeProductClient, () => {
         "https://api.example/api/v1/people/plan-window-history",
         JSON.stringify({
           date: "2026-10-11T17:00:00Z",
-          continuation: { plans: [], serviceTypeIds: ["st-2"] },
+          continuation: {
+            plans: [],
+            ranges: [
+              { serviceTypeId: "st-2", offset: 0, boundaryPlanId: null },
+            ],
+          },
         }),
       ],
       [
@@ -141,7 +151,7 @@ describe(makeProductClient, () => {
     ).rejects.toBeInstanceOf(NotFound);
     expect(
       sent.map((request) => request.headers.get("x-pcobooster-client"))
-    ).toStrictEqual(["web;api=1"]);
+    ).toStrictEqual(["web;api=2"]);
   });
 
   it("reports a response the API does not declare as a transport failure", async () => {
@@ -219,7 +229,7 @@ describe(makeProductClient, () => {
     expect(named).toStrictEqual(["catalog.serviceTypes", "schedule.remove"]);
     expect(
       sent.map((request) => request.headers.get("x-pcobooster-client"))
-    ).toStrictEqual(["web;api=1", "web;api=1"]);
+    ).toStrictEqual(["web;api=2", "web;api=2"]);
   });
 });
 

@@ -101,7 +101,7 @@ describe("endpoints behind the people flag", () => {
         await client.run((api) =>
           api.people.dashboardPerson({
             params: { personId: "person-1" },
-            query: {},
+            payload: {},
           })
         ),
     ],

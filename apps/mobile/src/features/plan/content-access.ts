@@ -1,9 +1,9 @@
 import { serviceTypeAbilities } from "@pcobooster/planning-center-models/access";
 import type { PlanningCenterAccessSnapshot } from "@pcobooster/planning-center-models/access";
 import type { PlanTimeType } from "@pcobooster/planning-center-models/types";
-import { useQuery } from "@tanstack/react-query";
 
 import { sharedReads, useProductClient } from "../../app-shell/queries";
+import { useVisibleQuery as useQuery } from "../../app-shell/visible-queries";
 import { planReads } from "./reads";
 
 export const contentAccess = (

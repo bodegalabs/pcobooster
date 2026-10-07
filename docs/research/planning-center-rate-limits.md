@@ -183,6 +183,8 @@ Path: `use-people-dashboard-person.ts` to `application/people.ts:218` to `get-pe
 | `songs.search` | `search-songs.ts:22-73` to `songs-service.ts:52-86` (`fetchAll /songs?order=title`, 15 pages max, 15 min TTL; KV-backed on the shared-cache branch) | ceil(songs / 100), about 12, **one after another** | 0 |
 | `songs.options` | `get-song-options.ts:54-65`: song, arrangements with keys (5 min), `last_scheduled_item` (never cached) | 3 | 1 |
 | `planItems.create` and `update` | `plan-item-payload.ts:63` song defaults (the `songs.options` reads), then one write | 1 to 4 | 1 to 2 |
+| `songs.attachments` (added 2026-10-07) | `song-attachments.ts`: arrangements with keys (up to 5 pages, 5 min cache), the arrangement's attachments, then up to 6 keys' attachments, one page each, 3 at a time | 2 to 12 | 1 to 7 |
+| `songs.attachmentLink` (added 2026-10-07) | `song-attachments.ts`: one attachment `open` (a POST read action); the file itself downloads on the device | 1 | 1 |
 
 The song catalog cache key includes the service type (`search-songs.ts:41-42`, `` `${cacheKey}:${serviceTypeId}` ``), but the catalog fetch has no service type filter. Every service type loads the same 12 pages separately, and so does every token refresh.
 
@@ -300,3 +302,36 @@ What we would not do: raise browser stale times further. The costly misses are s
 - Local export `docs/planning-center-api/services/2018-11-01/vertices/*.md`: includes, ordering, and queries per vertex.
 - Cloudflare, [Workers limits](https://developers.cloudflare.com/workers/platform/limits/): 50 subrequests per invocation on Free and 10,000 on Paid, with KV and D1 counted, and 6 simultaneous connections waiting for headers.
 - Code at `alchemy-config-checks-and-session-cache` (`19a2aec`): the file and line references above. Shared-cache design: `git show planning-center-shared-cache:docs/api-architecture.md`.
+
+## 2026-10-07 request accounting correction
+
+The preceding sections are a historical audit. Read-only account verification on 2026-10-06 found a paid `workers_paid` subscription and Standard usage on the production API, web and admin Workers; their deployed script settings had no explicit subrequest limit. The zone's Free plan does not establish the Workers subscription. This change declares an API-only `limits.subrequests: 80` through the installed Alchemy `WorkerLimits` metadata type, which its Worker provider includes in upload metadata and change detection. It has not been deployed by this task. Web and admin need their own ledgers before changing their limits.
+
+[Cloudflare's current limits](https://developers.cloudflare.com/workers/platform/limits/#subrequests) distinguish Free external requests (50) from internal-service requests (1,000). Paid defaults to 10,000 with configurable limits. [The configuration documentation](https://developers.cloudflare.com/workers/wrangler/configuration/#limits) supports `subrequests` on Standard usage and explicitly says limits are enforced only on Cloudflare's network, not locally. Redirect hops each count. The old derivation of 40 from a mixed Free pool of 50 minus 10 is obsolete.
+
+### Independent provider policy and atomic admission
+
+Planning Center API attempts remain capped at 40, including every retry. Progressive calls plan against 36 and may use the four-request headroom to advance the first unit, as documented above; the wire `requestBudget.limit` is that planning target, while outcome logs' `requestBudget` is the hard accounting cap. A reported 37 against the planning target is not an overrun of the hard 40. Provider pacing remains per credential, with the existing 100-requests-per-20-seconds policy, speculative priority, wait caps, cancellation, and typed failures.
+
+The core now checks and charges the cap synchronously after pacing and immediately before an HTTP attempt. Previously two calls could both check availability, wait, then send against the same last slot. A deterministic injected real-core regression sent 2 requests with budget 1 and 41 with budget 40; it now sends exactly 1 and 40. Canceling a queued wait does not charge an unsent attempt and releases its pacer reservation. Standalone `withPlanningCenterRequestCount` invocations now enforce the same 40 instead of creating unbounded accounting; a supplied accounting scope is preserved. Core API fetches use `redirect: "manual"`, so an unexpected redirect fails with a typed 3xx provider error rather than silently consuming uncounted hops. No redirect destination is followed and redirects are not retried.
+
+### Source-derived overhead ledger
+
+The following is conservative source accounting, not a measured Cloudflare invocation waterfall or a universal bound. Sources include `auth/planning-center-session.ts`, `auth/planning-center-token.ts`, `auth.ts`, `server.ts`, `modules/admin/planning-center-account-identities.ts`, `modules/feature-flags/feature-flags.ts`, `planning-center/services/factory.ts`, `modules/analytics/posthog-capture.ts`, and `apps/server/src/procedure-reporting.ts`.
+
+- Native or stale browser authentication: up to 8 D1 queries across `getSession`, `listUserAccounts`, and `getAccessToken`. Installed Better Auth 1.7.5 requests a session/user join, but the configured adapter has native joins disabled and expands it into separate session and user reads. Fresh browser cookie caching reduces this path.
+- Session renewal: 1 D1 update when the session reaches update age. It is not multiplied by every auth lookup after the first successful renewal.
+- Automatic token refresh: 1 external OAuth POST plus 1 D1 account update. A fallback after `getAccessToken` fails can add 2 session/user reads, 1 account read, 1 OAuth POST, and 1 account update (5). Both token requests are outside the core's provider count and pacer.
+- Cold Better Auth initialization: 1 external OIDC discovery request. Installed Better Auth telemetry is disabled by default here.
+- Feature-gated cold organization lookup: 1 D1 identity query and conservatively 1 Flagship evaluation. Ordinary ungated endpoints pay neither.
+- Shared cache: 1 KV get and, on a miss, 1 put per shared cache. Current common progressive paths use one; allow four internal calls if both immutable caches are combined. In-memory caches cost no subrequests.
+- Production 5xx reporting: 1 external PostHog request, with a timeout and no explicit retry. Structured console logs and native Cloudflare tracing do not issue explicit fetches.
+- Additional endpoint-specific D1 work must be counted separately. The upstream web-to-API service binding belongs to the web invocation; this ledger starts in the API handler. Their six-connection pool is shared, which does not establish identical subrequest charging between Workers.
+
+The conservative sum is `40 + 8 + 1 + 2 + 5 + 2 + 2 + 1 + 1 = 62`; using both shared caches gives 64. Some terms do not normally coincide. An explicit ceiling of 80 leaves 16 to 18 requests beyond this source envelope without raising Planning Center pressure. It is a finite infrastructure backstop, not proof that every endpoint will fit. OAuth/discovery and PostHog fetches still use their existing redirect behavior; redirects, new endpoint-specific database calls, and platform charging differences can exceed this envelope. Core redirects are bounded as above. Exhaustion remains a typed failure, never a silently complete empty result.
+
+### Rollout and verification
+
+The change is source-only. Before rollout, review the declaration and source ledger; deploy to staging through the authorized CI workflow, inspect the resulting API Worker settings for `limits.subrequests: 80`, then use Workers invocation traces to compare cold native auth, token-refresh/error paths, and progressive calls against this ledger. Monitor outcome counts, pacing pauses, 429s and typed exhaustion; production promotion follows the normal reviewed CI flow. Reverting the API `limits` declaration restores the account's default ceiling; the independent provider 40 and progressive 36 policies stay intact.
+
+Local regression tests verify actual injected HTTP attempts under concurrent pacing, cancellation, retries, redirect refusal and standalone accounting. They do not prove Cloudflare's deployed enforcement, real D1 billing/charging, production refresh, or a universal overhead bound. No cloud resources, provider data, auth accounts or deployed settings were changed by these tests.

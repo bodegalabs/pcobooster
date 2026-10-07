@@ -20,15 +20,19 @@ const createCoreClientMock = () => {
 
 describe(PlanningCenterSongsService, () => {
   it("dedupes song catalog loads and returns defensive clones", async () => {
-    const { core, fetchAllMock } = createCoreClientMock();
-    fetchAllMock.mockReturnValue(
-      Effect.succeed([
-        {
-          id: "song-1",
-          type: "Song",
-          attributes: { title: "Build My Life" },
-        },
-      ])
+    const { core } = createCoreClientMock();
+    const firstPagesMock = vi.spyOn(core, "fetchFirstPages").mockReturnValue(
+      Effect.succeed({
+        data: [
+          {
+            id: "song-1",
+            type: "Song",
+            attributes: { title: "Build My Life" },
+          },
+        ],
+        included: [],
+        next: null,
+      })
     );
 
     const service = new PlanningCenterSongsService(core);
@@ -42,8 +46,8 @@ describe(PlanningCenterSongsService, () => {
       )
     );
 
-    expect(fetchAllMock).toHaveBeenCalledOnce();
-    expect(fetchAllMock.mock.calls[0]?.slice(0, 3)).toStrictEqual([
+    expect(firstPagesMock).toHaveBeenCalledOnce();
+    expect(firstPagesMock.mock.calls[0]?.slice(0, 3)).toStrictEqual([
       "/services/v2/songs",
       { order: "title" },
       15,
@@ -64,7 +68,7 @@ describe(PlanningCenterSongsService, () => {
     );
 
     expect({
-      fetchCount: fetchAllMock.mock.calls.length,
+      fetchCount: firstPagesMock.mock.calls.length,
       cachedTitle: second[0].attributes.title,
       laterTitle: third[0].attributes.title,
     }).toStrictEqual({

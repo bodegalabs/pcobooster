@@ -1,0 +1,23 @@
+appId: com.pcobooster.ios
+---
+# Songs tab against fixtures: search the library, open a song, read its chart in another key.
+- tapOn: "Songs"
+- assertVisible:
+    id: "songs-summary"
+- tapOn: "Search songs, writers, or themes"
+- inputText: "morning light"
+- tapOn:
+    id: "song-row-5501"
+- assertVisible:
+    id: "song-facts"
+- assertVisible:
+    id: "song-arrangement-55011"
+- takeScreenshot: songs-detail
+- tapOn:
+    id: "song-view-chart"
+- assertVisible:
+    id: "chart-lines"
+- tapOn: "Choose the arrangement and key"
+- tapOn: "Jordan's key (A)"
+- assertVisible: "Default Arrangement · Jordan's key (A)"
+- takeScreenshot: songs-chart

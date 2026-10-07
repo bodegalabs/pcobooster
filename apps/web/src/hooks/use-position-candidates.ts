@@ -7,14 +7,15 @@ import type {
   PositionCandidates,
 } from "@pcobooster/contracts/people-schemas";
 import {
-  advancedBlockoutChecks,
   assembleCandidateList,
   CANDIDATE_DETAILS_BATCH_CONCURRENCY,
+  candidateDetailsAdvanced,
   collectCandidateDetails,
   expandWindowHistory,
   needsScheduleHistory,
   planCandidateDetailsBatches,
   prefetchCandidateDetailBatches,
+  nextWindowContinuation,
   windowHistoryAdvanced,
 } from "@pcobooster/planning-center-models/candidate-list";
 import type {
@@ -124,8 +125,8 @@ const fetchPlanWindowHistory = async (
       payload: { date: dateKey, continuation },
     })
   );
-  const { deferredPlans, deferredServiceTypeIds } = batch;
-  if (deferredPlans.length === 0 && deferredServiceTypeIds.length === 0) {
+  const next = nextWindowContinuation(batch);
+  if (next === null) {
     return [batch];
   }
   if (
@@ -134,13 +135,7 @@ const fetchPlanWindowHistory = async (
   ) {
     throw new Error("Plan window history made no progress.");
   }
-  return [
-    batch,
-    ...(await fetchPlanWindowHistory(dateKey, context, {
-      plans: deferredPlans,
-      serviceTypeIds: deferredServiceTypeIds,
-    })),
-  ];
+  return [batch, ...(await fetchPlanWindowHistory(dateKey, context, next))];
 };
 
 /** History from the rosters around one plan date; every position and plan on it shares it. */
@@ -164,13 +159,13 @@ interface CandidateDetailsRequest {
 }
 
 /**
- * Follows `deferredPersonIds` (with `blockoutProgress`) until the batch is complete. Every call
- * details someone or advances someone's blockout checks.
+ * Follows `deferredPersonIds` (with `continuation`) until the batch is complete. Every call
+ * details someone or reads another of someone's pages.
  */
 const fetchCandidateDetails = async (
   { personIds, planId, dateKey, scheduleHistory }: CandidateDetailsRequest,
   context: QueryFunctionContext,
-  blockoutProgress?: CandidateDetailsBatch["blockoutProgress"]
+  continuation?: CandidateDetailsBatch["continuation"]
 ): Promise<CandidateDetail[]> => {
   const batch = await callForQuery(context, productClient, (api) =>
     api.people.candidateDetails({
@@ -179,7 +174,7 @@ const fetchCandidateDetails = async (
         personIds: [...personIds],
         date: dateKey,
         scheduleHistory,
-        blockoutProgress,
+        continuation,
       },
     })
   );
@@ -187,10 +182,7 @@ const fetchCandidateDetails = async (
   if (deferred.length === 0) {
     return batch.people;
   }
-  if (
-    batch.people.length === 0 &&
-    !advancedBlockoutChecks(blockoutProgress ?? [], batch.blockoutProgress)
-  ) {
+  if (!candidateDetailsAdvanced(continuation, batch)) {
     throw new Error("Candidate details made no progress.");
   }
   return [
@@ -198,7 +190,7 @@ const fetchCandidateDetails = async (
     ...(await fetchCandidateDetails(
       { personIds: deferred, planId, dateKey, scheduleHistory },
       context,
-      batch.blockoutProgress
+      batch.continuation
     )),
   ];
 };

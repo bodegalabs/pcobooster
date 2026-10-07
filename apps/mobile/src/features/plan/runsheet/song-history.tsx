@@ -3,11 +3,11 @@ import {
   songHistoryNote,
   summarizeSongHistory,
 } from "@pcobooster/planning-center-models/song-library";
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { useProductClient } from "../../../app-shell/queries";
+import { useVisibleQuery as useQuery } from "../../../app-shell/visible-queries";
 import { AppText } from "../../../design/app-text";
 import { colors } from "../../../design/colors";
 import { useClock, useOrgTimeZone } from "../../../lib/environment";

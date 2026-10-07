@@ -11,8 +11,12 @@ import {
   peopleSearchResultSchema,
   planWindowHistoryBatchSchema,
   positionCandidatesSchema,
-  blockoutProgressSchema,
+  candidateDetailsContinuationSchema,
+  MAX_SERVICE_TYPES,
+  MAX_WINDOW_CONTINUATION_PLANS,
+  planTimesProgressSchema,
   windowPlanRefSchema,
+  windowRangeRefSchema,
 } from "@pcobooster/contracts/http/people-schemas";
 import {
   mutableArray,
@@ -25,8 +29,6 @@ import {
 } from "@pcobooster/contracts/people";
 import { Struct, Schema } from "effect";
 
-const MAX_CONTINUATION_PLANS = 1000;
-const MAX_CONTINUATION_SERVICE_TYPES = 200;
 const PEOPLE_SEARCH_MIN_LENGTH = 2;
 const PEOPLE_SEARCH_MAX_LENGTH = 80;
 const MONTH_KEY = /^\d{4}-\d{2}$/u;
@@ -47,10 +49,10 @@ export const peoplePlanWindowHistoryInputSchema = Schema.Struct({
   continuation: Schema.optional(
     Schema.Struct({
       plans: mutableArray(windowPlanRefSchema).check(
-        Schema.isMaxLength(MAX_CONTINUATION_PLANS)
+        Schema.isMaxLength(MAX_WINDOW_CONTINUATION_PLANS)
       ),
-      serviceTypeIds: mutableArray(requiredId).check(
-        Schema.isMaxLength(MAX_CONTINUATION_SERVICE_TYPES)
+      ranges: mutableArray(windowRangeRefSchema).check(
+        Schema.isMaxLength(MAX_SERVICE_TYPES)
       ),
     })
   ),
@@ -68,11 +70,14 @@ export const peopleCandidateDetailsInputSchema = Schema.Struct({
   date: planDateSchema,
   /** Also read each person's own schedules; only when the plan window is empty. */
   scheduleHistory: Schema.Boolean,
-  /** From the previous call's `blockoutProgress`; omit on the first call. */
-  blockoutProgress: Schema.optional(
-    mutableArray(blockoutProgressSchema).check(
-      Schema.isMaxLength(PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE)
-    )
+  /** From the previous call's `continuation`; omit on the first call. */
+  continuation: Schema.optional(
+    Schema.Struct({
+      ...candidateDetailsContinuationSchema.fields,
+      people: candidateDetailsContinuationSchema.fields.people.check(
+        Schema.isMaxLength(PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE)
+      ),
+    })
   ),
 });
 
@@ -94,6 +99,8 @@ export const peopleDashboardActivityInputSchema = Schema.Struct({
 export const peopleDashboardPersonInputSchema = Schema.Struct({
   ...peopleBlockoutsInputSchema.fields,
   month: Schema.optional(Schema.String.check(Schema.isPattern(MONTH_KEY))),
+  /** From the previous call's `continuation`; omit on the first call. */
+  continuation: Schema.optional(planTimesProgressSchema),
 });
 
 const CANDIDATE_POSITION = ["serviceTypeId", "planId", "positionId"] as const;
@@ -116,7 +123,8 @@ export const people = planningCenterGroup(
     }
   ),
   /**
-   * Partial with a continuation cursor: pass `deferredPlans` and the ids back as `continuation`.
+   * Partial with a continuation cursor: pass `deferredPlans` and `deferredRanges` back as
+   * `continuation`.
    * A POST read: the cursor can outgrow a URL.
    */
   read.post("planWindowHistory", "/people/plan-window-history", {
@@ -124,8 +132,8 @@ export const people = planningCenterGroup(
     success: planWindowHistoryBatchSchema,
   }),
   /**
-   * Partial with a continuation cursor: `deferredPersonIds` and `blockoutProgress`. A POST read:
-   * the people and their blockout progress can outgrow a URL.
+   * Partial with a continuation cursor: `deferredPersonIds` and `continuation`. A POST read:
+   * the people and their page progress can outgrow a URL.
    */
   read.post("candidateDetails", "/plans/:planId/candidate-details", {
     params: Struct.pick(peopleCandidateDetailsInputSchema.fields, ["planId"]),
@@ -150,10 +158,13 @@ export const people = planningCenterGroup(
     success: peopleDashboardActivityBatchSchema,
     feature: "people",
   }),
-  /** Partial without a cursor: `requestBudget.unresolvedRehearsalTimes` says what is missing. */
-  read("dashboardPerson", "/people/:personId/dashboard", {
+  /**
+   * Partial with a continuation cursor: pass `continuation` back until it is `null`. A POST
+   * read: the rehearsal times found so far can outgrow a URL.
+   */
+  read.post("dashboardPerson", "/people/:personId/dashboard", {
     params: Struct.pick(peopleDashboardPersonInputSchema.fields, ["personId"]),
-    query: Struct.omit(peopleDashboardPersonInputSchema.fields, ["personId"]),
+    payload: Struct.omit(peopleDashboardPersonInputSchema.fields, ["personId"]),
     success: peopleDashboardPersonDetailSchema,
     feature: "people",
   }),

@@ -60,13 +60,14 @@ const config: ExpoConfig = {
   version: "0.1.0",
   // Release links use `pcobooster://`; development builds also answer `pcobooster-dev://`.
   scheme: ["pcobooster", "pcobooster-dev"],
-  orientation: "portrait",
+  orientation: "default",
   userInterfaceStyle: "automatic",
   ios: {
     bundleIdentifier: "com.pcobooster.ios",
+    deploymentTarget: "16.4",
     icon: "./assets/app-icon.icon",
-    // iPad layouts (sidebar tabs, split views) come in a later layer.
-    supportsTablet: false,
+    // iPhone and iPad share the supported feature workflows; Android remains deferred.
+    supportsTablet: true,
     infoPlist: {
       CADisableMinimumFrameDurationOnPhone: true,
       ITSAppUsesNonExemptEncryption: false,

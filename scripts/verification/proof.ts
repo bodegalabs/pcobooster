@@ -29,6 +29,7 @@ import type { ProofArtifact, ProofCommand, ProofReceipt } from "./proof-core";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../..");
 const isMain = process.argv[1] === import.meta.filename;
+const MAX_GIT_DIFF_BYTES = 16 * 1024 * 1024;
 
 const fail = (message: string): never => {
   throw new Error(message);
@@ -156,6 +157,7 @@ const calculatePatchId = (baseSha: string, headSha: string): string => {
     ["diff", "--binary", `${baseSha}...${headSha}`],
     {
       cwd: repositoryRoot,
+      maxBuffer: MAX_GIT_DIFF_BYTES,
     }
   );
   if (diff.length === 0) {

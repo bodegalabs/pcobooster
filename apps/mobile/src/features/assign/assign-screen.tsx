@@ -1,11 +1,11 @@
 import { formatCalendarDateLabel } from "@pcobooster/planning-center-models/calendar";
-import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useProductClient } from "../../app-shell/queries";
+import { useVisibleQuery as useQuery } from "../../app-shell/visible-queries";
 import { ConfirmationSheet } from "../../components/confirmation-sheet";
 import { EmptyState } from "../../components/empty-state";
 import { FloatingGlassBar } from "../../components/floating-glass-bar";

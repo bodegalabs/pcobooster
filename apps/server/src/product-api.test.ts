@@ -110,7 +110,7 @@ const peopleDirectory = () => {
 /** A raw GET from a current web client, to read what the client does not expose. */
 const rawGet = (path: string, headers: Record<string, string> = {}) =>
   new Request(`${TEST_API_ORIGIN}${path}`, {
-    headers: { "x-pcobooster-client": "web;api=1", ...headers },
+    headers: { "x-pcobooster-client": "web;api=2", ...headers },
   });
 
 const serve = (options: Partial<HttpAppTestOptions> = {}) =>

@@ -167,6 +167,7 @@ export const expandPlanWindowHistory = (
   const planById = new Map<string, WindowPlanSummary>();
   const planTimeById = new Map<string, WindowPlanTime>();
   const rowsByPersonId = new Map<string, WindowRosterRow[]>();
+  const seenRowIds = new Set<string>();
   for (const call of calls) {
     for (const plan of call.plans) {
       if (!planById.has(plan.id)) {
@@ -178,7 +179,13 @@ export const expandPlanWindowHistory = (
     }
     for (const { personId, rows } of call.people) {
       const personRows = rowsByPersonId.get(personId) ?? [];
-      personRows.push(...rows);
+      for (const row of rows) {
+        // Plans listed again on a later range page, after others shifted, arrive twice.
+        if (!seenRowIds.has(row.id)) {
+          seenRowIds.add(row.id);
+          personRows.push(row);
+        }
+      }
       rowsByPersonId.set(personId, personRows);
     }
   }

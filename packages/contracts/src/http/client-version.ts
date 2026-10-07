@@ -10,13 +10,13 @@ export const clientNames = ["web", "ssr", "expo", "deploy"] as const;
 export type ClientName = (typeof clientNames)[number];
 
 /** The API version this build of the contracts speaks. */
-export const API_VERSION = 1;
+export const API_VERSION = 2;
 
 /**
  * The oldest API version the server still answers. Raise it when a contract change would make an
  * older client misread an answer; older clients then get `ClientOutdated`.
  */
-export const MINIMUM_API_VERSION = 1;
+export const MINIMUM_API_VERSION = 2;
 
 export const CLIENT_HEADER = "x-pcobooster-client";
 

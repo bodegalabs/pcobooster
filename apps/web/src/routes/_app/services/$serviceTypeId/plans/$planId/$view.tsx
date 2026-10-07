@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { DashboardPage } from "@/components/dashboard-page";
-import { assertPlanView } from "@/lib/app-routes";
+import { assertPlanView, getPlanViewLabel } from "@/lib/app-routes";
 import { planWorkspaceSearchSchema } from "@/lib/route-search";
 
 const PlanWorkspacePage = () => {
@@ -22,5 +22,8 @@ export const Route = createFileRoute(
     stringify: ({ view }) => ({ view }),
   },
   validateSearch: planWorkspaceSearchSchema,
+  head: ({ params }) => ({
+    meta: [{ title: `${getPlanViewLabel(params.view)} · pcobooster.com` }],
+  }),
   component: PlanWorkspacePage,
 });

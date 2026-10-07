@@ -146,6 +146,7 @@ describe("people read contracts", () => {
         planningCenterRequests: 4,
         unresolvedRehearsalTimes: 0,
       },
+      continuation: null,
     };
 
     expect(peopleDashboardRosterSchema.parse(roster)).toStrictEqual(roster);
@@ -237,12 +238,42 @@ describe("people read contracts", () => {
       planId: "plan-1",
       date: history.date,
       scheduleHistory: false,
-      blockoutProgress: [
-        { personId: "1", checkedBlockoutIds: ["blockout-1"], blocked: false },
-      ],
+      continuation: {
+        people: [
+          {
+            personId: "1",
+            blocked: false,
+            blockoutsOffset: null,
+            pendingBlockouts: [
+              { blockoutId: "blockout-1", timeZone: null, datesOffset: 100 },
+            ],
+            rehearsalTimes: {
+              plans: [{ planId: "plan-2", nextOffset: 100 }],
+              times: [{ id: "time-1", timeType: "rehearsal", startsAt: null }],
+            },
+          },
+        ],
+      },
     };
     expect(peopleCandidateDetailsInputSchema.parse(continuation)).toStrictEqual(
       continuation
     );
+    // A page offset is a whole, non-negative number; anything else is not a cursor.
+    expect(
+      peopleCandidateDetailsInputSchema.safeParse({
+        ...continuation,
+        continuation: {
+          people: [
+            {
+              personId: "1",
+              blocked: false,
+              blockoutsOffset: -100,
+              pendingBlockouts: [],
+              rehearsalTimes: { plans: [], times: [] },
+            },
+          ],
+        },
+      }).success
+    ).toBeFalsy();
   });
 });

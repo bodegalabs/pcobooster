@@ -3,16 +3,20 @@ import type {
   PositionCandidates,
 } from "@pcobooster/contracts/people-schemas";
 import {
-  advancedBlockoutChecks,
   assembleCandidateList,
   CANDIDATE_DETAILS_BATCH_CONCURRENCY,
+  candidateDetailsAdvanced,
   expandWindowHistory,
   needsScheduleHistory,
   planCandidateDetailsBatches,
   prefetchCandidateDetailBatches,
   windowHistoryAdvanced,
 } from "@pcobooster/planning-center-models/candidate-list";
-import type { CandidateDetail } from "@pcobooster/planning-center-models/candidate-list";
+import type {
+  CandidateDetail,
+  CandidateDetailsBatch,
+  CandidateDetailsContinuation,
+} from "@pcobooster/planning-center-models/candidate-list";
 import { describe, expect, it, vi } from "vitest";
 
 const DATE = "2026-09-27T17:00:00.000Z";
@@ -101,7 +105,7 @@ const windowCall = (loadedPlanCount: number): PlanWindowHistoryBatch => ({
     },
   ],
   deferredPlans: [],
-  deferredServiceTypeIds: [],
+  deferredRanges: [],
   requestBudget: {
     limit: 36,
     planningCenterRequests: 3,
@@ -186,34 +190,40 @@ describe(planCandidateDetailsBatches, () => {
   });
 });
 
+const planRef = (planId: string, serviceTypeId = "st-1", rangeOffset = 0) => ({
+  serviceTypeId,
+  planId,
+  rosterRequests: 1,
+  rangeOffset,
+});
+
 describe(windowHistoryAdvanced, () => {
   const continuation = {
-    plans: [
-      { serviceTypeId: "st-1", planId: "plan-1", rosterRequests: 1 },
-      { serviceTypeId: "st-1", planId: "plan-2", rosterRequests: 1 },
-    ],
-    serviceTypeIds: ["st-2"],
+    plans: [planRef("plan-1"), planRef("plan-2")],
+    ranges: [{ serviceTypeId: "st-2", offset: 99, boundaryPlanId: "plan-9" }],
   };
 
-  it("counts rosters read, plans that left the window, and newly listed service types", () => {
+  it("counts rosters read and range pages listed", () => {
     expect([
       windowHistoryAdvanced(continuation, windowCall(1)),
       windowHistoryAdvanced(continuation, {
         ...windowCall(0),
-        deferredPlans: [
-          { serviceTypeId: "st-1", planId: "plan-2", rosterRequests: 1 },
-        ],
-        deferredServiceTypeIds: ["st-2"],
+        deferredPlans: [planRef("plan-2")],
+        deferredRanges: continuation.ranges,
       }),
       windowHistoryAdvanced(continuation, {
         ...windowCall(0),
-        deferredPlans: [
-          ...continuation.plans,
-          { serviceTypeId: "st-2", planId: "plan-3", rosterRequests: 1 },
+        deferredPlans: [...continuation.plans, planRef("plan-3", "st-2", 100)],
+        deferredRanges: [
+          { serviceTypeId: "st-2", offset: 198, boundaryPlanId: "plan-10" },
         ],
-        deferredServiceTypeIds: [],
       }),
-    ]).toStrictEqual([true, true, true]);
+      windowHistoryAdvanced(continuation, {
+        ...windowCall(0),
+        deferredPlans: [],
+        deferredRanges: [],
+      }),
+    ]).toStrictEqual([true, true, true, true]);
   });
 
   it("reports a call that read nothing and listed nothing", () => {
@@ -221,36 +231,43 @@ describe(windowHistoryAdvanced, () => {
       windowHistoryAdvanced(continuation, {
         ...windowCall(0),
         deferredPlans: continuation.plans,
-        deferredServiceTypeIds: continuation.serviceTypeIds,
+        deferredRanges: continuation.ranges,
       })
     ).toBeFalsy();
   });
 });
 
-describe(advancedBlockoutChecks, () => {
-  const before = [
-    { personId: "p-1", checkedBlockoutIds: ["b-1"], blocked: false },
-  ];
+const progress = (datesOffset: number): CandidateDetailsContinuation => ({
+  people: [
+    {
+      personId: "p-1",
+      blocked: false,
+      blockoutsOffset: null,
+      pendingBlockouts: [{ blockoutId: "b-1", timeZone: "UTC", datesOffset }],
+      rehearsalTimes: { plans: [], times: [] },
+    },
+  ],
+});
+const batch = (
+  continuation: CandidateDetailsContinuation,
+  people: CandidateDetailsBatch["people"] = []
+): CandidateDetailsBatch => ({ people, continuation });
 
-  it("counts newly checked blockouts and newly found blocks", () => {
+describe(candidateDetailsAdvanced, () => {
+  it("counts a call that only moved a page cursor, or finished someone", () => {
     expect([
-      advancedBlockoutChecks(before, [
-        { personId: "p-1", checkedBlockoutIds: ["b-1", "b-2"], blocked: false },
-      ]),
-      advancedBlockoutChecks(before, [
-        { personId: "p-1", checkedBlockoutIds: ["b-1"], blocked: true },
-      ]),
-      advancedBlockoutChecks(
-        [],
-        [{ personId: "p-2", checkedBlockoutIds: ["b-9"], blocked: false }]
+      candidateDetailsAdvanced(progress(100), batch(progress(200))),
+      candidateDetailsAdvanced(undefined, batch(progress(0))),
+      candidateDetailsAdvanced(
+        progress(100),
+        batch(progress(100), [detail("p-2", false)])
       ),
     ]).toStrictEqual([true, true, true]);
   });
 
-  it("reports progress that did not move", () => {
-    expect([
-      advancedBlockoutChecks(before, before),
-      advancedBlockoutChecks([], []),
-    ]).toStrictEqual([false, false]);
+  it("reports a call that handed back the continuation it was given", () => {
+    expect(
+      candidateDetailsAdvanced(progress(100), batch(progress(100)))
+    ).toBeFalsy();
   });
 });

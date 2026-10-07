@@ -13,7 +13,8 @@ import { appendFile } from "node:fs/promises";
 import * as Alchemist from "alchemy/Alchemist";
 import { Effect } from "effect";
 
-import { differingFields, driftReport, driftValueSchema } from "./drift-report";
+import { comparableDriftFields } from "./drift-comparison";
+import { driftReport, driftValueSchema } from "./drift-report";
 import type { DriftValue } from "./drift-report";
 
 const [stage, entrypoint = "alchemy.run.ts"] = process.argv.slice(2);
@@ -33,8 +34,20 @@ const asDriftValue = (json: string): DriftValue => {
   return parsed.success ? parsed.data : null;
 };
 
-const jsonFieldsOf = (expected: string, actual: string): readonly string[] =>
-  differingFields(asDriftValue(expected), asDriftValue(actual));
+const jsonFieldsOf = (
+  resourceType: string,
+  expected: string,
+  actual: string
+): readonly string[] =>
+  comparableDriftFields(
+    resourceType,
+    asDriftValue(expected),
+    asDriftValue(actual)
+  );
+
+const typesByResource = new Map(
+  snapshot.resources.map(({ fqn, resourceType }) => [fqn, resourceType])
+);
 
 const fieldsByResource = new Map<string, readonly string[]>();
 for (const [fqn, node] of Object.entries(
@@ -44,6 +57,7 @@ for (const [fqn, node] of Object.entries(
     fieldsByResource.set(
       fqn,
       jsonFieldsOf(
+        typesByResource.get(fqn) ?? "",
         JSON.stringify(node.drift.expected ?? null),
         JSON.stringify(node.drift.actual ?? null)
       )

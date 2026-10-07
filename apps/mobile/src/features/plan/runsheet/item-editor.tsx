@@ -4,11 +4,12 @@ import type {
   PlanItem,
   PlanItemServicePosition,
 } from "@pcobooster/planning-center-models/types";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { Linking, TextInput } from "react-native";
 
 import { useProductClient } from "../../../app-shell/queries";
+import { useVisibleQuery as useQuery } from "../../../app-shell/visible-queries";
 import { PillButton } from "../../../components/pill-button";
 import { AppText } from "../../../design/app-text";
 import { colors } from "../../../design/colors";

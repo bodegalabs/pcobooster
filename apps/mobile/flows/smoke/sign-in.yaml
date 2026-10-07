@@ -1,0 +1,21 @@
+# Release smoke: the fixture sign-in saves a session to the Keychain and opens Services.
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-button"
+    timeout: 30000
+- tapOn:
+    id: "sign-in-button"
+- extendedWaitUntil:
+    visible:
+      id: "account-button"
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: "services-agenda"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: ".*Sunday Gathering.*"
+    timeout: 30000
+- takeScreenshot: initial-screen

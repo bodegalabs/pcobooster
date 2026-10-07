@@ -82,7 +82,8 @@ export const PageScrollArea = ({
   >
     <div
       className={cn(
-        "w-fit min-w-full px-(--page-gutter)",
+        "px-(--page-gutter)",
+        axis === "both" ? "w-fit min-w-full" : "w-full min-w-0",
         besidePane && "lg:pl-0"
       )}
     >

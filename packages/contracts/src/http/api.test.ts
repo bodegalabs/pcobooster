@@ -115,6 +115,7 @@ describe("the procedures route table", () => {
     ).toStrictEqual([
       ["people.planWindowHistory", "POST", "body"],
       ["people.candidateDetails", "POST", "body"],
+      ["people.dashboardPerson", "POST", "body"],
     ]);
     expect(
       procedureRoutes
@@ -142,11 +143,19 @@ describe("the procedures route table", () => {
   });
 });
 
+/** Procedures added after the cutover, so they are absent from main's list. */
+const addedSinceCutover = [
+  { tag: "songs.attachmentLink", kind: "read", feature: "chordCharts" },
+  { tag: "songs.attachments", kind: "read", feature: "chordCharts" },
+] as const;
+const addedTags = new Set<string>(addedSinceCutover.map(({ tag }) => tag));
+
 describe("parity with the procedures main served before the cutover", () => {
-  it("declares the same 49 procedures, each a read or a write as main ran it, with main's flags", () => {
+  it("declares main's 49 procedures, each a read or a write as main ran it, with main's flags", () => {
     expect(main.procedures).toHaveLength(49);
     expect(
       procedureRoutes
+        .filter(({ tag }) => !addedTags.has(tag))
         .map(({ tag, kind, feature }) => ({ tag, kind, feature }))
         .toSorted(byTag)
     ).toStrictEqual(
@@ -154,6 +163,15 @@ describe("parity with the procedures main served before the cutover", () => {
         .map(({ tag, kind, feature }) => ({ tag: mainTag(tag), kind, feature }))
         .toSorted(byTag)
     );
+  });
+
+  it("adds only the listed procedures, as declared", () => {
+    expect(
+      procedureRoutes
+        .filter(({ tag }) => addedTags.has(tag))
+        .map(({ tag, kind, feature }) => ({ tag, kind, feature }))
+        .toSorted(byTag)
+    ).toStrictEqual([...addedSinceCutover].toSorted(byTag));
   });
 
   it("resolves Planning Center access for exactly the procedures main did", () => {

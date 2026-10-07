@@ -61,11 +61,18 @@ export const driftReport = (
   entrypoint: string,
   stage: string,
   resources: readonly DriftedResource[],
-  /** Differing field paths per drifted resource, by FQN. */
+  /** Comparable field paths by FQN; an explicit empty list means normalized attributes match. */
   fieldsByResource: ReadonlyMap<string, readonly string[]> = new Map()
 ): DriftReport => {
   const outOfSync = resources
-    .filter((resource) => resource.status !== "in-sync")
+    .filter(
+      (resource) =>
+        resource.status !== "in-sync" &&
+        !(
+          resource.status === "drifted" &&
+          fieldsByResource.get(resource.fqn)?.length === 0
+        )
+    )
     .toSorted((a, b) => a.fqn.localeCompare(b.fqn));
   const heading = `### Drift: \`${entrypoint}\` stage \`${stage}\``;
   if (outOfSync.length === 0) {
