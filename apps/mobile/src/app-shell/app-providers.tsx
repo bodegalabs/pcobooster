@@ -29,6 +29,8 @@ import { Alert, AppState, StyleSheet, View } from "react-native";
 
 import { ErrorToastProvider } from "../components/error-toast";
 import { colors } from "../design/colors";
+import { deviceDiagnostics } from "../diagnostics/device-diagnostics";
+import { sessionContextFor } from "../diagnostics/session-context";
 import { FeedbackDraftProvider } from "../features/account/feedback-draft";
 import { launchOptions } from "../harness/current-launch-options";
 import { FIXTURE_ANCHOR_NOW } from "../harness/launch-options";
@@ -99,6 +101,17 @@ const runtime: AppRuntime = launchOptions.mock
         void cacheStorage.forget(userIds);
       },
     });
+
+// Error reports follow the session: held while it restores or nobody is signed in, purged on a
+// demo, and sent only for a signed-in account (`diagnostics/capture-policy.ts`).
+deviceDiagnostics.setSession(
+  sessionContextFor(runtime.session.getSnapshot().phase)
+);
+runtime.session.subscribe(() => {
+  deviceDiagnostics.setSession(
+    sessionContextFor(runtime.session.getSnapshot().phase)
+  );
+});
 
 /** One query cache; every key starts with the account scope, so nothing crosses accounts. */
 const queryClient = new QueryClient({

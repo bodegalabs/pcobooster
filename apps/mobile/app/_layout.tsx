@@ -8,6 +8,9 @@ import { useSession } from "../src/app-shell/session";
 import { colors } from "../src/design/colors";
 import { launchOptions } from "../src/harness/current-launch-options";
 
+/** Render failures anywhere in the app: reported, with a way to try again. */
+export { RenderFailure as ErrorBoundary } from "../src/diagnostics/render-failure";
+
 if (launchOptions.mock) {
   // Development warnings would cover the tab bar in fixture screenshots.
   LogBox.ignoreAllLogs();
