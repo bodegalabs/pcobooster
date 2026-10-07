@@ -1,11 +1,14 @@
 import { callForQuery } from "@pcobooster/client/query";
 import { buildServicePlanRows } from "@pcobooster/planning-center-models/service-plans";
 import type { QueryFunctionContext } from "@tanstack/react-query";
-import { useQueries, useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 
 import { failureMessage, useProductClient } from "../../app-shell/queries";
 import type { ProductClientContextValue } from "../../app-shell/queries";
+import {
+  useVisibleQuery as useQuery,
+  useVisibleQueries as useQueries,
+} from "../../app-shell/visible-queries";
 import { launchOptions } from "../../harness/current-launch-options";
 import {
   DEFAULT_WINDOW,

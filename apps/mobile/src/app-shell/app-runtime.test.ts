@@ -37,10 +37,10 @@ const smokeDevice = () => {
         await Promise.resolve();
       },
     },
-    appRelease: "0.1.0(1)+test",
     crypto: testCrypto,
     authenticate: async () => await Promise.resolve(null),
     onForget: undefined,
+    appRelease: null,
   };
 };
 const smokeNow = () => new Date("2026-10-01T17:00:00.000Z");

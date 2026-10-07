@@ -10,13 +10,13 @@ import type { SongCatalogEntry } from "@pcobooster/planning-center-models/types"
 import {
   keepPreviousData,
   queryOptions,
-  useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 
 import { useProductClient } from "../../../app-shell/queries";
+import { useVisibleQuery as useQuery } from "../../../app-shell/visible-queries";
 import { EmptyState } from "../../../components/empty-state";
 import { KeyBadge } from "../../../components/key-badge";
 import { AppText } from "../../../design/app-text";

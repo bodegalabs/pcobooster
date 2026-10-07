@@ -224,11 +224,12 @@ export const assignReads = {
 export const warmCandidates = async (
   context: ProductClientContextValue,
   cache: QueryClient,
-  slot: CandidateSlot
+  slot: CandidateSlot,
+  signal?: AbortSignal
 ): Promise<void> => {
   await context.scheduler.runSpeculative(async () => {
     await cache.query(speculativeQuery(assignReads.candidates(context, slot)));
-  });
+  }, signal);
 };
 
 /**

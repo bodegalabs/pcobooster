@@ -101,12 +101,16 @@ export const makeAppClient = (
   const runIn =
     (scope: string | null): AppClient["run"] =>
     async (call, options) =>
-      await scheduler.track(options?.priority ?? "interactive", async () => {
-        if (scope !== null && session.scope() !== scope) {
-          throw new ScopeChangedError();
-        }
-        return await send(call, options);
-      });
+      await scheduler.track(
+        options?.priority ?? "interactive",
+        async () => {
+          if (scope !== null && session.scope() !== scope) {
+            throw new ScopeChangedError();
+          }
+          return await send(call, options);
+        },
+        options?.signal
+      );
   return {
     run: runIn(null),
     forScope: (scope) => ({ run: runIn(scope) }),

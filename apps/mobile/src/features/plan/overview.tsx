@@ -5,11 +5,11 @@ import {
   summarizeTimes,
 } from "@pcobooster/planning-center-models/plan-overview";
 import { collectUnnotifiedPeople } from "@pcobooster/planning-center-models/scheduling-notifications";
-import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { View } from "react-native";
 
 import { useProductClient } from "../../app-shell/queries";
+import { useVisibleQuery as useQuery } from "../../app-shell/visible-queries";
 import { SongsCard, TimesCard } from "./order-cards";
 import { PeopleCard } from "./people-card";
 import { ReadinessCard } from "./readiness-card";

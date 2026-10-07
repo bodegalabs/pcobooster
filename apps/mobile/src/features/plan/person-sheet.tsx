@@ -1,12 +1,12 @@
 import { Host, Picker, Text as SwiftText } from "@expo/ui/swift-ui";
 import { disabled, pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 import { describeSchedulingNotification } from "@pcobooster/planning-center-models/scheduling-notifications";
-import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
 
 import { sharedReads, useProductClient } from "../../app-shell/queries";
+import { useVisibleQuery as useQuery } from "../../app-shell/visible-queries";
 import { BottomActionBar } from "../../components/bottom-action-bar";
 import { EmptyState } from "../../components/empty-state";
 import { PersonAvatar } from "../../components/person-avatar";

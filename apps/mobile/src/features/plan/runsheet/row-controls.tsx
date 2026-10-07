@@ -21,10 +21,10 @@ import type {
   KeyOption,
   PlanItem,
 } from "@pcobooster/planning-center-models/types";
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { failureMessage, useProductClient } from "../../../app-shell/queries";
+import { useVisibleQuery as useQuery } from "../../../app-shell/visible-queries";
 import { KeyBadge } from "../../../components/key-badge";
 import { useToasts } from "../../../lib/toasts";
 import { NativeLabel } from "../native-label";

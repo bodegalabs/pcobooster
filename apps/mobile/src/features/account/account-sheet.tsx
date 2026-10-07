@@ -1,5 +1,4 @@
 import { Button, ContextMenu, Host, RNHostView } from "@expo/ui/swift-ui";
-import { useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import { Fragment, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
@@ -12,6 +11,7 @@ import {
 } from "../../app-shell/device-accounts";
 import { sharedReads, useProductClient } from "../../app-shell/queries";
 import { useSession } from "../../app-shell/session";
+import { useVisibleQuery as useQuery } from "../../app-shell/visible-queries";
 import { BottomActionBar } from "../../components/bottom-action-bar";
 import { ConfirmationSheet } from "../../components/confirmation-sheet";
 import { Glyph } from "../../components/glyph";

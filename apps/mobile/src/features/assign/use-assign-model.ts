@@ -5,7 +5,7 @@ import type {
   PersonWithAvailability,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useReducer, useState } from "react";
 import { ActionSheetIOS, Settings } from "react-native";
 
@@ -14,6 +14,10 @@ import {
   sharedReads,
   useProductClient,
 } from "../../app-shell/queries";
+import {
+  useVisibleQuery as useQuery,
+  useVisibleReadSignal,
+} from "../../app-shell/visible-queries";
 import { playHaptic } from "../../design/haptics";
 import { useOrgTimeZone } from "../../lib/environment";
 import { rosterAccess } from "../plan/access";
@@ -55,6 +59,7 @@ export const useAssignModel = ({
 }) => {
   const context = useProductClient();
   const cache = useQueryClient();
+  const readSignal = useVisibleReadSignal();
   const zone = useOrgTimeZone();
   const writer = usePlanWriter(ids);
   const initial = resolveSlot(groups, teamId, positionId);
@@ -145,12 +150,17 @@ export const useAssignModel = ({
     if (target.position.source === "custom") {
       return;
     }
-    void warmCandidates(context, cache, {
-      ...ids,
-      teamId: target.group.teamId,
-      positionId: target.position.id,
-      date: date.toISOString(),
-    });
+    void warmCandidates(
+      context,
+      cache,
+      {
+        ...ids,
+        teamId: target.group.teamId,
+        positionId: target.position.id,
+        date: date.toISOString(),
+      },
+      readSignal()
+    );
   };
   const add = (person: AssignPerson, oneOff = false) => {
     if (!canSchedule || scheduling.has(person.id)) {

@@ -1,9 +1,9 @@
 import { collectUnnotifiedPeople } from "@pcobooster/planning-center-models/scheduling-notifications";
-import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { View } from "react-native";
 
 import { useProductClient } from "../../app-shell/queries";
+import { useVisibleQuery as useQuery } from "../../app-shell/visible-queries";
 import { EmptyState } from "../../components/empty-state";
 import { SurfaceColorProvider } from "../../components/surface-card";
 import { AppText } from "../../design/app-text";

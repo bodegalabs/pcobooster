@@ -15,11 +15,11 @@ import {
   scrollContentBackground,
 } from "@expo/ui/swift-ui/modifiers";
 import type { PlanTime } from "@pcobooster/planning-center-models/types";
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { View } from "react-native";
 
 import { useProductClient } from "../../../app-shell/queries";
+import { useVisibleQuery as useQuery } from "../../../app-shell/visible-queries";
 import { EmptyState } from "../../../components/empty-state";
 import { FloatingGlassBar } from "../../../components/floating-glass-bar";
 import { resolvedTokenColor, useColorVariant } from "../../../design/colors";

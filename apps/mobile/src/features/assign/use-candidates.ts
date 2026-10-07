@@ -6,10 +6,13 @@ import {
   needsScheduleHistory,
   planCandidateDetailsBatches,
 } from "@pcobooster/planning-center-models/candidate-list";
-import { useQueries, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import { useProductClient } from "../../app-shell/queries";
+import {
+  useVisibleQuery as useQuery,
+  useVisibleQueries as useQueries,
+} from "../../app-shell/visible-queries";
 import { assignReads, candidateReadState } from "./reads";
 import type { CandidateSlot } from "./reads";
 
