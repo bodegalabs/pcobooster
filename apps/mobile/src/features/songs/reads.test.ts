@@ -1,12 +1,18 @@
-import { makeProductClient } from "@pcobooster/client/product-client";
+import {
+  TransportFailure,
+  makeProductClient,
+} from "@pcobooster/client/product-client";
 import { createRequestScheduler } from "@pcobooster/client/request-scheduler";
 import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
 
+import libraryFixture from "../../harness/fixtures/songs.library.json";
 import { makeControlledFixture } from "../../harness/testing/controlled-fixture";
-import { songLoadFailure } from "./detail";
+import { chartTargets, hasChart, readChart } from "./chart";
+import { activeFirst, arrangementRows, songLoadFailure } from "./detail";
+import { songLibraryListing, songLibrarySummary } from "./library";
 import {
   prefetchSong,
   recentSongsQuery,
@@ -162,6 +168,85 @@ describe("songs reads through the product client", () => {
     controller.abort();
     await prefetchSong(cache, context, "5501", true, controller.signal);
     expect(requests).toStrictEqual([]);
+  });
+});
+
+describe("songs partial and offline answers", () => {
+  it("lists a truncated library as far as Planning Center sent it", async () => {
+    const { context, cache, transport } = setup();
+    const [first, second] = libraryFixture.default.songs;
+    vi.spyOn(transport, "handle").mockResolvedValueOnce({
+      songs: [first ?? null, second ?? null],
+      truncated: true,
+    });
+    const library = await cache.query(songsReads.library(context));
+    expect(library.truncated).toBeTruthy();
+    const now = new Date("2026-10-07T18:00:00.000Z");
+    const view = { filter: "all", sort: "title", query: "" } as const;
+    expect(
+      songLibraryListing({ songs: library.songs, recents: [], view, now })
+        .listedCount
+    ).toBe(2);
+    expect(
+      songLibrarySummary({
+        songs: library.songs,
+        view,
+        now,
+        timeZone: "America/Los_Angeles",
+      })
+    ).toBe("2 songs");
+  });
+
+  it("fails offline as a network transport failure, not a missing song", async () => {
+    const { context, cache, fetch } = setup();
+    fetch.mockRejectedValueOnce(new TypeError("Network request failed"));
+    const chart = { ...songsReads.chart(context, "5501"), retry: false };
+    await expect(cache.query(chart)).rejects.toBeInstanceOf(TransportFailure);
+    const error = cache.getQueryState(chart.queryKey)?.error ?? null;
+    expect(error instanceof TransportFailure ? error.reason : null).toBe(
+      "network"
+    );
+    expect(songLoadFailure(error)).toStrictEqual({ kind: "failed" });
+  });
+
+  it("shows the chart's arrangements when the options read fails", async () => {
+    const { context, cache, transport } = setup();
+    const chart = await cache.query(songsReads.chart(context, "5504"));
+    vi.spyOn(transport, "handle").mockRejectedValueOnce(
+      new Forbidden({ message: "No access to this service type." })
+    );
+    const options = {
+      ...songsReads.options(context, "1101", "5504"),
+      retry: false,
+    };
+    await expect(cache.query(options)).rejects.toBeInstanceOf(Forbidden);
+    expect(
+      arrangementRows(
+        cache.getQueryData(options.queryKey)?.arrangements,
+        chart.arrangements
+      ).map((row) => [row.id, row.archived])
+    ).toStrictEqual(
+      activeFirst(chart.arrangements).map((row) => [row.id, row.archived])
+    );
+  });
+
+  it("reads every fixture song's chart in every key and as lyrics", async () => {
+    const { context, cache } = setup();
+    const charts = await Promise.all(
+      libraryFixture.default.songs.map(
+        async (song) => await cache.query(songsReads.chart(context, song.id))
+      )
+    );
+    const arrangements = charts.flatMap((chart) => chart.arrangements);
+    const charted = arrangements.filter(hasChart);
+    for (const arrangement of charted) {
+      for (const target of chartTargets(arrangement)) {
+        expect(readChart(arrangement, target).lines.length).toBeGreaterThan(0);
+      }
+    }
+    const empty = arrangements.length - charted.length;
+    expect(charted.length).toBeGreaterThan(0);
+    expect(empty).toBeGreaterThan(0);
   });
 });
 
