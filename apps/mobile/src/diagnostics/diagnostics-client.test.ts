@@ -25,11 +25,25 @@ const release: ReleaseMetadata = {
   osVersion: "26.0",
 };
 
-const memoryFile = (): SyncTextFile & { text: string | null } => {
-  const file: SyncTextFile & { text: string | null } = {
+interface MemoryFile extends SyncTextFile {
+  text: string | null;
+}
+
+/** When `at` is set, the next write keeps only that many characters, then throws. */
+interface WriteCut {
+  at: number | null;
+}
+
+const memoryFile = (cut: WriteCut): MemoryFile => {
+  const file: MemoryFile = {
     text: null,
     read: () => file.text,
     write: (text: string) => {
+      if (cut.at !== null) {
+        file.text = text.slice(0, cut.at);
+        cut.at = null;
+        throw new Error("The write was cut short");
+      }
       file.text = text;
     },
     remove: () => {
@@ -39,21 +53,35 @@ const memoryFile = (): SyncTextFile & { text: string | null } => {
   return file;
 };
 
+/** Both pending-fatal copies in memory. */
+const memoryFiles = () => {
+  const cut: WriteCut = { at: null };
+  const copies = [memoryFile(cut), memoryFile(cut)] as const;
+  return Object.assign(copies, {
+    /** Whether anything is kept on disk. */
+    stored: () => copies.some((copy) => copy.text !== null),
+    /** Cuts the next write short, as a crash or a full disk would. */
+    cutNextWrite: (at: number) => {
+      cut.at = at;
+    },
+  });
+};
+
 interface Harness {
   readonly diagnostics: Diagnostics;
   readonly sent: CapturedEvent[];
-  readonly file: ReturnType<typeof memoryFile>;
+  readonly file: ReturnType<typeof memoryFiles>;
   readonly clock: { now: number };
 }
 
 const harness = ({
   enabled = true,
-  file = memoryFile(),
+  file = memoryFiles(),
   accept = true,
   release: releaseOverride = release,
 }: {
   enabled?: boolean;
-  file?: ReturnType<typeof memoryFile>;
+  file?: ReturnType<typeof memoryFiles>;
   accept?: boolean;
   release?: ReleaseMetadata;
 } = {}): Harness => {
@@ -94,7 +122,7 @@ describe(makeDiagnostics, () => {
     signIn(diagnostics);
     await diagnostics.settled();
     expect(sent).toStrictEqual([]);
-    expect(file.text).toBeNull();
+    expect(file.stored()).toBeFalsy();
   });
 
   it("holds a report until the preference is read and someone signs in, then sends it with release metadata only", async () => {
@@ -154,14 +182,14 @@ describe(makeDiagnostics, () => {
         )
       ),
       secrets.filter((secret) => leaving.includes(secret)),
-      file.text,
+      file.stored(),
     ]).toStrictEqual([
       [
         "Authorization: <secret> password=<secret>",
         "refresh failed: token=<secret>",
       ],
       [],
-      null,
+      false,
     ]);
   });
 
@@ -169,9 +197,9 @@ describe(makeDiagnostics, () => {
     const { diagnostics, sent, file } = harness();
     diagnostics.captureException(new Error("held"), "handled");
     diagnostics.recordFatal(new Error("kept"));
-    expect(file.text).not.toBeNull();
+    expect(file.stored()).toBeTruthy();
     diagnostics.setPreference("opted-out");
-    expect(file.text).toBeNull();
+    expect(file.stored()).toBeFalsy();
     signIn(diagnostics);
     await diagnostics.settled();
     expect(sent).toStrictEqual([]);
@@ -182,7 +210,7 @@ describe(makeDiagnostics, () => {
     diagnostics.setPreference("opted-out");
     diagnostics.recordFatal(new Error("fatal"));
     diagnostics.captureException(new Error("handled"), "handled");
-    expect(file.text).toBeNull();
+    expect(file.stored()).toBeFalsy();
     signIn(diagnostics);
     await diagnostics.settled();
     expect(sent).toStrictEqual([]);
@@ -193,16 +221,16 @@ describe(makeDiagnostics, () => {
     diagnostics.setPreference("opted-in");
     diagnostics.recordFatal(new Error("before sign-in"));
     diagnostics.setSession({ kind: "demo" });
-    expect(file.text).toBeNull();
+    expect(file.stored()).toBeFalsy();
     diagnostics.recordFatal(new Error("in demo"));
-    expect(file.text).toBeNull();
+    expect(file.stored()).toBeFalsy();
     diagnostics.setSession({ kind: "signed-in", userId: "u1" });
     await diagnostics.settled();
     expect(sent).toStrictEqual([]);
   });
 
   it("sends a startup fatal on the next launch under the account that signs in, with its original time and build", async () => {
-    const file = memoryFile();
+    const file = memoryFiles();
     const crashed = harness({ file });
     crashed.diagnostics.recordFatal(new Error("module evaluation failed"));
     const next = harness({
@@ -230,11 +258,27 @@ describe(makeDiagnostics, () => {
         captured_before_sign_in: true,
       },
     });
-    expect(file.text).toBeNull();
+    expect(file.stored()).toBeFalsy();
+  });
+
+  it("keeps earlier fatals when writing a later one is cut short, and sends them", async () => {
+    const file = memoryFiles();
+    const crashed = harness({ file });
+    crashed.diagnostics.recordFatal(new Error("first crash"));
+    file.cutNextWrite(12);
+    expect(() => {
+      crashed.diagnostics.recordFatal(new Error("second crash"));
+    }).not.toThrow();
+    const next = harness({ file });
+    signIn(next.diagnostics);
+    await next.diagnostics.settled();
+    expect(
+      next.sent.map((event) => event.properties.$exception_list?.[0]?.value)
+    ).toStrictEqual(["first crash"]);
   });
 
   it("deletes a fatal captured for another account instead of sending it", async () => {
-    const file = memoryFile();
+    const file = memoryFiles();
     const crashed = harness({ file });
     crashed.diagnostics.setSession({ kind: "signed-in", userId: "u2" });
     crashed.diagnostics.recordFatal(new Error("crash"));
@@ -242,11 +286,11 @@ describe(makeDiagnostics, () => {
     signIn(next.diagnostics, "u1");
     await next.diagnostics.settled();
     expect(next.sent).toStrictEqual([]);
-    expect(file.text).toBeNull();
+    expect(file.stored()).toBeFalsy();
   });
 
   it("keeps a fatal PostHog did not accept and gives up after five tries", async () => {
-    const file = memoryFile();
+    const file = memoryFiles();
     harness({ file }).diagnostics.recordFatal(new Error("crash"));
     for (let launch = 1; launch <= 5; launch += 1) {
       const next = harness({ file, accept: false });
@@ -259,7 +303,7 @@ describe(makeDiagnostics, () => {
     signIn(last.diagnostics);
     await last.diagnostics.settled();
     expect(last.sent).toStrictEqual([]);
-    expect(file.text).toBeNull();
+    expect(file.stored()).toBeFalsy();
   });
 
   it("reports one error object once, whichever path sees it first", async () => {
@@ -277,7 +321,7 @@ describe(makeDiagnostics, () => {
     const error = new Error("render");
     diagnostics.captureException(error, "react-error-boundary");
     diagnostics.recordFatal(error);
-    expect(file.text).not.toBeNull();
+    expect(file.stored()).toBeTruthy();
     signIn(diagnostics);
     await diagnostics.settled();
     expect(
@@ -316,7 +360,7 @@ describe(makeDiagnostics, () => {
     diagnostics.recordFatal(new Error("api"));
     await diagnostics.settled();
     // The fatal waits on disk for the next launch; neither non-fatal was sent.
-    expect([sent.length, file.text !== null]).toStrictEqual([0, true]);
+    expect([sent.length, file.stored()]).toStrictEqual([0, true]);
   });
 
   it("captures earlier work under the context it started in", async () => {

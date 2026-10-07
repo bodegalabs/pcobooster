@@ -1,6 +1,12 @@
 /**
- * Fatal reports kept on the device until they may be sent: one small JSON file, written
- * synchronously while the app is crashing and read back on a later launch.
+ * Fatal reports kept on the device until they may be sent: small JSON written synchronously while
+ * the app is crashing and read back on a later launch.
+ *
+ * The reports are kept twice, in two files used in turn: each write replaces the older copy with
+ * a complete list numbered one past the newer. Reading takes the highest-numbered copy that
+ * decodes. A write interrupted by the crash, a full disk, or the process ending leaves at worst a
+ * damaged older copy, so the reports kept before it survive and only the change being written is
+ * lost. (`expo-file-system` writes in place, not atomically, so one file could not promise this.)
  *
  * Bounded: at most `MAX_PENDING` reports, each at most `MAX_RECORD_BYTES` serialized, none older
  * than `PENDING_MAX_AGE_MS`. A repeat of a kept fatal (a crash loop) raises its count instead of
@@ -28,6 +34,9 @@ export interface SyncTextFile {
   readonly write: (text: string) => void;
   readonly remove: () => void;
 }
+
+/** The two files the reports are kept in, used in turn. */
+export type PendingFatalCopies = readonly [SyncTextFile, SyncTextFile];
 
 const Field = Schema.String.check(Schema.isMaxLength(FIELD_MAX_LENGTH));
 
@@ -67,8 +76,13 @@ export interface PendingFatals {
   readonly clear: () => void;
 }
 
-const decodeFile = Schema.decodeUnknownOption(
-  Schema.fromJsonString(Schema.Array(Schema.Unknown))
+const decodeCopy = Schema.decodeUnknownOption(
+  Schema.fromJsonString(
+    Schema.Struct({
+      sequence: Schema.Int.check(Schema.isGreaterThanOrEqualTo(1)),
+      fatals: Schema.Array(Schema.Unknown),
+    })
+  )
 );
 const decodeFatal = Schema.decodeUnknownOption(PendingFatalSchema);
 
@@ -109,22 +123,48 @@ const sameOwner = (left: ReportOwner, right: ReportOwner): boolean =>
   (left.kind === "before-sign-in" ||
     (right.kind === "user" && left.userId === right.userId));
 
+interface Copy {
+  readonly index: 0 | 1;
+  readonly sequence: number;
+  readonly fatals: readonly unknown[];
+}
+
 export const makePendingFatals = (
-  file: SyncTextFile,
+  copies: PendingFatalCopies,
   now: () => number
 ): PendingFatals => {
-  const list = (): PendingFatal[] => {
-    const text = file.read();
-    if (text === null) {
-      return [];
+  /** The newest copy that decodes; a damaged copy is deleted, the other is the truth. */
+  const newest = (): Copy | null => {
+    let found: Copy | null = null;
+    for (const index of [0, 1] as const) {
+      const file = copies[index];
+      const text = file.read();
+      if (text !== null) {
+        const copy = decodeCopy(text);
+        if (Option.isNone(copy)) {
+          file.remove();
+        } else if (found === null || copy.value.sequence > found.sequence) {
+          found = { index, ...copy.value };
+        }
+      }
     }
-    const entries = decodeFile(text);
-    if (Option.isNone(entries)) {
-      file.remove();
+    return found;
+  };
+  /** Deletes both copies; the second is still deleted when the first cannot be. */
+  const clear = () => {
+    try {
+      copies[0].remove();
+    } finally {
+      copies[1].remove();
+    }
+  };
+  const list = (): PendingFatal[] => {
+    const copy = newest();
+    if (copy === null) {
       return [];
     }
     const oldest = now() - PENDING_MAX_AGE_MS;
-    return entries.value
+    return copy.fatals
       .flatMap((entry) => {
         const fatal = decodeFatal(entry);
         return Option.isSome(fatal) &&
@@ -136,17 +176,22 @@ export const makePendingFatals = (
   };
   const replace = (fatals: readonly PendingFatal[]) => {
     if (fatals.length === 0) {
-      file.remove();
+      clear();
       return;
     }
-    file.write(JSON.stringify(fatals.slice(0, MAX_PENDING)));
+    const current = newest();
+    const target = current === null ? 0 : 1 - current.index;
+    copies[target].write(
+      JSON.stringify({
+        sequence: (current?.sequence ?? 0) + 1,
+        fatals: fatals.slice(0, MAX_PENDING),
+      })
+    );
   };
   return {
     list,
     replace,
-    clear: () => {
-      file.remove();
-    },
+    clear,
     add: (fatal) => {
       const kept = fitted(fatal);
       if (kept === null) {

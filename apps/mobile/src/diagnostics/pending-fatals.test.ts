@@ -11,11 +11,25 @@ import type { PendingFatal, SyncTextFile } from "./pending-fatals";
 
 const NOW = Date.parse("2026-10-06T12:00:00.000Z");
 
-const memoryFile = (): SyncTextFile & { text: string | null } => {
-  const file: SyncTextFile & { text: string | null } = {
+interface MemoryFile extends SyncTextFile {
+  text: string | null;
+}
+
+/** When `at` is set, the next write keeps only that many characters, then throws. */
+interface WriteCut {
+  at: number | null;
+}
+
+const memoryFile = (cut: WriteCut): MemoryFile => {
+  const file: MemoryFile = {
     text: null,
     read: () => file.text,
     write: (text: string) => {
+      if (cut.at !== null) {
+        file.text = text.slice(0, cut.at);
+        cut.at = null;
+        throw new Error("The write was cut short");
+      }
       file.text = text;
     },
     remove: () => {
@@ -23,6 +37,20 @@ const memoryFile = (): SyncTextFile & { text: string | null } => {
     },
   };
   return file;
+};
+
+/** Both pending-fatal copies in memory. */
+const memoryFiles = () => {
+  const cut: WriteCut = { at: null };
+  const copies = [memoryFile(cut), memoryFile(cut)] as const;
+  return Object.assign(copies, {
+    /** Whether anything is kept on disk. */
+    stored: () => copies.some((copy) => copy.text !== null),
+    /** Cuts the next write short, as a crash or a full disk would. */
+    cutNextWrite: (at: number) => {
+      cut.at = at;
+    },
+  });
 };
 
 const fatal = (id: string, message = id): PendingFatal => ({
@@ -38,7 +66,7 @@ const fatal = (id: string, message = id): PendingFatal => ({
 
 describe(makePendingFatals, () => {
   it("keeps at most three reports, the earliest ones", () => {
-    const store = makePendingFatals(memoryFile(), () => NOW);
+    const store = makePendingFatals(memoryFiles(), () => NOW);
     for (const id of ["a", "b", "c", "d"]) {
       store.add(fatal(id));
     }
@@ -47,7 +75,7 @@ describe(makePendingFatals, () => {
   });
 
   it("counts a repeated crash instead of taking another slot", () => {
-    const store = makePendingFatals(memoryFile(), () => NOW);
+    const store = makePendingFatals(memoryFiles(), () => NOW);
     const crash = new Error("loop");
     store.add({ ...fatal("a"), record: buildExceptionRecord(crash, "fatal") });
     store.add({ ...fatal("b"), record: buildExceptionRecord(crash, "fatal") });
@@ -56,36 +84,74 @@ describe(makePendingFatals, () => {
 
   it("drops reports older than seven days", () => {
     let now = NOW;
-    const store = makePendingFatals(memoryFile(), () => now);
+    const store = makePendingFatals(memoryFiles(), () => now);
     store.add(fatal("a"));
     now = NOW + PENDING_MAX_AGE_MS + 1;
     expect(store.list()).toStrictEqual([]);
   });
 
-  it("discards an unreadable file", () => {
-    const file = memoryFile();
-    file.text = "{not json";
-    expect(makePendingFatals(file, () => NOW).list()).toStrictEqual([]);
-    expect(file.text).toBeNull();
+  it("discards an unreadable copy", () => {
+    const files = memoryFiles();
+    files[0].text = "{not json";
+    expect(makePendingFatals(files, () => NOW).list()).toStrictEqual([]);
+    expect(files.stored()).toBeFalsy();
+  });
+
+  it("keeps every report already kept when a later write is cut short", () => {
+    const files = memoryFiles();
+    const store = makePendingFatals(files, () => NOW);
+    store.add(fatal("a"));
+    store.add(fatal("b"));
+    for (const cut of [0, 1, 12, 200]) {
+      files.cutNextWrite(cut);
+      expect(() => {
+        store.add(fatal(`cut-${cut}`));
+      }).toThrow("The write was cut short");
+    }
+    expect(store.list().map((item) => item.id)).toStrictEqual(["a", "b"]);
+    store.add(fatal("c"));
+    expect(store.list().map((item) => item.id)).toStrictEqual(["a", "b", "c"]);
+  });
+
+  it("keeps the previous state when a count or retry update is cut short", () => {
+    const files = memoryFiles();
+    const store = makePendingFatals(files, () => NOW);
+    store.add(fatal("a"));
+    files.cutNextWrite(20);
+    expect(() => {
+      store.replace([{ ...fatal("a"), attempts: 1 }]);
+    }).toThrow("The write was cut short");
+    expect(store.list()).toMatchObject([{ id: "a", attempts: 0 }]);
+    store.replace([{ ...fatal("a"), attempts: 2 }]);
+    expect(store.list()).toMatchObject([{ id: "a", attempts: 2 }]);
+  });
+
+  it("deletes both copies when cleared", () => {
+    const files = memoryFiles();
+    const store = makePendingFatals(files, () => NOW);
+    store.add(fatal("a"));
+    store.add(fatal("b"));
+    store.clear();
+    expect([files.stored(), store.list()]).toStrictEqual([false, []]);
   });
 
   it("rebuilds each report from the file, so extra fields never leave the device", () => {
-    const file = memoryFile();
+    const files = memoryFiles();
     const tampered = {
       ...fatal("a"),
       planningCenterPerson: "Jordan Hale",
       owner: { kind: "user", userId: "u1", email: "jordan@example.com" },
     };
-    file.text = JSON.stringify([tampered]);
-    const [kept] = makePendingFatals(file, () => NOW).list();
+    files[1].text = JSON.stringify({ sequence: 1, fatals: [tampered] });
+    const [kept] = makePendingFatals(files, () => NOW).list();
     expect(JSON.stringify(kept)).not.toContain("Jordan");
     expect(JSON.stringify(kept)).not.toContain("example.com");
     expect(kept?.owner).toStrictEqual({ kind: "user", userId: "u1" });
   });
 
   it("trims a report too large to keep", () => {
-    const file = memoryFile();
-    const store = makePendingFatals(file, () => NOW);
+    const files = memoryFiles();
+    const store = makePendingFatals(files, () => NOW);
     const error = new Error("deep");
     error.stack = [
       "Error: deep",
@@ -107,6 +173,8 @@ describe(makePendingFatals, () => {
     });
     const [kept] = store.list();
     expect(kept?.record.exceptions).toHaveLength(1);
-    expect(file.text?.length ?? 0).toBeLessThanOrEqual(MAX_RECORD_BYTES);
+    expect(files[0].text?.length ?? 0).toBeLessThanOrEqual(
+      MAX_RECORD_BYTES + 100
+    );
   });
 });

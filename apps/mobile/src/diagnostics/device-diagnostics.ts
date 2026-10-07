@@ -5,8 +5,9 @@
  * router or a screen module evaluates is already kept.
  *
  * `expo-file-system` ships with `expo` itself, so its native module is always linked. A file
- * operation that fails (a full disk) loses only that report's copy: the sentinel still forwards
- * the fatal to React Native, and non-fatal reports, kept in memory, are unaffected.
+ * operation that fails (a full disk) or is cut short loses only the report being written; the
+ * reports kept before it survive (`pending-fatals.ts`). The sentinel still forwards the fatal to
+ * React Native, and non-fatal reports, kept in memory, are unaffected.
  */
 import { Schema } from "effect";
 import { File, Paths } from "expo-file-system";
@@ -15,34 +16,41 @@ import { makeDiagnostics } from "./diagnostics-client";
 import type { CapturedEvent, Diagnostics } from "./diagnostics-client";
 import { fatalSentinel } from "./fatal-sentinel";
 import { makePendingFatals } from "./pending-fatals";
-import type { SyncTextFile } from "./pending-fatals";
+import type { PendingFatalCopies, SyncTextFile } from "./pending-fatals";
 import { releaseMetadata } from "./release-metadata";
 
 const POSTHOG_HOST = "https://us.i.posthog.com";
 const SEND_TIMEOUT_MS = 10_000;
-const PENDING_FILE = "pcobooster-pending-fatals.json";
+const PENDING_FILES = [
+  "pcobooster-pending-fatals-a.json",
+  "pcobooster-pending-fatals-b.json",
+] as const;
 
 const readSetting = Schema.decodeUnknownSync(Schema.String);
 const key = readSetting(process.env.EXPO_PUBLIC_POSTHOG_KEY ?? "");
 
-/** The pending-fatal file in Caches (never backed up), or null when it cannot be opened. */
-const openPendingFile = (): SyncTextFile | null => {
+const textFile = (name: string): SyncTextFile => {
+  const file = new File(Paths.cache, name);
+  return {
+    read: () => (file.exists ? file.textSync() : null),
+    write: (text) => {
+      if (!file.exists) {
+        file.create();
+      }
+      file.write(text);
+    },
+    remove: () => {
+      if (file.exists) {
+        file.delete();
+      }
+    },
+  };
+};
+
+/** The pending-fatal files in Caches (never backed up), or null when they cannot be opened. */
+const openPendingFiles = (): PendingFatalCopies | null => {
   try {
-    const file = new File(Paths.cache, PENDING_FILE);
-    return {
-      read: () => (file.exists ? file.textSync() : null),
-      write: (text) => {
-        if (!file.exists) {
-          file.create();
-        }
-        file.write(text);
-      },
-      remove: () => {
-        if (file.exists) {
-          file.delete();
-        }
-      },
-    };
+    return [textFile(PENDING_FILES[0]), textFile(PENDING_FILES[1])];
   } catch {
     return null;
   }
@@ -76,14 +84,14 @@ const sendToPostHog = async (
 };
 
 const enabled = !__DEV__ && key !== "";
-const pendingFile = enabled ? openPendingFile() : null;
+const pendingFiles = enabled ? openPendingFiles() : null;
 
 export const deviceDiagnostics: Diagnostics = makeDiagnostics({
   enabled,
   release: releaseMetadata,
   transport: sendToPostHog,
   pending:
-    pendingFile === null ? null : makePendingFatals(pendingFile, Date.now),
+    pendingFiles === null ? null : makePendingFatals(pendingFiles, Date.now),
   verificationBuild:
     readSetting(process.env.EXPO_PUBLIC_DIAGNOSTICS_PROBES ?? "") === "1",
 });

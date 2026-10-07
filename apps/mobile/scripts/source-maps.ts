@@ -28,7 +28,7 @@ const DEBUG_ID = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/u;
 const BUNDLE_DEBUG_ID = /\/\/# debugId=(?<id>[\da-f-]{36})\s*$/u;
 const MAIN_MODULE = /__r\((?<id>\d+)\);\s*\/\/# sourceMappingURL=/u;
 const SENTINEL_MARKER = 'Object.defineProperty(exports, "installFatalSentinel"';
-const DIAGNOSTICS_MARKER = "pcobooster-pending-fatals.json";
+const DIAGNOSTICS_MARKER = "pcobooster-pending-fatals-a.json";
 const APP_SOURCE = "apps/mobile/src/";
 
 const decodeMap = Schema.decodeUnknownOption(

@@ -122,7 +122,7 @@ const bundle = (order: readonly ModuleName[]) => {
   const bodies = {
     sentinel: 'Object.defineProperty(exports, "installFatalSentinel", {});',
     polyfill: "Array.prototype.toSorted = 1;",
-    diagnostics: 'const file = "pcobooster-pending-fatals.json";',
+    diagnostics: 'const file = "pcobooster-pending-fatals-a.json";',
     router: "registerRootComponent();",
   };
   const modules = order.map(
