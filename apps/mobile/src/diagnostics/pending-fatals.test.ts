@@ -13,6 +13,7 @@ const NOW = Date.parse("2026-10-06T12:00:00.000Z");
 
 interface MemoryFile extends SyncTextFile {
   text: string | null;
+  remove: () => void;
 }
 
 /** When `at` is set, the next write keeps only that many characters, then throws. */

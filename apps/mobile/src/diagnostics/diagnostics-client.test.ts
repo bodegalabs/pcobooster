@@ -27,6 +27,7 @@ const release: ReleaseMetadata = {
 
 interface MemoryFile extends SyncTextFile {
   text: string | null;
+  remove: () => void;
 }
 
 /** When `at` is set, the next write keeps only that many characters, then throws. */
