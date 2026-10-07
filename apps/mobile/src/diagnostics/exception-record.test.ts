@@ -114,19 +114,28 @@ describe(buildExceptionRecord, () => {
 
 describe(sanitizeMessage, () => {
   it.each([
-    ["Bearer eyJhbGciOiJIUzI1NiJ9.abc123def456ghi789", "Bearer <secret>"],
+    [
+      "Bearer eyJhbGciOiJIUzI1NiJ9.abc123def456ghi789",
+      "An error contained authorization credentials",
+    ],
     [
       "Authorization: Bearer abcdefghijklmnopqrstuvwxyzABCDEF",
-      "Authorization: <secret>",
+      "An error contained authorization credentials",
     ],
-    ["authorization=Basic dXNlcjpwYXNz", "authorization: <secret>"],
-    ["bearer abc", "bearer <secret>"],
+    [
+      "authorization=Basic dXNlcjpwYXNz",
+      "An error contained authorization credentials",
+    ],
+    ["bearer abc", "An error contained authorization credentials"],
     [
       `token=abc password: hunter "apiKey": "xyz" secret='s3'`,
       `token=<secret> password: <secret> "apiKey": <secret> secret=<secret>`,
     ],
-    ["x-pcobooster-demo: demo", "x-pcobooster-demo: <secret>"],
-    ["Cookie: session=abc; theme=dark", "Cookie: <secret>; theme=dark"],
+    ["x-pcobooster-demo: demo", "An error contained authorization credentials"],
+    [
+      "Cookie: session=abc; theme=dark",
+      "An error contained authorization credentials",
+    ],
     [
       "callback access_token=short&state=1",
       "callback access_token=<secret>&state=1",

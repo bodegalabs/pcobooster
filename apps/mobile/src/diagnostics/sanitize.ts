@@ -3,8 +3,8 @@
  * allowlist; anything not named here (source context, absolute paths, module names, variables,
  * thread IDs, SDK extras) is dropped rather than scrubbed.
  *
- * Messages lose credentials first: whatever follows an authorization scheme (`Bearer`, `Basic`,
- * `Digest`), a credential header name, or a label such as `token`, `password`, `secret`, or
+ * Messages naming a credential header or authorization scheme become a generic message; their
+ * values may span several fields or lines. Other messages lose credentials following a label such as `token`, `password`, `secret`, or
  * `api_key`, however short and whatever its characters. Then URLs, email addresses, paths, UUIDs,
  * long opaque strings, long digit runs (Planning Center IDs), and long quoted or JSON-looking
  * values (decode errors quote the data they failed on) go, and the result is truncated. These are
@@ -26,12 +26,12 @@ const FILENAME_MAX_LENGTH = 80;
 export const MAX_EXCEPTIONS = 3;
 export const MAX_FRAMES = 50;
 
-/** An HTTP authorization scheme and its credential, whatever the credential looks like. */
-const AUTH_SCHEME_PATTERN =
-  /\b(?<scheme>[Bb]earer|Basic|Digest)\s+[^\s,;"'`]+/gu;
-/** A credential header and its whole value (`Authorization: Bearer …`, `x-pcobooster-demo=…`). */
+/** Credential headers can contain several comma/semicolon-separated secrets; drop the message. */
 const CREDENTIAL_HEADER_PATTERN =
-  /\b(?<name>(?:proxy-)?authorization|(?:set-)?cookie|x-pcobooster-(?:account|demo)|x-api-key)\b["']?\s*[:=]\s*(?:(?:[Bb]earer|Basic|Digest)\s+)?[^\s,;]*/giu;
+  /\b(?:(?:proxy-)?authorization|(?:set-)?cookie|x-pcobooster-(?:account|demo)|x-api-key)\b["']?\s*[:=]/iu;
+/** Authorization scheme names are case-insensitive, and values may be quoted or multi-part. */
+const AUTH_SCHEME_PATTERN = /\b(?:bearer|basic|digest)\s+\S/iu;
+const CREDENTIAL_MESSAGE = "An error contained authorization credentials";
 /** A labelled secret (`token=…`, `"password": "…"`, `apiKey: …`), quoted or not. */
 const LABELLED_SECRET_PATTERN =
   /\b(?<label>[\w-]*(?:token|secret|passw(?:or)?d|pwd|api[-_]?key|credential|signature|session[-_]?id|auth)[\w-]*)(?<separator>["']?\s*[:=]\s*)(?:"[^"]*"|'[^']*'|`[^`]*`|[^\s,;&)}\]]+)/giu;
@@ -53,10 +53,14 @@ const SAFE_FUNCTION = /^[\w$.<>?\- ]+$/u;
 const CHUNK_ID = /^[\da-f-]{8,64}$/iu;
 
 /** A message safe to send, or the empty string. */
-export const sanitizeMessage = (message: string): string =>
-  message
-    .replace(CREDENTIAL_HEADER_PATTERN, "$<name>: <secret>")
-    .replace(AUTH_SCHEME_PATTERN, "$<scheme> <secret>")
+export const sanitizeMessage = (message: string): string => {
+  if (
+    CREDENTIAL_HEADER_PATTERN.test(message) ||
+    AUTH_SCHEME_PATTERN.test(message)
+  ) {
+    return CREDENTIAL_MESSAGE;
+  }
+  return message
     .replace(LABELLED_SECRET_PATTERN, "$<label>$<separator><secret>")
     .replace(URL_PATTERN, "<url>")
     .replace(EMAIL_PATTERN, "<email>")
@@ -69,6 +73,7 @@ export const sanitizeMessage = (message: string): string =>
     .replace(WHITESPACE, " ")
     .trim()
     .slice(0, MESSAGE_MAX_LENGTH);
+};
 
 /** An error class name such as `TypeError`; anything else becomes `Error`. */
 export const sanitizeType = (type: string | undefined): string =>

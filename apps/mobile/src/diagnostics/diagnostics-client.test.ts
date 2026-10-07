@@ -185,13 +185,31 @@ describe(makeDiagnostics, () => {
       file.stored(),
     ]).toStrictEqual([
       [
-        "Authorization: <secret> password=<secret>",
+        "An error contained authorization credentials",
         "refresh failed: token=<secret>",
       ],
       [],
       false,
     ]);
   });
+
+  it.each([
+    "Cookie: first=shortsecret; second=othersecret",
+    'Authorization: Digest username="alice", nonce="shortsecret", response="othersecret"',
+    "basic Zm9vOmJhcg==",
+    'bEaReR "shortsecret"',
+  ])(
+    "removes entire credential headers or authorization values: %s",
+    async (message) => {
+      const { diagnostics, sent } = harness();
+      signIn(diagnostics);
+      diagnostics.captureException(new Error(message), "handled");
+      await diagnostics.settled();
+      expect(sent[0]?.properties.$exception_list?.[0]?.value).toBe(
+        "An error contained authorization credentials"
+      );
+    }
+  );
 
   it("purges held and kept reports on opt-out, so a later sign-in never sends them", async () => {
     const { diagnostics, sent, file } = harness();
