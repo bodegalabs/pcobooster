@@ -6,4 +6,12 @@ The Expo configuration enables the iPad device family and device rotation. Funct
 
 Android implementation and acceptance are deferred. Do not infer Android support from shared React Native source.
 
+| Platform | Build target | Acceptance coverage |
+| --- | --- | --- |
+| iPhone | iOS 16.4 or later | Current local verification uses the iOS 27 simulator. Older supported OS versions and physical devices still need acceptance. |
+| iPad | iPadOS 16.4 or later | Current local verification uses the iPadOS 27 simulator; portrait and landscape coverage is recorded against the tested revision. Older supported OS versions and physical devices still need acceptance. |
+| Android | Deferred | No supported release or acceptance claim. |
+
+The minimum is explicit in `apps/mobile/app.config.ts` and matches the installed Expo SDK's native module floor. A deployment target establishes installation eligibility, not successful testing on every eligible OS version.
+
 Release acceptance remains separate: installed Release startup, session/cache restoration, offline recovery, and production diagnostics delivery and symbolication must be verified against the exact distributed build. Local prepare/export tooling never uploads automatically.

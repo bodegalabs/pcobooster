@@ -64,6 +64,7 @@ const config: ExpoConfig = {
   userInterfaceStyle: "automatic",
   ios: {
     bundleIdentifier: "com.pcobooster.ios",
+    deploymentTarget: "16.4",
     icon: "./assets/app-icon.icon",
     // iPhone and iPad share the supported feature workflows; Android remains deferred.
     supportsTablet: true,
