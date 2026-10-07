@@ -31,10 +31,11 @@ type Fields = Schema.Struct.Fields;
 /** What a declaration that leaves a part out has for it. */
 type NoFields = Record<never, never>;
 
-const PATH_PARAM = /:(?<name>[A-Za-z]+)/gu;
-
 const paramNames = (path: Path): string[] =>
-  [...path.matchAll(PATH_PARAM)].map((match) => match.groups?.name ?? "");
+  path
+    .split("/")
+    .filter((segment) => segment.startsWith(":"))
+    .map((segment) => segment.slice(1));
 
 /** Fails at module load when the declared params and the path's `:names` differ. */
 const checkParams = (path: Path, params: Fields): void => {
