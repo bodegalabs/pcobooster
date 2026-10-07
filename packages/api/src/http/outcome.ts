@@ -103,6 +103,8 @@ export interface ProcedureCall {
   readonly route?: string | null;
   readonly requestId: string;
   readonly client: string | null;
+  /** The native app's installed release (`x-pcobooster-app`), or null. */
+  readonly appRelease: string | null;
   readonly priority: RequestPriority;
   /** Null when the request never reached a handler. */
   readonly kind: ProcedureKindValue | null;
@@ -122,6 +124,8 @@ export interface ProcedureLogFields {
   readonly durationMs: number;
   readonly priority: RequestPriority;
   readonly client: string | null;
+  /** The native app's release, `0.1.0(372)+1a2b3c4`, kept apart from the API version in `client`. */
+  readonly appRelease: string | null;
   readonly kind: ProcedureKindValue | null;
   /** Planning Center requests the procedure sent, retries included. */
   readonly planningCenterRequests: number;
@@ -152,6 +156,7 @@ export const procedureLogFields = (
     durationMs: now - call.startedAt,
     priority: call.priority,
     client: call.client,
+    appRelease: call.appRelease,
     kind: call.kind,
     planningCenterRequests: totals?.requests ?? 0,
     rateLimitPauses: totals?.pacedRequests ?? 0,

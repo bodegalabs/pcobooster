@@ -2,11 +2,14 @@ import {
   retryTransientReadFailure,
   speculativeQuery,
 } from "@pcobooster/client/query";
+import { formatAppRelease } from "@pcobooster/contracts/http/request-diagnostics";
 import { addEventListener } from "@react-native-community/netinfo";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import {
   focusManager,
+  MutationCache,
   onlineManager,
+  QueryCache,
   QueryClient,
   QueryClientProvider,
   useIsRestoring,
@@ -29,7 +32,13 @@ import { Alert, AppState, StyleSheet, View } from "react-native";
 
 import { ErrorToastProvider } from "../components/error-toast";
 import { colors } from "../design/colors";
+import {
+  makeApiFailureReporter,
+  operationFromQueryKey,
+} from "../diagnostics/api-diagnostics";
+import { callFailureOf } from "../diagnostics/call-failures";
 import { deviceDiagnostics } from "../diagnostics/device-diagnostics";
+import { releaseMetadata } from "../diagnostics/release-metadata";
 import { sessionContextFor } from "../diagnostics/session-context";
 import { FeedbackDraftProvider } from "../features/account/feedback-draft";
 import { launchOptions } from "../harness/current-launch-options";
@@ -100,6 +109,7 @@ const runtime: AppRuntime = launchOptions.mock
       onForget: (userIds) => {
         void cacheStorage.forget(userIds);
       },
+      appRelease: formatAppRelease(releaseMetadata),
     });
 
 // Error reports follow the session: held while it restores or nobody is signed in, purged on a
@@ -142,6 +152,39 @@ if (!runtime.isFixtureMode) {
   );
 }
 
+const reportApiFailure = makeApiFailureReporter(deviceDiagnostics);
+
+/**
+ * A query cache that reports each terminal failure once (`diagnostics/api-diagnostics.ts`);
+ * TanStack Query calls `onError` only after the last automatic retry.
+ */
+const makeScopedQueryClient = () =>
+  new QueryClient({
+    defaultOptions: queryClient.getDefaultOptions(),
+    queryCache: new QueryCache({
+      onError: (error, query) => {
+        reportApiFailure(error, {
+          call: callFailureOf(error),
+          operation: operationFromQueryKey(query.queryKey),
+          speculative:
+            query.meta?.requestPriority === "speculative" &&
+            query.getObserversCount() === 0,
+          online: onlineManager.isOnline(),
+        });
+      },
+    }),
+    mutationCache: new MutationCache({
+      onError: (error) => {
+        reportApiFailure(error, {
+          call: callFailureOf(error),
+          operation: null,
+          speculative: false,
+          online: onlineManager.isOnline(),
+        });
+      },
+    }),
+  });
+
 const styles = StyleSheet.create({
   cover: {
     ...StyleSheet.absoluteFill,
@@ -167,10 +210,7 @@ const ScopedQueries = ({
   persisted: boolean;
   children: ReactNode;
 }) => {
-  const cache = useMemo(
-    () => new QueryClient({ defaultOptions: queryClient.getDefaultOptions() }),
-    []
-  );
+  const cache = useMemo(() => makeScopedQueryClient(), []);
   const persister = useMemo(
     () =>
       createAsyncStoragePersister({

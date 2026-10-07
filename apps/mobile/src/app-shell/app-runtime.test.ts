@@ -9,6 +9,9 @@ import {
   INSTALL_MARKER_KEY,
 } from "../session/credential-store";
 
+const REQUEST_ID =
+  /^[\da-f]{8}-[\da-f]{4}-7[\da-f]{3}-[\da-f]{4}-[\da-f]{12}$/u;
+
 vi.stubGlobal("__DEV__", true);
 const { makeLiveRuntime } = await import("./app-runtime");
 
@@ -46,6 +49,7 @@ describe("demo.start's request", () => {
       },
       authenticate: async () => await Promise.resolve(null),
       onForget: undefined,
+      appRelease: "0.1.0(372)+1a2b3c4",
     });
     await runtime.start();
     await runtime.session.completeSignIn({
@@ -66,6 +70,11 @@ describe("demo.start's request", () => {
         "cookie",
       ].map((name) => request?.headers.get(name))
     ).toStrictEqual([null, null, null, null]);
-    expect(request?.headers.get("x-pcobooster-client")).toBe("expo;api=1");
+    // The release and a fresh request ID go with every call, credentials or not.
+    expect([
+      request?.headers.get("x-pcobooster-client"),
+      request?.headers.get("x-pcobooster-app"),
+      REQUEST_ID.test(request?.headers.get("x-request-id") ?? ""),
+    ]).toStrictEqual(["expo;api=1", "0.1.0(372)+1a2b3c4", true]);
   });
 });

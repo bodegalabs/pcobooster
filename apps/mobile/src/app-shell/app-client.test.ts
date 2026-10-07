@@ -1,9 +1,13 @@
-import { makeProductClient } from "@pcobooster/client/product-client";
+import {
+  makeProductClient,
+  TransportFailure,
+} from "@pcobooster/client/product-client";
 import { createRequestScheduler } from "@pcobooster/client/request-scheduler";
 import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import { QueryClient, dehydrate } from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
 
+import { callFailureOf } from "../diagnostics/call-failures";
 import { makeFixtureFetch } from "../harness/fixture-transport";
 import { credentialHeaders, noCredentials } from "../session/session-store";
 import type { RequestCredentials } from "../session/session-store";
@@ -159,5 +163,121 @@ describe("cached reads on disk", () => {
     expect(
       isQueryCacheKeyFor(queryCacheKey("https://pcobooster.com", "demo"), "u1")
     ).toBeFalsy();
+  });
+});
+
+/** What a call rejected with. */
+const settledFailure = async (call: Promise<unknown>) => {
+  try {
+    await call;
+    return null;
+  } catch (error) {
+    return error;
+  }
+};
+
+/** Numbered request IDs and a clock that advances 5 ms per read. */
+const identity = () => {
+  let ids = 0;
+  let clock = 0;
+  return {
+    newRequestId: () => {
+      ids += 1;
+      return `req-${ids}`;
+    },
+    now: () => {
+      clock += 5;
+      return clock;
+    },
+  };
+};
+
+describe("the app client's request IDs", () => {
+  it("sends a fresh ID per call and still tells the caller each procedure", async () => {
+    const sent: (string | null)[] = [];
+    const fixtures = makeFixtureFetch({ latencyMs: 0 });
+    const product = makeProductClient({
+      url: "https://api.test",
+      client: "expo",
+      credentials: "omit",
+      fetch: async (input, init) => {
+        sent.push(new Request(input, init).headers.get("x-request-id"));
+        return await fixtures(input, init);
+      },
+    });
+    const client = makeAppClient(
+      product,
+      { credentials: () => signedIn, handleUnauthorized: () => {} },
+      createRequestScheduler({ quietMs: 0 }),
+      identity()
+    );
+    const named: string[] = [];
+    await client.run((api) => api.session.status(), {
+      onProcedure: (name) => {
+        named.push(name);
+      },
+      httpHeaders: { "x-request-id": "caller-chosen" },
+    });
+    await client.run((api) => api.session.status());
+    expect([sent, named]).toStrictEqual([
+      ["req-1", "req-2"],
+      ["session.status"],
+    ]);
+  });
+
+  it("leaves the request ID, procedure, and duration with a failed call's rejection", async () => {
+    const product = makeProductClient({
+      url: "https://api.test",
+      client: "expo",
+      credentials: "omit",
+      fetch: async () => {
+        await Promise.resolve();
+        throw new TypeError("Network request failed");
+      },
+    });
+    const client = makeAppClient(
+      product,
+      { credentials: () => signedIn, handleUnauthorized: () => {} },
+      createRequestScheduler({ quietMs: 0 }),
+      identity()
+    );
+    const failure = await settledFailure(
+      client.run((api) => api.session.status())
+    );
+    expect([
+      failure instanceof TransportFailure,
+      callFailureOf(failure),
+    ]).toStrictEqual([
+      true,
+      { requestId: "req-1", procedure: "session.status", durationMs: 5 },
+    ]);
+  });
+
+  it("keeps an aborted call aborted without sending it", async () => {
+    let fetched = 0;
+    const product = makeProductClient({
+      url: "https://api.test",
+      client: "expo",
+      credentials: "omit",
+      fetch: async () => {
+        fetched += 1;
+        return await Promise.resolve(new Response());
+      },
+    });
+    const client = makeAppClient(
+      product,
+      { credentials: () => signedIn, handleUnauthorized: () => {} },
+      createRequestScheduler({ quietMs: 0 }),
+      identity()
+    );
+    const controller = new AbortController();
+    controller.abort();
+    const failure = await settledFailure(
+      client.run((api) => api.session.status(), { signal: controller.signal })
+    );
+    expect([
+      failure instanceof DOMException && failure.name,
+      fetched,
+    ]).toStrictEqual(["AbortError", 0]);
   });
 });

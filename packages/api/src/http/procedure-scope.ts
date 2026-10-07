@@ -40,6 +40,10 @@ import {
 import { procedureKindOf } from "@pcobooster/contracts/http/procedure-kind";
 import { ProcedureScope } from "@pcobooster/contracts/http/procedure-scope";
 import {
+  APP_RELEASE_HEADER,
+  parseAppRelease,
+} from "@pcobooster/contracts/http/request-diagnostics";
+import {
   parseRequestPriority,
   REQUEST_PRIORITY_HEADER,
 } from "@pcobooster/contracts/request-priority";
@@ -230,6 +234,9 @@ export const ProcedureScopeLive = (
           ? parseRequestPriority(request.headers.get(REQUEST_PRIORITY_HEADER))
           : "interactive";
       const client = request.headers.get(CLIENT_HEADER);
+      const appRelease = parseAppRelease(
+        request.headers.get(APP_RELEASE_HEADER)
+      );
       const accounting = new PlanningCenterRequestAccounting({
         requestBudget: options.requestBudget ?? PLANNING_CENTER_REQUEST_CAP,
         priority,
@@ -240,6 +247,7 @@ export const ProcedureScopeLive = (
         method: request.method,
         route: endpoint.path,
         client,
+        appRelease,
         priority,
         kind,
         startedAt: now(),

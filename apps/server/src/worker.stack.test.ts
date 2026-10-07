@@ -896,6 +896,50 @@ test(
 );
 
 test(
+  "joins a native app's 5xx to exactly one outcome line by request ID, with its release",
+  Effect.gen(function* nativeFailureCorrelation() {
+    const url = yield* fixtureUrl;
+    const headers = yield* flagOffSession(url);
+    const requestId = uniqueId("mobile-5xx");
+    const client = nativeClient(url, headers);
+    const failed = yield* settled(
+      async () =>
+        await client.run(
+          (api) =>
+            api.schedule.assign({
+              params: assignInput(uniqueId("unencodable")),
+              payload: assignInput(uniqueId("unencodable")),
+            }),
+          {
+            httpHeaders: {
+              "x-request-id": requestId,
+              "x-pcobooster-app": "0.1.0(372)+1a2b3c4",
+            },
+          }
+        )
+    );
+    const state = yield* fixtureStateWhen(
+      url,
+      requestId,
+      (current) => current.logs.length > 0
+    );
+
+    assert.isTrue(rejectedWithInternalError(failed));
+    assert.deepStrictEqual(
+      state.logs.map(({ fields }) => [
+        fields.requestId,
+        fields.appRelease,
+        fields.client,
+        fields.procedure,
+        fields.status,
+      ]),
+      [[requestId, "0.1.0(372)+1a2b3c4", "expo;api=1", "schedule.assign", 500]]
+    );
+  }),
+  requestTimeout
+);
+
+test(
   "keeps a sibling call alive when another call's handler dies",
   Effect.gen(function* defectIsolation() {
     const url = yield* fixtureUrl;
