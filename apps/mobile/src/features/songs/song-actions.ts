@@ -5,10 +5,14 @@ import { playHaptic } from "../../design/haptics";
 import { planningCenterSongUrl } from "./detail";
 
 /** Copies a song's title (Swift "Copy Title"); success is a haptic, not a toast. */
-export const copySongTitle = (title: string): void => {
+export const copySongTitle = (title: string, onError: () => void): void => {
   void (async () => {
-    await Clipboard.setStringAsync(title);
-    playHaptic("success");
+    try {
+      await Clipboard.setStringAsync(title);
+      playHaptic("success");
+    } catch {
+      onError();
+    }
   })();
 };
 
@@ -24,6 +28,7 @@ export const showSongActions = ({
   tidying,
   onOpen,
   onChart,
+  onCopyError,
 }: {
   title: string;
   songId: string;
@@ -32,6 +37,7 @@ export const showSongActions = ({
   tidying: boolean;
   onOpen: () => void;
   onChart: () => void;
+  onCopyError: () => void;
 }): void => {
   const actions: { label: string; run: () => void }[] = [
     { label: "Open", run: onOpen },
@@ -43,7 +49,7 @@ export const showSongActions = ({
     {
       label: "Copy Title",
       run: () => {
-        copySongTitle(title);
+        copySongTitle(title, onCopyError);
       },
     },
     {

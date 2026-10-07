@@ -13,6 +13,7 @@ import { EmptyState } from "../../components/empty-state";
 import { PillButton } from "../../components/pill-button";
 import { colors } from "../../design/colors";
 import { Spacing } from "../../design/metrics";
+import { useToasts } from "../../lib/toasts";
 import { planningCenterSongUrl, songLoadFailureCopy } from "./detail";
 import { songChartHref } from "./reads";
 import { copySongTitle } from "./song-actions";
@@ -45,7 +46,8 @@ const styles = StyleSheet.create({
 
 const headerItems = (
   model: SongDetailModel,
-  openChart: () => void
+  openChart: () => void,
+  onCopyError: () => void
 ): NativeStackHeaderItem[] => [
   ...(model.chartsEnabled
     ? [
@@ -75,7 +77,7 @@ const headerItems = (
                   name: "doc.on.doc" as const,
                 },
                 onPress: () => {
-                  copySongTitle(model.title ?? "");
+                  copySongTitle(model.title ?? "", onCopyError);
                 },
               },
             ]),
@@ -103,6 +105,7 @@ export const SongDetailScreen = () => {
   const { songId } = params;
   const model = useSongDetail(songId);
   const router = useRouter();
+  const toasts = useToasts();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const openChart = () => {
     const [first] = model.chartArrangements;
@@ -115,7 +118,10 @@ export const SongDetailScreen = () => {
         headerLargeTitleEnabled: true,
         headerLargeTitleShadowVisible: false,
         headerTransparent: true,
-        unstable_headerRightItems: () => headerItems(model, openChart),
+        unstable_headerRightItems: () =>
+          headerItems(model, openChart, () => {
+            toasts.showError("Couldn't copy the song title.");
+          }),
       }}
     />
   );

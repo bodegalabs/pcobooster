@@ -12,6 +12,7 @@ import {
 } from "../../app-shell/visible-queries";
 import { playHaptic } from "../../design/haptics";
 import { useClock, useOrgTimeZone } from "../../lib/environment";
+import { useToasts } from "../../lib/toasts";
 import {
   parseSongLibraryFilter,
   parseSongLibrarySort,
@@ -52,6 +53,7 @@ export const useSongLibrary = () => {
   const cache = useQueryClient();
   const readSignal = useVisibleReadSignal();
   const router = useRouter();
+  const toasts = useToasts();
   const features = useFeatures();
   const timeZone = useOrgTimeZone();
   const clock = useClock();
@@ -122,6 +124,9 @@ export const useSongLibrary = () => {
       songId: row.id,
       chartsEnabled: features.chordCharts,
       tidying: filter !== "all",
+      onCopyError: () => {
+        toasts.showError("Couldn't copy the song title.");
+      },
       onOpen: () => {
         open(row.id);
       },
