@@ -1,12 +1,35 @@
 import {
+  retryTransientReadFailure,
+  speculativeQuery,
+} from "@pcobooster/client/query";
+import { addEventListener } from "@react-native-community/netinfo";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
+import {
+  focusManager,
+  onlineManager,
   QueryClient,
   QueryClientProvider,
+  useIsRestoring,
+  useQueryClient,
   useQuery,
 } from "@tanstack/react-query";
-import { useCallback, useMemo, useState } from "react";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { Effect } from "effect";
+import * as Application from "expo-application";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import type { ReactNode } from "react";
+import { Alert, AppState, StyleSheet, View } from "react-native";
 
 import { ErrorToastProvider } from "../components/error-toast";
+import { colors } from "../design/colors";
+import { FeedbackDraftProvider } from "../features/account/feedback-draft";
 import { launchOptions } from "../harness/current-launch-options";
 import { FIXTURE_ANCHOR_NOW } from "../harness/launch-options";
 import {
@@ -16,129 +39,448 @@ import {
 } from "../lib/environment";
 import type { AppClock } from "../lib/environment";
 import { useToasts } from "../lib/toasts";
-import { makeAppClient } from "./app-client";
-import { mockDeviceAccounts } from "./device-accounts";
-import type { DeviceAccount } from "./device-accounts";
-import { ProductClientContext, sharedReads, useProductClient } from "./queries";
+import {
+  appStorage,
+  deviceCrypto,
+  ephemeralWebAuthentication,
+  keychainStorage,
+  removeAppStorageKeys,
+} from "../session/device-services";
+import { SignInFailure } from "../session/native-sign-in";
+import { syncAccountAnalytics } from "./analytics";
+import { makeFixtureRuntime, makeLiveRuntime } from "./app-runtime";
+import type { AppRuntime } from "./app-runtime";
+import { makeCacheStorage } from "./cache-storage";
+import { deviceAnalytics } from "./device-analytics";
+import { receiveDemoKeys } from "./link-inbox";
+import { usePreferences, PreferencesProvider } from "./preferences";
+import {
+  failureMessage,
+  ProductClientContext,
+  sharedReads,
+  useProductClient,
+} from "./queries";
+import {
+  deserializeQueryCache,
+  QUERY_CACHE_MAX_AGE_MS,
+  queryCacheBuster,
+  queryCacheKey,
+  serializeQueryCache,
+} from "./query-persistence";
 import { SessionContext } from "./session";
-import type { SessionValue } from "./session";
+import type { SessionValue, SignInActivity } from "./session";
 
 const fixedClock: AppClock = { now: () => FIXTURE_ANCHOR_NOW };
 const systemClock: AppClock = { now: () => new Date() };
-
 const appClock = launchOptions.fixedNow ? fixedClock : systemClock;
 
-interface SessionState {
-  readonly accounts: readonly DeviceAccount[];
-  readonly activeUserId: string | null;
-}
+/** The rocket's launch-away before the app replaces the sign-in screen (Swift `launchAwayDelay`). */
+const LAUNCH_AWAY_MS = 450;
+/** The account sheet slides away before a switch rebuilds the app (Swift `dismissDelay`). */
+export const SHEET_DISMISS_MS = 380;
+const PERSIST_THROTTLE_MS = 1000;
+const DEFAULT_STALE_MS = 30_000;
 
-/** The seeded mock session (`-PCOBMockSession`); outside mock mode nobody is remembered yet. */
-const initialSession = (): SessionState => {
-  if (!launchOptions.mock) {
-    return { accounts: [], activeUserId: null };
-  }
-  const accounts = mockDeviceAccounts(appClock.now());
-  return {
-    accounts,
-    activeUserId:
-      launchOptions.mockSession === "signedIn"
-        ? (accounts[0]?.userId ?? null)
-        : null,
-  };
+const delay = async (ms: number) => {
+  await Effect.runPromise(Effect.sleep(ms));
 };
 
-const SIGN_IN_UNAVAILABLE =
-  "Sign-in with Planning Center isn't in this build yet.";
+const cacheStorage = makeCacheStorage(appStorage, removeAppStorageKeys);
 
-/** One query cache for the app; signing out clears it, and keys carry the account scope. */
+/** One runtime per app session. */
+const runtime: AppRuntime = launchOptions.mock
+  ? makeFixtureRuntime(launchOptions, appClock.now)
+  : makeLiveRuntime(launchOptions, {
+      secrets: keychainStorage,
+      appStorage,
+      crypto: deviceCrypto,
+      authenticate: ephemeralWebAuthentication,
+      onForget: (userIds) => {
+        void cacheStorage.forget(userIds);
+      },
+    });
+
+/** One query cache; every key starts with the account scope, so nothing crosses accounts. */
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
+  defaultOptions: {
+    queries: {
+      retry: retryTransientReadFailure,
+      staleTime: DEFAULT_STALE_MS,
+      // Kept as long as the disk copy, so a restored read is not collected before it paints.
+      gcTime: QUERY_CACHE_MAX_AGE_MS,
+    },
+  },
 });
 
+if (!runtime.isFixtureMode) {
+  // Stale reads revalidate when the app comes to the foreground and when the network returns.
+  focusManager.setEventListener((setFocused) => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      setFocused(state === "active");
+    });
+    return () => {
+      subscription.remove();
+    };
+  });
+  onlineManager.setEventListener((setOnline) =>
+    addEventListener((state) => {
+      setOnline(state.isConnected !== false);
+    })
+  );
+}
+
+const styles = StyleSheet.create({
+  cover: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: colors.surfaceCanvas,
+  },
+});
+
+const RestoredContent = ({ children }: { children: ReactNode }) => {
+  const restoring = useIsRestoring();
+  return (
+    <View style={{ flex: 1 }}>
+      {restoring ? <View style={styles.cover} /> : children}
+    </View>
+  );
+};
+
+const ScopedQueries = ({
+  scope,
+  persisted,
+  children,
+}: {
+  scope: string;
+  persisted: boolean;
+  children: ReactNode;
+}) => {
+  const cache = useMemo(
+    () => new QueryClient({ defaultOptions: queryClient.getDefaultOptions() }),
+    []
+  );
+  const persister = useMemo(
+    () =>
+      createAsyncStoragePersister({
+        storage: cacheStorage.forScope(queryCacheKey(runtime.origin, scope)),
+        key: queryCacheKey(runtime.origin, scope),
+        throttleTime: PERSIST_THROTTLE_MS,
+        serialize: serializeQueryCache,
+        deserialize: deserializeQueryCache,
+      }),
+    [scope]
+  );
+  if (!persisted) {
+    return <QueryClientProvider client={cache}>{children}</QueryClientProvider>;
+  }
+  return (
+    <PersistQueryClientProvider
+      client={cache}
+      persistOptions={{
+        persister,
+        buster: queryCacheBuster(
+          `${Application.nativeApplicationVersion ?? "0"}(${Application.nativeBuildVersion ?? "0"})`
+        ),
+        maxAge: QUERY_CACHE_MAX_AGE_MS,
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query) =>
+            query.queryKey[0] === scope && query.state.status === "success",
+          shouldDehydrateMutation: () => false,
+        },
+      }}
+    >
+      <RestoredContent>{children}</RestoredContent>
+    </PersistQueryClientProvider>
+  );
+};
+
+const isSignedInPhase = (kind: string): boolean =>
+  kind === "signedIn" || kind === "demo" || kind === "development";
+
 /**
- * The session, the product client and its query cache, the clock, and the organization's time
- * zone. Only the mock session can sign in today: native Planning Center sign-in arrives with the
- * auth layer, so outside mock mode "Sign in" explains that instead.
+ * Keeps the remembered profile and organization in step with `accounts.list`, and warms the
+ * account sheet's permissions read behind whatever the person is waiting on.
+ */
+const AccountSync = () => {
+  useEffect(
+    () => () => {
+      deviceAnalytics.reset();
+    },
+    []
+  );
+  const context = useProductClient();
+  const cache = useQueryClient();
+  const accounts = useQuery(sharedReads.accounts(context));
+  const { analyticsOptedOut } = usePreferences();
+  useEffect(() => {
+    const phase = runtime.session.getSnapshot().phase.kind;
+    const userId =
+      phase === "signedIn" && accounts.data !== undefined && !accounts.data.demo
+        ? accounts.data.session.userId
+        : null;
+    void (async () => {
+      try {
+        await syncAccountAnalytics(deviceAnalytics, analyticsOptedOut, userId);
+      } catch {
+        /* Analytics does not block product use. */
+      }
+    })();
+  }, [accounts.data, analyticsOptedOut]);
+  useEffect(() => {
+    if (accounts.data !== undefined) {
+      runtime.session.refreshFromAccounts(accounts.data);
+    }
+  }, [accounts.data]);
+  useEffect(() => {
+    const controller = new AbortController();
+    void (async () => {
+      try {
+        await context.scheduler.runSpeculative(async () => {
+          await cache.query(speculativeQuery(sharedReads.access(context)));
+        }, controller.signal);
+      } catch {
+        /* A warm-up failure is shown by the account sheet's observed read. */
+      }
+    })();
+    return () => {
+      controller.abort();
+    };
+  }, [cache, context]);
+  return null;
+};
+
+/**
+ * The session: the runtime's store, the sign-in flows, demo links, and the product client and
+ * query cache for the current account context.
  */
 const SessionProvider = ({ children }: { children: ReactNode }) => {
   const toasts = useToasts();
-  const [state, setState] = useState(initialSession);
-  const active =
-    state.accounts.find((account) => account.userId === state.activeUserId) ??
-    null;
-  const token = active?.token ?? null;
-  // One client per signed-in token: switching accounts builds a new one.
-  const client = useMemo(() => makeAppClient(launchOptions, token), [token]);
+  const { session, client, scheduler } = runtime;
+  const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot);
+  const [activity, setActivity] = useState<SignInActivity>({ kind: "idle" });
+  const activityRef = useRef(activity);
 
-  const continueAs = useCallback(
-    (account: DeviceAccount) => {
-      if (!launchOptions.mock) {
-        toasts.showError(SIGN_IN_UNAVAILABLE);
+  const [signInMessage, setSignInMessage] = useState<string | null>(null);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  useEffect(() => {
+    void (async () => {
+      await runtime.start();
+      if (runtime.checksDevelopmentSignIn) {
+        await session.checkDevelopmentBypass();
+      }
+    })();
+  }, [session]);
+
+  const { phase, scope } = snapshot;
+  const isSignedIn = isSignedInPhase(phase.kind);
+  const active =
+    phase.kind === "signedIn" || phase.kind === "needsSignIn"
+      ? phase.account
+      : null;
+
+  const signIn = useCallback<SessionValue["signIn"]>(
+    async ({ resuming, addingAccount = false } = {}) => {
+      if (activityRef.current.kind !== "idle") {
         return;
       }
-      setState((current) => ({ ...current, activeUserId: account.userId }));
+      const userId = resuming?.userId ?? null;
+      setSignInMessage(null);
+      activityRef.current = { kind: "authenticating", userId };
+      setActivity(activityRef.current);
+      try {
+        const result = await runtime.signIn();
+        if (!addingAccount) {
+          setActivity({ kind: "launching", userId });
+          await delay(LAUNCH_AWAY_MS);
+        }
+        const scopeBefore = session.getSnapshot().scope;
+        await session.completeSignIn(result);
+        if (session.getSnapshot().scope === scopeBefore) {
+          // The same person and organization again: keep the cache, reload what failed.
+          void queryClient.invalidateQueries();
+        }
+      } catch (error) {
+        const cancelled =
+          error instanceof SignInFailure && error.reason === "cancelled";
+        if (!cancelled && error instanceof Error) {
+          const message = failureMessage(error);
+          if (addingAccount) {
+            toasts.showError(message);
+          } else {
+            setSignInMessage(message);
+          }
+        }
+      }
+      activityRef.current = { kind: "idle" };
+      setActivity(activityRef.current);
     },
-    [toasts]
+    [session, toasts]
   );
 
-  const session = useMemo<SessionValue>(
-    () => ({
-      accounts: state.accounts,
-      active,
-      signIn: () => {
-        const [first] = state.accounts;
-        if (first === undefined) {
-          toasts.showError(SIGN_IN_UNAVAILABLE);
+  const continueAs = useCallback(
+    (account: SessionValue["accounts"][number]) => {
+      if (account.needsSignIn) {
+        void signIn({ resuming: account });
+        return;
+      }
+      if (activityRef.current.kind !== "idle") {
+        return;
+      }
+      setSignInMessage(null);
+      activityRef.current = { kind: "launching", userId: account.userId };
+      setActivity(activityRef.current);
+      void (async () => {
+        await delay(LAUNCH_AWAY_MS);
+        session.switchAccount(account.userId);
+        activityRef.current = { kind: "idle" };
+        setActivity(activityRef.current);
+      })();
+    },
+    [session, signIn]
+  );
+
+  const startDemo = useCallback(
+    async (key: string) => {
+      await session.startDemo(key);
+    },
+    [session]
+  );
+
+  // Demo links from outside: straight in when signed out, after a question when signed in.
+  useEffect(
+    () =>
+      receiveDemoKeys((key) => {
+        const open = async () => {
+          try {
+            await session.startDemo(key);
+          } catch (error) {
+            const message =
+              error instanceof Error
+                ? failureMessage(error)
+                : "Something went wrong.";
+            if (isSignedInPhase(session.getSnapshot().phase.kind)) {
+              toasts.showError(message);
+            } else {
+              setSignInMessage(message);
+            }
+          }
+        };
+        const current = session.getSnapshot().phase.kind;
+        if (current === "signedIn" || current === "development") {
+          Alert.alert(
+            "Open the demo?",
+            "You'll explore a read-only demo. Your account stays signed in on this device.",
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Open Demo",
+                onPress: () => {
+                  void open();
+                },
+              },
+            ]
+          );
           return;
         }
-        continueAs(first);
-      },
+        void open();
+      }),
+    [session, toasts]
+  );
+
+  const value = useMemo<SessionValue>(
+    () => ({
+      phase,
+      accounts: snapshot.stored.accounts,
+      active,
+      isSignedIn,
+      isDemo: phase.kind === "demo",
+      isDevelopment: phase.kind === "development",
+      signInActivity: activity,
+      signInMessage,
+      isSigningOut,
+      signIn,
       continueAs,
-      forget: (account) => {
-        setState((current) => ({
-          accounts: current.accounts.filter(
-            (candidate) => candidate.userId !== account.userId
-          ),
-          activeUserId:
-            current.activeUserId === account.userId
-              ? null
-              : current.activeUserId,
-        }));
+      switchAccount: session.switchAccount,
+      forget: async (account) => {
+        await session.remove(account.userId);
       },
-      signOut: () => {
-        queryClient.clear();
-        setState((current) => ({ ...current, activeUserId: null }));
+      signOut: async () => {
+        setIsSigningOut(true);
+        try {
+          await session.signOut();
+        } catch (error) {
+          toasts.showError(
+            error instanceof Error
+              ? failureMessage(error)
+              : "Couldn't sign out."
+          );
+        }
+        setIsSigningOut(false);
       },
+      switchOrganization: async (accountId) => {
+        try {
+          await session.switchOrganization(accountId);
+        } catch (error) {
+          if (error instanceof Error) {
+            toasts.showError(failureMessage(error));
+          }
+        }
+      },
+      startDemo,
     }),
-    [active, continueAs, state.accounts, toasts]
+    [
+      active,
+      activity,
+      continueAs,
+      isSignedIn,
+      isSigningOut,
+      phase,
+      session,
+      signIn,
+      signInMessage,
+      snapshot.stored.accounts,
+      startDemo,
+      toasts,
+    ]
   );
 
   const clientContext = useMemo(
-    () => ({ client, scope: active?.userId ?? "signed-out" }),
-    [active?.userId, client]
+    () => ({ client, scope, scheduler }),
+    [client, scheduler, scope]
   );
 
   return (
-    <SessionContext value={session}>
-      <QueryClientProvider client={queryClient}>
+    <SessionContext value={value}>
+      <ScopedQueries
+        key={scope}
+        scope={scope}
+        persisted={!runtime.isFixtureMode && isSignedIn && snapshot.persisted}
+      >
         <ProductClientContext value={clientContext}>
+          {isSignedIn ? <AccountSync /> : null}
           {children}
+          {/* Restoring the session or cached reads: the canvas, never a skeleton flash. */}
+          {phase.kind === "launching" ? (
+            <View pointerEvents="none" style={styles.cover} />
+          ) : null}
         </ProductClientContext>
-      </QueryClientProvider>
+      </ScopedQueries>
     </SessionContext>
   );
 };
 
+const useSessionPhase = () => {
+  const snapshot = useSyncExternalStore(
+    runtime.session.subscribe,
+    runtime.session.getSnapshot
+  );
+  return { isSignedIn: isSignedInPhase(snapshot.phase.kind) };
+};
+
 /** The congregation's zone from `catalog.organization` once signed in, else the fallback. */
-const OrganizationTimeZone = ({
-  isSignedIn,
-  children,
-}: {
-  isSignedIn: boolean;
-  children: ReactNode;
-}) => {
+const OrganizationTimeZone = ({ children }: { children: ReactNode }) => {
   const context = useProductClient();
+  const { isSignedIn } = useSessionPhase();
   const organization = useQuery({
     ...sharedReads.organization(context),
     enabled: isSignedIn,
@@ -152,21 +494,16 @@ const OrganizationTimeZone = ({
   );
 };
 
-const SignedInScope = ({ children }: { children: ReactNode }) => {
-  const { scope } = useProductClient();
-  return (
-    <OrganizationTimeZone isSignedIn={scope !== "signed-out"}>
-      {children}
-    </OrganizationTimeZone>
-  );
-};
-
 export const AppProviders = ({ children }: { children: ReactNode }) => (
   <ClockProvider value={appClock}>
-    <ErrorToastProvider>
-      <SessionProvider>
-        <SignedInScope>{children}</SignedInScope>
-      </SessionProvider>
-    </ErrorToastProvider>
+    <PreferencesProvider storage={runtime.isFixtureMode ? null : appStorage}>
+      <ErrorToastProvider>
+        <SessionProvider>
+          <FeedbackDraftProvider>
+            <OrganizationTimeZone>{children}</OrganizationTimeZone>
+          </FeedbackDraftProvider>
+        </SessionProvider>
+      </ErrorToastProvider>
+    </PreferencesProvider>
   </ClockProvider>
 );

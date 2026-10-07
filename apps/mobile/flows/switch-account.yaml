@@ -1,0 +1,18 @@
+appId: com.pcobooster.ios
+---
+- assertVisible: "Services"
+- tapOn:
+    id: "account-button"
+- assertVisible: "Jordan Hale"
+- tapOn:
+    id: "device-account-usr_4b81d0c2aa"
+- assertVisible: "Services"
+- tapOn:
+    id: "account-button"
+- assertVisible:
+    id: "device-account-usr_4b81d0c2aa"
+    selected: true
+- assertVisible:
+    id: "device-account-usr_9f3c2a7d1e"
+    selected: false
+- takeScreenshot: switch-account

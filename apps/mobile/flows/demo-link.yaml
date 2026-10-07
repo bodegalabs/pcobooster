@@ -1,0 +1,14 @@
+appId: com.pcobooster.ios
+---
+- assertVisible: "Sign in with Planning Center"
+- openLink: "pcobooster://demo/fixture-demo-key"
+- runFlow:
+    when:
+      visible: "Open"
+    commands:
+      - tapOn: "Open"
+- assertVisible: "Services"
+- tapOn:
+    id: "account-button"
+- assertVisible: "Read-only demo"
+- takeScreenshot: demo-account

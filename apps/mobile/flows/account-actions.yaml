@@ -1,0 +1,15 @@
+appId: com.pcobooster.ios
+---
+- tapOn:
+    id: "account-button"
+- longPressOn:
+    id: "device-account-usr_4b81d0c2aa"
+- assertVisible: "Switch to This Account"
+- assertVisible: "Remove from This Device"
+- takeScreenshot: account-context-menu
+- tapOn: "Remove from This Device"
+- assertVisible: "Remove Riley Brooks from this device?"
+- tapOn:
+    id: "cancel-destructive"
+- assertVisible:
+    id: "device-account-usr_4b81d0c2aa"

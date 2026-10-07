@@ -6,7 +6,12 @@ import { useCallback, useMemo, useState } from "react";
 
 import { failureMessage, useProductClient } from "../../app-shell/queries";
 import type { ProductClientContextValue } from "../../app-shell/queries";
-import { DEFAULT_WINDOW, serviceTypeSummary } from "./agenda";
+import { launchOptions } from "../../harness/current-launch-options";
+import {
+  DEFAULT_WINDOW,
+  initialServiceTypeSelection,
+  serviceTypeSummary,
+} from "./agenda";
 import type { ServicesWindow } from "./agenda";
 
 /** Service types and past plans change rarely. */
@@ -173,7 +178,7 @@ export const useServicesAgenda = () => {
   /** Chosen service type ids; null means all of them (the web's stored `null`). */
   const [storedSelection, setStoredSelection] = useState<
     readonly string[] | null
-  >(null);
+  >(() => initialServiceTypeSelection(launchOptions.serviceTypeId));
   const [searchText, setSearchText] = useState("");
   const [hasLoaded, setHasLoaded] = useState(false);
 

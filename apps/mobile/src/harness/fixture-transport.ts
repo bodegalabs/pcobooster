@@ -13,6 +13,7 @@ import { Effect, Schema } from "effect";
 import type { Json } from "effect/Schema";
 
 import { fixtureFiles } from "./fixture-files";
+import accountsFixture from "./fixtures/accounts.list.json";
 
 const FixtureFileSchema = Schema.Struct({
   default: Schema.Json,
@@ -21,6 +22,10 @@ const FixtureFileSchema = Schema.Struct({
   ),
 });
 type FixtureFile = typeof FixtureFileSchema.Type;
+
+/** The demo token returned by the fixture session endpoint. */
+export const FIXTURE_DEMO_COOKIE =
+  "pcobooster-demo=fixture-demo-session; Path=/; HttpOnly; SameSite=Lax";
 
 /** Each procedure's parsed fixture, by tag. */
 export const fixtures: ReadonlyMap<string, FixtureFile> = new Map(
@@ -195,13 +200,43 @@ export const makeFixtureFetch =
         );
       }
     }
-    const override = overrides[match.route.tag];
+    const accountId = request.headers.get("x-pcobooster-account");
+    let accountOverride: Json | undefined;
+    if (
+      match.route.tag === "accounts.list" &&
+      accountId !== null &&
+      accountId !== ""
+    ) {
+      accountOverride =
+        accountId === "acct_northside_riley"
+          ? {
+              demo: false,
+              selectedAccountId: accountId,
+              session: {
+                userId: "usr_4b81d0c2aa",
+                name: "Riley Brooks",
+                email: "riley@northside.example",
+                image: null,
+              },
+              accounts: [
+                { ...accountsFixture.default.accounts[1], id: accountId },
+              ],
+            }
+          : { ...accountsFixture.default, selectedAccountId: accountId };
+    }
+    const override = accountOverride ?? overrides[match.route.tag];
     const answer =
       override === undefined
         ? fixtureAnswer(match.route.tag, payload)
         : { found: true, value: override };
     return answer.found
-      ? jsonResponse(answer.value)
+      ? jsonResponse(
+          answer.value,
+          200,
+          match.route.tag === "demo.start"
+            ? { "set-cookie": FIXTURE_DEMO_COOKIE }
+            : {}
+        )
       : faultResponse(
           new NotFound({
             message: `No fixture for ${match.route.tag}`,

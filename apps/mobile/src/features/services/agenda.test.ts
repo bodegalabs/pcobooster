@@ -2,6 +2,11 @@ import type { ServicePlanRow } from "@pcobooster/planning-center-models/service-
 import { describe, expect, it } from "vitest";
 
 import {
+  noLaunchOptions,
+  parseLaunchOptions,
+} from "../../harness/launch-options";
+import {
+  initialServiceTypeSelection,
   myRows,
   serviceTypeSummary,
   visibleRows,
@@ -38,6 +43,33 @@ const upcoming = [
   }),
   row("later", "2026-12-20T17:00:00.000Z", { planTitle: "Advent" }),
 ];
+
+describe(initialServiceTypeSelection, () => {
+  it("starts Services on the service type requested by the native launch argument", () => {
+    const options = parseLaunchOptions((key) =>
+      key === "PCOBServiceType" ? "1101" : null
+    );
+    const selection = initialServiceTypeSelection(options.serviceTypeId);
+    expect(selection).toStrictEqual(["1101"]);
+    expect(
+      serviceTypeSummary(
+        [
+          { id: "1101", name: "Sunday Gathering" },
+          { id: "1102", name: "Youth Night" },
+        ],
+        new Set(selection)
+      )
+    ).toBe("Sunday Gathering");
+  });
+
+  it("retains the all-services default without an argument or in a release launch", () => {
+    const options = parseLaunchOptions(() => null);
+    expect(initialServiceTypeSelection(options.serviceTypeId)).toBeNull();
+    expect(
+      initialServiceTypeSelection(noLaunchOptions.serviceTypeId)
+    ).toBeNull();
+  });
+});
 
 describe(visibleRows, () => {
   const base = {

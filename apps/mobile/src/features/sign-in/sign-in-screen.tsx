@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import {
   Linking,
   Pressable,
@@ -12,11 +12,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   accountDisplayName,
+  accountFirstName,
   formatLastUsed,
 } from "../../app-shell/device-accounts";
-import type { DeviceAccount } from "../../app-shell/device-accounts";
 import { useSession } from "../../app-shell/session";
 import { BrandLockup } from "../../components/brand-lockup";
+import { ConfirmationSheet } from "../../components/confirmation-sheet";
 import { Entrance } from "../../components/entrance";
 import { GlassButton } from "../../components/glass-button";
 import { Glyph } from "../../components/glyph";
@@ -33,6 +34,8 @@ import { Metrics, Spacing } from "../../design/metrics";
 import { textStyles } from "../../design/typography";
 import { useClock } from "../../lib/environment";
 import { useToasts } from "../../lib/toasts";
+import type { DeviceAccount } from "../../session/device-session";
+import { DemoLinkSheet } from "./demo-link-sheet";
 
 const PRIVACY_URL = "https://pcobooster.com/privacy";
 const TERMS_URL = "https://pcobooster.com/terms";
@@ -176,11 +179,12 @@ const RememberedAccounts = ({
   accounts: readonly DeviceAccount[];
 }) => {
   const session = useSession();
+  const [removing, setRemoving] = useState<DeviceAccount | null>(null);
   const now = useClock().now();
   const [only] = accounts;
   const firstName =
     accounts.length === 1 && only !== undefined
-      ? only.name.trim().split(/\s+/u)[0]
+      ? accountFirstName(only)
       : undefined;
   return (
     <View style={styles.remembered}>
@@ -208,7 +212,7 @@ const RememberedAccounts = ({
               account={account}
               now={now}
               onForget={() => {
-                session.forget(account);
+                setRemoving(account);
               }}
               onSelect={() => {
                 session.continueAs(account);
@@ -217,6 +221,21 @@ const RememberedAccounts = ({
           </Fragment>
         ))}
       </SurfaceCard>
+      <ConfirmationSheet
+        visible={removing !== null}
+        title="Remove this account?"
+        message="This signs the account out of this device. You can add it again through Planning Center."
+        action="Remove Account"
+        onCancel={() => {
+          setRemoving(null);
+        }}
+        onConfirm={() => {
+          if (removing !== null) {
+            void session.forget(removing);
+          }
+          setRemoving(null);
+        }}
+      />
     </View>
   );
 };
@@ -233,12 +252,12 @@ const openLink = (url: string, onFailure: () => void) => {
 
 /**
  * The first screen (Swift `SignInView`): the brand moment, people remembered on this device, and
- * "Sign in with Planning Center". Visual only in this layer: native sign-in arrives with the auth
- * layer, so in mock mode signing in continues as the fixture account.
+ * "Sign in with Planning Center", native authentication, and demo-link entry.
  */
 export const SignInScreen = () => {
   const session = useSession();
   const toasts = useToasts();
+  const [demoVisible, setDemoVisible] = useState(false);
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   // The content fills the safe area, so the hero takes the top and the actions sit in the thumb
@@ -280,14 +299,32 @@ export const SignInScreen = () => {
           </View>
         </Entrance>
         <Entrance index={1} style={styles.actions}>
+          {session.phase.kind === "needsSignIn" ? (
+            <AppText font="rowDetail" color={colors.statusPendingText}>
+              {accountFirstName(session.phase.account)}
+              &apos;s session ended. Sign in again to keep planning.
+            </AppText>
+          ) : null}
+          {session.signInMessage === null ? null : (
+            <AppText font="rowDetail" color={colors.destructive}>
+              {session.signInMessage}
+            </AppText>
+          )}
           {hasAccounts ? (
             <RememberedAccounts accounts={session.accounts} />
           ) : null}
           <GlassButton
             action={{
-              title: "Sign in with Planning Center",
+              title:
+                session.signInActivity.kind === "idle"
+                  ? "Sign in with Planning Center"
+                  : "Signing in...",
+              disabled: session.signInActivity.kind !== "idle",
+              isBusy: session.signInActivity.kind !== "idle",
               assetImage: "PlanningCenterServices",
-              onPress: session.signIn,
+              onPress: () => {
+                void session.signIn();
+              },
               testID: "sign-in-button",
             }}
             size="extraLarge"
@@ -296,7 +333,7 @@ export const SignInScreen = () => {
           <Pressable
             accessibilityRole="button"
             onPress={() => {
-              toasts.showError("Demo links arrive with the auth layer.");
+              setDemoVisible(true);
             }}
             testID="demo-link-button"
           >
@@ -360,6 +397,12 @@ export const SignInScreen = () => {
           </AppText>
         </Entrance>
       </ScrollView>
+      <DemoLinkSheet
+        visible={demoVisible}
+        onClose={() => {
+          setDemoVisible(false);
+        }}
+      />
     </View>
   );
 };

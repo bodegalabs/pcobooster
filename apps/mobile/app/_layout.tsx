@@ -20,8 +20,7 @@ const styles = { root: { flex: 1 } } as const;
  * out: the sign-in screen. Guards swap the two, so a sign-out lands on sign-in.
  */
 const RootStack = () => {
-  const { active } = useSession();
-  const isSignedIn = active !== null;
+  const { isSignedIn } = useSession();
   return (
     <>
       <Stack
@@ -44,6 +43,22 @@ const RootStack = () => {
               headerTintColor: colors.ink,
               headerTitleStyle: { color: colors.ink },
               contentStyle: { backgroundColor: colors.surfaceCanvas },
+            }}
+          />
+          <Stack.Screen
+            name="account-access"
+            options={{
+              headerShown: true,
+              title: "Your Access",
+              presentation: "formSheet",
+            }}
+          />
+          <Stack.Screen
+            name="account-feedback"
+            options={{
+              headerShown: true,
+              title: "Send Feedback",
+              presentation: "formSheet",
             }}
           />
         </Stack.Protected>

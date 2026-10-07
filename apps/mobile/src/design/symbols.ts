@@ -31,6 +31,7 @@ export const AppSymbol = {
   keyboardShortcuts: sf("keyboard"),
   feedback: sf("bubble.and.pencil"),
   // Account
+  organization: sf("building.2"),
   accountMenu: sf("chevron.down"),
   appearanceLight: sf("sun.max"),
   appearanceDark: sf("moon"),
