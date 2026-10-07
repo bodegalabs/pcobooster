@@ -164,10 +164,7 @@ export const ServiceTypeMultiSelect = ({
                         toggleOption(option.id);
                       }}
                     >
-                      <SelectionPickerCheckbox
-                        selected={selected}
-                        className="mt-0"
-                      />
+                      <SelectionPickerCheckbox selected={selected} />
                       <span className="min-w-0 flex-1 truncate">
                         {option.name}
                       </span>

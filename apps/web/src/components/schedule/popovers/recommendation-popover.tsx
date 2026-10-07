@@ -37,15 +37,19 @@ const RankingFactRow = ({ fact }: { fact: RankingFact }) => {
   const Icon = factIcon[fact.kind];
   return (
     <li className="flex gap-2.5">
-      <Icon
+      <span
         aria-hidden
-        className={cn(
-          "mt-0.5 size-4 shrink-0",
-          fact.kind === "load"
-            ? "text-status-scheduled"
-            : "text-muted-foreground"
-        )}
-      />
+        className="flex h-lh shrink-0 items-center text-sm leading-snug"
+      >
+        <Icon
+          className={cn(
+            "size-4",
+            fact.kind === "load"
+              ? "text-status-scheduled"
+              : "text-muted-foreground"
+          )}
+        />
+      </span>
       <span className="min-w-0">
         <span className="text-foreground block text-sm leading-snug">
           {fact.text}
@@ -55,7 +59,9 @@ const RankingFactRow = ({ fact }: { fact: RankingFact }) => {
             key={adjustment}
             className="text-status-scheduled mt-1 flex items-start gap-1 text-xs leading-snug"
           >
-            <ArrowDown aria-hidden className="mt-px size-3 shrink-0" />
+            <span aria-hidden className="flex h-lh shrink-0 items-center">
+              <ArrowDown className="size-3" />
+            </span>
             {adjustment}
           </span>
         ))}

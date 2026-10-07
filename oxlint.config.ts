@@ -40,6 +40,8 @@ export default defineConfig({
     "local/no-backdrop-blur": "error",
     // Cards and ringed/shadowed surfaces keep room inside scroll containers.
     "local/no-clipped-surface": "error",
+    // Icons beside text center on the first line (h-lh box), not with one-off margin nudges.
+    "local/no-nudged-icon": "error",
     // Popover shells stay flush; inner sections own spacing.
     "local/no-popover-content-padding": "error",
     // Section dividers use Separator primitives, not border-b headers.

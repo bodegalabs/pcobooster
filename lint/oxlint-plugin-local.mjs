@@ -1121,6 +1121,61 @@ const noBackdropBlurRule = {
   },
 };
 
+/** A small fixed offset that pushes a leading mark down to sit beside a line of text. */
+const NUDGE_TOKEN =
+  /^-?(?:mt|top)-(?:px|0\.5|1|1\.5)$|^-?translate-y-(?:px|0\.5|1)$/;
+const SIZE_TOKEN = /^size-/;
+
+/**
+ * Icons, dots, and badges beside text must not be nudged into place with a one-off margin
+ * or translate: the offset only matches one font size and line height. Center them in a
+ * box one line tall (`<span className="flex h-lh items-center">`) so they align with the
+ * first line at any size.
+ */
+const noNudgedIconRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow nudging a fixed-size icon, dot, or badge with mt-*, top-*, or translate-y-* to line it up with text.",
+    },
+    messages: {
+      nudgedIcon:
+        'Do not nudge `{{name}}` with `{{token}}` to line it up with text. Wrap it in `<span className="flex h-lh shrink-0 items-center">` so it centers on the first line at any font size.',
+    },
+    schema: [],
+  },
+  create(context) {
+    return {
+      JSXOpeningElement(node) {
+        const name = getJsxName(node.name) ?? "element";
+        for (const attribute of node.attributes) {
+          if (
+            attribute.type !== "JSXAttribute" ||
+            attribute.name.type !== "JSXIdentifier" ||
+            attribute.name.name !== "className" ||
+            attribute.value === null
+          ) {
+            continue;
+          }
+          const tokens = classNameText(attribute.value).split(/\s+/);
+          const sized =
+            name.endsWith("Icon") ||
+            tokens.some((token) => SIZE_TOKEN.test(token));
+          const nudge = tokens.find((token) => NUDGE_TOKEN.test(token));
+          if (sized && nudge !== undefined) {
+            context.report({
+              node: attribute,
+              messageId: "nudgedIcon",
+              data: { name, token: nudge },
+            });
+          }
+        }
+      },
+    };
+  },
+};
+
 export default {
   meta: {
     name: "local",
@@ -1132,6 +1187,7 @@ export default {
     "no-clipped-surface": noClippedSurfaceRule,
     "no-popover-content-padding": noPopoverContentPaddingRule,
     "no-overlay-section-border-b": noOverlaySectionBorderRule,
+    "no-nudged-icon": noNudgedIconRule,
     "no-transition-colors": noTransitionColorsRule,
     "prefer-shared-controls": preferSharedControlsRule,
   },
@@ -1142,6 +1198,7 @@ export {
   noAbsoluteInputOverlayRule,
   noBackdropBlurRule,
   noClippedSurfaceRule,
+  noNudgedIconRule,
   noOverlaySectionBorderRule,
   noPopoverContentPaddingRule,
   noTransitionColorsRule,

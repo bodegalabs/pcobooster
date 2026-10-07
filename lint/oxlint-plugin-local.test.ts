@@ -6,6 +6,7 @@ import {
   noAbsoluteInputOverlayRule,
   noBackdropBlurRule,
   noClippedSurfaceRule,
+  noNudgedIconRule,
   noOverlaySectionBorderRule,
   noPopoverContentPaddingRule,
   noTransitionColorsRule,
@@ -612,6 +613,53 @@ ruleTester.run(
         );
       `,
         errors: [{ messageId: "rowRadius" }],
+      },
+    ],
+  }
+);
+
+ruleTester.run(
+  "no-nudged-icon",
+  noNudgedIconRule as Parameters<typeof ruleTester.run>[1],
+  {
+    valid: [
+      {
+        name: "icon centered in a one-line box",
+        code: `
+        <li className="flex items-start gap-2">
+          <span className="flex h-lh shrink-0 items-center"><Check className="size-4" /></span>
+          <span>Text</span>
+        </li>
+      `,
+      },
+      {
+        name: "margin on text that is not a fixed-size mark",
+        code: `<p className="mt-1 text-sm">Detail</p>`,
+      },
+      {
+        name: "skeleton sized with height and width",
+        code: `<Skeleton className="mt-1 h-3 w-24" />`,
+      },
+      {
+        name: "nudge only behind a variant",
+        code: `<span className="size-4 group-hover:translate-y-0.5" />`,
+      },
+    ],
+    invalid: [
+      {
+        name: "icon pushed down with a pixel margin",
+        code: `<Mail className="mt-px size-3.5 shrink-0" />`,
+        errors: [{ messageId: "nudgedIcon" }],
+      },
+      {
+        name: "dot pushed down inside cn",
+        code: `<span className={cn("mt-1.5 size-1.5 rounded-full", tone)} />`,
+        errors: [{ messageId: "nudgedIcon" }],
+      },
+      {
+        name: "named icon translated",
+        code: `<ArrowDownIcon className="translate-y-px" />`,
+        errors: [{ messageId: "nudgedIcon" }],
       },
     ],
   }

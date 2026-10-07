@@ -75,10 +75,12 @@ const availabilityLabel: Record<FeatureAvailability, string> = {
 
 const FeatureAccessRow = ({ entry }: { entry: FeatureAccess }) => (
   <li className="flex gap-3 py-2.5">
-    <SidebarNavIcon
-      icon={availabilityIcon[entry.availability]}
-      className={cn("mt-0.5", availabilityClassName[entry.availability])}
-    />
+    <span aria-hidden className="flex h-lh shrink-0 items-center text-sm">
+      <SidebarNavIcon
+        icon={availabilityIcon[entry.availability]}
+        className={availabilityClassName[entry.availability]}
+      />
+    </span>
     <div className="min-w-0 flex-1">
       <p className="flex flex-wrap items-baseline justify-between gap-x-3 text-sm font-medium">
         <span>{entry.label}</span>
