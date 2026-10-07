@@ -38,8 +38,14 @@ const createFixture = () => {
     getPersonBlockouts: vi.fn<(personId: string) => CollectionRead>(),
     getPersonBlockoutDates:
       vi.fn<(personId: string, blockoutId: string) => CollectionRead>(),
-    getPersonSchedulesAfter:
-      vi.fn<PlanningCenterPeopleService["getPersonSchedulesAfter"]>(),
+    // A person's schedules whole; `dependencies` serves them as their only page.
+    getPersonSchedules:
+      vi.fn<
+        (
+          personId: string,
+          after: string
+        ) => Effect.Effect<{ data: PCResource[]; included: PCResource[] }>
+      >(),
     getPlanPlanTimes: vi.fn<(planId: string) => CollectionRead>(),
     getPlanTeamMembers:
       vi.fn<PlanningCenterPeopleService["getPlanTeamMembers"]>(),
@@ -60,7 +66,11 @@ const createFixture = () => {
           mocks.getPersonBlockoutDates(personId, blockoutId),
           onlyPage
         ),
-      getPersonSchedulesAfter: mocks.getPersonSchedulesAfter,
+      getPersonSchedulesPage: (personId: string, after: string) =>
+        Effect.map(mocks.getPersonSchedules(personId, after), (schedules) => ({
+          ...schedules,
+          nextOffset: null,
+        })),
       getPlanPlanTimesPage: (planId: string) =>
         Effect.map(mocks.getPlanPlanTimes(planId), onlyPage),
       getPlanTeamMembers: mocks.getPlanTeamMembers,
@@ -289,7 +299,7 @@ describe("position candidate list", () => {
         },
       ])
     );
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({ data: [], included: [] })
     );
     mocks.getPlanPlanTimes.mockReturnValue(Effect.succeed([]));
@@ -367,7 +377,7 @@ describe("position candidate list", () => {
         included: [],
       };
     };
-    mocks.getPersonSchedulesAfter.mockImplementation((personId: string) =>
+    mocks.getPersonSchedules.mockImplementation((personId: string) =>
       Effect.succeed(scheduleResponseForPerson(personId))
     );
 
@@ -429,7 +439,7 @@ describe("position candidate list", () => {
       })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({
         data: [
           scheduleEntry({
@@ -483,7 +493,7 @@ describe("position candidate list", () => {
         })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({
         data: [
           scheduleEntry({
@@ -604,7 +614,7 @@ describe("position candidate list", () => {
       date: "2026-02-22",
     });
 
-    expect(mocks.getPersonSchedulesAfter).not.toHaveBeenCalled();
+    expect(mocks.getPersonSchedules).not.toHaveBeenCalled();
     // The selected plan is read fresh; window reads mark plans that already happened.
     expect({
       window: mocks.getPlanWindowRoster.mock.calls.toSorted((a, b) =>
@@ -825,7 +835,7 @@ describe("position candidate list", () => {
       date: "2026-05-04",
     });
 
-    expect(mocks.getPersonSchedulesAfter).not.toHaveBeenCalled();
+    expect(mocks.getPersonSchedules).not.toHaveBeenCalled();
     expect(result).toHaveLength(1);
     expect(result[0]?.serviceHistory).toContainEqual(
       expect.objectContaining({ sourceScheduleId: "pp-may-3" })
@@ -864,7 +874,7 @@ describe("position candidate list", () => {
       })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({ data: [], included: [] })
     );
 
@@ -997,7 +1007,7 @@ describe("position candidate list", () => {
       })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({ data: [], included: [] })
     );
 
@@ -1029,7 +1039,7 @@ describe("position candidate list", () => {
       })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({
         data: [
           scheduleEntry({
@@ -1078,7 +1088,7 @@ describe("position candidate list", () => {
       })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({
         data: [
           scheduleEntry({
@@ -1127,7 +1137,7 @@ describe("position candidate list", () => {
       })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({
         data: [
           scheduleEntry({
@@ -1153,8 +1163,8 @@ describe("position candidate list", () => {
 
     // Without a filter Planning Center returns only upcoming schedules, so past services
     // never counted; `after` from the window start makes them visible.
-    expect(mocks.getPersonSchedulesAfter.mock.calls).toStrictEqual([
-      [personId, "2026-03-08", 2],
+    expect(mocks.getPersonSchedules.mock.calls).toStrictEqual([
+      [personId, "2026-03-08"],
     ]);
     const [personRow] = result;
     if (!personRow?.serviceHistory || !personRow.frequency) {
@@ -1203,7 +1213,7 @@ describe("position candidate list", () => {
       ])
     );
     mocks.getPersonBlockoutDates.mockReturnValue(Effect.succeed([]));
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({
         data: [],
         included: [],
@@ -1254,7 +1264,7 @@ describe("position candidate list", () => {
         ),
       ])
     );
-    mocks.getPersonSchedulesAfter.mockReturnValue(
+    mocks.getPersonSchedules.mockReturnValue(
       Effect.succeed({ data: [], included: [] })
     );
 

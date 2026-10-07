@@ -18,6 +18,7 @@ import type { PlanTimesProgress } from "@pcobooster/api/modules/planning-center/
 import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterPage } from "@pcobooster/api/planning-center/core-client";
+import { PlanningCenterPaginationError } from "@pcobooster/api/planning-center/pagination-error";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
 import {
   PLANNING_CENTER_REQUEST_CAP,
@@ -31,9 +32,11 @@ import type { PlanningCenterPeopleServiceCaches } from "@pcobooster/api/planning
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import { httpClientFor } from "@pcobooster/api/testing/http-client";
 import { countedRead } from "@pcobooster/api/testing/planning-center-requests";
+import { peopleCandidateDetailsInputSchema } from "@pcobooster/contracts/http/people";
+import { MAX_PENDING_BLOCKOUTS } from "@pcobooster/contracts/http/people-schemas";
 import { candidateDetailsAdvanced } from "@pcobooster/planning-center-models/candidate-list";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { Effect } from "effect";
+import { Effect, Exit, Option, Schema } from "effect";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -131,6 +134,10 @@ const exhaustivePeople = (org: FakeOrg) => {
       );
       return Effect.succeed({ data, included });
     },
+    getPersonSchedulesPage: (personId: string) =>
+      Effect.succeed(
+        onlyPage(collection(`/services/v2/people/${personId}/schedules`))
+      ),
     getPlanPlanTimesPage: (planId: string) =>
       Effect.succeed(
         onlyPage(collection(`/services/v2/plans/${planId}/plan_times`))
@@ -259,13 +266,18 @@ interface ContinuedRead {
 
 const MAX_CALLS = 20;
 
+const decodeCandidateDetailsInput = Schema.decodeUnknownOption(
+  peopleCandidateDetailsInputSchema
+);
+
 /** Follows the continuation the way the browser does, each call its own invocation. */
 const continueCandidateDetails = async (
   input: CandidateDetailsInput,
   servicesForCall: () => CandidateDetailsDependencies["people"],
-  calls = 0
+  calls = 0,
+  maxCalls = MAX_CALLS
 ): Promise<ContinuedRead> => {
-  if (calls === MAX_CALLS) {
+  if (calls === maxCalls) {
     throw new Error("Candidate details did not finish");
   }
   const accounting = new PlanningCenterRequestAccounting({
@@ -288,14 +300,20 @@ const continueCandidateDetails = async (
   if (!candidateDetailsAdvanced(input.continuation, batch)) {
     throw new Error("Candidate details made no progress");
   }
+  const next = {
+    ...input,
+    personIds: batch.deferredPersonIds,
+    continuation: batch.continuation,
+  };
+  // The browser sends the cursor back as is; the API must accept it.
+  if (Option.isNone(decodeCandidateDetailsInput(next))) {
+    throw new Error(`Call ${calls + 1} returned a cursor the API rejects`);
+  }
   const rest = await continueCandidateDetails(
-    {
-      ...input,
-      personIds: batch.deferredPersonIds,
-      continuation: batch.continuation,
-    },
+    next,
     servicesForCall,
-    calls + 1
+    calls + 1,
+    maxCalls
   );
   return {
     details: [...call.details, ...rest.details],
@@ -594,6 +612,335 @@ describe("candidate schedule history over paged plan times", () => {
       rehearsalsPerPerson: new Set([3]),
       everyCallWithinBudget: true,
       latePlanPages: new Set([0, 100, 200]),
+    });
+  });
+});
+
+const SELECTED_PLAN = "plan-selected";
+
+/** One Sunday-band schedule on `planId`, listing the times `timeIds`. */
+const datedSchedule = (
+  personId: string,
+  index: number,
+  planId: string,
+  sortDate: string,
+  timeIds: readonly string[] = []
+): PCResource => ({
+  type: "Schedule",
+  id: `${personId}-schedule-${index}`,
+  attributes: {
+    sort_date: sortDate,
+    status: "C",
+    team_position_name: "Vocals",
+    team_name: "Band",
+    service_type_name: "Sunday",
+  },
+  relationships: {
+    plan: { data: { type: "Plan", id: planId } },
+    times: { data: timeIds.map((id) => ({ type: "PlanTime", id })) },
+  },
+});
+
+const schedulesPath = (personId: string) =>
+  `/services/v2/people/${personId}/schedules`;
+
+const atDay = (start: string, days: number) =>
+  new Date(Date.parse(start) + days * DAY_MS).toISOString();
+
+/**
+ * Sixteen people, each with 201 schedules in the plan window (three pages, the selected plan's
+ * on the third) and 150 after it, in date order. No one has blockouts.
+ */
+const longScheduleOrg = (): FakeOrg => {
+  const collections = new Map<string, Collection>();
+  for (const personId of personIds) {
+    const inWindow = Array.from({ length: 200 }, (_, index) =>
+      datedSchedule(
+        personId,
+        index,
+        `${personId}-plan-${index}`,
+        atDay("2026-04-06T17:00:00Z", Math.floor(index / 8))
+      )
+    );
+    const selected = datedSchedule(personId, 200, SELECTED_PLAN, PLAN_DATE);
+    const later = Array.from({ length: 150 }, (_, index) =>
+      datedSchedule(
+        personId,
+        201 + index,
+        `${personId}-later-${index}`,
+        atDay("2026-06-20T17:00:00Z", index)
+      )
+    );
+    collections.set(`/services/v2/people/${personId}/schedules`, {
+      data: [...inWindow, selected, ...later],
+    });
+  }
+  return { collections, resources: new Map() };
+};
+
+describe("candidate schedule history past one page of schedules", () => {
+  const input: CandidateDetailsInput = {
+    personIds,
+    planId: SELECTED_PLAN,
+    date: PLAN_DATE,
+    scheduleHistory: true,
+  };
+
+  it("reads every schedule page in the window, from fresh and warm caches, and equals an exhaustive read", async () => {
+    const org = longScheduleOrg();
+    const server = fakePlanningCenter(org);
+    const caches = createPlanningCenterPeopleServiceCaches();
+    const warmService = peopleService(server.fetch, caches);
+
+    const fresh = await continueCandidateDetails(input, () =>
+      peopleService(server.fetch)
+    );
+    const exhaustive = await exhaustiveCandidateDetails(input, org);
+    await continueCandidateDetails(input, () => warmService);
+    const sentBeforeWarm = server.sent.length;
+    const warm = await continueCandidateDetails(input, () => warmService);
+
+    expect({
+      fresh: byPerson(fresh.details),
+      warm: byPerson(warm.details),
+      sentByWarm: server.sent.length - sentBeforeWarm,
+      historyLengths: new Set(
+        fresh.details.map(({ history }) => history?.serviceHistory.length)
+      ),
+      selected: new Set(
+        fresh.details.map(
+          ({ history }) => history?.selectedPlanAssignments[0]?.planId
+        )
+      ),
+      everyCallWithinBudget: fresh.requests.every(
+        (requests) => requests <= PROGRESSIVE_REQUEST_BUDGET
+      ),
+      severalCalls: fresh.batches.length > 1,
+      // The page after the window's end shows no more of it; the read stops there.
+      pages: new Set(pagesRead(server.sent, schedulesPath("p0"))),
+    }).toStrictEqual({
+      fresh: byPerson(exhaustive),
+      warm: byPerson(exhaustive),
+      sentByWarm: 0,
+      historyLengths: new Set([201]),
+      selected: new Set([SELECTED_PLAN]),
+      everyCallWithinBudget: true,
+      severalCalls: true,
+      pages: new Set([0, 100, 200]),
+    });
+  });
+
+  it("finishes someone every call when everyone still needs only several schedule pages", async () => {
+    // Availability came in earlier calls; schedule pages are never part of the cursor.
+    const collections = new Map<string, Collection>(
+      personIds.map((personId) => [
+        schedulesPath(personId),
+        {
+          data: Array.from({ length: 450 }, (_, index) =>
+            datedSchedule(
+              personId,
+              index,
+              `${personId}-plan-${index}`,
+              atDay("2026-04-06T17:00:00Z", Math.floor(index / 8))
+            )
+          ),
+        },
+      ])
+    );
+    const org = { collections, resources: new Map() };
+    const server = fakePlanningCenter(org);
+    const resumed: CandidateDetailsInput = {
+      ...input,
+      continuation: {
+        people: personIds.map((personId) => ({
+          personId,
+          blocked: false,
+          blockoutsOffset: null,
+          pendingBlockouts: [],
+          rehearsalTimes: { plans: [], times: [] },
+        })),
+      },
+    };
+
+    const continued = await continueCandidateDetails(resumed, () =>
+      peopleService(server.fetch)
+    );
+    const exhaustive = await exhaustiveCandidateDetails(resumed, org);
+
+    expect({
+      details: byPerson(continued.details),
+      everyCallFinishesSomeone: continued.batches.every(
+        ({ people }) => people.length > 0
+      ),
+    }).toStrictEqual({
+      details: byPerson(exhaustive),
+      everyCallFinishesSomeone: true,
+    });
+  });
+
+  it("fails typed, never short, when a window holds more schedule pages than allowed", async () => {
+    const collections = new Map<string, Collection>([
+      [
+        schedulesPath("p0"),
+        {
+          data: Array.from({ length: 1001 }, (_, index) =>
+            datedSchedule("p0", index, `plan-${index}`, PLAN_DATE)
+          ),
+        },
+      ],
+    ]);
+    const server = fakePlanningCenter({ collections, resources: new Map() });
+
+    const exit = await Effect.runPromiseExit(
+      getCandidateDetails(
+        { ...input, personIds: ["p0"] },
+        {
+          people: peopleService(server.fetch),
+          resolveTimeZone: Effect.succeed(ORG_TIME_ZONE),
+        }
+      )
+    );
+
+    expect(exit).toStrictEqual(
+      Exit.fail(
+        new PlanningCenterPaginationError({
+          reason: "page-limit",
+          path: schedulesPath("p0"),
+          pages: 10,
+        })
+      )
+    );
+  });
+});
+
+/** Two people, each serving 40 plans in the window whose rehearsal times come only from the plan. */
+const manyRehearsalPlansOrg = (): FakeOrg => {
+  const collections = new Map<string, Collection>();
+  for (const personId of ["p0", "p1"]) {
+    const schedules: PCResource[] = [];
+    for (let index = 0; index < 40; index += 1) {
+      const planId = `${personId}-rehearsed-${index}`;
+      const serviceAt = atDay("2026-04-06T17:00:00Z", index);
+      collections.set(`/services/v2/plans/${planId}/plan_times`, {
+        data: [
+          {
+            type: "PlanTime",
+            id: `${planId}-rehearsal`,
+            attributes: {
+              time_type: "rehearsal",
+              starts_at: atDay(serviceAt, -1),
+            },
+          },
+        ],
+      });
+      schedules.push(
+        datedSchedule(personId, index, planId, serviceAt, [
+          `${planId}-rehearsal`,
+        ])
+      );
+    }
+    collections.set(`/services/v2/people/${personId}/schedules`, {
+      data: schedules,
+    });
+  }
+  return { collections, resources: new Map() };
+};
+
+describe("candidate schedule history over many rehearsal plans", () => {
+  const input: CandidateDetailsInput = {
+    personIds: ["p0", "p1"],
+    planId: SELECTED_PLAN,
+    date: PLAN_DATE,
+    scheduleHistory: true,
+  };
+
+  it("reads every rehearsal plan in the window across calls and equals an exhaustive read", async () => {
+    const org = manyRehearsalPlansOrg();
+    const server = fakePlanningCenter(org);
+
+    const continued = await continueCandidateDetails(input, () =>
+      peopleService(server.fetch)
+    );
+    const exhaustive = await exhaustiveCandidateDetails(input, org);
+
+    expect({
+      details: byPerson(continued.details),
+      rehearsals: continued.details.map(rehearsals),
+      everyCallWithinBudget: continued.requests.every(
+        (requests) => requests <= PROGRESSIVE_REQUEST_BUDGET
+      ),
+      severalCalls: continued.batches.length > 1,
+      // No partial batch reports a person before their last plan is read.
+      partialsHoldBack: continued.batches
+        .slice(0, -1)
+        .every(({ people }) =>
+          people.every((detail) => rehearsals(detail) === 40)
+        ),
+    }).toStrictEqual({
+      details: byPerson(exhaustive),
+      rehearsals: [40, 40],
+      everyCallWithinBudget: true,
+      severalCalls: true,
+      partialsHoldBack: true,
+    });
+  });
+});
+
+describe("candidate availability over thousands of repeating blockouts", () => {
+  /** 2,000 repeating blockouts that may cover the plan day, none of whose dates do. */
+  const manyParentsOrg = (): FakeOrg => {
+    const parents = Array.from({ length: 2000 }, (_, index) =>
+      dailyRepeating(`parent-${index}`)
+    );
+    return {
+      collections: new Map([
+        ["/services/v2/people/p0/blockouts", { data: parents }],
+      ]),
+      resources: new Map(),
+    };
+  };
+  const input: CandidateDetailsInput = {
+    personIds: ["p0"],
+    planId: SELECTED_PLAN,
+    date: PLAN_DATE,
+    scheduleHistory: false,
+  };
+
+  it("keeps every cursor within what the API accepts and finishes as an exhaustive read does", async () => {
+    const org = manyParentsOrg();
+    const server = fakePlanningCenter(org);
+
+    const continued = await continueCandidateDetails(
+      input,
+      () => peopleService(server.fetch),
+      0,
+      80
+    );
+    const exhaustive = await exhaustiveCandidateDetails(input, org);
+    const sentKeys = server.sent.map(
+      ({ path, offset }) => `${path}?offset=${offset}`
+    );
+
+    expect({
+      details: continued.details,
+      // Near the cursor's limit, and never past it.
+      largestCursor:
+        Math.max(
+          ...continued.batches.map(
+            ({ continuation }) =>
+              continuation.people[0]?.pendingBlockouts.length ?? 0
+          )
+        ) >
+        MAX_PENDING_BLOCKOUTS - 100,
+      readOnce: new Set(sentKeys).size === sentKeys.length,
+      everyCallWithinBudget: continued.requests.every(
+        (requests) => requests <= PROGRESSIVE_REQUEST_BUDGET
+      ),
+    }).toStrictEqual({
+      details: exhaustive,
+      largestCursor: true,
+      readOnce: true,
+      everyCallWithinBudget: true,
     });
   });
 });

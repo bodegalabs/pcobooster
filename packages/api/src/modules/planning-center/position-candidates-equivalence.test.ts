@@ -689,10 +689,11 @@ const createOrg = ({ emptyWindow = false }: OrgFixture = {}) => {
       Effect.succeed(onlyPage(blockoutsByPerson.get(personId) ?? [])),
     getPersonBlockoutDatesPage: (_personId: string, blockoutId: string) =>
       Effect.succeed(onlyPage(blockoutDates.get(blockoutId) ?? [])),
-    getPersonSchedulesAfter: (personId: string) =>
+    getPersonSchedulesPage: (personId: string) =>
       Effect.succeed({
         data: structuredClone(schedulesByPerson.get(personId) ?? []),
         included: structuredClone(scheduleIncluded),
+        nextOffset: null,
       }),
     getPlanPlanTimesPage: (planId: string) =>
       Effect.succeed(

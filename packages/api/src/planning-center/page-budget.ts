@@ -11,6 +11,8 @@ export interface PageRead {
   readonly pages: number;
   /** The read's first page for someone this call has not read for yet. */
   readonly starts: boolean;
+  /** Room the read must leave for reads that come before it and are not ready yet. */
+  readonly reserve?: number;
   /**
    * Reads the page(s) and records what they showed, so the next round asks for what follows.
    * Built for every ready read, admitted or not, so it must not start anything until run.
@@ -50,7 +52,10 @@ export const readPagesWithinBudget = (
         PROGRESSIVE_REQUEST_BUDGET - (yield* planningCenterRequestsSpent);
       const admitted: PageRead[] = [];
       for (const read of ready) {
-        const reserve = read.starts ? startReserve : 0;
+        const reserve = Math.max(
+          read.starts ? startReserve : 0,
+          read.reserve ?? 0
+        );
         const first = !advanced && admitted.length === 0;
         if (!first && read.pages + reserve > remaining) {
           continue;

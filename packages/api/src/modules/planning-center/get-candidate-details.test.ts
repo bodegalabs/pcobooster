@@ -155,13 +155,14 @@ const createPeople = (fixtures: Readonly<Record<string, PersonFixture>>) => {
         );
       }
     ),
-    getPersonSchedulesAfter: vi.fn<People["getPersonSchedulesAfter"]>(
+    getPersonSchedulesPage: vi.fn<People["getPersonSchedulesPage"]>(
       (personId) => {
         const { plans = [] } = fixtures[personId] ?? {};
         // `include=plan_times` sideloads only service times.
         return countedRead({
           data: plans.map(({ schedule }) => schedule),
           included: plans.map(({ service }) => service),
+          nextOffset: null,
         });
       }
     ),
@@ -277,13 +278,13 @@ describe(getCandidateDetails, () => {
     );
 
     expect({
-      schedules: people.getPersonSchedulesAfter.mock.calls,
+      schedules: people.getPersonSchedulesPage.mock.calls,
       planReads: people.getPlanPlanTimesPage.mock.calls.map(
         ([planId]) => planId
       ),
       rehearsals: rehearsalItems(batch.people[0]),
     }).toStrictEqual({
-      schedules: [["p1", "2026-04-05", 2]],
+      schedules: [["p1", "2026-04-05", 0]],
       planReads: [plans[0]?.planId],
       rehearsals: [`${plans[0]?.schedule.id}:${plans[0]?.rehearsal.id}`],
     });
