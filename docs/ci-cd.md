@@ -76,7 +76,7 @@ Release the Expo app locally on a Mac with Xcode and CocoaPods, from a clean com
 infisical run --env=prod --path=/ --path=/apple --projectId=2eca20e1-20ac-4f06-a086-99ea5c590483 -- bun run ios:release
 ```
 
-`apps/mobile/scripts/release-ios.sh` generates the native workspace with Expo when native inputs change, installs Pods when needed, archives Release for arm64 iOS without development signing, then automatically signs for team `6C46GY4Z38` and uploads to App Store Connect. The app keeps version `0.1.0`, bundle ID `com.pcobooster.ios`, and the production API origin `https://pcobooster.com`. No simulator or Swift app dependencies are used.
+`apps/mobile/scripts/release-ios.sh` regenerates the native workspace with Expo's clean prebuild for every new release archive, installs Pods, archives Release for arm64 iOS without development signing, then automatically signs for team `6C46GY4Z38` and uploads to App Store Connect. Local edits to ignored generated native files cannot enter a new archive. The app keeps version `0.1.0`, bundle ID `com.pcobooster.ios`, and the production API origin `https://pcobooster.com`. The existing `POSTHOG_PROJECT_KEY` supplies the public analytics key unless `EXPO_PUBLIC_POSTHOG_KEY` overrides it. No simulator or Swift app dependencies are used.
 
 `BUILD_NUMBER` defaults to the committed HEAD's ancestry count and must exceed the previous native release build 292. Set a new positive integer explicitly when releasing more than once from the same revision or when App Store Connect has already used the default. Expo also validates `BUILD_NUMBER` when generating native configuration; ordinary development builds default to `1`.
 
