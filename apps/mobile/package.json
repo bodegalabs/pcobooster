@@ -12,6 +12,7 @@
     "test": "vitest run --root ../.. apps/mobile/src",
     "ios:build": "bash scripts/build-ios.sh",
     "ios:release": "bash scripts/release-ios.sh",
+    "ios:release:status": "bun run scripts/release/release-cli.ts status --build",
     "ios:hermes-gate": "bun run scripts/hermes-gate/gate.ts",
     "ios:capture": "bash scripts/capture.sh",
     "ios:compare": "bash scripts/compare.sh",

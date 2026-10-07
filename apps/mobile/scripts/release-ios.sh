@@ -3,6 +3,7 @@
 # Usage: bun run ios:release [--no-upload] [--skip-build]
 # --no-upload signs and exports an IPA without uploading it.
 # --skip-build exports the existing archive only if it matches this clean revision.
+# BUILD_NUMBER picks the build number; with an API key the next free one is the default.
 set -euo pipefail
 
 mobile="$(cd "$(dirname "$0")/.." && pwd)"
@@ -16,7 +17,7 @@ for argument in "$@"; do
     --no-upload) destination=export ;;
     --skip-build) skip_build=1 ;;
     --) ;;
-    -h | --help) sed -n '2,5p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h | --help) sed -n '2,6p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "Unknown option: $argument" >&2; exit 64 ;;
   esac
 done
@@ -29,25 +30,12 @@ assert_clean() {
 }
 assert_clean
 revision="$(git -C "$repo" rev-parse HEAD)"
-if [[ "$skip_build" == 1 ]]; then
-  if [[ ! -d "$archive" || "$(cat "$out/revision" 2>/dev/null)" != "$revision" ]]; then
-    echo "No archive exists for this exact revision. Run without --skip-build." >&2
-    exit 1
-  fi
-  build="${BUILD_NUMBER:-$(cat "$out/build-number")}"
-else
-  build="${BUILD_NUMBER:-$(git -C "$repo" rev-list --count HEAD)}"
-fi
-if [[ ! "$build" =~ ^[1-9][0-9]*$ ]]; then
-  echo "BUILD_NUMBER must be a positive integer without leading zeros." >&2
+if [[ -n "${EXPO_PUBLIC_PCOB_RELEASE_SMOKE:-}" ]]; then
+  echo "EXPO_PUBLIC_PCOB_RELEASE_SMOKE builds the fixture smoke app; unset it to release." >&2
   exit 64
 fi
-# The previous native app used build 292 for version 0.1.0.
-if [[ ${#build} -lt 3 || ( ${#build} -eq 3 && "$build" < 293 ) ]]; then
-  echo "BUILD_NUMBER must exceed the previous release build 292." >&2
-  exit 64
-fi
-export BUILD_NUMBER="$build"
+# Dotenv files are ignored by Git, so they could change the bundle without changing the revision.
+export EXPO_NO_DOTENV=1
 export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
 
 # Keep credentials out of Expo, Metro, CocoaPods, and the unsigned archive environment.
@@ -55,8 +43,9 @@ key_id="${ASC_KEY_ID:-}"
 issuer_id="${ASC_ISSUER_ID:-}"
 key_base64="${ASC_KEY_P8_BASE64:-}"
 key_path="${ASC_KEY_PATH:-}"
-unset ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8_BASE64 ASC_KEY_PATH
-using_key=0
+requested_build="${BUILD_NUMBER:-}"
+unset ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8_BASE64 ASC_KEY_PATH BUILD_NUMBER
+has_key=0
 if [[ -n "$key_id$issuer_id$key_base64$key_path" ]]; then
   if [[ -z "$key_id" || -z "$issuer_id" || ( -z "$key_base64" && -z "$key_path" ) ]]; then
     echo "Supply ASC_KEY_ID, ASC_ISSUER_ID, and ASC_KEY_P8_BASE64 or ASC_KEY_PATH together." >&2
@@ -70,20 +59,60 @@ if [[ -n "$key_id$issuer_id$key_base64$key_path" ]]; then
     echo "ASC_KEY_PATH must point to a readable private key." >&2
     exit 64
   fi
-  using_key=1
-elif [[ "${CI:-}" == true ]]; then
-  echo "CI requires an App Store Connect API key for distribution signing." >&2
-  exit 1
+  has_key=1
 fi
 
+cli() { (cd "$mobile" && bun run scripts/release/release-cli.ts "$@"); }
+# Only these reads see the key; xcodebuild gets it as arguments at export.
+asc_cli() {
+  if [[ "$has_key" == 1 ]]; then
+    ASC_KEY_ID="$key_id" ASC_ISSUER_ID="$issuer_id" ASC_KEY_PATH="$key_path" cli "$@"
+  else
+    cli "$@"
+  fi
+}
+
+signing_args=()
+if [[ "$has_key" == 1 ]]; then signing_args+=(--has-key); fi
+signing="$(cli signing ${signing_args[@]+"${signing_args[@]}"})"
+
 key_dir=""
+locked=0
 cleanup() {
   if [[ -n "$key_dir" ]]; then rm -rf "$key_dir"; fi
+  if [[ "$locked" == 1 ]]; then cli lock release --pid $$ || true; fi
 }
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
+if [[ -n "$key_base64" ]]; then
+  key_dir="$(mktemp -d "${TMPDIR:-/tmp}/pcob-asc.XXXXXX")"
+  chmod 700 "$key_dir"
+  key_path="$key_dir/AuthKey_${key_id}.p8"
+  (umask 077 && printf '%s' "$key_base64" | base64 --decode > "$key_path")
+  chmod 600 "$key_path"
+  unset key_base64
+fi
+
+# One release per machine at a time, so two never take the same build number.
+cli lock acquire --pid $$ --revision "$revision"
+locked=1
 cd "$mobile"
+
+if [[ "$skip_build" == 1 ]]; then
+  if [[ ! -d "$archive" || "$(cat "$out/revision" 2>/dev/null)" != "$revision" ]]; then
+    echo "No archive exists for this exact revision. Run without --skip-build." >&2
+    exit 1
+  fi
+  build="$(cat "$out/build-number")"
+  if [[ -n "$requested_build" && "$requested_build" != "$build" ]]; then
+    echo "This archive is build $build; BUILD_NUMBER cannot change it." >&2
+    exit 64
+  fi
+else
+  build="$(asc_cli build-number choose --pid $$ --revision "$revision" ${requested_build:+--requested "$requested_build"})"
+fi
+export BUILD_NUMBER="$build"
 
 if [[ "$skip_build" == 0 ]]; then
   available_kib="$(df -Pk "$mobile" | awk 'NR == 2 { print $4 }')"
@@ -91,6 +120,8 @@ if [[ "$skip_build" == 0 ]]; then
     echo "A release archive requires at least 15 GiB of free disk space." >&2
     exit 1
   fi
+  echo "==> Release Hermes gate (host engine, before archiving)"
+  bun run scripts/hermes-gate/gate.ts
   mkdir -p build
   # Generated native source is ignored by Git, so a clean checkout alone cannot
   # prove it matches the revision. Regenerate it for every new release archive.
@@ -120,7 +151,8 @@ if [[ "$skip_build" == 0 ]]; then
   printf '%s\n' "$build" > "$out/build-number"
 fi
 
-info="$archive/Products/Applications/PCOBooster.app/Info.plist"
+app="$archive/Products/Applications/PCOBooster.app"
+info="$app/Info.plist"
 version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$info")"
 archived_build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$info")"
 bundle="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$info")"
@@ -128,17 +160,11 @@ if [[ "$bundle" != com.pcobooster.ios || "$version" != 0.1.0 || "$archived_build
   echo "Archive identity, version, or build number does not match this release." >&2
   exit 1
 fi
+echo "==> Release Hermes gate (host engine, archived bytecode version)"
+bun run scripts/hermes-gate/gate.ts --bundle "$app/main.jsbundle"
 
 auth=(-allowProvisioningUpdates)
-if [[ "$using_key" == 1 ]]; then
-  if [[ -n "$key_base64" ]]; then
-    key_dir="$(mktemp -d "${TMPDIR:-/tmp}/pcob-asc.XXXXXX")"
-    chmod 700 "$key_dir"
-    key_path="$key_dir/AuthKey_${key_id}.p8"
-    (umask 077 && printf '%s' "$key_base64" | base64 --decode > "$key_path")
-    chmod 600 "$key_path"
-    unset key_base64
-  fi
+if [[ "$signing" == api-key ]]; then
   auth+=(-authenticationKeyPath "$key_path" -authenticationKeyID "$key_id" -authenticationKeyIssuerID "$issuer_id")
 fi
 cat > "$out/ExportOptions.plist" <<PLIST
@@ -154,12 +180,18 @@ cat > "$out/ExportOptions.plist" <<PLIST
   <key>uploadSymbols</key><true/>
 </dict></plist>
 PLIST
+if [[ "$destination" == upload ]]; then
+  # Another release may have uploaded this number, or a higher one, while this one archived.
+  asc_cli build-number verify --build "$build"
+fi
 rm -rf "$out/export"
-echo "==> Exporting pcobooster.com $version ($build), destination=$destination"
+echo "==> Exporting pcobooster.com $version ($build), destination=$destination, signing=$signing"
+# One attempt: a failed upload is never retried here, so it cannot upload a duplicate.
 xcodebuild -exportArchive -archivePath "$archive" \
   -exportOptionsPlist "$out/ExportOptions.plist" -exportPath "$out/export" "${auth[@]}"
+echo "==> dSYMs for symbolication: $archive/dSYMs"
 if [[ "$destination" == upload ]]; then
-  echo "==> Upload finished. Verify App Store Connect processing and TestFlight availability separately."
+  echo "==> Upload finished. Check processing and TestFlight with: bun run ios:release:status $build"
 else
   echo "==> Signed IPA exported to $out/export"
 fi
