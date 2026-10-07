@@ -18,6 +18,7 @@ import {
 } from "@pcobooster/planning-center-models/song-library";
 
 import { displayKey } from "../../lib/song-keys";
+import { songDisplayTitle } from "./library";
 
 /**
  * One song's facts, ported from the Swift `SongDetailModel` and its sections: when it was last
@@ -306,17 +307,13 @@ export const keyOptionLabel = (key: KeyOption): string => {
 };
 
 /**
- * Picks the service type `songs.options` is read under. The arrangements it returns are the
- * same for every service type; the latest one the song was sung at, else the organization's
- * first, keeps the read on a service type the person can see.
+ * The latest service type the song was sung at, for reading `songs.options`. The arrangements
+ * it returns are the same for every service type; one the song was on is one the person sees.
  */
-export const optionsServiceTypeId = (
-  history: readonly SongHistoryEntry[] | undefined,
-  serviceTypes: readonly { readonly id: string }[] | undefined
+export const historyServiceTypeId = (
+  history: readonly SongHistoryEntry[] | undefined
 ): string | null =>
-  history?.find((entry) => entry.serviceTypeId !== null)?.serviceTypeId ??
-  serviceTypes?.[0]?.id ??
-  null;
+  history?.find((entry) => entry.serviceTypeId !== null)?.serviceTypeId ?? null;
 
 /** Why a song didn't open, so the screen can say what would help (`chordChartLoadFailure`). */
 export type SongLoadFailure =
@@ -413,3 +410,39 @@ export const planningCenterArrangementUrl = (
   arrangementId: string
 ): string =>
   `${planningCenterSongUrl(songId)}/arrangements/${encodeURIComponent(arrangementId)}`;
+
+const THEME_SEPARATOR = ",";
+
+interface SongNameSource {
+  readonly title: string;
+  readonly author: string;
+}
+
+export interface SongIdentity {
+  /** The display title; null until something names the song. */
+  readonly title: string | null;
+  /** The title as Planning Center has it, for the recent list. */
+  readonly rawTitle: string | null;
+  readonly author: string;
+  readonly themes: readonly string[];
+}
+
+/**
+ * Names the song from the first read that knows it: the options, the chart, the library's
+ * cached row, then this device's recent list.
+ */
+export const songIdentity = (
+  sources: readonly (SongNameSource | undefined)[],
+  themes: string
+): SongIdentity => {
+  const source = sources.find((candidate) => candidate !== undefined);
+  return {
+    title: source === undefined ? null : songDisplayTitle(source.title),
+    rawTitle: source?.title ?? null,
+    author: source?.author ?? "",
+    themes: themes
+      .split(THEME_SEPARATOR)
+      .map((theme) => theme.trim())
+      .filter((theme) => theme !== ""),
+  };
+};

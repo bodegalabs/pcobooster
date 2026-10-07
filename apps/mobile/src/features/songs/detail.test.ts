@@ -11,10 +11,11 @@ import {
   historyNamesArrangements,
   historyRowDetail,
   keyOptionLabel,
-  optionsServiceTypeId,
+  historyServiceTypeId,
   planningCenterArrangementUrl,
   serviceTypeCounts,
   songFacts,
+  songIdentity,
   songLoadFailure,
   songScreenFailure,
   splitSongHistory,
@@ -227,12 +228,12 @@ describe("arrangements", () => {
     ).toBe("No key");
   });
 
-  it("reads options under the latest service type sung at, else the first one", () => {
-    expect(optionsServiceTypeId(history, [{ id: "first" }])).toBe(
-      "st-Special Events"
-    );
-    expect(optionsServiceTypeId([], [{ id: "first" }])).toBe("first");
-    expect(optionsServiceTypeId([], [])).toBeNull();
+  it("reads options under the latest service type the song was sung at", () => {
+    expect(historyServiceTypeId(history)).toBe("st-Special Events");
+    expect(
+      historyServiceTypeId([entry("2026-01-04T17:00:00.000Z", "")])
+    ).toBeNull();
+    expect(historyServiceTypeId([])).toBeNull();
   });
 
   it("encodes Planning Center links", () => {
@@ -287,5 +288,31 @@ describe("song load failures", () => {
         chart: failed(notFound),
       })
     ).toBeNull();
+  });
+});
+
+describe(songIdentity, () => {
+  it("names the song from the first read that knows it, with trimmed themes", () => {
+    expect(
+      songIdentity(
+        [
+          undefined,
+          { title: "  ", author: "Maya Ellison" },
+          { title: "Later", author: "" },
+        ],
+        "Praise, , Morning "
+      )
+    ).toStrictEqual({
+      title: "Untitled song",
+      rawTitle: "  ",
+      author: "Maya Ellison",
+      themes: ["Praise", "Morning"],
+    });
+    expect(songIdentity([undefined], "")).toStrictEqual({
+      title: null,
+      rawTitle: null,
+      author: "",
+      themes: [],
+    });
   });
 });

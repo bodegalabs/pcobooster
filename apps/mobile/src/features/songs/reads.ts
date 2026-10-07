@@ -1,4 +1,5 @@
 import { callForQuery, speculativeQuery } from "@pcobooster/client/query";
+import type { chordChartSongOutputSchema } from "@pcobooster/contracts/http/chord-charts";
 import { queryOptions } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 
@@ -14,6 +15,8 @@ import type { RecentSong } from "./library";
  * opened from either place reads once.
  */
 export type SongsReadContext = PlanReadContext;
+
+export type ChordChartSongOutput = typeof chordChartSongOutputSchema.Type;
 
 /** The library is cached for an hour (the Swift and web library). */
 const LIBRARY_STALE_MS = 3_600_000;
