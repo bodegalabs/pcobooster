@@ -1,14 +1,13 @@
 import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
-import {
-  keepPreviousData,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { useIsFocused } from "expo-router";
+import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 
 import { useFeatures } from "../../app-shell/features";
 import { failureMessage, useProductClient } from "../../app-shell/queries";
+import {
+  useVisibleQuery,
+  useReadVisibility,
+} from "../../app-shell/visible-queries";
 import { useClock, useOrgTimeZone } from "../../lib/environment";
 import {
   cachedDashboard,
@@ -38,7 +37,7 @@ export const usePersonDetail = (
 ) => {
   const context = useProductClient();
   const cache = useQueryClient();
-  const isFocused = useIsFocused();
+  const isFocused = useReadVisibility();
   const features = useFeatures();
   const timeZone = useOrgTimeZone();
   const now = useClock().now();
@@ -55,7 +54,7 @@ export const usePersonDetail = (
     [cache, context.scope]
   );
 
-  const detailQuery = useQuery({
+  const detailQuery = useVisibleQuery({
     ...peopleReads.person(context, personId, month),
     enabled,
     subscribed: isFocused,
@@ -66,7 +65,7 @@ export const usePersonDetail = (
         : undefined) ??
       placeholderDetail(dashboard, personId, null),
   });
-  const blockoutsQuery = useQuery({
+  const blockoutsQuery = useVisibleQuery({
     ...peopleReads.blockouts(context, personId),
     enabled,
     subscribed: isFocused,

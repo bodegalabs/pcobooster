@@ -1,12 +1,16 @@
 import { PEOPLE_DASHBOARD_ACTIVITY_BATCH_SIZE } from "@pcobooster/contracts/people";
 import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
-import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
-import { useIsFocused } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useFeatures } from "../../app-shell/features";
 import { failureMessage, useProductClient } from "../../app-shell/queries";
+import {
+  useVisibleQuery,
+  useVisibleQueries,
+  useReadVisibility,
+} from "../../app-shell/visible-queries";
 import { useClock, useOrgTimeZone } from "../../lib/environment";
 import {
   assembleDashboard,
@@ -118,13 +122,13 @@ export const usePeopleDashboard = () => {
   const { scope: accountScope } = context;
   const cache = useQueryClient();
   // Reads run while the screen is on screen and the account has the `people` flag.
-  const isFocused = useIsFocused();
+  const isFocused = useReadVisibility();
   const features = useFeatures();
   const isActive = isFocused && features.people;
   const timeZone = useOrgTimeZone();
   const todayKey = formatCalendarDayInTimeZone(useClock().now(), timeZone);
 
-  const rosterQuery = useQuery({
+  const rosterQuery = useVisibleQuery({
     ...peopleReads.roster(context),
     subscribed: isActive,
   });
@@ -172,7 +176,7 @@ export const usePeopleDashboard = () => {
   const batches = orderActivityBatches(sampleBatches, searchBatches, (ids) =>
     hasStarted(cache, accountScope, ids)
   );
-  const batchQueries = useQueries({
+  const batchQueries = useVisibleQueries({
     queries: batches.map((personIds, index) => {
       const gate = batches[index - PEOPLE_DASHBOARD_BATCH_CONCURRENCY];
       return {

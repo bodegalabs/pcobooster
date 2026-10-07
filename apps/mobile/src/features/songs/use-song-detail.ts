@@ -1,9 +1,10 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 import { useFeatures } from "../../app-shell/features";
 import { useProductClient } from "../../app-shell/queries";
+import { useVisibleQuery } from "../../app-shell/visible-queries";
 import { useClock } from "../../lib/environment";
 import {
   activeFirst,
@@ -35,7 +36,7 @@ const useSongOptions = (
     [cache, context]
   );
   const fromHistory = historyServiceTypeId(history);
-  const serviceTypes = useQuery({
+  const serviceTypes = useVisibleQuery({
     ...songsReads.serviceTypes(context),
     enabled:
       cachedServiceTypeId === null && historySettled && fromHistory === null,
@@ -46,7 +47,7 @@ const useSongOptions = (
   if (serviceTypeId === null && candidate !== null) {
     setServiceTypeId(candidate);
   }
-  const options = useQuery({
+  const options = useVisibleQuery({
     ...songsReads.options(context, serviceTypeId ?? "", songId),
     enabled: serviceTypeId !== null,
   });
@@ -98,12 +99,12 @@ export const useSongDetail = (songId: string) => {
   const now = useMemo(() => clock.now(), [clock]);
   const chartsEnabled = features.chordCharts;
 
-  const history = useQuery(songsReads.history(context, songId));
-  const chart = useQuery({
+  const history = useVisibleQuery(songsReads.history(context, songId));
+  const chart = useVisibleQuery({
     ...songsReads.chart(context, songId),
     enabled: chartsEnabled,
   });
-  const recents = useQuery(recentSongsQuery(context.scope));
+  const recents = useVisibleQuery(recentSongsQuery(context.scope));
   const libraryEntry: SongLibraryEntry | undefined = useMemo(
     () =>
       cache

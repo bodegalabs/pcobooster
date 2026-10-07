@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Option, Schema } from "effect";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
@@ -6,6 +6,10 @@ import { Settings } from "react-native";
 
 import { useFeatures } from "../../app-shell/features";
 import { useProductClient } from "../../app-shell/queries";
+import {
+  useVisibleQuery,
+  useVisibleReadSignal,
+} from "../../app-shell/visible-queries";
 import { playHaptic } from "../../design/haptics";
 import { useClock, useOrgTimeZone } from "../../lib/environment";
 import {
@@ -46,6 +50,7 @@ const storedString = (key: string): string | null =>
 export const useSongLibrary = () => {
   const context = useProductClient();
   const cache = useQueryClient();
+  const readSignal = useVisibleReadSignal();
   const router = useRouter();
   const features = useFeatures();
   const timeZone = useOrgTimeZone();
@@ -59,11 +64,11 @@ export const useSongLibrary = () => {
     parseSongLibrarySort(storedString(SORT_KEY))
   );
   const [searchText, setSearchText] = useState("");
-  const library = useQuery({
+  const library = useVisibleQuery({
     ...songsReads.library(context),
     enabled: features.chordCharts,
   });
-  const recents = useQuery(recentSongsQuery(context.scope));
+  const recents = useVisibleQuery(recentSongsQuery(context.scope));
   const query = searchText.trim();
   const view = useMemo(() => ({ filter, sort, query }), [filter, sort, query]);
   const songs = library.data?.songs;
@@ -105,7 +110,13 @@ export const useSongLibrary = () => {
   };
   const showActions = (row: SongRowData) => {
     // A deliberate long press is clear intent to look at the song.
-    void prefetchSong(cache, context, row.id, features.chordCharts);
+    void prefetchSong(
+      cache,
+      context,
+      row.id,
+      features.chordCharts,
+      readSignal()
+    );
     showSongActions({
       title: row.title,
       songId: row.id,

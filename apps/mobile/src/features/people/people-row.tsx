@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { ActionSheetIOS, Pressable, StyleSheet, View } from "react-native";
 
 import { useProductClient } from "../../app-shell/queries";
+import { useVisibleReadSignal } from "../../app-shell/visible-queries";
 import { Hairline } from "../../components/hairline";
 import { PersonAvatar } from "../../components/person-avatar";
 import { StatusBadge } from "../../components/status-badge";
@@ -87,13 +88,14 @@ const usePersonActions = () => {
   const router = useRouter();
   const context = useProductClient();
   const cache = useQueryClient();
+  const readSignal = useVisibleReadSignal();
   const openPlanningCenter = useOpenPlanningCenterPerson();
   return {
     open: (personId: string) => {
       router.push(peopleDestinations.person(personId));
     },
     showActions: (person: RosterPerson) => {
-      void prefetchPerson(context, cache, person.id);
+      void prefetchPerson(context, cache, person.id, readSignal());
       ActionSheetIOS.showActionSheetWithOptions(
         {
           title: person.name,

@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import type { NativeStackHeaderItem } from "expo-router";
@@ -13,6 +12,7 @@ import {
 
 import { useFeatures } from "../../app-shell/features";
 import { failureMessage, useProductClient } from "../../app-shell/queries";
+import { useVisibleQuery } from "../../app-shell/visible-queries";
 import { EmptyState } from "../../components/empty-state";
 import { InfoBanner } from "../../components/info-banner";
 import { PillButton } from "../../components/pill-button";
@@ -309,7 +309,7 @@ export const ChordChartScreen = () => {
   const router = useRouter();
   const context = useProductClient();
   const features = useFeatures();
-  const chart = useQuery({
+  const chart = useVisibleQuery({
     ...songsReads.chart(context, songId),
     enabled: features.chordCharts,
   });

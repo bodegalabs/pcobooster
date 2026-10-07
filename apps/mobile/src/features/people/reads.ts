@@ -186,14 +186,15 @@ export const cachedActivities = (
 export const prefetchPerson = async (
   context: ProductClientContextValue,
   cache: QueryClient,
-  personId: string
+  personId: string,
+  signal?: AbortSignal
 ): Promise<void> => {
   try {
     await context.scheduler.runSpeculative(async () => {
       await cache.query(
         speculativeQuery(peopleReads.person(context, personId, null))
       );
-    });
+    }, signal);
   } catch {
     // A warm-up that fails stays on the query; opening the person reads it again and shows it.
   }
