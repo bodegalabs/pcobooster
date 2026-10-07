@@ -38,6 +38,7 @@ import {
 } from "./detail";
 import type { ChordChartArrangement } from "./detail";
 import { songDisplayTitle } from "./library";
+import { songChartPdfHref } from "./preview-reads";
 import type { ChordChartSongOutput } from "./reads";
 import { songsReads } from "./reads";
 
@@ -64,7 +65,8 @@ const chartMenu = (
   arrangement: ChordChartArrangement,
   targetId: string,
   songId: string,
-  select: (arrangementId: string, target: string | null) => void
+  select: (arrangementId: string, target: string | null) => void,
+  openPdf: () => void
 ): NativeStackHeaderItem => ({
   type: "menu",
   label: "Chart",
@@ -115,6 +117,12 @@ const chartMenu = (
         label: "",
         inline: true,
         items: [
+          {
+            type: "action" as const,
+            label: "Planning Center PDF",
+            icon: { type: "sfSymbol" as const, name: "doc.text" as const },
+            onPress: openPdf,
+          },
           {
             type: "action" as const,
             label: "Open in Planning Center",
@@ -296,7 +304,7 @@ const ChartBody = ({
 /**
  * An arrangement's chord chart, read only, for reading at a music stand: its saved Lyrics &
  * Chords in one of its keys (transposed from the key it is written in) or as lyrics. The menu
- * switches arrangement and key; Planning Center's own PDF and attachments open there. Behind
+ * switches arrangement and key, and opens Planning Center's own PDF of the same chart. Behind
  * the `chordCharts` flag.
  */
 export const ChordChartScreen = () => {
@@ -352,7 +360,16 @@ export const ChordChartScreen = () => {
                     arrangement,
                     chartTargetId(target),
                     songId,
-                    select
+                    select,
+                    () => {
+                      router.push(
+                        songChartPdfHref(
+                          songId,
+                          arrangement.id,
+                          chartTargetId(target)
+                        )
+                      );
+                    }
                   ),
                 ],
         }}

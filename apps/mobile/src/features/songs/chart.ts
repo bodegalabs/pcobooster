@@ -14,8 +14,8 @@ import type { ChordChartArrangement, KeyOption } from "./detail";
 /**
  * A read-only reading of an arrangement's Lyrics & Chords text (Services' ChordPro-based
  * format): section headings, chord lines over lyrics, and inline `[G]` chords, in one of the
- * arrangement's keys or as a lyrics sheet. Planning Center's own PDF needs a native PDF view
- * this app doesn't ship, so the chart is drawn from the saved text instead.
+ * arrangement's keys or as a lyrics sheet. Planning Center's own PDF of the same chart opens in
+ * `chart-pdf-screen.tsx`.
  */
 
 /** What the chart shows: one of the arrangement's keys, or its lyrics. */

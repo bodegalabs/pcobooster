@@ -45,6 +45,7 @@ import {
   splitSongHistory,
 } from "./detail";
 import type { ArrangementRowData, SongFact, SongHistoryEntry } from "./detail";
+import { songChartPdfHref } from "./preview-reads";
 import { songChartHref } from "./reads";
 import type { SongDetailModel } from "./use-song-detail";
 
@@ -274,7 +275,8 @@ export const SongFactsCard = ({ model }: { model: SongDetailModel }) => {
 
 /**
  * The chart of the first arrangement that has one, in its first key, as text drawn from the
- * saved Lyrics & Chords. "View Chart" opens it full screen with every arrangement and key.
+ * saved Lyrics & Chords. "View Chart" opens it full screen with every arrangement and key; "PDF"
+ * opens Planning Center's own render of it.
  */
 export const SongChartCard = ({ model }: { model: SongDetailModel }) => {
   const router = useRouter();
@@ -318,7 +320,14 @@ export const SongChartCard = ({ model }: { model: SongDetailModel }) => {
           lines={reading.lines.slice(0, CHART_PREVIEW_LINES)}
           testID="song-chart-preview"
         />
-        <View style={{ alignItems: "flex-start", paddingTop: Spacing.sm }}>
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: Spacing.sm,
+            paddingTop: Spacing.sm,
+          }}
+        >
           <PillButton
             onPress={() => {
               router.push(
@@ -329,6 +338,23 @@ export const SongChartCard = ({ model }: { model: SongDetailModel }) => {
             symbol="chordChart"
             testID="song-view-chart"
             title="View Chart"
+          />
+          <PillButton
+            accessibilityHint="Opens Planning Center's PDF of this chart"
+            kind="secondary"
+            onPress={() => {
+              router.push(
+                songChartPdfHref(
+                  model.songId,
+                  withChart.id,
+                  chartTargetId(target)
+                )
+              );
+            }}
+            size="small"
+            symbol="document"
+            testID="song-view-chart-pdf"
+            title="PDF"
           />
         </View>
       </View>

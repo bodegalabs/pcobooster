@@ -41,6 +41,7 @@ import { DiagnosticsProbeError, diagnosticsProbe } from "../diagnostics/probes";
 import { releaseMetadata } from "../diagnostics/release-metadata";
 import { sessionContextFor } from "../diagnostics/session-context";
 import { FeedbackDraftProvider } from "../features/account/feedback-draft";
+import { clearSongPreviews } from "../features/songs/preview-files";
 import {
   launchOptions,
   releaseSmokeNetwork,
@@ -129,6 +130,7 @@ const deviceServices = {
     : globalThis.fetch,
   onForget: (userIds: readonly string[]) => {
     void cacheStorage.forget(userIds);
+    clearSongPreviews();
   },
 };
 
