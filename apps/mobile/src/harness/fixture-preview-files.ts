@@ -1,5 +1,6 @@
 /** Development-only stored files for the attachment fixtures, so previews draw without a network. */
-import type { PreviewFiles } from "../features/songs/previews";
+import type { PreviewStore } from "../features/songs/preview-store";
+import { fixtureMedia } from "./fixture-media";
 import pdfFixture from "./fixtures/chordCharts.pdf.json";
 
 const FIXTURE_HOST = "fixtures.invalid";
@@ -14,22 +15,39 @@ const fixtureFileBytes = new Map([
   ["88005", pdfFixture.default.data],
 ]);
 
+/** The attachment id of a fixture link, or null for any real link. */
+const fixtureId = (url: URL): string | null =>
+  url.hostname === FIXTURE_HOST ? (url.pathname.split("/").at(-1) ?? "") : null;
+
 /**
  * Serves the fixtures' signed links from bundled bytes and refuses every other fixture link, as
- * an expired or missing file would; any real link goes to `device`.
+ * an expired or missing file would; any real link goes to `device`. Fixture audio and video are
+ * written to the device and played from there, so the player works offline.
  */
-export const fixturePreviewFiles = (device: PreviewFiles): PreviewFiles => ({
-  writeBase64: device.writeBase64,
+export const fixturePreviewStore = (device: PreviewStore): PreviewStore => ({
+  ...device,
   download: async (scope, folder, name, url, signal) => {
-    if (!URL.canParse(url) || new URL(url).hostname !== FIXTURE_HOST) {
+    const id = fixtureId(url);
+    if (id === null) {
       return await device.download(scope, folder, name, url, signal);
     }
     signal.throwIfAborted();
-    const id = new URL(url).pathname.split("/").at(-1) ?? "";
     const bytes = fixtureFileBytes.get(id);
     if (bytes === undefined) {
       throw new Error("The fixture has no stored file at this link.");
     }
     return device.writeBase64(scope, folder, name, bytes);
+  },
+  playable: async (scope, folder, name, url, signal) => {
+    const id = fixtureId(url);
+    if (id === null) {
+      return await device.playable(scope, folder, name, url, signal);
+    }
+    signal.throwIfAborted();
+    const media = fixtureMedia.get(id);
+    if (media === undefined) {
+      throw new Error("The fixture has no media at this link.");
+    }
+    return device.writeBase64(scope, folder, media.name, media.base64());
   },
 });

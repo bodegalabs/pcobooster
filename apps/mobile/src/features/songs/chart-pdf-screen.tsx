@@ -1,9 +1,9 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData } from "@tanstack/react-query";
 import type { UseQueryResult } from "@tanstack/react-query";
-import { useKeepAwake } from "expo-keep-awake";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import type { NativeStackHeaderItem } from "expo-router";
-import type { ReactNode } from "react";
+import { useRef } from "react";
+import type { ReactNode, Ref, RefObject } from "react";
 import {
   ActivityIndicator,
   Linking,
@@ -14,6 +14,10 @@ import {
 
 import { useFeatures } from "../../app-shell/features";
 import { failureMessage, useProductClient } from "../../app-shell/queries";
+import {
+  useReadVisibility,
+  useVisibleQuery,
+} from "../../app-shell/visible-queries";
 import { EmptyState } from "../../components/empty-state";
 import { PillButton } from "../../components/pill-button";
 import { AppText } from "../../design/app-text";
@@ -36,14 +40,17 @@ import {
 } from "./detail";
 import type { ChordChartArrangement } from "./detail";
 import { songDisplayTitle } from "./library";
+import { hasNativePreview } from "./native-preview";
+import type { PdfPreviewHandle } from "./native-preview";
 import { printPreviewFile, sharePreviewFile } from "./preview-actions";
-import { PreviewDocumentView } from "./preview-document-view";
 import { PDF_FILE_TYPE } from "./preview-file-types";
 import { previewFiles } from "./preview-files";
+import { PreviewPdfView } from "./preview-pdf-view";
 import { previewReads, songFilesHref } from "./preview-reads";
 import { PreviewError } from "./previews";
 import type { PreviewFile } from "./previews";
 import { songsReads } from "./reads";
+import { useKeepAwakeWhile, usePreviewRender } from "./use-preview-lifecycle";
 
 const styles = StyleSheet.create({
   center: { flexGrow: 1, justifyContent: "center" },
@@ -148,8 +155,23 @@ const pdfMenu = ({
 const fileItems = (
   file: PreviewFile,
   share: (file: PreviewFile) => void,
-  print: (file: PreviewFile) => void
+  print: (file: PreviewFile) => void,
+  finder: RefObject<PdfPreviewHandle | null>
 ): NativeStackHeaderItem[] => [
+  // Find needs PDFKit; a build without the native module draws in WebKit, without Find.
+  ...(hasNativePreview
+    ? [
+        {
+          type: "button" as const,
+          label: "Find",
+          accessibilityLabel: "Find in the PDF",
+          icon: { type: "sfSymbol" as const, name: "magnifyingglass" as const },
+          onPress: () => {
+            void finder.current?.presentFind();
+          },
+        },
+      ]
+    : []),
   {
     type: "button",
     label: "Share",
@@ -223,6 +245,32 @@ const PdfFailure = ({ error, retry }: { error: Error; retry: () => void }) => {
   );
 };
 
+/** The saved PDF, drawn again after Try again or once a newer copy is saved. */
+const PdfDocument = ({
+  pdf,
+  file,
+  accessibilityLabel,
+  finder,
+}: {
+  pdf: UseQueryResult<PreviewFile>;
+  file: PreviewFile;
+  accessibilityLabel: string;
+  finder: Ref<PdfPreviewHandle>;
+}) => {
+  const render = usePreviewRender(file.uri, pdf.dataUpdatedAt, async () => {
+    await pdf.refetch();
+  });
+  return (
+    <PreviewPdfView
+      accessibilityLabel={accessibilityLabel}
+      ref={finder}
+      render={render}
+      testID="chart-pdf"
+      uri={file.uri}
+    />
+  );
+};
+
 const PdfBody = ({
   chartsEnabled,
   featuresPending,
@@ -231,6 +279,7 @@ const PdfBody = ({
   pdf,
   title,
   target,
+  finder,
 }: {
   chartsEnabled: boolean;
   featuresPending: boolean;
@@ -239,6 +288,7 @@ const PdfBody = ({
   pdf: UseQueryResult<PreviewFile>;
   title: string;
   target: ChartTarget | null;
+  finder: Ref<PdfPreviewHandle>;
 }) => {
   if (featuresPending) {
     return <Rendering />;
@@ -299,22 +349,66 @@ const PdfBody = ({
     );
   }
   return (
-    <PreviewDocumentView
+    <PdfDocument
       accessibilityLabel={`${title}, ${chartTargetLabel(target)}, chord chart from Planning Center`}
-      testID="chart-pdf"
-      uri={pdf.data.uri}
+      file={pdf.data}
+      finder={finder}
+      pdf={pdf}
     />
   );
 };
 
+/** The arrangement's chart PDF for `target`, read while its screen is visible. */
+const useChartPdf = (
+  context: ReturnType<typeof useProductClient>,
+  songId: string,
+  songTitle: string,
+  arrangement: ChordChartArrangement | undefined,
+  target: ChartTarget | null,
+  chartsEnabled: boolean
+): UseQueryResult<PreviewFile> => {
+  const input =
+    arrangement === undefined || target === null
+      ? null
+      : {
+          songId,
+          songTitle,
+          arrangementId: arrangement.id,
+          updatedAt: arrangement.updatedAt,
+          target,
+        };
+  return useVisibleQuery({
+    ...previewReads.chartPdf(
+      context,
+      previewFiles,
+      input ?? {
+        songId,
+        songTitle: "",
+        arrangementId: "",
+        updatedAt: null,
+        target: { kind: "lyrics" },
+      }
+    ),
+    enabled:
+      chartsEnabled &&
+      input !== null &&
+      arrangement !== undefined &&
+      hasChart(arrangement),
+    placeholderData: keepPreviousData,
+  });
+};
+
 /**
  * Planning Center's own PDF of an arrangement's saved chart (Swift `ChordChartPDFViewer`), for
- * reading at a music stand: pinch to zoom, Share, and Print, and the screen stays awake while it
- * is open. The menu switches arrangement and between its keys and its lyrics sheet; while the
- * next PDF renders the last one stays up. Behind the `chordCharts` flag.
+ * reading at a music stand: PDFKit with pinch to zoom and Find, Share, and Print, and the screen
+ * stays awake while it is on screen (not from another tab, in the background, or with the flag
+ * off). The menu switches arrangement and between its keys and its lyrics sheet; while the next
+ * PDF renders the last one stays up. Its reads stop while it is hidden. Behind the
+ * `chordCharts` flag.
  */
 export const ChartPdfScreen = () => {
-  useKeepAwake();
+  const visible = useReadVisibility();
+  const finder = useRef<PdfPreviewHandle>(null);
   const params = useLocalSearchParams<{
     songId: string;
     arrangement?: string;
@@ -325,7 +419,8 @@ export const ChartPdfScreen = () => {
   const toasts = useToasts();
   const context = useProductClient();
   const features = useFeatures();
-  const chart = useQuery({
+  useKeepAwakeWhile(visible && features.chordCharts);
+  const chart = useVisibleQuery({
     ...songsReads.chart(context, songId),
     enabled: features.chordCharts,
   });
@@ -338,35 +433,14 @@ export const ChartPdfScreen = () => {
       ? null
       : resolveChartTarget(arrangement, params.target);
   const title = songDisplayTitle(chart.data?.song.title ?? "");
-  const pdfInput =
-    arrangement === undefined || target === null
-      ? null
-      : {
-          songId,
-          songTitle: chart.data?.song.title ?? "",
-          arrangementId: arrangement.id,
-          updatedAt: arrangement.updatedAt,
-          target,
-        };
-  const pdf = useQuery({
-    ...previewReads.chartPdf(
-      context,
-      previewFiles,
-      pdfInput ?? {
-        songId,
-        songTitle: "",
-        arrangementId: "",
-        updatedAt: null,
-        target: { kind: "lyrics" },
-      }
-    ),
-    enabled:
-      features.chordCharts &&
-      pdfInput !== null &&
-      arrangement !== undefined &&
-      hasChart(arrangement),
-    placeholderData: keepPreviousData,
-  });
+  const pdf = useChartPdf(
+    context,
+    songId,
+    chart.data?.song.title ?? "",
+    arrangement,
+    target,
+    features.chordCharts
+  );
 
   const select = (arrangementId: string, nextTarget: string | null) => {
     router.setParams({
@@ -403,7 +477,9 @@ export const ChartPdfScreen = () => {
         options={{
           title: chart.data === undefined ? "Chord Chart" : title,
           unstable_headerRightItems: () => [
-            ...(shownFile === null ? [] : fileItems(shownFile, share, print)),
+            ...(shownFile === null
+              ? []
+              : fileItems(shownFile, share, print, finder)),
             ...(arrangement === undefined || target === null
               ? []
               : [
@@ -436,6 +512,7 @@ export const ChartPdfScreen = () => {
           chart={chart}
           chartsEnabled={features.chordCharts}
           featuresPending={features.isPending}
+          finder={finder}
           pdf={pdf}
           target={target}
           title={title}

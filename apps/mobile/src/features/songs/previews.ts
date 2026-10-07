@@ -83,11 +83,14 @@ export type PreviewFailureReason =
   /** Planning Center sent a file this preview can't draw. */
   | "undrawable"
   /** Planning Center's link to the file was not a secure one, so it was never opened. */
-  | "insecure-link";
+  | "insecure-link"
+  /** The device's previews were cleared (an account forgotten) while this one was on its way. */
+  | "forgotten";
 
 const previewFailureMessages: Record<PreviewFailureReason, string> = {
   undrawable: "Planning Center sent a file this preview can’t draw.",
   "insecure-link": "Planning Center didn’t send a secure link to this file.",
+  forgotten: "This preview was cleared from the device.",
 };
 
 export class PreviewError extends Error {
@@ -100,35 +103,57 @@ export class PreviewError extends Error {
   }
 }
 
-/** Only `https:` links leave the app; anything else (http, file, javascript) is refused. */
+/**
+ * Only `https:` links with a host and no embedded user name or password leave the app; anything
+ * else (http, file, javascript, `https://user:secret@host`) is refused.
+ */
 export const secureUrl = (value: string): URL | null => {
   if (!URL.canParse(value)) {
     return null;
   }
   const url = new URL(value);
-  return url.protocol === "https:" && url.hostname !== "" ? url : null;
+  const secure =
+    url.protocol === "https:" &&
+    url.hostname !== "" &&
+    url.username === "" &&
+    url.password === "";
+  return secure ? url : null;
 };
 
-/** Saves previews to the device, scoped to one account context. */
-export interface PreviewFiles {
+/**
+ * One preview's file work for one account scope, started when its read starts. Every write
+ * fails, and leaves nothing behind, once the read's signal aborts or the device's previews are
+ * cleared after the work began: a late answer cannot bring back a forgotten preview.
+ */
+export interface PreviewWriter {
   /** Writes base64 bytes to `folder/name` and answers its `file://` URI. */
   readonly writeBase64: (
-    scope: string,
     folder: string,
     name: string,
     base64: string
   ) => string;
-  /**
-   * Downloads `url` to `folder/name` without credentials and answers its `file://` URI.
-   * Stops when `signal` aborts.
-   */
+  /** Downloads a signed https link to `folder/name` without credentials; answers its URI. */
   readonly download: (
-    scope: string,
     folder: string,
     name: string,
-    url: string,
-    signal: AbortSignal
+    url: URL
   ) => Promise<string>;
+  /**
+   * What the system player opens for a signed media link: the link itself on a device
+   * (streamed, never saved). Fixture launches answer a local file instead.
+   */
+  readonly playable: (
+    folder: string,
+    name: string,
+    url: URL
+  ) => Promise<string>;
+}
+
+/** Saves previews to the device, scoped to one account context. */
+export interface PreviewFiles {
+  readonly begin: (scope: string, signal: AbortSignal) => PreviewWriter;
+  /** Whether a saved preview is still on the device; the system purges caches at any time. */
+  readonly exists: (uri: string) => boolean;
 }
 
 /** A saved preview, ready for the document view, Share, and Print. */

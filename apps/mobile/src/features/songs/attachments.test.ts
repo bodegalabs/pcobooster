@@ -7,9 +7,11 @@ import { Schema } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 import { serializeQueryCache } from "../../app-shell/query-persistence";
-import { fixturePreviewFiles } from "../../harness/fixture-preview-files";
+import { fixtureMedia, fixtureToneWav } from "../../harness/fixture-media";
+import { fixturePreviewStore } from "../../harness/fixture-preview-files";
 import attachmentsFixture from "../../harness/fixtures/songs.attachments.json";
 import { makeControlledFixture } from "../../harness/testing/controlled-fixture";
+import { makeMemoryPreviewStore } from "../../harness/testing/memory-preview-store";
 import {
   MAX_PREVIEW_BYTES,
   attachmentDetail,
@@ -20,8 +22,8 @@ import {
 } from "./attachments";
 import type { SongAttachment } from "./attachments";
 import { attachmentReads, songFileHref, songFilesHref } from "./preview-reads";
+import { guardPreviewStore } from "./preview-store";
 import { PreviewError } from "./previews";
-import type { PreviewFiles } from "./previews";
 
 const fixtureAttachments = Schema.decodeUnknownSync(songAttachmentsSchema)(
   attachmentsFixture.cases[0]?.output
@@ -163,7 +165,10 @@ describe("attachment labels", () => {
   });
 });
 
-const setup = (scope = "account-a") => {
+const setup = (
+  scope = "account-a",
+  options: Parameters<typeof makeMemoryPreviewStore>[0] = {}
+) => {
   const { transport, fetch: fixtureFetch } = makeControlledFixture();
   const requests: Request[] = [];
   const fetch = vi.fn<typeof globalThis.fetch>(async (input, init) => {
@@ -176,21 +181,22 @@ const setup = (scope = "account-a") => {
     credentials: "omit",
     fetch,
   });
-  const downloads: { scope: string; url: string; signal: AbortSignal }[] = [];
-  const device: PreviewFiles = {
-    writeBase64: (writeScope, folder, name) =>
-      `file:///cache/${writeScope}/${folder}/${name}`,
-    download: async (downloadScope, folder, name, url, signal) => {
-      downloads.push({ scope: downloadScope, url, signal });
-      return await Promise.resolve(`file:///cache/${folder}/${name}`);
-    },
-  };
+  const memory = makeMemoryPreviewStore(options);
+  const previews = guardPreviewStore(memory.store);
   const context = {
     client,
     scope,
     scheduler: createRequestScheduler({ quietMs: 0 }),
   };
-  return { transport, requests, context, device, downloads };
+  return {
+    transport,
+    requests,
+    context,
+    device: previews.files,
+    clear: previews.clear,
+    downloads: memory.downloads,
+    memory,
+  };
 };
 
 const leadSheet = {
@@ -258,12 +264,12 @@ describe("attachment reads through the product client", () => {
   });
 
   it("shows Planning Center's refusal as a typed fault", async () => {
-    const { context, transport } = setup();
+    const { context, device, transport } = setup();
     vi.spyOn(transport, "handle").mockRejectedValueOnce(
       new Forbidden({ message: "Your song access is None." })
     );
     const options = {
-      ...attachmentReads.stream(context, {
+      ...attachmentReads.stream(context, device, {
         ...leadSheet,
         attachment: byId("88001"),
       }),
@@ -279,11 +285,11 @@ describe("attachment reads through the product client", () => {
     const cache = new QueryClient();
     await cache.query(attachmentReads.list(context, "5501", "55011"));
     await cache.query(attachmentReads.file(context, device, leadSheet));
-    const stream = attachmentReads.stream(context, {
+    const stream = attachmentReads.stream(context, device, {
       ...leadSheet,
       attachment: byId("88001"),
     });
-    // Observed, as an open player holds it; gcTime 0 drops it once nothing does.
+    // Observed, as an open player holds it.
     const stop = new QueryObserver(cache, stream).subscribe(() => {
       // Holding the query is enough; its updates do not matter here.
     });
@@ -310,34 +316,158 @@ describe("attachment reads through the product client", () => {
   });
 });
 
-describe(fixturePreviewFiles, () => {
+describe("attachment downloads and forgetting", () => {
+  it("removes a download that lands after the previews were cleared, and fails it", async () => {
+    const { promise: landed, resolve: land } = Promise.withResolvers<boolean>();
+    const { context, device, clear, memory } = setup("account-a", {
+      beforeSave: async () => {
+        await landed;
+      },
+    });
+    const read = new QueryClient().query({
+      ...attachmentReads.file(context, device, leadSheet),
+      retry: false,
+    });
+    await vi.waitFor(() => {
+      expect(memory.downloads).toHaveLength(1);
+    });
+    clear();
+    land(true);
+    await expect(read).rejects.toMatchObject({ reason: "forgotten" });
+    expect([...memory.saved.keys()]).toStrictEqual([]);
+  });
+
+  it("removes a download that lands after its screen left", async () => {
+    const { promise: landed, resolve: land } = Promise.withResolvers<boolean>();
+    const { context, device, memory } = setup("account-a", {
+      beforeSave: async () => {
+        await landed;
+      },
+    });
+    const cache = new QueryClient();
+    const options = attachmentReads.file(context, device, leadSheet);
+    const read = cache.query(options);
+    await vi.waitFor(() => {
+      expect(memory.downloads).toHaveLength(1);
+    });
+    await cache.cancelQueries({ queryKey: options.queryKey });
+    land(true);
+    await expect(read).rejects.toBeDefined();
+    await vi.waitFor(() => {
+      expect([...memory.saved.keys()]).toStrictEqual([]);
+    });
+  });
+
+  it("downloads a purged file again on the next read, and not while it is still saved", async () => {
+    const { context, device, memory } = setup();
+    const cache = new QueryClient();
+    const options = attachmentReads.file(context, device, leadSheet);
+    const first = await cache.query(options);
+    await cache.query(options);
+    memory.evict(first.uri);
+    const again = await cache.query(options);
+    expect([memory.downloads.length, device.exists(again.uri)]).toStrictEqual([
+      2,
+      true,
+    ]);
+    cache.clear();
+  });
+});
+
+describe(fixturePreviewStore, () => {
   it("draws fixture files from bundled bytes and refuses fixture links without one", async () => {
+    const memory = makeMemoryPreviewStore();
     const writes: string[] = [];
-    const device: PreviewFiles = {
-      writeBase64: (_scope, _folder, name, base64) => {
+    const device = {
+      ...memory.store,
+      writeBase64: (
+        scope: string,
+        folder: string,
+        name: string,
+        base64: string
+      ) => {
         writes.push(`${name}:${base64.slice(0, 5)}`);
-        return `file:///${name}`;
+        return memory.store.writeBase64(scope, folder, name, base64);
       },
       download: async () => await Promise.reject(new Error("network")),
     };
-    const files = fixturePreviewFiles(device);
+    const store = fixturePreviewStore(device);
     const { signal } = new AbortController();
-    await files.download(
+    await store.download(
       "demo",
       "f",
       "Lead.pdf",
-      "https://fixtures.invalid/attachments/88005",
+      new URL("https://fixtures.invalid/attachments/88005"),
       signal
     );
     await expect(
-      files.download(
+      store.download(
         "demo",
         "f",
-        "Demo.mp3",
-        "https://fixtures.invalid/attachments/88001",
+        "Stems.zip",
+        new URL("https://fixtures.invalid/attachments/88006"),
         signal
       )
     ).rejects.toThrow("no stored file");
     expect(writes).toStrictEqual(["Lead.pdf:JVBER"]);
+  });
+
+  it("plays fixture audio and video from local synthetic files, offline", async () => {
+    const memory = makeMemoryPreviewStore();
+    const store = fixturePreviewStore(memory.store);
+    const { signal } = new AbortController();
+    const audio = await store.playable(
+      "demo",
+      "media-a",
+      "Morning Light - Demo.mp3",
+      new URL("https://fixtures.invalid/attachments/88001"),
+      signal
+    );
+    const video = await store.playable(
+      "demo",
+      "media-v",
+      "Morning Light - Rehearsal.mp4",
+      new URL("https://fixtures.invalid/attachments/88002"),
+      signal
+    );
+    const real = await store.playable(
+      "demo",
+      "media-r",
+      "Real.mp3",
+      new URL("https://files.example/signed/1?sig=a"),
+      signal
+    );
+    const head = (uri: string) =>
+      atob(memory.saved.get(uri) ?? "").slice(0, 12);
+    expect([
+      audio.endsWith("/Morning Light - Demo.wav"),
+      head(audio).startsWith("RIFF"),
+      head(audio).slice(8),
+      video.endsWith("/Morning Light - Rehearsal.mp4"),
+      head(video).slice(4, 8),
+      real,
+    ]).toStrictEqual([
+      true,
+      true,
+      "WAVE",
+      true,
+      "ftyp",
+      "https://files.example/signed/1?sig=a",
+    ]);
+  });
+
+  it("generates a playable two-second tone", () => {
+    const bytes = Uint8Array.from(
+      atob(fixtureToneWav()),
+      (character) => character.codePointAt(0) ?? 0
+    );
+    const view = new DataView(bytes.buffer);
+    expect([
+      bytes.length,
+      view.getUint32(24, true),
+      view.getUint32(40, true),
+      Math.max(...bytes.slice(44)) > 200,
+      [...fixtureMedia.keys()],
+    ]).toStrictEqual([44 + 16_000, 8000, 16_000, true, ["88001", "88002"]]);
   });
 });

@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import type { NativeStackHeaderItem } from "expo-router";
@@ -16,6 +15,7 @@ import {
 
 import { useFeatures } from "../../app-shell/features";
 import { failureMessage, useProductClient } from "../../app-shell/queries";
+import { useVisibleQuery } from "../../app-shell/visible-queries";
 import { EmptyState } from "../../components/empty-state";
 import { Glyph } from "../../components/glyph";
 import { Hairline } from "../../components/hairline";
@@ -311,7 +311,8 @@ const arrangementMenu = (
 /**
  * The files attached to an arrangement and its keys, read only: PDFs, images, and documents
  * open in a preview, audio and video play, and links open in the browser. Planning Center's own
- * chart renders are the chart PDF view's. Behind the `chordCharts` flag.
+ * chart renders are the chart PDF view's. Its reads stop while it is hidden. Behind the
+ * `chordCharts` flag.
  */
 export const SongFilesScreen = () => {
   const params = useLocalSearchParams<{
@@ -322,7 +323,7 @@ export const SongFilesScreen = () => {
   const router = useRouter();
   const context = useProductClient();
   const features = useFeatures();
-  const chart = useQuery({
+  const chart = useVisibleQuery({
     ...songsReads.chart(context, songId),
     enabled: features.chordCharts,
   });
@@ -331,7 +332,7 @@ export const SongFilesScreen = () => {
   const arrangement = arrangements.find(
     (option) => option.id === arrangementId
   );
-  const files = useQuery({
+  const files = useVisibleQuery({
     ...attachmentReads.list(context, songId, arrangementId ?? ""),
     enabled: features.chordCharts && arrangementId !== null,
   });

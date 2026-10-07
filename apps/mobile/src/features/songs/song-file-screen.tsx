@@ -1,9 +1,10 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { hashKey, useQueryClient } from "@tanstack/react-query";
+import type { UseQueryResult } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
 import type { NativeStackHeaderItem } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { useState } from "react";
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ReactNode, RefObject } from "react";
 import {
   ActivityIndicator,
   Linking,
@@ -14,6 +15,10 @@ import {
 
 import { useFeatures } from "../../app-shell/features";
 import { failureMessage, useProductClient } from "../../app-shell/queries";
+import {
+  useReadVisibility,
+  useVisibleQuery,
+} from "../../app-shell/visible-queries";
 import { EmptyState } from "../../components/empty-state";
 import { PillButton } from "../../components/pill-button";
 import { AppText } from "../../design/app-text";
@@ -33,14 +38,18 @@ import {
   songLoadFailure,
   songLoadFailureCopy,
 } from "./detail";
+import { hasNativePreview } from "./native-preview";
+import type { PdfPreviewHandle } from "./native-preview";
 import { printPreviewFile, sharePreviewFile } from "./preview-actions";
 import { PreviewDocumentView } from "./preview-document-view";
 import { previewFiles } from "./preview-files";
 import { PreviewMediaPlayer } from "./preview-media-player";
+import { PreviewPdfView } from "./preview-pdf-view";
 import { attachmentReads } from "./preview-reads";
 import type { AttachmentInput } from "./preview-reads";
 import { PreviewError } from "./previews";
 import type { PreviewFile } from "./previews";
+import { usePreviewRender } from "./use-preview-lifecycle";
 
 /** Players and notes keep a readable width on iPad. */
 const READABLE_WIDTH = 720;
@@ -165,8 +174,20 @@ const fileItems = (
   file: PreviewFile,
   attachment: SongAttachment,
   printable: boolean,
-  actions: ReturnType<typeof useFileActions>
+  actions: ReturnType<typeof useFileActions>,
+  find: (() => void) | null
 ): NativeStackHeaderItem[] => [
+  ...(find === null
+    ? []
+    : [
+        {
+          type: "button" as const,
+          label: "Find",
+          accessibilityLabel: "Find in the PDF",
+          icon: { type: "sfSymbol" as const, name: "magnifyingglass" as const },
+          onPress: find,
+        },
+      ]),
   {
     type: "button",
     label: "Share",
@@ -191,6 +212,40 @@ const fileItems = (
     : []),
 ];
 
+/** The saved file, drawn again after Try again or once a newer copy is saved. */
+const SavedFile = ({
+  file,
+  saved,
+  input,
+  finder,
+}: {
+  file: UseQueryResult<PreviewFile>;
+  saved: PreviewFile;
+  input: AttachmentInput;
+  finder: RefObject<PdfPreviewHandle | null>;
+}) => {
+  const render = usePreviewRender(saved.uri, file.dataUpdatedAt, async () => {
+    await file.refetch();
+  });
+  const accessibilityLabel = `${input.attachment.name}, ${attachmentDetail(input.attachment)}`;
+  return input.attachment.kind === "pdf" ? (
+    <PreviewPdfView
+      accessibilityLabel={accessibilityLabel}
+      ref={finder}
+      render={render}
+      testID="song-file-document"
+      uri={saved.uri}
+    />
+  ) : (
+    <PreviewDocumentView
+      accessibilityLabel={accessibilityLabel}
+      render={render}
+      testID="song-file-document"
+      uri={saved.uri}
+    />
+  );
+};
+
 /** A PDF, image, or document, downloaded and drawn on the device. */
 const DocumentPreview = ({
   input,
@@ -203,17 +258,17 @@ const DocumentPreview = ({
 }) => {
   const context = useProductClient();
   const actions = useFileActions();
-  const file = useQuery(attachmentReads.file(context, previewFiles, input));
+  const finder = useRef<PdfPreviewHandle>(null);
+  const file = useVisibleQuery(
+    attachmentReads.file(context, previewFiles, input)
+  );
+  const findable = hasNativePreview && input.attachment.kind === "pdf";
   let fileBody: ReactNode = (
     <Loading label="Downloading from Planning Center" />
   );
   if (file.data !== undefined) {
     fileBody = (
-      <PreviewDocumentView
-        accessibilityLabel={`${input.attachment.name}, ${attachmentDetail(input.attachment)}`}
-        testID="song-file-document"
-        uri={file.data.uri}
-      />
+      <SavedFile file={file} finder={finder} input={input} saved={file.data} />
     );
   } else if (file.error !== null) {
     fileBody = (
@@ -235,7 +290,17 @@ const DocumentPreview = ({
           unstable_headerRightItems: () =>
             file.data === undefined
               ? []
-              : fileItems(file.data, input.attachment, printable, actions),
+              : fileItems(
+                  file.data,
+                  input.attachment,
+                  printable,
+                  actions,
+                  findable
+                    ? () => {
+                        void finder.current?.presentFind();
+                      }
+                    : null
+                ),
         }}
       />
       {fileBody}
@@ -254,7 +319,20 @@ const MediaPreview = ({
   planningCenterUrl: string;
 }) => {
   const context = useProductClient();
-  const stream = useQuery(attachmentReads.stream(context, input));
+  const cache = useQueryClient();
+  const visible = useReadVisibility();
+  const options = attachmentReads.stream(context, previewFiles, input);
+  const stream = useVisibleQuery(options);
+  const streamHash = hashKey(options.queryKey);
+  // The link is forgotten (and a read still on its way cancelled) once the player closes.
+  useEffect(
+    () => () => {
+      cache.removeQueries({
+        predicate: (query) => query.queryHash === streamHash,
+      });
+    },
+    [cache, streamHash]
+  );
   const retry = () => {
     void stream.refetch();
   };
@@ -284,6 +362,7 @@ const MediaPreview = ({
         title={input.attachment.name}
         url={stream.data}
         video={video}
+        visible={visible}
       />
       <AppText color={colors.inkSecondary} font="meta">
         {attachmentDetail(input.attachment)}
@@ -305,6 +384,18 @@ const ShareOnly = ({
   const actions = useFileActions();
   const toasts = useToasts();
   const [isDownloading, setIsDownloading] = useState(false);
+  const fileHash = hashKey(
+    attachmentReads.file(context, previewFiles, input).queryKey
+  );
+  // Leaving the screen stops a download still on its way.
+  useEffect(
+    () => () => {
+      void cache.cancelQueries({
+        predicate: (query) => query.queryHash === fileHash,
+      });
+    },
+    [cache, fileHash]
+  );
   return (
     <Centered>
       <EmptyState
@@ -418,8 +509,9 @@ const PreviewBody = ({
  * One file attached to an arrangement or a key, read only: PDFs, images, and documents draw
  * from a copy downloaded without this app's credentials (Share, and Print for PDFs and
  * images); audio and video stream in the system player; other types download to share. Files
- * Planning Center won't release, or that are too large, open in Planning Center instead. Behind
- * the `chordCharts` flag.
+ * Planning Center won't release, or that are too large, open in Planning Center instead. PDFs
+ * draw in PDFKit with Find. Reads stop and media pauses while the screen is hidden. Behind the
+ * `chordCharts` flag.
  */
 export const SongFileScreen = () => {
   const params = useLocalSearchParams<{
@@ -434,7 +526,7 @@ export const SongFileScreen = () => {
   const keyId = params.key ?? null;
   const context = useProductClient();
   const features = useFeatures();
-  const files = useQuery({
+  const files = useVisibleQuery({
     ...attachmentReads.list(context, songId, arrangementId),
     enabled: features.chordCharts && arrangementId !== "",
   });

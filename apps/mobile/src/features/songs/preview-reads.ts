@@ -21,7 +21,24 @@ import type { SongsReadContext } from "./reads";
  * read, but their second element is not a procedure tag, so the persisted cache never writes
  * them to disk (`query-persistence.ts` keeps only procedure results): a file path or a signed
  * link must not outlive the session that made it.
+ *
+ * A saved file is the read's answer only while it is on the device. The system purges caches
+ * whenever it likes, so a read whose file is gone counts as stale: the next screen that shows it
+ * (opening, returning to the tab, the app coming back) reads and writes it again, while a file
+ * still there is never read twice.
  */
+
+/**
+ * How long a read ending in `uri` stays fresh: forever while its saved file is on the device (a
+ * link, for the visit), and not at all once the file is gone or there is no answer yet.
+ */
+const freshWhileSaved = (
+  files: PreviewFiles,
+  uri: string | undefined
+): number =>
+  uri === undefined || (uri.startsWith("file:") && !files.exists(uri))
+    ? 0
+    : Number.POSITIVE_INFINITY;
 
 export interface ChartPdfInput {
   readonly songId: string;
@@ -54,6 +71,7 @@ export const previewReads = {
         input.updatedAt ?? "",
       ] as const,
       queryFn: async (context): Promise<PreviewFile> => {
+        const writer = files.begin(scope, context.signal);
         const pdf = await callForQuery(context, client, (api) =>
           api.chordCharts.pdf({
             params: {
@@ -66,18 +84,17 @@ export const previewReads = {
         if (!isPdfBase64(pdf.data)) {
           throw new PreviewError("undrawable");
         }
-        context.signal.throwIfAborted();
         const name = chartPdfFileName(input.songTitle, input.target);
-        const uri = files.writeBase64(
-          scope,
+        const uri = writer.writeBase64(
           `chart-${previewFolderSegment(input.songId, input.arrangementId, targetId)}`,
           name,
           pdf.data
         );
         return { uri, name };
       },
-      // A saved version renders once; `updatedAt` in the key brings the next one.
-      staleTime: Number.POSITIVE_INFINITY,
+      // A saved version renders once while its file lasts; `updatedAt` in the key brings the
+      // next one.
+      staleTime: (query) => freshWhileSaved(files, query.state.data?.uri),
       // Forgotten a minute after its screen closes; opening it again writes a fresh file.
       gcTime: 60_000,
     });
@@ -158,6 +175,7 @@ export const attachmentReads = {
         input
       ),
       queryFn: async (context): Promise<PreviewFile> => {
+        const writer = files.begin(readContext.scope, context.signal);
         const url = await openAttachment(context, readContext, input);
         const name = safeFileName(
           input.attachment.filename === ""
@@ -165,23 +183,27 @@ export const attachmentReads = {
             : input.attachment.filename,
           "Attachment"
         );
-        const uri = await files.download(
-          readContext.scope,
+        const uri = await writer.download(
           `file-${previewFolderSegment(input.songId, input.arrangementId, input.attachment.id)}`,
           name,
-          url.href,
-          context.signal
+          url
         );
         return { uri, name };
       },
-      staleTime: Number.POSITIVE_INFINITY,
+      staleTime: (query) => freshWhileSaved(files, query.state.data?.uri),
       gcTime: 60_000,
     }),
   /**
-   * The signed link the system player streams audio or video from. Read once per visit (a new
-   * link mid-playback would restart it) and forgotten as soon as the player closes.
+   * What the system player opens for audio or video: Planning Center's signed link, streamed
+   * and never saved (fixture launches answer a local file). Read once per visit, since a new
+   * link mid-playback would restart it; the player's screen removes it when it closes
+   * (`song-file-screen.tsx`), and a hidden screen keeps it so returning resumes the same player.
    */
-  stream: (readContext: SongsReadContext, input: AttachmentInput) =>
+  stream: (
+    readContext: SongsReadContext,
+    files: PreviewFiles,
+    input: AttachmentInput
+  ) =>
     queryOptions({
       queryKey: attachmentKey(
         readContext.scope,
@@ -189,11 +211,17 @@ export const attachmentReads = {
         input
       ),
       queryFn: async (context): Promise<string> => {
+        const writer = files.begin(readContext.scope, context.signal);
         const url = await openAttachment(context, readContext, input);
-        return url.href;
+        const name = safeFileName(input.attachment.filename, "Media");
+        return await writer.playable(
+          `media-${previewFolderSegment(input.songId, input.arrangementId, input.attachment.id)}`,
+          name,
+          url
+        );
       },
-      staleTime: Number.POSITIVE_INFINITY,
-      gcTime: 0,
+      staleTime: (query) => freshWhileSaved(files, query.state.data),
+      gcTime: 60_000,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
     }),

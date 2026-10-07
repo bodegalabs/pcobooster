@@ -1,14 +1,22 @@
 import { makeProductClient } from "@pcobooster/client/product-client";
 import { createRequestScheduler } from "@pcobooster/client/request-scheduler";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
-import { QueryClient, dehydrate } from "@tanstack/react-query";
+import { QueryClient, QueryObserver, dehydrate } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
 
 import { serializeQueryCache } from "../../app-shell/query-persistence";
 import pdfFixture from "../../harness/fixtures/chordCharts.pdf.json";
 import { makeControlledFixture } from "../../harness/testing/controlled-fixture";
+import { makeMemoryPreviewStore } from "../../harness/testing/memory-preview-store";
 import type { ChartTarget } from "./chart";
+import { holdKeepAwake, applyPlaybackPolicy } from "./preview-lifecycle";
 import { previewReads, songChartPdfHref } from "./preview-reads";
+import {
+  initialPreviewRender,
+  previewRenderReducer,
+  previewRenderStatus,
+} from "./preview-render";
+import { guardPreviewStore } from "./preview-store";
 import {
   PreviewError,
   chartPdfFileName,
@@ -17,7 +25,6 @@ import {
   safeFileName,
   secureUrl,
 } from "./previews";
-import type { PreviewFiles } from "./previews";
 
 const key = (startingKey: string | null, name = "Original"): ChartTarget => ({
   kind: "key",
@@ -71,6 +78,12 @@ describe("preview safety rules", () => {
     expect(secureUrl("not a url")).toBeNull();
   });
 
+  it("refuses a link with an embedded user name or password", () => {
+    expect(secureUrl("https://user:secret@files.example/a.pdf")).toBeNull();
+    expect(secureUrl("https://user@files.example/a.pdf")).toBeNull();
+    expect(secureUrl("https://:secret@files.example/a.pdf")).toBeNull();
+  });
+
   it("recognizes a PDF by its header", () => {
     expect(isPdfBase64(pdfFixture.default.data)).toBeTruthy();
     expect(isPdfBase64(btoa("<html></html>"))).toBeFalsy();
@@ -97,22 +110,22 @@ const setup = (scope = "account-a") => {
     credentials: "omit",
     fetch,
   });
-  const writes: { scope: string; folder: string; name: string }[] = [];
-  const files: PreviewFiles = {
-    writeBase64: (writeScope, folder, name) => {
-      writes.push({ scope: writeScope, folder, name });
-      return `file:///cache/${folder}/${name}`;
-    },
-    download: () => {
-      throw new Error("not used");
-    },
-  };
+  const memory = makeMemoryPreviewStore();
+  const previews = guardPreviewStore(memory.store);
   const context = {
     client,
     scope,
     scheduler: createRequestScheduler({ quietMs: 0 }),
   };
-  return { transport, requests, context, files, writes };
+  return {
+    transport,
+    requests,
+    context,
+    files: previews.files,
+    clear: previews.clear,
+    writes: memory.writes,
+    memory,
+  };
 };
 
 const input = {
@@ -202,5 +215,180 @@ describe("the chart PDF read", () => {
       })
     );
     expect(persisted).toMatchObject({ clientState: { queries: [] } });
+  });
+});
+
+describe("a saved chart PDF's lifetime", () => {
+  it("writes the file again when the system purged it, while the cache still holds the read", async () => {
+    const { context, files, memory, requests } = setup();
+    const cache = new QueryClient();
+    const options = previewReads.chartPdf(context, files, input);
+    const first = await cache.query(options);
+    memory.evict(first.uri);
+    const reopened = await cache.query(options);
+    expect([
+      requests.length,
+      memory.writes.length,
+      files.exists(reopened.uri),
+    ]).toStrictEqual([2, 2, true]);
+    cache.clear();
+  });
+
+  it("never reads a PDF again while its file is still on the device", async () => {
+    const { context, files, requests } = setup();
+    const cache = new QueryClient();
+    const options = previewReads.chartPdf(context, files, input);
+    await cache.query(options);
+    await cache.query(options);
+    expect(requests).toHaveLength(1);
+    cache.clear();
+  });
+
+  it("restores a purged file when its screen shows again, as a hidden route's observer resumes", async () => {
+    const { context, files, memory, requests } = setup();
+    const cache = new QueryClient();
+    const options = previewReads.chartPdf(context, files, input);
+    const observer = new QueryObserver(cache, options);
+    const stop = observer.subscribe(() => {
+      // Holding the read open, as the PDF screen does.
+    });
+    await vi.waitFor(() => {
+      expect(observer.getCurrentResult().data).toBeDefined();
+    });
+    // Hidden (`useVisibleQuery` disables it), purged, then shown again.
+    observer.setOptions({ ...options, enabled: false });
+    memory.evict(observer.getCurrentResult().data?.uri ?? "");
+    observer.setOptions({ ...options, enabled: true });
+    await vi.waitFor(() => {
+      expect(requests).toHaveLength(2);
+    });
+    await vi.waitFor(() => {
+      expect(
+        files.exists(observer.getCurrentResult().data?.uri ?? "")
+      ).toBeTruthy();
+    });
+    stop();
+    cache.clear();
+  });
+
+  it("refuses to write a PDF whose read began before the previews were cleared", async () => {
+    const { context, files, clear, memory, transport } = setup();
+    const handle = transport.handle.bind(transport);
+    vi.spyOn(transport, "handle").mockImplementationOnce(async (...args) => {
+      // An account is forgotten while Planning Center is still rendering.
+      clear();
+      return await handle(...args);
+    });
+    const options = {
+      ...previewReads.chartPdf(context, files, input),
+      retry: false,
+    };
+    await expect(new QueryClient().query(options)).rejects.toMatchObject({
+      reason: "forgotten",
+    });
+    expect([...memory.saved.keys()]).toStrictEqual([]);
+  });
+});
+
+describe("a drawing's failure and Try again", () => {
+  const uri = "file:///cache/song-previews/a/chart/Morning.pdf";
+
+  it("fails only the drawing that failed; the same URI saved again draws afresh", () => {
+    const drawing = previewRenderStatus(initialPreviewRender, uri, 1);
+    const failed = previewRenderReducer(initialPreviewRender, {
+      type: "failed",
+      key: drawing.key,
+    });
+    expect(previewRenderStatus(failed, uri, 1).failed).toBeTruthy();
+    // The read saved a newer copy at the same path.
+    expect(previewRenderStatus(failed, uri, 2).failed).toBeFalsy();
+  });
+
+  it("draws anew after Try again, even when the read again failed", () => {
+    const drawing = previewRenderStatus(initialPreviewRender, uri, 1);
+    const failed = previewRenderReducer(initialPreviewRender, {
+      type: "failed",
+      key: drawing.key,
+    });
+    const retrying = previewRenderReducer(failed, { type: "retry" });
+    const retried = previewRenderReducer(retrying, { type: "retried" });
+    const next = previewRenderStatus(retried, uri, 1);
+    expect([
+      previewRenderStatus(retrying, uri, 1).retrying,
+      next.failed,
+      next.key === drawing.key,
+    ]).toStrictEqual([true, false, false]);
+  });
+
+  it("ignores a late failure from a drawing already replaced", () => {
+    const old = previewRenderStatus(initialPreviewRender, uri, 1);
+    const late = previewRenderReducer(
+      previewRenderReducer(initialPreviewRender, { type: "retried" }),
+      { type: "failed", key: old.key }
+    );
+    expect(previewRenderStatus(late, uri, 1).failed).toBeFalsy();
+  });
+});
+
+describe("what a preview holds only while on screen", () => {
+  it("releases keep-awake again when the screen left before activation finished", async () => {
+    const activation = Promise.withResolvers<boolean>();
+    const calls: string[] = [];
+    const release = holdKeepAwake(
+      "song-preview-1",
+      async (tag) => {
+        calls.push(`activate ${tag}`);
+        await activation.promise;
+      },
+      async (tag) => {
+        calls.push(`deactivate ${tag}`);
+        await Promise.resolve();
+      }
+    );
+    release();
+    activation.resolve(true);
+    await vi.waitFor(() => {
+      expect(calls).toStrictEqual([
+        "activate song-preview-1",
+        "deactivate song-preview-1",
+        "deactivate song-preview-1",
+      ]);
+    });
+  });
+
+  it("keeps the screen awake until released when activation comes first", async () => {
+    const calls: string[] = [];
+    const release = holdKeepAwake(
+      "song-preview-2",
+      async () => {
+        calls.push("activate");
+        await Promise.resolve();
+      },
+      async () => {
+        calls.push("deactivate");
+        await Promise.resolve();
+      }
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(calls).toStrictEqual(["activate"]);
+    release();
+    expect(calls).toStrictEqual(["activate", "deactivate"]);
+  });
+
+  it("pauses media when its screen hides and never plays in the background", () => {
+    const player = {
+      pause: vi.fn<() => void>(),
+      staysActiveInBackground: true,
+      showNowPlayingNotification: true,
+    };
+    applyPlaybackPolicy(player, true);
+    expect([
+      player.pause.mock.calls.length,
+      player.staysActiveInBackground,
+      player.showNowPlayingNotification,
+    ]).toStrictEqual([0, false, false]);
+    applyPlaybackPolicy(player, false);
+    expect(player.pause).toHaveBeenCalledOnce();
   });
 });
