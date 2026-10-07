@@ -141,7 +141,7 @@ describe(makeProductClient, () => {
     ).rejects.toBeInstanceOf(NotFound);
     expect(
       sent.map((request) => request.headers.get("x-pcobooster-client"))
-    ).toStrictEqual(["web;api=1"]);
+    ).toStrictEqual(["web;api=2"]);
   });
 
   it("reports a response the API does not declare as a transport failure", async () => {
@@ -219,7 +219,7 @@ describe(makeProductClient, () => {
     expect(named).toStrictEqual(["catalog.serviceTypes", "schedule.remove"]);
     expect(
       sent.map((request) => request.headers.get("x-pcobooster-client"))
-    ).toStrictEqual(["web;api=1", "web;api=1"]);
+    ).toStrictEqual(["web;api=2", "web;api=2"]);
   });
 });
 

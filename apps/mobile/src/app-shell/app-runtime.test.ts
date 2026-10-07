@@ -66,6 +66,6 @@ describe("demo.start's request", () => {
         "cookie",
       ].map((name) => request?.headers.get(name))
     ).toStrictEqual([null, null, null, null]);
-    expect(request?.headers.get("x-pcobooster-client")).toBe("expo;api=1");
+    expect(request?.headers.get("x-pcobooster-client")).toBe("expo;api=2");
   });
 });

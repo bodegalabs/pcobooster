@@ -164,7 +164,7 @@ const rawAssign = (payload: JsonValue) =>
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "x-pcobooster-client": "web;api=1",
+      "x-pcobooster-client": "web;api=2",
       ...callerHeaders,
     },
     body: JSON.stringify(payload),

@@ -244,7 +244,7 @@ describe("the exchange", () => {
       headers.get("cookie"),
       headers.get("content-type"),
       headers.get("x-pcobooster-client"),
-    ]).toStrictEqual([null, "application/json", "expo;api=1"]);
+    ]).toStrictEqual([null, "application/json", "expo;api=2"]);
     const body = Schema.decodeUnknownSync(Schema.fromJsonString(Schema.Json))(
       exchange?.init.body
     );

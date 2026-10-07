@@ -150,7 +150,7 @@ const raw = async (
   app: Setup["app"],
   method: string,
   path: string,
-  { body, client = "web;api=1" }: { body?: unknown; client?: string } = {}
+  { body, client = "web;api=2" }: { body?: unknown; client?: string } = {}
 ) =>
   await app.request(path, {
     method,
@@ -200,7 +200,7 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
           fields.client,
         ])
     ).toStrictEqual([
-      ["people.planWindowHistory", 200, "speculative", "web;api=1"],
+      ["people.planWindowHistory", 200, "speculative", "web;api=2"],
     ]);
   });
 
@@ -347,6 +347,7 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
 
   it.each([
     ["an older API version", "web;api=0"],
+    ["the API version before paged candidate and dashboard reads", "web;api=1"],
     ["a header without a version", "web"],
   ])("answers 426 ClientOutdated to %s", async (_case, header) => {
     const { app, serviceTypes } = setup();
@@ -359,7 +360,7 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
     expect(response.status).toBe(426);
     await expect(response.json()).resolves.toMatchObject({
       _tag: "ClientOutdated",
-      minimumProtocolVersion: 1,
+      minimumProtocolVersion: 2,
     });
     expect(serviceTypes).not.toHaveBeenCalled();
   });
@@ -438,7 +439,7 @@ describe("schedule.updateStatus (an audited write)", () => {
       method: "PATCH",
       headers: {
         "content-type": "application/json",
-        "x-pcobooster-client": "web;api=1",
+        "x-pcobooster-client": "web;api=2",
       },
       body,
     });

@@ -35,4 +35,13 @@ describe(isSupportedClient, () => {
       ].map(isSupportedClient)
     ).toStrictEqual([false, true, true, false, false]);
   });
+
+  it("speaks the version it requires, and turns away clients built before paged reads", () => {
+    expect([API_VERSION, MINIMUM_API_VERSION]).toStrictEqual([2, 2]);
+    expect(
+      ["web;api=1", "expo;api=1", formatClientHeader("web")].map(
+        isSupportedClient
+      )
+    ).toStrictEqual([false, false, true]);
+  });
 });
