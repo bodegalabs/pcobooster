@@ -92,19 +92,10 @@ if [[ "$skip_build" == 0 ]]; then
     exit 1
   fi
   mkdir -p build
-  prebuild_stamp="$(
-    {
-      bunx fingerprint fingerprint:generate --platform ios
-      find assets/catalog -type f -print0 | sort -z | xargs -0 shasum
-    } | shasum | cut -d' ' -f1
-  )"
-  if [[ ! -d ios || "$(cat build/prebuild.stamp 2>/dev/null)" != "$prebuild_stamp" ]]; then
-    CI=1 bunx expo prebuild --no-install --platform ios
-    (cd ios && pod install)
-    printf '%s\n' "$prebuild_stamp" > build/prebuild.stamp
-  elif ! cmp -s ios/Podfile.lock ios/Pods/Manifest.lock; then
-    (cd ios && pod install)
-  fi
+  # Generated native source is ignored by Git, so a clean checkout alone cannot
+  # prove it matches the revision. Regenerate it for every new release archive.
+  CI=1 bunx expo prebuild --clean --no-install --platform ios
+  (cd ios && pod install)
   assert_clean
   if command -v ccache >/dev/null 2>&1; then
     CCACHE_BINARY="$(command -v ccache)"
@@ -113,6 +104,7 @@ if [[ "$skip_build" == 0 ]]; then
   rm -rf "$out"
   mkdir -p "$out"
   echo "==> Archiving pcobooster.com $revision (build $build)"
+  EXPO_PUBLIC_POSTHOG_KEY="${EXPO_PUBLIC_POSTHOG_KEY:-${POSTHOG_PROJECT_KEY:-}}" \
   NODE_ENV=production xcodebuild archive \
     -workspace ios/PCOBooster.xcworkspace -scheme PCOBooster -configuration Release \
     -destination 'generic/platform=iOS' -derivedDataPath build/derived-release \
