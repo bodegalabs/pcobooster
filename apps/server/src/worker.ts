@@ -137,6 +137,8 @@ export default class Api extends Cloudflare.Worker<Api>()(
       workersDev: false,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
       observability: apiWorkerObservability(),
+      // Separate from the Planning Center 40-request policy; see the dated request ledger.
+      limits: { subrequests: 80 },
       dev: { host: "127.0.0.1", port: apiDevPort, strictPort: true },
       env: {
         // CI deploys the checked-out commit; post-deploy verification expects it from health.

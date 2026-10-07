@@ -37,6 +37,7 @@ import type {
   PCResource,
 } from "@pcobooster/planning-center-models/types";
 import { Clock, Duration, Effect, Exit, Option, Schedule } from "effect";
+import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
 import * as HttpClient from "effect/unstable/http/HttpClient";
 import type { HttpClientError } from "effect/unstable/http/HttpClientError";
 import * as HttpClientRequest from "effect/unstable/http/HttpClientRequest";
@@ -390,7 +391,8 @@ const readJsonBody =
 /** Fails before sending when this invocation may not make another request. */
 const ensureSubrequestAvailable = (
   { accounting, endpoint }: AttemptContext,
-  method: HttpMethod
+  method: HttpMethod,
+  reserve = false
 ): Effect.Effect<void, PlanningCenterSubrequestLimitError> =>
   Effect.suspend(() => {
     if (accounting === undefined) {
@@ -404,6 +406,10 @@ const ensureSubrequestAvailable = (
     }
     const limit = accounting.requestBudget;
     if (limit === undefined || requests < limit) {
+      // Check and charge in the same synchronous turn: paced callers may wake together.
+      if (reserve) {
+        accounting.recordRequest();
+      }
       return Effect.void;
     }
     accounting.recordSubrequestLimit("budget");
@@ -590,7 +596,13 @@ export class PlanningCenterCoreClient {
     this.cacheScope = `${auth.kind}:${createHash("sha256").update(credential).digest("hex")}`;
     // Trace headers would leak internal span IDs to a third party.
     this.httpClient = HttpClient.transform(options.httpClient, (effect) =>
-      Effect.provideService(effect, HttpClient.TracerPropagationEnabled, false)
+      effect.pipe(
+        Effect.provideService(HttpClient.TracerPropagationEnabled, false),
+        // Canonical API URLs must answer directly; implicit redirect hops evade accounting.
+        Effect.provideService(FetchHttpClient.RequestInit, {
+          redirect: "manual",
+        })
+      )
     );
     this.readOnly = options.readOnly ?? false;
   }
@@ -607,8 +619,8 @@ export class PlanningCenterCoreClient {
     const { method } = request;
     const { accounting, endpoint, pacer } = context;
     const execute = Effect.gen(function* sendRequest() {
-      accounting?.recordRequest();
       const startedAt = yield* Clock.currentTimeMillis;
+      yield* ensureSubrequestAvailable(context, method, true);
       const response = yield* httpClient.execute(request).pipe(
         Effect.mapError((error) => transportFailure(error, context)),
         Effect.tapError((failure) =>

@@ -126,7 +126,7 @@ export const planningCenterReadCachesForRequest = (
  * Backs the caches worth sharing with this request's shared-tier session. A cache is shared
  * only if no mutation in this app invalidates it (the shared tier cannot be invalidated in
  * other isolates) and a KV hit saves more Planning Center requests than the KV calls cost,
- * since both count toward the Workers Free subrequest limit. See `docs/api-architecture.md`.
+ * since both consume the configured Paid Worker subrequest budget. See `docs/api-architecture.md`.
  */
 const bindReadCaches = (
   caches: PlanningCenterReadCaches,

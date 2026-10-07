@@ -1019,6 +1019,67 @@ describe("Planning Center pacing and accounting", () => {
     });
   });
 
+  it.each([1, 40])(
+    "keeps concurrent paced sends within budget %i",
+    async (budget) => {
+      const fetch = fetchMock().mockImplementation(
+        async () => await Promise.resolve(jsonResponse({ data: person }))
+      );
+      const scope = limits(
+        new PlanningCenterRequestAccounting({ requestBudget: budget })
+      );
+      const reserve = scope.pacer.reserve.bind(scope.pacer);
+      vi.spyOn(scope.pacer, "reserve").mockImplementation((...args) => {
+        const decision = reserve(...args);
+        return decision.kind === "send"
+          ? { ...decision, waitMs: 1000 }
+          : decision;
+      });
+      const client = pacedClient(fetch);
+      const outcomes = await Effect.runPromise(
+        Effect.gen(function* simultaneousPacedSends() {
+          const fiber = yield* Effect.forkChild(
+            Effect.forEach(
+              Array.from({ length: budget + 1 }, (_, index) => index),
+              (index) =>
+                client.fetch(`/services/v2/people/${index}`).pipe(
+                  Effect.match({
+                    onSuccess: () => "sent",
+                    onFailure: (error) =>
+                      error._tag === "PlanningCenterSubrequestLimitError"
+                        ? error.source
+                        : error._tag,
+                  })
+                ),
+              { concurrency: "unbounded" }
+            )
+          );
+          yield* settle;
+          expect(fetch).not.toHaveBeenCalled();
+          yield* TestClock.adjust("1 second");
+          const results = yield* Fiber.join(fiber);
+          const now = yield* Clock.currentTimeMillis;
+          expect(
+            reserve(client.getCacheScope(), now, "write").window.inFlight
+          ).toBe(0);
+          scope.pacer.complete(client.getCacheScope(), now);
+          return results;
+        }).pipe(withLimits(scope), Effect.provide(TestClock.layer()))
+      );
+      expect(outcomes.filter((outcome) => outcome === "sent")).toHaveLength(
+        budget
+      );
+      expect(outcomes.filter((outcome) => outcome === "budget")).toHaveLength(
+        1
+      );
+      expect(fetch).toHaveBeenCalledTimes(budget);
+      expect(scope.accounting.totals).toMatchObject({
+        requests: budget,
+        subrequestLimitHits: 1,
+      });
+    }
+  );
+
   it("stops at the invocation's request budget", async () => {
     const fetch = fetchMock().mockImplementation(
       async () => await Promise.resolve(jsonResponse({ data: person }))
@@ -1057,6 +1118,30 @@ describe("Planning Center pacing and accounting", () => {
         },
       },
     ]);
+  });
+
+  it("refuses redirects without sending an uncounted hop or retry", async () => {
+    const fetch = fetchMock().mockResolvedValue(
+      new Response(null, {
+        status: 302,
+        headers: {
+          location: "https://api.planningcenteronline.com/services/v2/people/2",
+        },
+      })
+    );
+    const scope = limits(
+      new PlanningCenterRequestAccounting({ requestBudget: 1 })
+    );
+    await expect(
+      failureOf(
+        pacedClient(fetch)
+          .fetch("/services/v2/people/1")
+          .pipe(withLimits(scope))
+      )
+    ).resolves.toMatchObject({ _tag: "PlanningCenterApiError", status: 302 });
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch.mock.calls[0]?.[1]?.redirect).toBe("manual");
+    expect(scope.accounting.requestCount).toBe(1);
   });
 
   it("counts retries against the request budget and does not retry past it", async () => {
@@ -1161,7 +1246,10 @@ describe("Planning Center pacing and accounting", () => {
   it("releases a paced reservation when the wait is interrupted", async () => {
     const fetch = fetchMock().mockResolvedValue(rateLimitedResponse(100));
     const pacer = new PlanningCenterRatePacer({ maxWaitMs: 60_000 });
-    const scope = limits(new PlanningCenterRequestAccounting(), pacer);
+    const scope = limits(
+      new PlanningCenterRequestAccounting({ requestBudget: 2 }),
+      pacer
+    );
     const client = pacedClient(fetch);
     await Effect.runPromise(
       Effect.gen(function* interruptPacedRead() {
@@ -1178,5 +1266,7 @@ describe("Planning Center pacing and accounting", () => {
       }).pipe(withLimits(scope), Effect.provide(TestClock.layer()))
     );
     expect(fetch).toHaveBeenCalledOnce();
+    expect(scope.accounting.requestCount).toBe(1);
+    expect(scope.accounting.remainingBudget).toBe(1);
   });
 });

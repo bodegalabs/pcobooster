@@ -4,7 +4,7 @@ import type { StageSettings } from "./stage";
 
 /**
  * Share of production invocations that record a trace. Traces count against the same Workers
- * Free quota as logs (200,000 events a day), and one traced request records a span for every
+ * event allowance as logs, and one traced request records a span for every
  * Planning Center, D1, and KV subrequest, so production samples while staging and previews,
  * whose traffic is only the team's, trace everything.
  */
@@ -17,8 +17,8 @@ const workerLogs = { enabled: true, invocationLogs: true };
 
 /**
  * Workers Logs as Alchemy enables them by default, plus Workers Traces. Traces show each
- * invocation's subrequests, which is how to see which procedures approach the 50-subrequest
- * limit (AGENTS.md, Request Budget). For the product and admin Workers.
+ * invocation's subrequests, which is how to inspect overhead beside the provider
+ * request count (AGENTS.md, Request Budget). For the product and admin Workers.
  */
 export const workerObservability = (
   production: boolean
