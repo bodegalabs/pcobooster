@@ -41,6 +41,11 @@ describe("local data in the scoped persistent cache", () => {
       { scope: "team:50", view: "month" },
       { updatedAt: 1 }
     );
+    previous.setQueryData(
+      searchRecentsQuery(scope).queryKey,
+      [{ kind: "query", text: "saved query" }],
+      { updatedAt: 1 }
+    );
     const stored = serializeQueryCache({
       timestamp: 1,
       buster: "test",
@@ -52,11 +57,19 @@ describe("local data in the scoped persistent cache", () => {
       ...peoplePreferencesQuery(scope),
       enabled: false,
     });
+    const searchObserver = new QueryObserver(restored, {
+      ...searchRecentsQuery(scope),
+      enabled: false,
+    });
     hydrate(restored, deserializeQueryCache(stored).clientState);
+    expect(
+      restored.getQueryData(searchRecentsQuery(scope).queryKey)
+    ).toStrictEqual([{ kind: "query", text: "saved query" }]);
     expect(
       restored.getQueryData(peoplePreferencesQuery(scope).queryKey)
     ).toStrictEqual({ scope: "team:50", view: "month" });
     observer.destroy();
+    searchObserver.destroy();
     previous.clear();
     restored.clear();
   });

@@ -51,7 +51,6 @@ export const searchRecentsQuery = (scope: string) => {
   const queryKey = [scope, "search.recent"] as const;
   return queryOptions({
     queryKey,
-    initialData: (): SearchRecent[] => [],
     queryFn: ({ client }): SearchRecent[] =>
       client.getQueryData<SearchRecent[]>(queryKey) ?? [],
     staleTime: Infinity,
