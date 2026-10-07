@@ -10,7 +10,6 @@ export const peoplePreferencesQuery = (scope: string) => {
   const queryKey = [scope, "people.preferences"] as const;
   return queryOptions({
     queryKey,
-    initialData: () => defaults,
     staleTime: Infinity,
     queryFn: ({ client }): PeoplePreferences =>
       client.getQueryData<PeoplePreferences>(queryKey) ?? defaults,

@@ -1,4 +1,9 @@
-import { QueryClient, dehydrate, hydrate } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryObserver,
+  dehydrate,
+  hydrate,
+} from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -28,6 +33,34 @@ const roundTrip = (cache: QueryClient) => {
 };
 
 describe("local data in the scoped persistent cache", () => {
+  it("restores older People choices after the screen mounts while disk hydration is pending", () => {
+    const scope = "user:one:org:token";
+    const previous = new QueryClient();
+    previous.setQueryData(
+      peoplePreferencesQuery(scope).queryKey,
+      { scope: "team:50", view: "month" },
+      { updatedAt: 1 }
+    );
+    const stored = serializeQueryCache({
+      timestamp: 1,
+      buster: "test",
+      clientState: dehydrate(previous),
+    });
+    const restored = new QueryClient();
+    // PersistQueryClientProvider renders observers with fetching disabled during restoration.
+    const observer = new QueryObserver(restored, {
+      ...peoplePreferencesQuery(scope),
+      enabled: false,
+    });
+    hydrate(restored, deserializeQueryCache(stored).clientState);
+    expect(
+      restored.getQueryData(peoplePreferencesQuery(scope).queryKey)
+    ).toStrictEqual({ scope: "team:50", view: "month" });
+    observer.destroy();
+    previous.clear();
+    restored.clear();
+  });
+
   it("restores mixed recents, song recents and People choices while retaining account isolation", () => {
     const cache = new QueryClient();
     const scope = "user:one:org:token";
