@@ -10,8 +10,8 @@
  *   build-number verify --build <n>             Fails if App Store Connect now has it, or higher.
  *   status --build <n>                          Prints the build's processing and TestFlight state.
  *
- * App Store Connect reads use ASC_KEY_ID, ASC_ISSUER_ID, and ASC_KEY_PATH from the environment
- * this command alone receives.
+ * App Store Connect reads use ASC_KEY_ID, ASC_ISSUER_ID, and ASC_KEY_PATH or ASC_KEY_P8_BASE64
+ * from the environment this command alone receives.
  */
 import { readFileSync } from "node:fs";
 import process from "node:process";
@@ -79,18 +79,27 @@ const appStoreConnect = async (): Promise<{
   const keyId = environment("ASC_KEY_ID");
   const issuerId = environment("ASC_ISSUER_ID");
   const keyPath = environment("ASC_KEY_PATH");
-  if (keyId === "" && issuerId === "" && keyPath === "") {
+  const keyBase64 = environment("ASC_KEY_P8_BASE64");
+  if (`${keyId}${issuerId}${keyPath}${keyBase64}` === "") {
     return null;
   }
-  if (keyId === "" || issuerId === "" || keyPath === "") {
+  if (
+    keyId === "" ||
+    issuerId === "" ||
+    (keyPath === "") === (keyBase64 === "")
+  ) {
     throw new Error(
-      "Supply ASC_KEY_ID, ASC_ISSUER_ID, and ASC_KEY_PATH together."
+      "Supply ASC_KEY_ID, ASC_ISSUER_ID, and one of ASC_KEY_PATH or ASC_KEY_P8_BASE64."
     );
   }
   const client = makeAscClient({
     keyId,
     issuerId,
-    privateKey: readFileSync(keyPath, "utf-8"),
+    // The base64 key is decoded in memory and never written to disk.
+    privateKey:
+      keyPath === ""
+        ? Buffer.from(keyBase64, "base64").toString("utf-8")
+        : readFileSync(keyPath, "utf-8"),
   });
   return { client, appId: await findAppId(client, BUNDLE_ID) };
 };

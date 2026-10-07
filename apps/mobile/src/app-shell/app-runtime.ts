@@ -15,6 +15,8 @@ import type { Json } from "effect/Schema";
 
 import { makeFixtureFetch } from "../harness/fixture-transport";
 import type { FeatureOverride, LaunchOptions } from "../harness/launch-options";
+import { offlineFetch } from "../harness/release-smoke";
+import type { SmokeNetwork } from "../harness/release-smoke";
 import {
   clearIfFreshInstall,
   makeCredentialStore,
@@ -255,6 +257,35 @@ export const makeLiveRuntime = (
       fetch: globalThis.fetch,
     }),
     now: () => new Date(),
+    credentialIdentity: async (token) =>
+      await pkceChallenge(device.crypto, token),
+    seed: null,
+    onForget: device.onForget,
+    beforeRestore: async () => {
+      await clearIfFreshInstall(device.secrets, device.appStorage);
+    },
+  });
+
+/**
+ * A release smoke build's runtime (`harness/release-smoke.ts`): the device's Keychain, app
+ * storage, and fresh-install check, as the real runtime has, with the fixtures (or a lost
+ * connection) for the network and the fixture sign-in for the browser.
+ */
+export const makeReleaseSmokeRuntime = (
+  options: LaunchOptions,
+  device: DeviceServices,
+  network: SmokeNetwork,
+  now: () => Date
+): AppRuntime =>
+  buildRuntime(options, {
+    origin: "https://fixtures.invalid",
+    fetch:
+      network === "online"
+        ? makeFixtureFetch({ latencyMs: options.mockLatencyMs })
+        : offlineFetch,
+    secrets: device.secrets,
+    signIn: null,
+    now,
     credentialIdentity: async (token) =>
       await pkceChallenge(device.crypto, token),
     seed: null,

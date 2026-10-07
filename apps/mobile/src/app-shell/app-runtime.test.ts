@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { makeFixtureFetch } from "../harness/fixture-transport";
 import { noLaunchOptions } from "../harness/launch-options";
@@ -10,7 +10,88 @@ import {
 } from "../session/credential-store";
 
 vi.stubGlobal("__DEV__", true);
-const { makeLiveRuntime } = await import("./app-runtime");
+const { makeLiveRuntime, makeReleaseSmokeRuntime } =
+  await import("./app-runtime");
+
+const testCrypto = {
+  randomBytes: (count: number) => new Uint8Array(randomBytes(count)),
+  sha256: async (text: string) =>
+    await Promise.resolve(
+      new Uint8Array(createHash("sha256").update(text).digest())
+    ),
+};
+
+/** One simulated install: its Keychain and its app storage survive relaunches. */
+const smokeDevice = () => {
+  const plain = new Map<string, string>();
+  return {
+    secrets: memorySecretStorage(),
+    appStorage: {
+      getItem: async (key: string) =>
+        await Promise.resolve(plain.get(key) ?? null),
+      setItem: async (key: string, value: string) => {
+        plain.set(key, value);
+        await Promise.resolve();
+      },
+    },
+    crypto: testCrypto,
+    authenticate: async () => await Promise.resolve(null),
+    onForget: undefined,
+  };
+};
+const smokeNow = () => new Date("2026-10-01T17:00:00.000Z");
+
+describe("release smoke runtime", () => {
+  beforeEach(() => {
+    // Smoke builds are Release builds.
+    vi.stubGlobal("__DEV__", false);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("starts a fresh install signed out without touching the network", async () => {
+    const requests: string[] = [];
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
+      requests.push(new Request(input).url);
+      return await Promise.reject(new Error("production network"));
+    });
+    const runtime = makeReleaseSmokeRuntime(
+      noLaunchOptions,
+      smokeDevice(),
+      "offline",
+      smokeNow
+    );
+    await runtime.start();
+    expect(runtime.origin).toBe("https://fixtures.invalid");
+    expect(runtime.session.getSnapshot().phase.kind).toBe("signedOut");
+    expect(requests).toStrictEqual([]);
+  });
+
+  it("restores a fixture sign-in from the device's Keychain on the next launch, offline too", async () => {
+    const device = smokeDevice();
+    const first = makeReleaseSmokeRuntime(
+      noLaunchOptions,
+      device,
+      "online",
+      smokeNow
+    );
+    await first.start();
+    await first.session.completeSignIn(await first.signIn());
+    expect(first.session.getSnapshot().phase.kind).toBe("signedIn");
+    expect(device.secrets.items.size).toBe(1);
+
+    const relaunched = makeReleaseSmokeRuntime(
+      noLaunchOptions,
+      device,
+      "offline",
+      smokeNow
+    );
+    await relaunched.start();
+    expect(relaunched.session.getSnapshot().phase.kind).toBe("signedIn");
+    expect(relaunched.isFixtureMode).toBeFalsy();
+  });
+});
 
 describe("demo.start's request", () => {
   afterEach(() => {

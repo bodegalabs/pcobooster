@@ -14,6 +14,7 @@
     "ios:release": "bash scripts/release-ios.sh",
     "ios:release:status": "bun run scripts/release/release-cli.ts status --build",
     "ios:hermes-gate": "bun run scripts/hermes-gate/gate.ts",
+    "ios:release-smoke": "bash scripts/release-smoke.sh",
     "ios:capture": "bash scripts/capture.sh",
     "ios:compare": "bash scripts/compare.sh",
     "ios:taps": "bash scripts/tap-flows.sh",

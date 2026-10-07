@@ -1,0 +1,11 @@
+# Release smoke: a cold launch with nothing remembered reaches sign-in.
+appId: com.pcobooster.ios
+---
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-button"
+    timeout: 30000
+- assertVisible: "Sign in with Planning Center"
+- assertNotVisible:
+    id: "account-button"
+- takeScreenshot: initial-screen

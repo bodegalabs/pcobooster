@@ -30,7 +30,10 @@ import { Alert, AppState, StyleSheet, View } from "react-native";
 import { ErrorToastProvider } from "../components/error-toast";
 import { colors } from "../design/colors";
 import { FeedbackDraftProvider } from "../features/account/feedback-draft";
-import { launchOptions } from "../harness/current-launch-options";
+import {
+  launchOptions,
+  releaseSmokeNetwork,
+} from "../harness/current-launch-options";
 import { FIXTURE_ANCHOR_NOW } from "../harness/launch-options";
 import {
   ClockProvider,
@@ -48,7 +51,11 @@ import {
 } from "../session/device-services";
 import { SignInFailure } from "../session/native-sign-in";
 import { syncAccountAnalytics } from "./analytics";
-import { makeFixtureRuntime, makeLiveRuntime } from "./app-runtime";
+import {
+  makeFixtureRuntime,
+  makeLiveRuntime,
+  makeReleaseSmokeRuntime,
+} from "./app-runtime";
 import type { AppRuntime } from "./app-runtime";
 import { makeCacheStorage } from "./cache-storage";
 import { deviceAnalytics } from "./device-analytics";
@@ -72,7 +79,11 @@ import type { SessionValue, SignInActivity } from "./session";
 
 const fixedClock: AppClock = { now: () => FIXTURE_ANCHOR_NOW };
 const systemClock: AppClock = { now: () => new Date() };
-const appClock = launchOptions.fixedNow ? fixedClock : systemClock;
+// Smoke builds read the fixtures, so they keep the fixtures' clock.
+const appClock =
+  launchOptions.fixedNow || releaseSmokeNetwork !== null
+    ? fixedClock
+    : systemClock;
 
 /** The rocket's launch-away before the app replaces the sign-in screen (Swift `launchAwayDelay`). */
 const LAUNCH_AWAY_MS = 450;
@@ -87,18 +98,33 @@ const delay = async (ms: number) => {
 
 const cacheStorage = makeCacheStorage(appStorage, removeAppStorageKeys);
 
+const deviceServices = {
+  secrets: keychainStorage,
+  appStorage,
+  crypto: deviceCrypto,
+  authenticate: ephemeralWebAuthentication,
+  onForget: (userIds: readonly string[]) => {
+    void cacheStorage.forget(userIds);
+  },
+};
+
+const makeRuntime = (): AppRuntime => {
+  if (launchOptions.mock) {
+    return makeFixtureRuntime(launchOptions, appClock.now);
+  }
+  if (releaseSmokeNetwork !== null) {
+    return makeReleaseSmokeRuntime(
+      launchOptions,
+      deviceServices,
+      releaseSmokeNetwork,
+      appClock.now
+    );
+  }
+  return makeLiveRuntime(launchOptions, deviceServices);
+};
+
 /** One runtime per app session. */
-const runtime: AppRuntime = launchOptions.mock
-  ? makeFixtureRuntime(launchOptions, appClock.now)
-  : makeLiveRuntime(launchOptions, {
-      secrets: keychainStorage,
-      appStorage,
-      crypto: deviceCrypto,
-      authenticate: ephemeralWebAuthentication,
-      onForget: (userIds) => {
-        void cacheStorage.forget(userIds);
-      },
-    });
+const runtime: AppRuntime = makeRuntime();
 
 /** One query cache; every key starts with the account scope, so nothing crosses accounts. */
 const queryClient = new QueryClient({
