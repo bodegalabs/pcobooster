@@ -1854,6 +1854,29 @@ describe("plan window history when plans change between calls", () => {
     }
   );
 
+  it("rejects a tied-date swap across pages even when the boundary ID stays unchanged", async () => {
+    const window = sameDayOrg(200);
+    const server = fakePlanningCenter(window.org);
+    const exits = await readChangedWindow(server.fetch, () => {
+      window.change((current) => {
+        const reordered = [...current];
+        const [left] = reordered.slice(90, 91);
+        const [right] = reordered.slice(110, 111);
+        if (left !== undefined && right !== undefined) {
+          reordered[90] = right;
+          reordered[110] = left;
+        }
+        return reordered;
+      });
+    });
+    expect(exits.at(-1)).toStrictEqual(Exit.fail(changed(3)));
+    await expect(readAgain(server.fetch)).resolves.toStrictEqual({
+      rows: 200,
+      everyPlanOnce: true,
+      loaded: 200,
+    });
+  });
+
   it("fails typed when a deferred plan moved past its neighboring pages, rather than drop it", async () => {
     // One range page, listed whole by the first call, which defers some rosters.
     const window = sameDayOrg(50);

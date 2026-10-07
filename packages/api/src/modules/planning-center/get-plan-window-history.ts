@@ -66,12 +66,17 @@ export interface WindowPlanRef {
 /**
  * A service type's window plans still to list. `offset` is where the next page starts; once
  * plans are listed it is the position of the last one, `boundaryPlanId`, so the next page shows
- * whether the plans before it moved since.
+ * whether that boundary moved. The ordered IDs of the preceding page also guard against tied
+ * sort-date reorderings across that page; this is not a snapshot of older pages.
  */
 export interface WindowRangeRef {
   readonly serviceTypeId: string;
   readonly offset: number;
   readonly boundaryPlanId: string | null;
+  readonly previousPage?: {
+    readonly offset: number;
+    readonly planIds: string[];
+  };
 }
 
 export interface PlanWindowHistoryBatch extends PlanWindowRosters {
@@ -395,6 +400,7 @@ const buildRosters = (
 interface RangePage {
   /** The page's first plan, in the range or not; `null` for an empty page. */
   readonly firstPlanId: string | null;
+  readonly planIds: string[];
   readonly plans: WindowPlan[];
   readonly next: WindowRangeRef | null;
 }
@@ -513,6 +519,7 @@ class RangePages {
     }
     const stored: RangePage = {
       firstPlanId: page.data[0]?.id ?? null,
+      planIds: page.data.map(({ id }) => id),
       plans: page.data.flatMap((plan) =>
         isInOrganizationDayRange(plan, afterDayKey, rangeEndDayKey, orgTimeZone)
           ? [
@@ -532,6 +539,7 @@ class RangePages {
               serviceTypeId,
               offset: last === undefined ? next : offset + page.data.length - 1,
               boundaryPlanId: last?.id ?? null,
+              previousPage: { offset, planIds: page.data.map(({ id }) => id) },
             },
     };
     this.pages.set(pageKey({ serviceTypeId, offset }), stored);
@@ -661,14 +669,50 @@ const listRanges = (
         break;
       }
       yield* pages.read(
-        pages.unread(ranges.slice(0, Math.min(slots, READ_CONCURRENCY)))
+        pages
+          .unread(
+            ranges.flatMap((range) => [
+              ...(range.previousPage === undefined
+                ? []
+                : [
+                    {
+                      serviceTypeId: range.serviceTypeId,
+                      offset: range.previousPage.offset,
+                    },
+                  ]),
+              range,
+            ])
+          )
+          .slice(0, Math.min(slots, READ_CONCURRENCY))
       );
       mustList = false;
       // Pages are taken in range order: a range's later pages come before the next range.
       let range = ranges.at(0);
       let page = range === undefined ? undefined : pages.get(range);
       while (range !== undefined && page !== undefined) {
-        const { boundaryPlanId } = range;
+        const { boundaryPlanId, previousPage } = range;
+        if (boundaryPlanId !== null) {
+          // One bounded page check catches tied sort-date reorderings across the frontier.
+          // Older pages can still change: the provider does not offer snapshot isolation.
+          if (previousPage === undefined) {
+            return yield* rangeChanged(range.serviceTypeId, pages);
+          }
+          const previous = pages.get({
+            serviceTypeId: range.serviceTypeId,
+            offset: previousPage.offset,
+          });
+          if (previous === undefined) {
+            break;
+          }
+          if (
+            previous.planIds.length !== previousPage.planIds.length ||
+            previous.planIds.some(
+              (id, index) => id !== previousPage.planIds[index]
+            )
+          ) {
+            return yield* rangeChanged(range.serviceTypeId, pages);
+          }
+        }
         if (boundaryPlanId !== null && page.firstPlanId !== boundaryPlanId) {
           return yield* rangeChanged(range.serviceTypeId, pages);
         }

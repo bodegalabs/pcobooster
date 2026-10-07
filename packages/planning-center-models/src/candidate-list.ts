@@ -53,6 +53,7 @@ export interface PlanWindowHistoryBatch extends PlanWindowRosters {
     serviceTypeId: string;
     offset: number;
     boundaryPlanId: string | null;
+    previousPage?: { offset: number; planIds: readonly string[] };
   }[];
 }
 export interface PositionCandidates {

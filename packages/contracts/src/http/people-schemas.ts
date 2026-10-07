@@ -135,6 +135,12 @@ export const windowRangeRefSchema = Schema.Struct({
   serviceTypeId: requiredId,
   offset: pageOffset,
   boundaryPlanId: Schema.NullOr(requiredId),
+  previousPage: Schema.optional(
+    Schema.Struct({
+      offset: pageOffset,
+      planIds: mutableArray(requiredId).check(Schema.isMaxLength(100)),
+    })
+  ),
 });
 
 export const windowPlanSummarySchema = Schema.Struct({
