@@ -35,6 +35,10 @@ assert_clean() {
 }
 assert_clean
 revision="$(git -C "$repo" rev-parse HEAD)"
+if [[ -n "${EXPO_PUBLIC_DIAGNOSTICS_PROBES:-}" ]]; then
+  echo "Diagnostic probes belong to a separate internal verification build; unset them to release." >&2
+  exit 64
+fi
 if [[ -n "${EXPO_PUBLIC_PCOB_RELEASE_SMOKE:-}" ]]; then
   echo "EXPO_PUBLIC_PCOB_RELEASE_SMOKE builds the fixture smoke app; unset it to release." >&2
   exit 64
@@ -145,6 +149,10 @@ if [[ "$skip_build" == 0 ]]; then
   bun run scripts/release/artifact-cli.ts source > "$out/artifact.json"
   echo "==> Archiving pcobooster.com $revision (build $build)"
   EXPO_PUBLIC_POSTHOG_KEY="${EXPO_PUBLIC_POSTHOG_KEY:-${POSTHOG_PROJECT_KEY:-}}" \
+  EXPO_PUBLIC_SOURCE_REVISION="$revision" \
+  SOURCEMAP_FILE="$out/maps/hermes/main.jsbundle.map" \
+  COMPOSE_SOURCEMAP_PATH="$mobile/scripts/compose-source-maps.mjs" \
+  PCOB_PACKAGER_SOURCEMAP_COPY="$out/maps/packager/main.jsbundle.map" \
   NODE_ENV=production xcodebuild archive \
     -workspace ios/PCOBooster.xcworkspace -scheme PCOBooster -configuration Release \
     -destination 'generic/platform=iOS' -derivedDataPath build/derived-release \
@@ -163,6 +171,9 @@ fi
 
 app="$archive/Products/Applications/PCOBooster.app"
 bun run scripts/release/artifact-cli.ts verify "$out/artifact.json" "$app" release-archive-app
+# Maps and provenance must belong to this exact archived bytecode. They remain alongside the
+# archive for a separately authorized source-map upload; prepare/export never sends them.
+bun run scripts/source-maps.ts verify --maps "$out/maps" --bundle "$app/main.jsbundle"
 info="$app/Info.plist"
 version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$info")"
 archived_build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$info")"

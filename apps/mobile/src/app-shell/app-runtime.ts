@@ -326,6 +326,8 @@ export const makeReleaseSmokeRuntime = (
     credentialIdentity: async (token) =>
       await pkceChallenge(device.crypto, token),
     seed: null,
+    appRelease: device.appRelease,
+    reportOrigin: device.reportOrigin,
     onForget: device.onForget,
     beforeRestore: async () => {
       await clearIfFreshInstall(device.secrets, device.appStorage);

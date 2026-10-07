@@ -934,7 +934,7 @@ test(
         fields.procedure,
         fields.status,
       ]),
-      [[requestId, "0.1.0(372)+1a2b3c4", "expo;api=1", "schedule.assign", 500]]
+      [[requestId, "0.1.0(372)+1a2b3c4", "expo;api=2", "schedule.assign", 500]]
     );
   }),
   requestTimeout

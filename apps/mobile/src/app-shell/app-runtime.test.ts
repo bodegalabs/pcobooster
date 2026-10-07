@@ -37,6 +37,7 @@ const smokeDevice = () => {
         await Promise.resolve();
       },
     },
+    appRelease: "0.1.0(1)+test",
     crypto: testCrypto,
     authenticate: async () => await Promise.resolve(null),
     onForget: undefined,
