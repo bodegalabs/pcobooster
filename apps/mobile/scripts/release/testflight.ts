@@ -91,7 +91,11 @@ export interface LocalReleaseDependencies {
     readonly revision: string;
   };
   readonly verifyExport: (build: number, revision: string) => ArtifactIdentity;
-  readonly appStoreConnectBuilds: () => Promise<readonly number[]>;
+  /**
+   * Build numbers App Store Connect has, apart from the `AWAITING_UPLOAD` record this release's
+   * own export created for `build`.
+   */
+  readonly appStoreConnectBuilds: (build: number) => Promise<readonly number[]>;
   /** Whether the person confirms the upload of this build. */
   readonly confirm: (identity: ArtifactIdentity) => Promise<boolean>;
   readonly assertUnchanged: (identity: ArtifactIdentity) => void;
@@ -218,7 +222,7 @@ export const runLocalRelease = async (
   }
   const identity = deps.verifyExport(build, revision);
 
-  stillUnused(build, await deps.appStoreConnectBuilds());
+  stillUnused(build, await deps.appStoreConnectBuilds(build));
   if (!(await deps.confirm(identity))) {
     throw new Error(`Build ${build} was not confirmed. Nothing was uploaded.`);
   }
@@ -347,7 +351,8 @@ const main = async (): Promise<void> => {
           frameworksWithoutDsyms: PREBUILT_FRAMEWORKS_WITHOUT_DSYMS,
           run: runCommand,
         }),
-      appStoreConnectBuilds: async () => await takenBuildNumbers(client, appId),
+      appStoreConnectBuilds: async (build) =>
+        await takenBuildNumbers(client, appId, build),
       confirm: confirmOnTerminal,
       assertUnchanged: (identity) => {
         assertUnchanged(out, identity);

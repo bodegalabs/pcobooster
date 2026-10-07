@@ -62,8 +62,8 @@ const harness = (fake: Fake = {}) => {
       calls.push(`verify ${build}`);
       return identityFor(build);
     },
-    appStoreConnectBuilds: async () => {
-      calls.push("asc");
+    appStoreConnectBuilds: async (build) => {
+      calls.push(`asc excluding own export ${build}`);
       return await Promise.resolve(fake.ascBuilds ?? [372]);
     },
     confirm: async () => {
@@ -109,7 +109,7 @@ describe("the local TestFlight release", () => {
       "checkout",
       "bash apps/mobile/scripts/release-ios.sh --no-upload",
       "verify 373",
-      "asc",
+      "asc excluding own export 373",
       "confirm",
       "unchanged",
       "upload 373",

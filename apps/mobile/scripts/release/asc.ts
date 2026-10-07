@@ -191,13 +191,28 @@ export const findAppId = async (
   return app.id;
 };
 
+const UploadStateSchema = Schema.Struct({ state: Schema.String });
+const isUploadState = Schema.is(UploadStateSchema);
+
+/** An upload record's state (`AWAITING_UPLOAD`, `PROCESSING`, `COMPLETE`, ...), if readable. */
+const uploadState = (upload: Resource): string | null => {
+  const state = upload.attributes?.state;
+  return isUploadState(state) ? state.state : null;
+};
+
 /**
  * Every iOS build number App Store Connect knows for the app: processed or expired builds, and
  * uploads still being delivered or processed (which do not list as builds yet).
+ *
+ * `ownExport` leaves out a bare `AWAITING_UPLOAD` record for exactly that build number. Xcode's
+ * `-exportArchive` for App Store Connect creates one when it signs (builds 373 and 374 show it
+ * seconds after their exports started), and the upload of that IPA completes the same record. Any
+ * other upload state, any build, and any other number still count.
  */
 export const takenBuildNumbers = async (
   client: AscClient,
-  appId: string
+  appId: string,
+  ownExport?: number
 ): Promise<number[]> => {
   const [builds, uploads] = await Promise.all([
     client.list("/v1/builds", {
@@ -214,7 +229,14 @@ export const takenBuildNumbers = async (
   ]);
   const versions = [
     ...builds.data.map((build) => attribute(build, "version")),
-    ...uploads.data.map((upload) => attribute(upload, "cfBundleVersion")),
+    ...uploads.data.map((upload) => {
+      const version = attribute(upload, "cfBundleVersion");
+      const reservedByOwnExport =
+        ownExport !== undefined &&
+        version === String(ownExport) &&
+        uploadState(upload) === "AWAITING_UPLOAD";
+      return reservedByOwnExport ? null : version;
+    }),
   ];
   return versions
     .filter(
