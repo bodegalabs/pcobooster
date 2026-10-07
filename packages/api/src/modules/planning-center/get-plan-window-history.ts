@@ -709,7 +709,8 @@ const admitRosters = (
       break;
     }
     const cost = rosterRequestsFor(entry.plan);
-    // The first roster may use the retry headroom, so a follow-up call always reads one.
+    // The first roster may use the retry headroom up to the hard cap, so every call reads one:
+    // a follow-up call would have no more room for it. The call then spends past its budget.
     const limit =
       admitted === 0
         ? Math.max(budget, PLANNING_CENTER_REQUEST_CAP - spent)
@@ -737,7 +738,8 @@ const toPlanRef = (entry: WindowPlan | WindowPlanRef): WindowPlanRef =>
  * History for the candidate list from the rosters of every plan within 28 days either side of
  * the selected plan, across active service types, plus plans up to a week after the window that
  * hold a rehearsal inside it. Each call plans against `PROGRESSIVE_REQUEST_BUDGET` Planning
- * Center requests, counting what was really sent.
+ * Center requests, counting what was really sent; the first roster may go past it, up to the
+ * procedure cap, so every call reads one.
  *
  * Each service type's plans are listed a range page at a time (100 plans, in date order, from
  * the window's start), until a page passes the window. A call first finds the plans an earlier

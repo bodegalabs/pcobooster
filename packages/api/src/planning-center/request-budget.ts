@@ -45,7 +45,11 @@ const RETRY_HEADROOM = 4;
 
 /**
  * What a progressive procedure plans a call against. It admits work by upper-bound costs and
- * then counts what was really sent, so cached reads leave room for more work.
+ * then counts what was really sent, so cached reads leave room for more work. A call goes past
+ * it only to finish or advance its first unit (a person, a roster), which a follow-up call
+ * could not fit either; that unit may use the retry headroom up to `PLANNING_CENTER_REQUEST_CAP`,
+ * which transport enforces, leaving that call fewer retries. So a call's reported
+ * `planningCenterRequests` can exceed this, never the cap.
  */
 export const PROGRESSIVE_REQUEST_BUDGET =
   PLANNING_CENTER_REQUEST_CAP - RETRY_HEADROOM;

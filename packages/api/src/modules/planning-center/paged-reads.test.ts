@@ -1660,6 +1660,75 @@ describe("plan window history over paged plan ranges", () => {
   });
 });
 
+describe("plan window history whose first roster needs the retry headroom", () => {
+  it("reads it past the planned budget, within the procedure cap, and says so", async () => {
+    // Eleven empty service types, then one plan with 2,500 people: 25 roster pages.
+    const serviceTypes = Array.from({ length: 12 }, (_, index): PCResource => ({
+      type: "ServiceType",
+      id: `st-${index}`,
+      attributes: { archived_at: null, name: `Type ${index}` },
+    }));
+    const planPath = "/services/v2/service_types/st-11/plans";
+    const org: FakeOrg = {
+      collections: new Map([
+        [
+          planPath,
+          {
+            data: [
+              {
+                type: "Plan",
+                id: "big",
+                attributes: { sort_date: PLAN_DATE, plan_people_count: 2500 },
+              },
+            ],
+          },
+        ],
+        [
+          `${planPath}/big/team_members`,
+          {
+            data: Array.from({ length: 2500 }, (_, index): PCResource => ({
+              type: "PlanPerson",
+              id: `big-pp-${index}`,
+              attributes: {
+                status: "C",
+                team_position_name: "Band - Vocals",
+                created_at: "2026-01-01T00:00:00Z",
+              },
+              relationships: {
+                person: { data: { type: "Person", id: `person-${index}` } },
+                plan: { data: { type: "Plan", id: "big" } },
+              },
+            })),
+          },
+        ],
+      ]),
+      resources: new Map(),
+    };
+    const server = fakePlanningCenter(org);
+
+    const calls = await continueWindowHistory(() => ({
+      ...windowServices(server.fetch),
+      catalog: { getServiceTypesCached: () => Effect.succeed(serviceTypes) },
+    }));
+
+    expect(
+      calls.map(({ batch, requests }) => ({
+        limit: batch.requestBudget.limit,
+        planningCenterRequests: batch.requestBudget.planningCenterRequests,
+        withinCap: requests <= PLANNING_CENTER_REQUEST_CAP,
+        loadedPlanCount: batch.loadedPlanCount,
+      }))
+    ).toStrictEqual([
+      {
+        limit: PROGRESSIVE_REQUEST_BUDGET,
+        planningCenterRequests: PROGRESSIVE_REQUEST_BUDGET + 1,
+        withinCap: true,
+        loadedPlanCount: 1,
+      },
+    ]);
+  });
+});
+
 describe("plan window history when plans change between calls", () => {
   const sundayPath = "/services/v2/service_types/st-sunday/plans";
   /** A Sunday plan on the selected day with one person on its roster. */

@@ -184,6 +184,10 @@ export const planWindowHistoryBatchSchema = Schema.Struct({
     Schema.isMaxLength(MAX_SERVICE_TYPES)
   ),
   requestBudget: Schema.Struct({
+    /**
+     * What the call planned against. To finish or advance its first unit it may go past this
+     * into the retry headroom, never past the procedure's hard cap.
+     */
     limit: finiteNumber,
     /** Planning Center requests the call sent; cached reads cost none. */
     planningCenterRequests: finiteNumber,
@@ -249,6 +253,10 @@ export const candidateDetailsBatchSchema = Schema.Struct({
   /** Pass back with `deferredPersonIds`; empty once nobody is deferred. */
   continuation: candidateDetailsContinuationSchema,
   requestBudget: Schema.Struct({
+    /**
+     * What the call planned against. To finish or advance its first unit it may go past this
+     * into the retry headroom, never past the procedure's hard cap.
+     */
     limit: finiteNumber,
     /** Planning Center requests the call sent; cached reads cost none. */
     planningCenterRequests: finiteNumber,
@@ -356,6 +364,10 @@ export const peopleDashboardActivityBatchSchema = Schema.Struct({
    */
   deferredPersonIds: mutableArray(Schema.String),
   requestBudget: Schema.Struct({
+    /**
+     * What the call planned against. To finish or advance its first unit it may go past this
+     * into the retry headroom, never past the procedure's hard cap.
+     */
     limit: finiteNumber,
     /** Planning Center requests the call sent; cached reads cost none. */
     planningCenterRequests: finiteNumber,
@@ -375,6 +387,10 @@ export const peopleDashboardPersonDetailSchema = Schema.Struct({
    */
   person: peopleDashboardPersonSchema,
   requestBudget: Schema.Struct({
+    /**
+     * What the call planned against. To finish or advance its first unit it may go past this
+     * into the retry headroom, never past the procedure's hard cap.
+     */
     limit: finiteNumber,
     /** Planning Center requests the call sent; cached reads cost none. */
     planningCenterRequests: finiteNumber,
