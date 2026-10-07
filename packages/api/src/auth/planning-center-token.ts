@@ -1,5 +1,5 @@
-import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
 import type { Auth } from "@pcobooster/api/auth";
+import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 
 interface PlanningCenterAccountSelector {

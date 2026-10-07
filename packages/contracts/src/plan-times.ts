@@ -1,5 +1,3 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import {
   planTimeSchema,
   planTimeTypeSchema,
@@ -42,51 +40,6 @@ export const planTimesDeleteInputSchema = planTimesListInputSchema.extend({
 
 export const planTimesListOutputSchema = z.array(planTimeSchema);
 export const planTimesDeleteOutputSchema = z.void();
-
-const planTimesProcedure = oc.errors({
-  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-  FORBIDDEN: applicationErrorMap.FORBIDDEN,
-  TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-  BAD_REQUEST: applicationErrorMap.BAD_REQUEST,
-  BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
-
-export const planTimesContract = {
-  list: planTimesProcedure
-    .route({
-      method: "GET",
-      path: "/plans/{planId}/times",
-      summary: "List a plan's service and rehearsal times",
-    })
-    .input(planTimesListInputSchema)
-    .output(planTimesListOutputSchema),
-  create: planTimesProcedure
-    .route({
-      method: "POST",
-      path: "/plans/{planId}/times",
-      summary: "Create a plan time",
-    })
-    .input(planTimesCreateInputSchema)
-    .output(planTimeSchema),
-  update: planTimesProcedure
-    .route({
-      method: "PATCH",
-      path: "/plan-times/{planTimeId}",
-      summary: "Update a plan time and its assignments",
-    })
-    .input(planTimesUpdateInputSchema)
-    .output(planTimeSchema),
-  delete: planTimesProcedure
-    .route({
-      method: "DELETE",
-      path: "/plan-times/{planTimeId}",
-      successStatus: 204,
-      summary: "Delete a plan time",
-    })
-    .input(planTimesDeleteInputSchema)
-    .output(planTimesDeleteOutputSchema),
-};
 
 export type PlanTimesListInput = z.input<typeof planTimesListInputSchema>;
 export type PlanTimesCreateInput = z.input<typeof planTimesCreateInputSchema>;

@@ -1,4 +1,3 @@
-import { NotFound } from "@pcobooster/api/application/errors/not-found";
 import type {
   PlanningCenterRequestAccess,
   RequestAuthentication,
@@ -6,6 +5,7 @@ import type {
 import { anonymousFeatureFlagSubject } from "@pcobooster/api/modules/feature-flags/feature-flags";
 import type { FeatureFlagSubject } from "@pcobooster/api/modules/feature-flags/feature-flags";
 import { Server } from "@pcobooster/api/server";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import type { FeatureFlagName } from "@pcobooster/contracts/features";
 import { Effect } from "effect";
 

@@ -7,9 +7,9 @@ import {
 } from "@/lib/organization-time-zone-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
-/** Client hook for the Planning Center Services organization time zone via oRPC. */
+/** Client hook for the Planning Center Services organization time zone. */
 export const useOrganizationTimeZone = (): string => {
   const queryKey = queryKeys.organizationTimeZone();
   const readCachedTimeZone = useCallback(() => {
@@ -26,7 +26,10 @@ export const useOrganizationTimeZone = (): string => {
   const { data } = useQuery({
     queryKey,
     queryFn: async ({ signal }) => {
-      const response = await orpc.catalog.organization({}, { signal });
+      const response = await productClient.run(
+        (api) => api.catalog.organization(),
+        { signal }
+      );
       writeCachedOrganizationTimeZone(response.timeZone);
       return response;
     },

@@ -1,5 +1,5 @@
-import { ORPCError } from "@orpc/client";
 import type { captureAnalyticsException } from "@pcobooster/analytics/client";
+import { failureCode } from "@pcobooster/client/product-client";
 import { QueryCache } from "@tanstack/react-query";
 import { z } from "zod";
 
@@ -45,7 +45,9 @@ const errorCodeSchema = z.enum([
   "BAD_GATEWAY",
   "INTERNAL_SERVER_ERROR",
   "SERVICE_UNAVAILABLE",
+  "NETWORK_ERROR",
   "GATEWAY_TIMEOUT",
+  "CLIENT_OUTDATED",
 ]);
 
 /** One report for every terminal read failure, after retries, including background work. */
@@ -55,9 +57,7 @@ export const createReadErrorCache = (
   new QueryCache({
     onError: (error, query) => {
       const operation = readOperationSchema.safeParse(query.queryKey[0]);
-      const code = errorCodeSchema.safeParse(
-        error instanceof ORPCError ? error.code : undefined
-      );
+      const code = errorCodeSchema.safeParse(failureCode(error));
       const operationName = operation.success ? operation.data : "unknown-read";
       const errorCode = code.success ? code.data : "UNKNOWN";
       // Provider messages, query IDs, and bodies may contain private data. Report a

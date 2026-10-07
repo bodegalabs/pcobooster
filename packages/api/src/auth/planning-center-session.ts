@@ -1,4 +1,3 @@
-import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
 import type { Auth } from "@pcobooster/api/auth";
 import { getDevBypassSession } from "@pcobooster/api/auth/dev-bypass";
 import {
@@ -7,6 +6,7 @@ import {
 } from "@pcobooster/api/auth/planning-center-token";
 import { readCookie } from "@pcobooster/api/http/cookies";
 import type { ServerDependencies } from "@pcobooster/api/server";
+import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
@@ -64,10 +64,11 @@ export interface PlanningCenterUserAuthContext {
 }
 
 export const requirePlanningCenterAccessToken = async (
-  { auth, config }: Pick<ServerDependencies, "auth" | "config">,
+  server: Pick<ServerDependencies, "auth" | "config">,
   request: Request
 ): Promise<PlanningCenterUserAuthContext> => {
-  if (config.devAuthBypass) {
+  // The bypass never reads Better Auth, so it works where none is configured.
+  if (server.config.devAuthBypass) {
     return {
       session: getDevBypassSession(),
       accessToken: "",
@@ -77,6 +78,7 @@ export const requirePlanningCenterAccessToken = async (
     };
   }
 
+  const { auth } = server;
   const session = await auth.api.getSession({
     headers: request.headers,
   });

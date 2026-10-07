@@ -8,17 +8,18 @@
 ## Project Structure & Module Organization
 
 - `apps/web/`: TanStack Start product UI on Cloudflare Workers. File routes live in `apps/web/src/routes` (`src/routeTree.gen.ts` is generated and committed); the sign-in gate and other request middleware in `src/start.ts`; components, hooks, and public assets under `apps/web/src` and `apps/web/public`.
-- `apps/server/`: the API Worker, an Alchemy Effect-native `Cloudflare.Worker` (`src/worker.ts`) that reads its settings with `Config` at startup, binds D1, and serves the Hono composition root (`src/app.ts`: Better Auth, oRPC, the OpenAPI reference, CORS, and cache policy). `src/database.ts` declares the D1 database and its `Drizzle.Schema`; `src/stage.ts` derives per-stage origins for both the Worker and `alchemy.run.ts`.
+- `apps/server/`: the API Worker, an Alchemy Effect-native `Cloudflare.Worker` (`src/worker.ts`) that reads its settings with `Config` at startup, binds D1, builds one Effect `HttpRouter` (`src/http-app.ts`: the product API under `/api/v1`, Better Auth, liveness, CORS, the cache policy, and disconnect handling) once per isolate in its constructor, and hands each request the isolate's server dependencies. `src/database.ts` declares the D1 database and its `Drizzle.Schema`; `src/stage.ts` derives per-stage origins for both the Worker and `alchemy.run.ts`.
 - `apps/marketing/`: independent marketing site, a TanStack Start app prerendered to static files. Its interactive product replica lives in `apps/marketing/src/components/product-demo/` with fictional fixtures; it shares design tokens and shared UI from `packages/ui` (currently the phone menu) with the product; its own primitives stay in `apps/marketing/src/components/ui`.
 - `apps/admin/`: private full-stack TanStack Start admin app for `admin.pcobooster.com`, deployed as its own Cloudflare Worker behind Cloudflare Access. Its server functions read D1 through the Worker's own binding using `packages/api` modules; the public API has no admin procedures. See `docs/admin.md`.
 - `packages/design-tokens/`: product color and radius tokens (`tokens.css`, light on `:root`, dark under `.dark`) shared by `apps/web` and the marketing replica.
 - `packages/ui/`: UI shared by `apps/web` and `apps/marketing`, one export per component (`@pcobooster/ui/mobile-menu`). Components are primitive-free (each app supplies its own buttons and headers) and styled with Tailwind utilities that exist in both apps; each app `@source`s `packages/ui/src` and imports a component's CSS (`@pcobooster/ui/mobile-menu.css`) when it has one.
-- `packages/contracts/`: browser-safe oRPC contracts, transport schemas, and safe error payloads.
+- `packages/contracts/`: browser-safe Effect HttpApi contracts (`src/http/`: every endpoint is declared once with `read`, `read.post`, or a `write.<method>` inside `planningCenterGroup` or `plainGroup`, composed into `ProductApi`, `ProductWireApi`, and the `procedureRoutes` table), product fault classes (`src/faults/`), and the zod schemas browser caches persist with.
 - `packages/planning-center-models/`: browser-safe Planning Center shapes and pure calendar/scheduling rules.
 - `packages/presentation-mode/`: server-side presentation-mode guard, seed, and cache namespace.
 - `packages/api/src/application/`: Effect programs and typed application faults.
 - `packages/api/src/modules/`: server business behavior grouped by the external capability it implements.
-- `packages/api/src/transport/orpc/`: thin oRPC adapters; `packages/api/src/orpc.ts` assembles the router.
+- `packages/api/src/http/`: the API server: `ProcedureScope` and `PlanningCenterSession` middleware, one outcome line per procedure, the unknown-path answer, and `handlers/` (one `handle` line per endpoint, delegating to an application program).
+- `packages/client/`: the one product client (`makeProductClient`, over Effect's `HttpApiClient`) for web, SSR, Expo, and the deploy check, plus `failureStatus`, the request scheduler, and the TanStack Query helpers.
 - `packages/api/src/planning-center/services/`: Planning Center API service wrappers (raw API access only).
 - `packages/api/src/db/` and `packages/api/migrations/`: Drizzle client, schema, and migrations.
 - `packages/config/`: shared TypeScript configuration.
@@ -52,14 +53,14 @@
 
 - TypeScript throughout; prefer explicit types at module boundaries.
 - Use `camelCase` for variables/functions, `PascalCase` for components/types.
-- Keep oRPC handlers as transport layers. Put behavior in explicit feature modules and raw external API calls in services.
+- Keep endpoint handlers as transport layers. Put behavior in explicit feature modules and raw external API calls in services.
 - Use `oxlint.config.ts` and `oxfmt.config.ts` as the standards source of truth. Keep all selected presets enabled and fix the underlying cause of findings. Prefer runtime validation and type narrowing to assertions; comments should explain verified invariants.
 - Shared UI primitives own appearance through variants; compose layout at call sites and use semantic color tokens. Reuse existing variants. Add a variant only for an intentional, reusable design treatment, never solely to relocate forbidden caller styles.
 
 ## Testing Guidelines
 
 - Framework: Vitest, with tests colocated beside API and web source.
-- `apps/server/src/worker.stack.test.ts` runs the real API Worker through Alchemy's test harness (`alchemy/Test/Vitest`, local workerd, in-memory state, the `test` stage on port 3010). Extend it when a change adds a binding or startup wiring that unit tests of the Hono app cannot reach.
+- `apps/server/src/worker.stack.test.ts` runs the real API Worker through Alchemy's test harness (`alchemy/Test/Vitest`, local workerd, in-memory state, the `test` stage on port 3010). Extend it when a change adds a binding or startup wiring that unit tests of the router cannot reach. `src/transport-stack.fixture.ts` serves both transports over a fake Planning Center for it.
 - Prioritize tests for transforms/matching/sorting logic and Planning Center edge cases.
 - Inject narrow typed service dependencies into feature modules and pass fresh test implementations explicitly. Request paths must not rely on process-global credentials or implicit async context. Preserve exact assertions on optional flags so missing values cannot pass as `false`.
 - Prefer test-driven fixes for regressions: reproduce the bug or edge case with a focused failing test, then implement the smallest code change that makes it pass.
@@ -78,21 +79,21 @@
 The account is on Cloudflare Workers Free: each Worker invocation may make at most 50 subrequests (Planning Center calls, D1, KV, and service-binding calls all count), and Planning Center allows 100 requests per 20 seconds per user. Design within these limits; see `docs/research/planning-center-rate-limits.md`.
 
 - Transport caps every procedure at `PLANNING_CENTER_REQUEST_CAP` (40) Planning Center requests, retries included, leaving the rest for session, D1, KV, and flag subrequests; progressive procedures plan against `PROGRESSIVE_REQUEST_BUDGET` with real counts (`packages/api/src/planning-center/request-budget.ts`). Change the reserve there when a procedure adds non-Planning Center subrequests.
-- Keep each oRPC procedure well under the cap. Split heavy screens into several small procedures the browser calls progressively (for example, list first, then details in batches) instead of one call that fans out.
+- Keep each procedure well under the cap. Split heavy screens into several small procedures the browser calls progressively (for example, list first, then details in batches) instead of one call that fans out.
 - Treat the budget as explicit: when a procedure cannot finish within it, return partial data with a continuation cursor. Never swallow a subrequest or rate-limit failure into empty data.
 - Fetch less per call: prefer Planning Center `include`, filters (such as future-only blockouts), and a person's own records over scanning every roster. Cache slow-changing data (past plans, service types) longer.
 - Prefetch only on clear intent (click, or a debounced hover); never run Planning Center fan-out on incidental pointer movement.
-- Load what the user is waiting on first. Anything not on screen yet (hover prefetches, other tabs' data, warm-ups) is speculative: queue it with `requestScheduler.runSpeculative` (or `useIntentPrefetch`), mark its queries with `speculativeQuery`, and call oRPC from query functions through `callForQuery`. See [Request priority](docs/api-architecture.md#request-priority).
+- Load what the user is waiting on first. Anything not on screen yet (hover prefetches, other tabs' data, warm-ups) is speculative: queue it with `requestScheduler.runSpeculative` (or `useIntentPrefetch`), mark its queries with `speculativeQuery`, and call the product client from query functions through `callForQuery`. See [Request priority](docs/api-architecture.md#request-priority).
 - Log per-procedure request counts, rate-limit pauses, and 429s at `info` so Workers Logs shows which screens approach the limits.
 
 ## Architecture Notes
 
-- Preferred flow: `apps/web` -> oRPC contract -> `apps/server` -> `packages/api/src/transport/orpc/*` -> Effect application program -> `packages/api/src/modules/*` -> service adapter.
-- Better Auth is mounted directly by Hono at `/api/auth/*`. The product Worker's `/api/*` and `/admin/*` server routes forward through service bindings (locally too), so browser requests stay on the web origin.
-- Product operations use oRPC. Better Auth, liveness health, and the OpenAPI reference are the intentional non-oRPC surfaces.
-- Native clients (the iOS app) sign in through `/api/auth/native/start` and `/api/auth/native/exchange`, then send `Authorization: Bearer <token>` plus `x-pcobooster-account` (and `x-pcobooster-demo`) headers instead of cookies; keep the web cookie flow and these header reads in step. See [docs/native-auth.md](docs/native-auth.md).
+- Preferred flow: `apps/web` -> `productClient.run((api) => api.people.search({ query }))` -> `apps/server` `/api/v1/...` -> `packages/api/src/http/handlers/*` -> Effect application program -> `packages/api/src/modules/*` -> service adapter.
+- Better Auth is mounted on the API Worker's Effect router at `/api/auth/*`. The product Worker's `/api/*` and `/admin/*` server routes forward through service bindings (locally too), so browser requests stay on the web origin.
+- Product operations use Effect HttpApi under `/api/v1`: reads are `GET` (or `POST` when the input can outgrow a URL), writes use `POST`, `PUT`, `PATCH`, or `DELETE`, and callers use the native typed `api.<group>.<endpoint>({ params, query, payload })` methods. The query helper supplies the abort signal and read priority. Better Auth and liveness health are the intentional surfaces outside it. Callers catch failures with `instanceof` on the fault class or `failureStatus(error)`. The client header is `x-pcobooster-client: <name>;api=<N>` (`formatClientHeader`).
+- Native clients sign in through `/api/auth/native/start` and `/api/auth/native/exchange`, then send `Authorization: Bearer <token>` plus `x-pcobooster-account` (and `x-pcobooster-demo`) headers instead of cookies; keep the web cookie flow and these header reads in step. See [docs/native-auth.md](docs/native-auth.md).
 - Database access uses Drizzle through `packages/api/src/db`; migrations include Better Auth tables.
-- The API Worker builds `ServerDependencies` (`packages/api/src/server.ts`: typed `ServerConfig`, Drizzle database, Better Auth, feature flags, Planning Center read caches) once per isolate and passes them explicitly: in the oRPC context, and to Effect programs as the `Server` service. `packages/api` never reads `process.env` or `cloudflare:workers`; add new settings to `ServerConfig` and read them in `apps/server/src/worker.ts`.
+- The API Worker builds `ServerDependencies` (`packages/api/src/server.ts`: typed `ServerConfig`, Drizzle database, Better Auth, feature flags, Planning Center read caches) once per isolate and passes them explicitly: to each request as `IsolateServer`, and to Effect programs as the `Server` service. `packages/api` never reads `process.env` or `cloudflare:workers`; add new settings to `ServerConfig` and read them in `apps/server/src/worker.ts`.
 - Browser query keys, persistence schemas, and cache hydration live in `apps/web/src/lib`. The web app may import contracts and Planning Center models, never `packages/api`. The admin app's server functions may import `packages/api` modules (they run in the admin Worker); its components may not.
 - Backward compatibility is not a priority during the current dev phase; prefer cleaner APIs/URLs/UX over temporary compatibility shims unless explicitly requested.
 
@@ -106,7 +107,7 @@ The account is on Cloudflare Workers Free: each Worker invocation may make at mo
 
 ## Learned Workspace Facts
 
-- People availability and blockouts: compare the plan `sort_date` instant to blockouts using each blockout’s Planning Center `time_zone` (calendar-day logic); pass the full ISO `date` through the `people.planWindowHistory` and `people.candidateDetails` oRPC inputs. Naive UTC-midnight or date-only string overlap checks can mislabel people near timezone boundaries.
+- People availability and blockouts: compare the plan `sort_date` instant to blockouts using each blockout’s Planning Center `time_zone` (calendar-day logic); pass the full ISO `date` through the `people.planWindowHistory` and `people.candidateDetails` inputs. Naive UTC-midnight or date-only string overlap checks can mislabel people near timezone boundaries.
 - Congregation-local business dates (plan windows, schedule history frequency, calendar-day deltas) use the org IANA zone from Planning Center, falling back to `PLANNING_CENTER_TIME_ZONE` (inlined into the product build as `import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE`), with shared helpers in `packages/planning-center-models/src/calendar.ts`.
 - Date formatters must pass an explicit time zone. Workers and CI run in UTC and browsers in the viewer's zone, so host-zone formatting puts late-evening services on the wrong day. Label congregation dates with `formatCalendarDateLabel(instant, orgTimeZone, style)` (server code takes the zone from `resolveTimeZone`, browser code from `useOrganizationTimeZone`); format UTC-noon civil-date carriers in `"UTC"`. `lint/time-zone-formatting.test.ts` rejects `Intl.DateTimeFormat` without `timeZone`, `toLocale*String`, and local getters such as `getDate()` outside its allow-list. Vitest forces `TZ=UTC` so tests match Workers on every machine; cover zone logic with an org zone such as `America/Los_Angeles` and an instant whose UTC day differs.
 - Person card frequency labels should align with recommendation scoring: distinct calendar service/rehearsal days in org TZ, not raw plan-time row counts or grouped-card counts.
@@ -204,7 +205,7 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 **TanStack Start (web, admin, marketing):**
 
 - Add pages as file routes under `src/routes`, and commit the regenerated `src/routeTree.gen.ts` (`vite dev` or `vite build` rewrites it).
-- Keep server functions (`*.functions.ts`) as SSR glue; product operations go through oRPC to the Hono API Worker.
+- Keep server functions (`*.functions.ts`) as SSR glue; product operations go through the product API client to the API Worker.
 - Read Worker bindings with `import { env } from "cloudflare:workers"` inside handlers and middleware; browser code reads build-time `import.meta.env.VITE_*` values defined in `vite.config.ts`.
 - Put request-wide behavior (sign-in gate, response headers) in request middleware registered in `src/start.ts`, after the explicit CSRF middleware.
 - Set document metadata with route `head()`.

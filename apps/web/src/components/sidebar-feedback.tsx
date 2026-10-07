@@ -1,11 +1,10 @@
 import { BubbleChatEditIcon } from "@hugeicons/core-free-icons";
-import { ORPCError } from "@orpc/client";
 import { getAnalyticsSessionId } from "@pcobooster/analytics/client";
+import { failureMessage } from "@pcobooster/client/product-client";
 import { FEEDBACK_MESSAGE_MAX_LENGTH } from "@pcobooster/contracts/feedback";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { HotkeyChord } from "@/components/hotkey-chord";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
@@ -21,11 +20,10 @@ import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useAccountsQuery } from "@/hooks/use-account-panel";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 const SEND_FEEDBACK_HOTKEY = "Mod+Enter";
 const SEND_FAILED_MESSAGE = "Couldn't send feedback. Try again.";
-const messageErrorDataSchema = z.object({ message: z.string().min(1) });
 
 /** Desktop sidebar entry point; the draft survives closing the popover. */
 export const SidebarFeedback = () => {
@@ -44,25 +42,24 @@ export const SidebarFeedback = () => {
     }
     setSending(true);
     try {
-      await orpc.feedback.submit({
-        message,
-        path: window.location.pathname,
-        sessionId: getAnalyticsSessionId(),
-      });
+      await productClient.run((api) =>
+        api.feedback.submit({
+          payload: {
+            message,
+            path: window.location.pathname,
+            sessionId: getAnalyticsSessionId(),
+          },
+        })
+      );
       setSending(false);
       setDraft("");
       setOpen(false);
       toast.success("Thanks! Your feedback was sent.");
     } catch (error) {
       setSending(false);
-      // Application errors carry a user-facing message in their data.
-      const errorData =
-        error instanceof ORPCError
-          ? messageErrorDataSchema.safeParse(error.data)
-          : null;
       toast.error(
-        errorData?.success === true
-          ? errorData.data.message
+        error instanceof Error
+          ? failureMessage(error, SEND_FAILED_MESSAGE)
           : SEND_FAILED_MESSAGE
       );
     }

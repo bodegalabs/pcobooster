@@ -1,3 +1,4 @@
+import { speculativeQuery } from "@pcobooster/client/query";
 import type {
   PeopleDashboardPerson,
   PeopleDashboardRosterPerson,
@@ -44,7 +45,6 @@ import type {
   PeopleDashboardScope,
   PeopleDashboardView,
 } from "@/lib/people-dashboard";
-import { speculativeQuery } from "@/lib/request-priority";
 import { computePersonSignals, computeTeamHealth } from "@/lib/team-health";
 
 const EMPTY_MEMBERS: PeopleDashboardPerson[] = [];

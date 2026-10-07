@@ -1,9 +1,5 @@
 import { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
-import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
-import { NotFound } from "@pcobooster/api/application/errors/not-found";
-import { PersistenceFailure } from "@pcobooster/api/application/errors/persistence-failure";
-import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
 import type { Auth } from "@pcobooster/api/auth";
 import { resolveDemoSession } from "@pcobooster/api/auth/demo-access";
 import type { DemoConfiguration } from "@pcobooster/api/auth/demo-access";
@@ -25,6 +21,10 @@ import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-c
 import { createReadOnlyPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
 import { Server } from "@pcobooster/api/server";
 import type { ServerDependencies } from "@pcobooster/api/server";
+import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
+import { PersistenceFailure } from "@pcobooster/contracts/faults/persistence-failure";
+import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import {
   enabledFeaturesSchema,
   featureFlagNames,
@@ -132,7 +132,7 @@ const toIdentityFault = (error: Error, operation: string): ApplicationFault =>
   error instanceof Unauthenticated || error instanceof Forbidden
     ? error
     : new PersistenceFailure({
-        message: "Could not load account data.",
+        detail: "Could not load account data.",
         operation,
         cause: error,
       });

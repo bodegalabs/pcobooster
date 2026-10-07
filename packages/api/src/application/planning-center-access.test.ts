@@ -2,9 +2,6 @@ import {
   createRequestContext,
   RequestContext,
 } from "@pcobooster/api/application/context";
-import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
-import { InvalidInput } from "@pcobooster/api/application/errors/invalid-input";
-import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
 import {
   explainPlanningCenterDenial,
   planningCenterFault,
@@ -30,12 +27,17 @@ import {
 } from "@pcobooster/api/testing/http-client";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { DEMO_SESSION_COOKIE } from "@pcobooster/contracts/demo";
+import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
+import { InvalidInput } from "@pcobooster/contracts/faults/invalid-input";
+import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import { Cause, Effect, Exit } from "effect";
 import * as HttpClient from "effect/unstable/http/HttpClient";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const requestFor = (accountId: string): Request =>
-  new Request(`https://pcobooster.com/api/rpc/catalog/${accountId}`);
+  new Request(
+    `https://pcobooster.com/api/v1/service-types?account=${accountId}`
+  );
 
 const dependenciesFor = (
   accountId: string
@@ -121,11 +123,14 @@ describe("PlanningCenterAccess", () => {
       throw new Error("Expected a demo configuration");
     }
     const fetchMock = vi.fn<typeof globalThis.fetch>();
-    const request = new Request("https://pcobooster.com/api/rpc/schedule", {
-      headers: {
-        cookie: `${DEMO_SESSION_COOKIE}=${demoSessionToken(configuration)}`,
-      },
-    });
+    const request = new Request(
+      "https://pcobooster.com/api/v1/plan-people/plan-person-1",
+      {
+        headers: {
+          cookie: `${DEMO_SESSION_COOKIE}=${demoSessionToken(configuration)}`,
+        },
+      }
+    );
 
     const access = await Effect.runPromise(
       resolvePlanningCenterAccess().pipe(

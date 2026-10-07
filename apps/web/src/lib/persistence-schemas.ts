@@ -11,7 +11,7 @@ import type {
   SerializedSongOptionSet,
 } from "@/lib/song-catalog-client";
 
-// Browser storage is JSON, while RPC contracts expose native Date values.
+// Browser storage is JSON, while the API contracts expose native Date values.
 // These schemas are the single hydration boundary between those formats.
 const serializedDateSchema = z.union([z.string(), z.date()]);
 const hydratedDateSchema = serializedDateSchema.pipe(z.coerce.date());

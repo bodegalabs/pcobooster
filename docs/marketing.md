@@ -1,6 +1,6 @@
 # pcobooster.com marketing site
 
-The public site is a separate TanStack Start app at `apps/marketing`, prerendered to static HTML at build time. It is a sibling of the product in `apps/web` and the Hono API in `apps/server`; Bun workspaces and Turborepo provide one lockfile and an ordered build graph.
+The public site is a separate TanStack Start app at `apps/marketing`, prerendered to static HTML at build time. It is a sibling of the product in `apps/web` and the API Worker in `apps/server`; Bun workspaces and Turborepo provide one lockfile and an ordered build graph.
 
 ## Development
 

@@ -1,8 +1,8 @@
-import { InvalidInput } from "@pcobooster/api/application/errors/invalid-input";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
+import { InvalidInput } from "@pcobooster/contracts/faults/invalid-input";
 import type { scheduleAssignInputSchema } from "@pcobooster/contracts/schedule";
 import { isString } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";

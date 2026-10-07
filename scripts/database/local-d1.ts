@@ -1,11 +1,10 @@
 import { readFile, readdir } from "node:fs/promises";
 
-import { Miniflare } from "miniflare";
-
+import { createIsolatedMiniflare } from "../testing/miniflare";
 import type { MigrationTarget, SqlRow } from "./data-transfer";
 
 export const createLocalD1 = async (name: string) => {
-  const runtime = new Miniflare({
+  const runtime = await createIsolatedMiniflare(name, {
     workers: [
       {
         config: {

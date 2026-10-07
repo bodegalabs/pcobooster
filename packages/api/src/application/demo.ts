@@ -1,5 +1,4 @@
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
-import { NotFound } from "@pcobooster/api/application/errors/not-found";
 import {
   demoSessionToken,
   isDemoAccessKey,
@@ -7,6 +6,7 @@ import {
 import type { DemoConfiguration } from "@pcobooster/api/auth/demo-access";
 import { Server } from "@pcobooster/api/server";
 import type { DemoStartInput } from "@pcobooster/contracts/demo";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { Effect } from "effect";
 
 /**

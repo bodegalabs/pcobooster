@@ -18,7 +18,7 @@ import {
   planTimeEditHasChanges,
 } from "@/lib/schedule/plan-time-edits";
 import type { EditablePlanTime } from "@/lib/schedule/plan-time-edits";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 interface UseTimesTabControllerProps {
   serviceTypeId: string | null;
@@ -109,21 +109,23 @@ export const useTimesTabController = ({
         timeZone,
         teamPositionsQuery.data
       );
-      await orpc.planTimes.update({
-        planTimeId: planTime.id,
-        serviceTypeId,
-        planId,
-        name: patch.name,
-        timeType: patch.time_type,
-        startsAt: patch.starts_at,
-        endsAt: patch.ends_at,
-        assignedTeamIds: patch.assigned_team_ids,
-        assignedPositionIds: patch.assigned_position_ids,
-        assignedNeededPositionIds: patch.assigned_needed_position_ids,
-        clearedNeededPositionIds: patch.cleared_needed_position_ids,
-        assignedPlanPersonIds: patch.assigned_plan_person_ids,
-        clearedPlanPersonIds: patch.cleared_plan_person_ids,
-      });
+      await productClient.run((api) =>
+        api.planTimes.update({
+          params: { planTimeId: planTime.id, serviceTypeId, planId },
+          payload: {
+            name: patch.name,
+            timeType: patch.time_type,
+            startsAt: patch.starts_at,
+            endsAt: patch.ends_at,
+            assignedTeamIds: patch.assigned_team_ids,
+            assignedPositionIds: patch.assigned_position_ids,
+            assignedNeededPositionIds: patch.assigned_needed_position_ids,
+            clearedNeededPositionIds: patch.cleared_needed_position_ids,
+            assignedPlanPersonIds: patch.assigned_plan_person_ids,
+            clearedPlanPersonIds: patch.cleared_plan_person_ids,
+          },
+        })
+      );
       await invalidatePlanTimeQueries();
       setEdits((current) =>
         Object.fromEntries(
@@ -149,16 +151,19 @@ export const useTimesTabController = ({
     try {
       await queryClient.cancelQueries({ queryKey: planTimesQueryKey });
       const request = buildCreatePlanTimeRequest(edit, timeZone);
-      const created = await orpc.planTimes.create({
-        serviceTypeId,
-        planId,
-        name: request.name,
-        timeType: request.time_type,
-        startsAt: request.starts_at,
-        endsAt: request.ends_at,
-        assignedTeamIds: request.assigned_team_ids,
-        assignedPositionIds: request.assigned_position_ids,
-      });
+      const created = await productClient.run((api) =>
+        api.planTimes.create({
+          params: { serviceTypeId, planId },
+          payload: {
+            name: request.name,
+            timeType: request.time_type,
+            startsAt: request.starts_at,
+            endsAt: request.ends_at,
+            assignedTeamIds: request.assigned_team_ids,
+            assignedPositionIds: request.assigned_position_ids,
+          },
+        })
+      );
       queryClient.setQueryData<PlanTime[]>(
         planTimesQueryKey,
         (current = emptyPlanTimes) => {
@@ -195,11 +200,11 @@ export const useTimesTabController = ({
           current.filter((time) => time.id !== planTime.id)
       );
 
-      await orpc.planTimes.delete({
-        planTimeId: planTime.id,
-        serviceTypeId,
-        planId,
-      });
+      await productClient.run((api) =>
+        api.planTimes.delete({
+          params: { planTimeId: planTime.id, serviceTypeId, planId },
+        })
+      );
       setEdits((current) =>
         Object.fromEntries(
           Object.entries(current).filter(([id]) => id !== planTime.id)

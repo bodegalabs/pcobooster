@@ -1,3 +1,4 @@
+import { callForQuery } from "@pcobooster/client/query";
 import type { AccessSnapshot } from "@pcobooster/contracts/access";
 import {
   deriveFeatureAccess,
@@ -14,8 +15,7 @@ import { useAccountsQuery } from "@/hooks/use-account-panel";
 import { featuresQueryOptions } from "@/lib/features";
 import { visibleFeatureAccess } from "@/lib/planning-center-access";
 import { queryKeys } from "@/lib/query-keys";
-import { callForQuery } from "@/lib/request-priority";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 const ACCESS_STALE_TIME_MS = 10 * 60 * 1000;
 
@@ -30,10 +30,7 @@ const usePlanningCenterAccessQuery = () => {
       accounts?.selectedAccountId ?? null
     ),
     queryFn: async (context) =>
-      await callForQuery(
-        context,
-        async (options) => await orpc.access.me({}, options)
-      ),
+      await callForQuery(context, productClient, (api) => api.access.me()),
     enabled: accounts !== undefined,
     staleTime: ACCESS_STALE_TIME_MS,
   });

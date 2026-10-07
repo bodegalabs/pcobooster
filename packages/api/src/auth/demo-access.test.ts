@@ -24,12 +24,12 @@ const configured = (): DemoConfiguration => {
 };
 
 const requestWithCookie = (cookie: string): Request =>
-  new Request("https://pcobooster.com/api/rpc/catalog", {
+  new Request("https://pcobooster.com/api/v1/service-types", {
     headers: { cookie },
   });
 
 const requestWithHeaders = (headers: Record<string, string>): Request =>
-  new Request("https://pcobooster.com/api/rpc/catalog", { headers });
+  new Request("https://pcobooster.com/api/v1/service-types", { headers });
 
 describe("demo configuration", () => {
   it("reads the key and demo personal access token", () => {

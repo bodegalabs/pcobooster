@@ -1,4 +1,4 @@
-import type { ServiceFetcher } from "@/server/server-rpc";
+import type { ServiceFetcher } from "@/server/server-api";
 
 /**
  * Hands a request to another Worker unchanged: method, URL, headers, and the streaming body.

@@ -1,8 +1,9 @@
 /**
  * Wait until a deployed origin serves the expected commit from both Workers that CI redeploys
- * on every commit: the web Worker at `/version`, and the API through the web -> API binding at
- * `/api/rpc/health`. Then check the public home page. Workers roll out gradually, so the old
- * version may answer briefly after `alchemy deploy` returns.
+ * on every commit: the web Worker at `/version`, and the API through the web -> API binding with
+ * the product client's `health` call (`GET /api/v1/health`). Then check the public home page.
+ * Workers roll out gradually, so the old version may answer briefly after `alchemy deploy`
+ * returns.
  *
  *   bun scripts/cloudflare/verify-deployment.ts <origin> <commit-sha>
  *
@@ -11,35 +12,33 @@
  */
 import { setTimeout as sleep } from "node:timers/promises";
 
+import { makeProductClient } from "@pcobooster/client/product-client";
 import { z } from "zod";
 
 const attemptIntervalMs = 5000;
 const defaultDeadlineMs = 180_000;
 
-const rpcHealthResponse = z.object({
-  json: z.object({ status: z.literal("ok"), version: z.string() }),
-});
-
 const webVersionResponse = z.object({ version: z.string() });
 
 type Fetch = typeof fetch;
 
-/** The API's deployed version, or undefined until it answers with a healthy oRPC reply. */
+/**
+ * The API's deployed version, or undefined until it answers `health` through the whole product
+ * API (the product Worker's gate and binding, the API's router, the client's decoding).
+ */
 export const readVersion = async (
   origin: string,
   fetchImpl: Fetch = fetch
 ): Promise<string | undefined> => {
+  const client = makeProductClient({
+    url: origin,
+    client: "deploy",
+    credentials: "omit",
+    fetch: fetchImpl,
+  });
   try {
-    const response = await fetchImpl(`${origin}/api/rpc/health`, {
-      body: JSON.stringify({ json: {} }),
-      headers: { "content-type": "application/json" },
-      method: "POST",
-    });
-    if (!response.ok) {
-      return undefined;
-    }
-    const parsed = rpcHealthResponse.safeParse(await response.json());
-    return parsed.success ? parsed.data.json.version : undefined;
+    const { version } = await client.run((api) => api.health.get());
+    return version;
   } catch {
     return undefined;
   }

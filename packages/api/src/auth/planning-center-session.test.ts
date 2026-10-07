@@ -6,7 +6,7 @@ import {
 import { describe, expect, it } from "vitest";
 
 const request = (headers: Record<string, string>): Request =>
-  new Request("https://pcobooster.com/api/rpc/accounts/list", { headers });
+  new Request("https://pcobooster.com/api/v1/accounts", { headers });
 
 describe(getSelectedPlanningCenterAccountId, () => {
   it("reads the browser's selection cookie", () => {

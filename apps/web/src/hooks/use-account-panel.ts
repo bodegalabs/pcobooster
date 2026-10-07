@@ -20,12 +20,14 @@ import { clearAccountScopedCaches } from "@/lib/account-scoped-caches";
 import { authClient } from "@/lib/auth-client";
 import { writeBrowserStorage } from "@/lib/browser-storage";
 import { queryKeys } from "@/lib/query-keys";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 export const fetchAccounts = async ({
   signal,
 }: QueryFunctionContext): Promise<PlanningCenterAccountsResponse> => {
-  const response = await orpc.accounts.list({}, { signal });
+  const response = await productClient.run((api) => api.accounts.list(), {
+    signal,
+  });
   if (response.demo) {
     resetAnalytics();
   } else {
@@ -65,7 +67,7 @@ const leaveSession = async () => {
 };
 
 const exitDemoSession = async () => {
-  await orpc.demo.exit({});
+  await productClient.run((api) => api.demo.exit());
 };
 
 export const signOutLabel = (demo: boolean, pending: boolean): string => {

@@ -1,0 +1,17 @@
+import { faultClass } from "@pcobooster/contracts/faults/fault-class";
+import { faultStatus } from "@pcobooster/contracts/faults/outcome";
+import { Schema } from "effect";
+
+/**
+ * The caller announced an API version older than the server supports (`x-pcobooster-client`),
+ * or a header the server cannot read. The procedure never ran; the app must reload or update.
+ */
+export class ClientOutdated extends faultClass<ClientOutdated>()(
+  "ClientOutdated",
+  {
+    message: Schema.String,
+    /** The oldest protocol version the server still answers. */
+    minimumProtocolVersion: Schema.Int,
+  },
+  faultStatus("ClientOutdated")
+) {}

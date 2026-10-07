@@ -1,3 +1,4 @@
+import { failureMessage } from "@pcobooster/client/product-client";
 import type {
   ChordChartArrangement,
   ChordChartLayout,
@@ -8,7 +9,6 @@ import { toast } from "sonner";
 
 import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import {
-  chordChartErrorMessage,
   fetchLatestChordChartArrangement,
   isChordChartConflict,
   useChordChartSongReadOnOpen,
@@ -179,7 +179,7 @@ export const useChordChartWorkspace = ({
             return;
           }
           toast.error(
-            chordChartErrorMessage(
+            failureMessage(
               error,
               "Planning Center didn’t save the chart. Try again."
             )

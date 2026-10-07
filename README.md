@@ -14,7 +14,7 @@ This app helps teams schedule people into open positions for specific plans by c
 
 The public marketing site lives at `/`, with the origin story at `/about`. The authenticated product starts at `/services`.
 
-This is a Bun/Turborepo monorepo. The product UI lives in `apps/web`, the API Worker (an Alchemy Effect-native Cloudflare Worker serving Hono) lives in `apps/server`, server implementation lives in `packages/api`, browser-safe oRPC contracts live in `packages/contracts`, Planning Center models and calendar rules live in `packages/planning-center-models`, and the static marketing site lives in `apps/marketing`. See [marketing development and deployment](docs/marketing.md).
+This is a Bun/Turborepo monorepo. The product UI lives in `apps/web`, the API Worker (an Alchemy Effect-native Cloudflare Worker serving the product API with Effect HttpApi on an Effect HTTP router) lives in `apps/server`, server implementation lives in `packages/api`, browser-safe API contracts live in `packages/contracts`, the product API client lives in `packages/client`, Planning Center models and calendar rules live in `packages/planning-center-models`, and the static marketing site lives in `apps/marketing`. See [marketing development and deployment](docs/marketing.md).
 
 For parallel remote development, see [Codex cloud development](docs/codex-cloud.md).
 
@@ -88,7 +88,7 @@ This masks person fields for app presentations, not the underlying dataset: IDs,
 
 ## API Routes
 
-Product operations are served through the typed oRPC transport at `/api/rpc`; its OpenAPI reference is available at `/api/reference`. Better Auth keeps its protocol-owned `GET/POST /api/auth/*` handler. `/health` is the service liveness endpoint.
+Product operations are Effect HttpApi endpoints under `/api/v1` (one method and path per procedure, `packages/contracts/src/http`), called by tag through `makeProductClient` (`packages/client`). Better Auth keeps its protocol-owned `GET/POST /api/auth/*` handler. `/health` is the service liveness endpoint.
 
 ## Project Structure
 
@@ -96,11 +96,12 @@ Product operations are served through the typed oRPC transport at `/api/rpc`; it
 apps/
   web/                       # TanStack Start product UI
   admin/                     # TanStack Start admin app
-  server/                    # API Worker (Alchemy Effect-native) serving Hono and oRPC
+  server/                    # API Worker (Alchemy Effect-native) serving Effect HttpApi
   marketing/                 # Prerendered TanStack Start marketing site
 packages/
-  api/                       # Server-side application, auth, DB, adapters, oRPC
-  contracts/                 # Browser-safe oRPC contracts and DTO schemas
+  api/                       # Server-side application, auth, DB, adapters, API server
+  contracts/                 # Browser-safe API contracts and fault classes
+  client/                    # Product API client, request scheduler, query helpers
   planning-center-models/    # Shared Planning Center shapes and calendar rules
   presentation-mode/         # Shared server-side presentation configuration
   config/                    # Shared TypeScript configuration
@@ -125,7 +126,7 @@ bun run ci
 bun run build
 ```
 
-Tests are colocated under `packages/*/src` and `apps/*/src`. Feature modules accept narrow typed dependencies so tests can exercise behavior without replacing modules. oRPC inputs and outputs, provider responses, and persisted browser caches are validated with Zod at their respective boundaries.
+Tests are colocated under `packages/*/src` and `apps/*/src`. Feature modules accept narrow typed dependencies so tests can exercise behavior without replacing modules. API inputs and answers are validated with Effect Schema (the server decodes inputs, the client decodes answers); provider responses and persisted browser caches are validated with Zod.
 
 Pull requests must pass the GitHub `ci` and `cloudflare-build` checks. See [CI/CD](docs/ci-cd.md) for the merge gates, deployment flow, dependency update policy, and rollback procedure.
 

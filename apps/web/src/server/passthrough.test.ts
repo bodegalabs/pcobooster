@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { forwardRequest, serveStaticPage } from "./passthrough";
-import type { ServiceFetcher } from "./server-rpc";
+import type { ServiceFetcher } from "./server-api";
 
 const recordingService = (response: Response = new Response("ok")) => {
   const requests: Request[] = [];
@@ -15,23 +15,34 @@ const recordingService = (response: Response = new Response("ok")) => {
 };
 
 describe(forwardRequest, () => {
-  it("forwards the method, URL, headers, and body unchanged", async () => {
-    const { service, requests } = recordingService();
-    await forwardRequest(
-      service,
-      new Request("https://pcobooster.com/api/rpc/plans/list?x=1", {
-        method: "PATCH",
+  it.each(["POST", "PUT", "PATCH", "DELETE"])(
+    "forwards a %s with its URL, headers, and body unchanged",
+    async (method) => {
+      const { service, requests } = recordingService();
+      const url =
+        "https://pcobooster.com/api/v1/service-types/1/plans/2/items/3?x=1";
+      const withBody = new Request(url, {
+        method: "POST",
         headers: { cookie: "a=b", "content-type": "application/json" },
-        body: JSON.stringify({ json: { id: "1" } }),
-      })
-    );
-    const [request] = requests;
-    expect(request?.method).toBe("PATCH");
-    expect(request?.url).toBe("https://pcobooster.com/api/rpc/plans/list?x=1");
-    expect(request?.headers.get("cookie")).toBe("a=b");
-    expect(request?.headers.get("content-type")).toBe("application/json");
-    await expect(request?.json()).resolves.toStrictEqual({ json: { id: "1" } });
-  });
+        body: JSON.stringify({ title: "Welcome" }),
+      });
+      await forwardRequest(service, new Request(withBody, { method }));
+      const [request] = requests;
+      expect({
+        method: request?.method,
+        url: request?.url,
+        cookie: request?.headers.get("cookie"),
+        contentType: request?.headers.get("content-type"),
+        body: await request?.text(),
+      }).toStrictEqual({
+        method,
+        url,
+        cookie: "a=b",
+        contentType: "application/json",
+        body: JSON.stringify({ title: "Welcome" }),
+      });
+    }
+  );
 
   it("returns redirects to the browser instead of following them", async () => {
     const { service, requests } = recordingService();

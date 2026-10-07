@@ -7,7 +7,7 @@ import {
 import type { MyScheduledPlansData } from "@/lib/my-scheduled-plans-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 const queryKey = queryKeys.myScheduledPlans();
 
@@ -18,7 +18,10 @@ export const useMyScheduledPlans = () => {
   return useQuery<MyScheduledPlansData>({
     queryKey,
     queryFn: async ({ signal }) => {
-      const scheduledPlans = await orpc.people.myScheduledPlans({}, { signal });
+      const scheduledPlans = await productClient.run(
+        (api) => api.people.myScheduledPlans(),
+        { signal }
+      );
       writeCachedMyScheduledPlans(scheduledPlans);
       return scheduledPlans;
     },

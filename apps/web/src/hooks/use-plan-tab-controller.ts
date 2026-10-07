@@ -1,3 +1,4 @@
+import { speculativeQuery } from "@pcobooster/client/query";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   PlanItem,
@@ -36,8 +37,8 @@ import type {
   PlanItemsOptimisticSnapshot,
 } from "@/lib/plan-items-query-state";
 import { queryKeys } from "@/lib/query-keys";
-import { requestScheduler, speculativeQuery } from "@/lib/request-priority";
-import { orpc } from "@/orpc-client";
+import { requestScheduler } from "@/lib/request-priority";
+import { productClient } from "@/product-client";
 
 export type AddedPlanItemKind = "song" | "header" | "item";
 
@@ -197,7 +198,12 @@ export const usePlanTabController = ({
     if (sequence.at(-1) === created.id) {
       return;
     }
-    await orpc.planItems.reorder({ serviceTypeId, planId, sequence });
+    await productClient.run((api) =>
+      api.planItems.reorder({
+        params: { serviceTypeId, planId },
+        payload: { sequence },
+      })
+    );
   };
 
   const createItemMutation = useMutation<
@@ -216,12 +222,15 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      const created = await orpc.planItems.create({
-        serviceTypeId,
-        planId,
-        itemType: kind,
-        title: kind === "header" ? "New Header" : "New Item",
-      });
+      const created = await productClient.run((api) =>
+        api.planItems.create({
+          params: { serviceTypeId, planId },
+          payload: {
+            itemType: kind,
+            title: kind === "header" ? "New Header" : "New Item",
+          },
+        })
+      );
       await placeCreatedItem(created, optimisticItemId, insertion);
       return created;
     },
@@ -295,17 +304,19 @@ export const usePlanTabController = ({
           (arrangement) => arrangement.id === songOptions.suggestedArrangementId
         ) ?? null;
 
-      const created = await orpc.planItems.create({
-        serviceTypeId,
-        planId,
-        title: songOptions?.song.title ?? song.title,
-        songId: song.id,
-        arrangementId: songOptions?.suggestedArrangementId ?? undefined,
-        keyId: songOptions?.suggestedKeyId ?? undefined,
-        selectedLayoutId: songOptions?.suggestedLayoutId ?? undefined,
-        // Without cached options the server fills the arrangement's length itself.
-        length: suggestedArrangement?.length ?? undefined,
-      });
+      const created = await productClient.run((api) =>
+        api.planItems.create({
+          params: { serviceTypeId, planId },
+          payload: {
+            title: songOptions?.song.title ?? song.title,
+            songId: song.id,
+            arrangementId: songOptions?.suggestedArrangementId ?? undefined,
+            keyId: songOptions?.suggestedKeyId ?? undefined,
+            selectedLayoutId: songOptions?.suggestedLayoutId ?? undefined,
+            length: suggestedArrangement?.length ?? undefined,
+          },
+        })
+      );
       await placeCreatedItem(created, optimisticItemId, insertion);
       return created;
     },
@@ -360,7 +371,11 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      await orpc.planItems.delete({ itemId: item.id, serviceTypeId, planId });
+      await productClient.run((api) =>
+        api.planItems.delete({
+          params: { itemId: item.id, serviceTypeId, planId },
+        })
+      );
     },
     onSuccess: async (_result, item) => {
       // Drop it from the cache before it stops being hidden, or it shows again until
@@ -447,11 +462,11 @@ export const usePlanTabController = ({
         if (isNonEmptyString(serviceTypeId) && isNonEmptyString(planId)) {
           void (async () => {
             try {
-              await orpc.planItems.delete({
-                itemId: item.id,
-                serviceTypeId,
-                planId,
-              });
+              await productClient.run((api) =>
+                api.planItems.delete({
+                  params: { itemId: item.id, serviceTypeId, planId },
+                })
+              );
             } catch {
               toast.error(`Could not remove “${item.title}”.`);
             }
@@ -474,11 +489,12 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      await orpc.planItems.reorder({
-        serviceTypeId,
-        planId,
-        sequence: nextItems.map((item) => item.id),
-      });
+      await productClient.run((api) =>
+        api.planItems.reorder({
+          params: { serviceTypeId, planId },
+          payload: { sequence: nextItems.map((item) => item.id) },
+        })
+      );
     },
     onMutate: async (nextItems) => {
       setPendingItemId("reorder");
@@ -532,19 +548,21 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      return await orpc.planItems.update({
-        itemId: item.id,
-        serviceTypeId,
-        planId,
-        title: item.song ? item.title : draft.title,
-        servicePosition: toPlanItemServicePosition(draft.servicePosition),
-        // Planning Center rejects any length on a header, even an empty one.
-        length: item.itemType === "header" ? undefined : savedLengthOf(length),
-        description: draft.description,
-        songId: undefined,
-        arrangementId: draft.arrangementId || undefined,
-        keyId: draft.keyId || undefined,
-      });
+      return await productClient.run((api) =>
+        api.planItems.update({
+          params: { itemId: item.id, serviceTypeId, planId },
+          payload: {
+            title: item.song ? item.title : draft.title,
+            servicePosition: toPlanItemServicePosition(draft.servicePosition),
+            length:
+              item.itemType === "header" ? undefined : savedLengthOf(length),
+            description: draft.description,
+            songId: undefined,
+            arrangementId: draft.arrangementId || undefined,
+            keyId: draft.keyId || undefined,
+          },
+        })
+      );
     },
     onMutate: async ({
       item,

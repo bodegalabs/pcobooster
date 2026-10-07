@@ -23,7 +23,7 @@ describe("public marketing routes", () => {
   it.each([
     "/services",
     "/people",
-    "/api/rpc/people/positionCandidates",
+    "/api/v1/people",
     "/api/auth/get-session",
     "/about-team",
     "/marketing-private",

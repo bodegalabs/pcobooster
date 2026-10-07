@@ -1,33 +1,35 @@
-import { applicationRuntimeFor } from "@pcobooster/api/application/runtime";
 import { deploymentTier } from "@pcobooster/api/config/feature-flags";
 import type { ServerEnvironment } from "@pcobooster/api/config/server-config";
 import { resolveServerConfig } from "@pcobooster/api/config/server-config";
-import { boundaryLog, structuredLogging } from "@pcobooster/api/logging";
-import { appRouter } from "@pcobooster/api/orpc";
-import { PlanningCenterPacing } from "@pcobooster/api/planning-center/pacing";
+import { IsolateServer } from "@pcobooster/api/http/procedure-scope";
+import { structuredLogging } from "@pcobooster/api/logging";
 import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
 import type { SharedReadStore } from "@pcobooster/api/planning-center/services/shared-read-store";
 import { createServerDependencies } from "@pcobooster/api/server";
 import type { FeatureFlagSource } from "@pcobooster/api/server";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
-import { Config, Context, Effect, Layer, Redacted } from "effect";
-import type * as HttpClient from "effect/unstable/http/HttpClient";
-import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
-import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
+import { Config, Effect, Layer, Redacted, Scope } from "effect";
 
-import { AUTH_RATE_LIMIT_PERIOD_SECONDS, createServerApp } from "./app";
 import { Database } from "./database";
+import { waitUntilAfterDisconnect } from "./disconnect";
 import { FeatureFlagApp } from "./feature-flags";
+import {
+  AUTH_RATE_LIMIT_PERIOD_SECONDS,
+  AuthWriteLimit,
+  makeHttpApp,
+} from "./http-app";
+import type { AuthWriteLimiter } from "./http-app";
 import { apiWorkerObservability, apiWorkerTelemetry } from "./observability";
 import { PlanningCenterCache } from "./planning-center-cache";
+import { postHogProcedureReporter } from "./procedure-reporting";
 import { cachedAcrossRequests } from "./shared-initialization";
 import { currentStageSettings } from "./stage";
 
 const PREVIEW_SECRET_PLACEHOLDER = "minted-by-alchemy-random-at-runtime";
 
 /**
- * Auth writes (sign-in, sign-out, native sign-in start and exchange; see `createServerApp`) each
+ * Auth writes (sign-in, sign-out, native sign-in start and exchange; see `http-app.ts`) each
  * client IP may make per minute. A whole church signing in from one network stays well under it;
  * a script hammering sign-in does not. Cloudflare counts per location, so it is a brake on abuse,
  * not an exact quota.
@@ -121,7 +123,10 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
   );
 });
 
-/** Hono serves Better Auth, oRPC, and the OpenAPI reference; see `app.ts`. */
+/**
+ * The API Worker: one Effect router (`http-app.ts`) serves the product API (`/api/v1`), Better
+ * Auth, and liveness.
+ */
 export default class Api extends Cloudflare.Worker<Api>()(
   "Api",
   Effect.gen(function* apiProps() {
@@ -161,14 +166,23 @@ export default class Api extends Cloudflare.Worker<Api>()(
       },
     });
     const resolveEnvironment = yield* readEnvironment;
+    const { publicOrigin } = yield* currentStageSettings;
     // One pacer per isolate shares each credential's Planning Center budget across requests.
     const pacer = new PlanningCenterRatePacer();
+    // The router lives as long as the isolate, so this scope is never closed.
+    const isolateScope = Scope.makeUnsafe();
+    // Built once, here, before any request: nothing request-scoped can reach it.
+    const http = yield* makeHttpApp({
+      publicOrigin,
+      pacer,
+      afterDisconnect: waitUntilAfterDisconnect,
+    }).pipe(Scope.provide(isolateScope));
     // The D1, KV, and Flagship bindings and a runtime-minted secret are only readable inside a
-    // request, so the app is built by the first one and shared by the rest of the isolate's
+    // request, so the server is built by the first one and shared by the rest of the isolate's
     // lifetime. Not `Effect.cached`: requests that arrive while the first one builds must not
     // resume inside it; see `cachedAcrossRequests`.
-    const app = yield* cachedAcrossRequests(
-      Effect.gen(function* buildApp() {
+    const isolate = yield* cachedAcrossRequests(
+      Effect.gen(function* buildServer() {
         const config = resolveServerConfig(yield* resolveEnvironment);
         const binding = yield* database.raw;
         const featureFlagSource: FeatureFlagSource =
@@ -195,33 +209,21 @@ export default class Api extends Cloudflare.Worker<Api>()(
         yield* Effect.promise(async () => {
           await server.auth.$context;
         });
-        return createServerApp({
-          allowAuthWrite: async (clientIp) => {
-            const outcome = await rateLimit.limit({ key: clientIp });
-            return outcome.success;
-          },
-          server,
-          log: boundaryLog("server"),
-          router: appRouter,
-        });
+        const report = postHogProcedureReporter(config.postHogProjectKey);
+        const allowAuthWrite: AuthWriteLimiter = async (clientIp) => {
+          const outcome = await rateLimit.limit({ key: clientIp });
+          return outcome.success;
+        };
+        return { server, report, allowAuthWrite };
       })
     );
     return {
       fetch: Effect.gen(function* fetch() {
-        const request = yield* HttpServerRequest.toWeb(
-          yield* HttpServerRequest.HttpServerRequest
-        ).pipe(Effect.orDie);
-        const handler = yield* app;
-        // Procedures run on this request's fiber context (Alchemy's HTTP client, logger, and
-        // per-event tracer), so their spans land in this invocation's Workers trace.
-        const services = yield* Effect.context<HttpClient.HttpClient>();
-        const runtime = applicationRuntimeFor(
-          Context.add(services, PlanningCenterPacing, pacer)
+        const { server, report, allowAuthWrite } = yield* isolate;
+        return yield* http.pipe(
+          Effect.provideService(IsolateServer, { server, report }),
+          Effect.provideService(AuthWriteLimit, allowAuthWrite)
         );
-        const response = yield* Effect.promise(
-          async () => await handler.fetch(request, { runtime })
-        );
-        return HttpServerResponse.fromWeb(response);
       }),
     };
   }).pipe(

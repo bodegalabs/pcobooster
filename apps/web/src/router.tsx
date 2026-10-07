@@ -1,10 +1,11 @@
 import { captureAnalyticsException } from "@pcobooster/analytics/client";
+import { retryTransientReadFailure } from "@pcobooster/client/query";
 import { QueryClient, hashKey } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 
+import { discardApiCachesFromOlderBuilds } from "@/lib/account-scoped-caches";
 import { INTENT_PREFETCH_DWELL_MS } from "@/lib/intent-prefetch";
-import { retryTransientReadFailure } from "@/lib/query-retry";
 import { createReadErrorCache } from "@/lib/read-error-analytics";
 import { parseSearch, stringifySearch } from "@/lib/search-params";
 import { routeTree } from "@/routeTree.gen";
@@ -30,6 +31,8 @@ const createQueryClient = (presentationScope: string): QueryClient =>
 
 /** Start creates a router, and so a query client, for each server request. */
 export const getRouter = () => {
+  // Before any query reads browser storage.
+  discardApiCachesFromOlderBuilds();
   const queryClient = createQueryClient(
     import.meta.env.VITE_PRESENTATION_SCOPE
   );

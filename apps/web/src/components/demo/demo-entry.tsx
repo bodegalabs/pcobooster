@@ -26,7 +26,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { clearAccountScopedCaches } from "@/lib/account-scoped-caches";
 import { DEFAULT_SIGN_IN_RETURN_PATH } from "@/lib/auth-redirect";
 import { ROCKET_ANIMATION } from "@/lib/brand-rocket-animation";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 type DemoEntryState = "starting" | "ready" | "launching" | "inactive";
 
@@ -154,7 +154,9 @@ export const DemoEntry = ({ demoKey }: { demoKey: string }) => {
     let active = true;
     const start = async () => {
       try {
-        await orpc.demo.start({ key: demoKey });
+        await productClient.run((api) =>
+          api.demo.start({ payload: { key: demoKey } })
+        );
       } catch {
         if (active) {
           setState("inactive");

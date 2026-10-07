@@ -3,7 +3,7 @@ import { env } from "cloudflare:workers";
 
 import { forwardRequest } from "@/server/passthrough";
 
-/** Better Auth, oRPC, and the rest of the API live in the API Worker. */
+/** Better Auth, the product API (`/api/v1`), and the rest of the API live in the API Worker. */
 export const Route = createFileRoute("/api/$")({
   server: {
     handlers: {

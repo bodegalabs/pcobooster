@@ -1,11 +1,11 @@
+import { callForQuery } from "@pcobooster/client/query";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { PlanTime } from "@pcobooster/planning-center-models/types";
 import { useQuery } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
-import { callForQuery } from "@/lib/request-priority";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 const PLAN_TIMES_STALE_TIME_MS = 60 * 1000;
 
@@ -19,10 +19,8 @@ export const createPlanTimesQueryOptions = (
       return [];
     }
 
-    return await callForQuery(
-      context,
-      async (options) =>
-        await orpc.planTimes.list({ serviceTypeId, planId }, options)
+    return await callForQuery(context, productClient, (api) =>
+      api.planTimes.list({ params: { serviceTypeId, planId } })
     );
   },
   staleTime: PLAN_TIMES_STALE_TIME_MS,

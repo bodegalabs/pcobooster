@@ -1,3 +1,4 @@
+import { failureMessage } from "@pcobooster/client/product-client";
 import type {
   ChordChartArrangement,
   ChordChartSong,
@@ -72,7 +73,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { useChordChartEditAccess } from "@/hooks/use-chord-chart-access";
 import {
-  chordChartErrorMessage,
   chordChartLoadFailure,
   useChordChartSong,
 } from "@/hooks/use-chord-chart-song";
@@ -996,7 +996,7 @@ const SongLoadError = ({
       "Planning Center has no song at this link. It may have been deleted, or it belongs to another organization.";
   } else if (failure === "no-access") {
     title = "You can’t open this song";
-    description = chordChartErrorMessage(
+    description = failureMessage(
       error,
       "Your Planning Center account can’t view songs in Services."
     );

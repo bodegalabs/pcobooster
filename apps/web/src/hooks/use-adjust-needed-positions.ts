@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { queryKeys } from "@/lib/query-keys";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 type NeededPositionChange = "add" | "remove";
 
@@ -57,13 +57,16 @@ export const useAdjustNeededPositions = (
       position: Pick<TeamPosition, "id" | "teamId" | "name">;
       change: NeededPositionChange;
     }) =>
-      await orpc.neededPositions.adjust({
-        serviceTypeId,
-        planId,
-        teamId: position.teamId,
-        positionName: position.name,
-        change,
-      }),
+      await productClient.run((api) =>
+        api.neededPositions.adjust({
+          params: { serviceTypeId, planId },
+          payload: {
+            teamId: position.teamId,
+            positionName: position.name,
+            change,
+          },
+        })
+      ),
     onError: () => {
       toast.error("Couldn't update open slots.");
     },

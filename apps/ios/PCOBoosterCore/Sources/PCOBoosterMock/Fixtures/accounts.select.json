@@ -1,6 +1,0 @@
-{
-  "default": {"success": true, "selectedAccountId": "acct_cedargrove"},
-  "cases": [
-    {"match": {"accountId": "acct_northside"}, "output": {"success": true, "selectedAccountId": "acct_northside"}}
-  ]
-}

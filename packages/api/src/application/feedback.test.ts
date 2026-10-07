@@ -9,7 +9,7 @@ import { testServer } from "@pcobooster/api/testing/server";
 import { Effect, Result } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
-const request = new Request("https://pcobooster.com/api/rpc/feedback", {
+const request = new Request("https://pcobooster.com/api/v1/feedback", {
   method: "POST",
   headers: { "user-agent": "Mozilla/5.0" },
 });

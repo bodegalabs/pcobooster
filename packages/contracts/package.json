@@ -4,14 +4,14 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/router.ts",
     "./access": "./src/access.ts",
     "./accounts": "./src/accounts.ts",
     "./admin": "./src/admin.ts",
     "./catalog": "./src/catalog.ts",
     "./chord-charts": "./src/chord-charts.ts",
     "./demo": "./src/demo.ts",
-    "./errors": "./src/errors.ts",
+    "./faults": "./src/faults.ts",
+    "./faults/*": "./src/faults/*.ts",
     "./features": "./src/features.ts",
     "./feedback": "./src/feedback.ts",
     "./identity": "./src/identity.ts",
@@ -24,19 +24,19 @@
     "./needed-positions": "./src/needed-positions.ts",
     "./plan-times": "./src/plan-times.ts",
     "./request-priority": "./src/request-priority.ts",
-    "./router": "./src/router.ts",
     "./schedule": "./src/schedule.ts",
     "./session": "./src/session.ts",
     "./song-schemas": "./src/song-schemas.ts",
-    "./songs": "./src/songs.ts"
+    "./songs": "./src/songs.ts",
+    "./http/*": "./src/http/*.ts"
   },
   "scripts": {
     "test": "vitest run --root ../.. packages/contracts/src",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@orpc/contract": "^1.15.0",
     "@pcobooster/planning-center-models": "workspace:*",
+    "effect": "4.0.0-rc.117",
     "zod": "^4.6.5"
   },
   "devDependencies": {

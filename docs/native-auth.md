@@ -1,8 +1,8 @@
 # Native app sign-in
 
-The native iOS app signs in with the same Planning Center OAuth flow as the web, run inside an `ASWebAuthenticationSession`, and then holds a Better Auth session as a bearer token instead of a cookie. The web sign-in is unchanged: a callback that a native start did not begin never takes the native path.
+A native app (the Expo app; the Swift app that first used this flow is gone) signs in with the same Planning Center OAuth flow as the web, run inside the system's web authentication session (`ASWebAuthenticationSession` on iOS), and then holds a Better Auth session as a bearer token instead of a cookie. The web sign-in is unchanged: a callback that a native start did not begin never takes the native path.
 
-Code: `packages/api/src/auth/native-sign-in.ts` (start, exchange, callback hook), `packages/api/src/auth/bearer-sessions.ts` (bearer tokens), `packages/api/src/auth/planning-center-session.ts` and `packages/api/src/auth/demo-access.ts` (request headers), and `apps/server/src/app.ts` (rate limit).
+Code: `packages/api/src/auth/native-sign-in.ts` (start, exchange, callback hook), `packages/api/src/auth/bearer-sessions.ts` (bearer tokens), `packages/api/src/auth/planning-center-session.ts` and `packages/api/src/auth/demo-access.ts` (request headers), and `apps/server/src/http-app.ts` (rate limit).
 
 ## Flow
 
@@ -94,7 +94,7 @@ A code is consumed by its first exchange attempt, including one with the wrong v
 
 | Header | Value | Read by |
 | --- | --- | --- |
-| `Authorization` | `Bearer <token>` | Better Auth's `bearer` plugin, before every Better Auth endpoint and every `auth.api.*` call, so oRPC (`/api/rpc/*`) and `/api/auth/*` both accept it |
+| `Authorization` | `Bearer <token>` | Better Auth's `bearer` plugin, before every Better Auth endpoint and every `auth.api.*` call, so the product API (`/api/v1`) and `/api/auth/*` both accept it |
 | `x-pcobooster-account` | An account row id from `accounts.list` | `getSelectedPlanningCenterAccountId`, before the `pco-selected-account-id` cookie |
 | `x-pcobooster-demo` | The demo token from `demo.start`'s `Set-Cookie: pcobooster-demo=<token>` | `resolveDemoSession`, before the `pcobooster-demo` cookie |
 
@@ -102,7 +102,7 @@ A code is consumed by its first exchange attempt, including one with the wrong v
 - The account header is validated like the cookie: it only chooses among the signed-in user's own linked accounts. An unknown or foreign id falls back to the first linked account, and `accounts.list` reports the account actually used in `selectedAccountId`. To switch organizations, call `accounts.select` (it validates the id) and send the new id; ignore its `Set-Cookie`.
 - The demo header is validated exactly like the cookie: it must match the token derived from the current `DEMO_ACCESS_KEY`.
 - Use a cookieless `URLSession` (`httpCookieStorage = nil`, `httpShouldSetCookies = false`, `httpCookieAcceptPolicy = .never`). Cookies on a POST to `/api/auth/*` cause `403 MISSING_OR_NULL_ORIGIN`, and a stale session cache cookie could identify the wrong user.
-- Sessions last 7 days, extended at most once a day while used; the token does not change when it is extended. An expired or revoked token makes oRPC answer `401 UNAUTHORIZED` and `session.status` report `{authenticated: false}`: sign in again.
+- Sessions last 7 days, extended at most once a day while used; the token does not change when it is extended. An expired or revoked token makes every procedure fail with `Unauthenticated` (401) and `session.status` report `{authenticated: false}`: sign in again.
 
 ### Sign-out
 
@@ -141,7 +141,7 @@ The API Worker's per-IP auth limit (`AUTH_RATE_LIMIT`, 30 requests a minute per 
 ## Where it works
 
 - **Production** (`https://pcobooster.com`) and **local real OAuth** (`bun run dev:auth`, main checkout, `http://127.0.0.1:3001`): Planning Center only redirects to those registered callbacks. Locally the cookies are unprefixed and not `Secure`, which `ASWebAuthenticationSession` accepts on http loopback.
-- **`bun run dev`** (personal access token): every request is already signed in as the token's owner, so the simulator can call `/api/rpc/*` with no token. Native sign-in still needs `dev:auth`.
+- **`bun run dev`** (personal access token): every request is already signed in as the token's owner, so the simulator can call `/api/v1` with no token. Native sign-in still needs `dev:auth`.
 - **Previews and staging** sit behind Cloudflare Access and broker OAuth through production; native sign-in is not supported there.
 
 ## Rollback

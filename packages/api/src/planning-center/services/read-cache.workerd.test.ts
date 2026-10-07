@@ -8,8 +8,11 @@
 import { readFile } from "node:fs/promises";
 import { stripTypeScriptTypes } from "node:module";
 
-import { Miniflare, Response as MiniflareResponse } from "miniflare";
+import { Response as MiniflareResponse } from "miniflare";
+import type { Miniflare } from "miniflare";
 import { afterEach, describe, expect, it } from "vitest";
+
+import { createIsolatedMiniflare } from "../../../../../scripts/testing/miniflare";
 
 /** How long the fixture waits on the cache before it reports a hung read. */
 const HUNG_AFTER_MS = 2000;
@@ -70,7 +73,7 @@ const fixture = async () => {
     calls: 0,
     release: Promise.withResolvers<true>(),
   };
-  const runtime = new Miniflare({
+  const runtime = await createIsolatedMiniflare("read-cache", {
     workers: [
       {
         config: {

@@ -1,8 +1,6 @@
-import { moduleLog } from "@pcobooster/api/logging";
 import type { PlanningCenterRateLimitInfo } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterRateSnapshot } from "@pcobooster/api/planning-center/rate-pacer";
 import type { RequestPriority } from "@pcobooster/contracts/request-priority";
-import { Effect } from "effect";
 
 /** A request's path and query parameter names; never values, tokens, or bodies. */
 export interface PlanningCenterEndpoint {
@@ -25,21 +23,6 @@ export interface PlanningCenterRequestLogFields {
   readonly requests?: number;
   readonly requestBudget?: number;
   readonly error?: string;
-}
-
-export interface PlanningCenterProcedureSummary {
-  readonly procedure: string;
-  readonly requestId: string;
-  readonly priority: RequestPriority;
-  readonly durationMs: number;
-  readonly outcome: "success" | "failure";
-}
-
-/** Fields of the one summary line per procedure. */
-export interface PlanningCenterProcedureLogFields extends PlanningCenterProcedureSummary {
-  readonly planningCenter: PlanningCenterRequestTotals & {
-    readonly requestBudget: number | undefined;
-  };
 }
 
 /** What one Worker invocation spent on Planning Center. */
@@ -139,25 +122,3 @@ export class PlanningCenterRequestAccounting {
     }
   }
 }
-
-const procedureLog = moduleLog("planning-center/procedure");
-
-/** One `info` line per procedure that touched Planning Center. */
-export const logPlanningCenterProcedureSummary = (
-  summary: PlanningCenterProcedureSummary,
-  accounting: PlanningCenterRequestAccounting
-): Effect.Effect<void> => {
-  const { totals } = accounting;
-  if (
-    totals.requests === 0 &&
-    totals.rateLimitRejections === 0 &&
-    totals.subrequestLimitHits === 0
-  ) {
-    return Effect.void;
-  }
-  const fields: PlanningCenterProcedureLogFields = {
-    ...summary,
-    planningCenter: { ...totals, requestBudget: accounting.requestBudget },
-  };
-  return procedureLog.info("Planning Center procedure summary", { ...fields });
-};

@@ -1,7 +1,4 @@
-import { ORPCError } from "@orpc/client";
-import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { z } from "zod";
 
 import {
   cancelScheduleMutationQueries,
@@ -12,24 +9,11 @@ import {
   settleScheduleMutationQueries,
 } from "@/hooks/use-schedule-cache-optimism";
 import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cache-optimism";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
-const messageErrorDataSchema = z.object({ message: z.string().optional() });
-
-const formatUnscheduleError = (error: Error): string => {
-  if (error instanceof ORPCError) {
-    const parsed = messageErrorDataSchema.safeParse(error.data);
-    const message = parsed.success ? parsed.data.message : undefined;
-    if (isNonEmptyString(message)) {
-      return message;
-    }
-    return error.message || "Failed to unschedule";
-  }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return "Failed to unschedule";
-};
+/** The fault's message (written for people), or the failure's own; never blank. */
+const formatUnscheduleError = (error: Error): string =>
+  error.message === "" ? "Failed to unschedule" : error.message;
 
 export const useUnschedulePlanPerson = ({
   onSuccess,
@@ -50,12 +34,16 @@ export const useUnschedulePlanPerson = ({
         personId?: string | null;
       };
     }) =>
-      await orpc.schedule.remove({
-        planPersonId,
-        serviceTypeId: context?.serviceTypeId ?? undefined,
-        personId: context?.personId ?? undefined,
-        planId: context?.planId ?? undefined,
-      }),
+      await productClient.run((api) =>
+        api.schedule.remove({
+          params: { planPersonId },
+          query: {
+            serviceTypeId: context?.serviceTypeId ?? undefined,
+            personId: context?.personId ?? undefined,
+            planId: context?.planId ?? undefined,
+          },
+        })
+      ),
     onMutate: async ({ planPersonId, context }) => {
       await cancelScheduleMutationQueries(queryClient, context ?? {});
       return {

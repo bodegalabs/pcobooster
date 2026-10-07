@@ -1,3 +1,4 @@
+import { speculativeQuery } from "@pcobooster/client/query";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   Plan,
@@ -32,7 +33,7 @@ import type { CandidateSlot } from "@/hooks/use-position-candidates";
 import { useServiceTypes } from "@/hooks/use-service-types";
 import { useTeamPositions } from "@/hooks/use-team-positions";
 import { queryKeys } from "@/lib/query-keys";
-import { requestScheduler, speculativeQuery } from "@/lib/request-priority";
+import { requestScheduler } from "@/lib/request-priority";
 import type {
   DashboardView,
   PlanSlotSelection,

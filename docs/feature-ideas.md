@@ -85,7 +85,7 @@ Planning Center publishes each person's schedule as a calendar feed (`Person.ica
 
 ### AI assistant and agent toolset
 
-Long-term goal: agents can do anything a scheduler can do in the app. Build the tangible features first, then expose them as a well-described toolset (an MCP server over the same oRPC procedures) so an assistant can read plans, rank candidates, propose changes, and apply them after the scheduler approves. Every tool inherits the request budget and Planning Center's permissions.
+Long-term goal: agents can do anything a scheduler can do in the app. Build the tangible features first, then expose them as a well-described toolset (an MCP server over the same API procedures) so an assistant can read plans, rank candidates, propose changes, and apply them after the scheduler approves. Every tool inherits the request budget and Planning Center's permissions.
 
 ## Parked
 

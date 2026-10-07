@@ -1,3 +1,4 @@
+import { callForQuery } from "@pcobooster/client/query";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { PlanItem } from "@pcobooster/planning-center-models/types";
 import { useQuery } from "@tanstack/react-query";
@@ -10,8 +11,7 @@ import {
 } from "@/lib/plan-items-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import { callForQuery } from "@/lib/request-priority";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 const PLAN_ITEMS_STALE_TIME_MS = 60 * 1000;
 
@@ -25,10 +25,8 @@ export const createPlanItemsQueryOptions = (
       return [];
     }
 
-    const items = await callForQuery(
-      context,
-      async (options) =>
-        await orpc.planItems.list({ serviceTypeId, planId }, options)
+    const items = await callForQuery(context, productClient, (api) =>
+      api.planItems.list({ params: { serviceTypeId, planId } })
     );
     writeCachedPlanItems(serviceTypeId, planId, items);
     return items;

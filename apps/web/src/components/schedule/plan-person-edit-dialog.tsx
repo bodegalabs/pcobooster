@@ -41,7 +41,7 @@ import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
 import { useUpdatePlanPersonStatus } from "@/hooks/use-update-plan-person-status";
 import { getInitials } from "@/lib/format/initials";
 import { queryKeys } from "@/lib/query-keys";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 interface PlanPersonEditDialogProps {
   person: FilledPositionPerson;
@@ -245,13 +245,12 @@ const PlanPersonEditDialogBody = ({
       return;
     }
 
-    await orpc.planPeople.updateTimes({
-      planPersonId: person.planPersonId,
-      serviceTypeId,
-      planId,
-      personId,
-      planTimeIds: timeIds,
-    });
+    await productClient.run((api) =>
+      api.planPeople.updateTimes({
+        params: { planPersonId: person.planPersonId, serviceTypeId, planId },
+        payload: { personId, planTimeIds: timeIds },
+      })
+    );
 
     await Promise.all([
       queryClient.invalidateQueries({

@@ -28,8 +28,8 @@ describe(decideRequestGate, () => {
     ],
     ["http://www.pcobooster.com/", "https://pcobooster.com/"],
     [
-      "https://www.pcobooster.com/api/rpc/health",
-      "https://pcobooster.com/api/rpc/health",
+      "https://www.pcobooster.com/api/v1/session",
+      "https://pcobooster.com/api/v1/session",
     ],
   ])("permanently redirects %s to the apex", (url, location) => {
     expect(
@@ -77,8 +77,11 @@ describe(decideRequestGate, () => {
     "/api/auth/callback/planning-center?code=1",
     // A prefix match; the API rejects unknown auth routes.
     "/api/authz",
-    "/api/rpc",
-    "/api/rpc/session/status",
+    "/api/v1/session",
+    "/api/v1/features",
+    "/api/v1/demo/session",
+    "/api/v1/accounts",
+    "/api/v1/service-types/1/plans/2/items/order",
     "/auth",
     "/auth?next=%2Fpeople",
     "/robots.txt",

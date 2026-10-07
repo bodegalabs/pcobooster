@@ -7,7 +7,7 @@ import { z } from "zod";
 const sourceExtensions = new Set([".js", ".jsx", ".ts", ".tsx"]);
 /** Build outputs and dependencies; dot-directories (tool state, worktrees) are skipped too. */
 const ignoredDirectories = new Set(["dist", "node_modules"]);
-const routeExceptions = new Set(["auth", "health", "reference", "rpc"]);
+const routeExceptions = new Set(["auth", "health", "rpc"]);
 const replacedRouteNames = new Set([
   "blockouts",
   "catalog",
@@ -23,7 +23,6 @@ const replacedRouteNames = new Set([
   "team-positions",
 ]);
 const forbiddenBrowserPackageDependencies = new Set([
-  "@orpc/server",
   "@pcobooster/api",
   "@types/node",
   "better-auth",
@@ -403,7 +402,7 @@ describe("monorepo architecture boundaries", () => {
     expectNoViolations("Planning Center models boundary", violations);
   });
 
-  it("keeps oRPC contracts browser-safe and transport-only", () => {
+  it("keeps the product contracts browser-safe", () => {
     const contractsRoot = join(repositoryRoot, "packages/contracts");
     const violations: string[] = [];
 
@@ -440,7 +439,7 @@ describe("monorepo architecture boundaries", () => {
       }
     }
 
-    expectNoViolations("oRPC contracts boundary", violations);
+    expectNoViolations("product contracts boundary", violations);
   });
 
   it("contains no replaced REST route or obsolete server registry", () => {
@@ -461,7 +460,7 @@ describe("monorepo architecture boundaries", () => {
         );
         if (replacedSegment && !routeExceptions.has(replacedSegment)) {
           violations.push(
-            `${file.relativePath} is a replaced REST route (${replacedSegment}); use the oRPC transport`
+            `${file.relativePath} is a replaced REST route (${replacedSegment}); use the product API client`
           );
         }
       }

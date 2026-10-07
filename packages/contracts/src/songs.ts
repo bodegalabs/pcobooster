@@ -1,9 +1,4 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
-import {
-  songCatalogEntrySchema,
-  songOptionSetSchema,
-} from "@pcobooster/contracts/song-schemas";
+import { songCatalogEntrySchema } from "@pcobooster/contracts/song-schemas";
 import { z } from "zod";
 
 const requiredId = z.string().trim().min(1);
@@ -63,57 +58,6 @@ export const songsSuggestionsOutputSchema = z.object({
   /** Played before, but not in the last few months. */
   resting: z.array(songCatalogEntrySchema),
 });
-
-const songsProcedure = oc.errors({
-  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-  FORBIDDEN: applicationErrorMap.FORBIDDEN,
-  TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-  BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
-
-export const songsContract = {
-  search: songsProcedure
-    .route({
-      method: "GET",
-      path: "/songs/search",
-      summary: "Search the song catalog",
-    })
-    .input(songsSearchInputSchema)
-    .output(songsSearchOutputSchema),
-  suggestions: songsProcedure
-    .route({
-      method: "GET",
-      path: "/songs/suggestions",
-      summary: "Suggest recently played and resting songs from the catalog",
-    })
-    .input(songsSuggestionsInputSchema)
-    .output(songsSuggestionsOutputSchema),
-  library: songsProcedure
-    .route({
-      method: "GET",
-      path: "/songs/library",
-      summary: "List every visible song with when it was last scheduled",
-    })
-    .errors({ NOT_FOUND: applicationErrorMap.NOT_FOUND })
-    .output(songLibrarySchema),
-  history: songsProcedure
-    .route({
-      method: "GET",
-      path: "/songs/{songId}/history",
-      summary: "Read where and when a song was sung across every service",
-    })
-    .input(songsHistoryInputSchema)
-    .output(songsHistoryOutputSchema),
-  options: songsProcedure
-    .route({
-      method: "GET",
-      path: "/songs/{songId}/options",
-      summary: "Read a song's arrangements, keys, and layout options",
-    })
-    .input(songsOptionsInputSchema)
-    .output(songOptionSetSchema),
-};
 
 export type SongsSearchInput = z.input<typeof songsSearchInputSchema>;
 export type SongsOptionsInput = z.input<typeof songsOptionsInputSchema>;

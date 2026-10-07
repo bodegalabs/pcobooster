@@ -9,6 +9,7 @@ import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { createLocalD1 } from "../../../../scripts/database/local-d1";
+import { LOCAL_WORKER_TEST_TIMEOUT_MS } from "../../../../scripts/testing/miniflare";
 
 const { runtime, binding } = await createLocalD1("planning-center-sign-in");
 const database = createDatabase(binding);
@@ -141,121 +142,125 @@ const accountIdFor = async (
   return row?.id ?? "";
 };
 
-describe("Planning Center sign-in", () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  afterAll(async () => {
-    await runtime.dispose();
-  });
-
-  it("links a second organization for the same Planning Center login", async () => {
-    const first = await signInWithPlanningCenter({
-      sub: "person-org-a",
-      email: "jordan@example.com",
-      organizationId: "org-a",
-      organizationName: "Grace Church",
+describe(
+  "Planning Center sign-in",
+  { timeout: LOCAL_WORKER_TEST_TIMEOUT_MS },
+  () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
     });
-    expect(first.searchParams.get("error")).toBeNull();
-    expect(first.pathname).toBe("/services");
 
-    const second = await signInWithPlanningCenter({
-      sub: "person-org-b",
-      email: "jordan@example.com",
-      organizationId: "org-b",
-      organizationName: "Hope Chapel",
+    afterAll(async () => {
+      await runtime.dispose();
     });
-    expect(second.searchParams.get("error")).toBeNull();
-    expect(second.pathname).toBe("/services");
 
-    const [signedIn] = await database
-      .select({ id: user.id })
-      .from(user)
-      .where(eq(user.email, "jordan@example.com"));
-    const linked = await database
-      .select({ accountId: account.accountId })
-      .from(account)
-      .where(eq(account.userId, signedIn?.id ?? ""));
-    expect(linked.map((row) => row.accountId).toSorted()).toStrictEqual([
-      "person-org-a",
-      "person-org-b",
-    ]);
-  });
+    it("links a second organization for the same Planning Center login", async () => {
+      const first = await signInWithPlanningCenter({
+        sub: "person-org-a",
+        email: "jordan@example.com",
+        organizationId: "org-a",
+        organizationName: "Grace Church",
+      });
+      expect(first.searchParams.get("error")).toBeNull();
+      expect(first.pathname).toBe("/services");
 
-  it("selects the organization each sign-in used", async () => {
-    const graceChurch = {
-      sub: "person-select-a",
-      email: "casey@example.com",
-      organizationId: "org-select-a",
-      organizationName: "Grace Church",
-    };
-    const hopeChapel = {
-      sub: "person-select-b",
-      email: "casey@example.com",
-      organizationId: "org-select-b",
-      organizationName: "Hope Chapel",
-    };
+      const second = await signInWithPlanningCenter({
+        sub: "person-org-b",
+        email: "jordan@example.com",
+        organizationId: "org-b",
+        organizationName: "Hope Chapel",
+      });
+      expect(second.searchParams.get("error")).toBeNull();
+      expect(second.pathname).toBe("/services");
 
-    const firstSignIn = await completePlanningCenterSignIn(graceChurch);
-    expect(selectedAccountCookie(firstSignIn)).toBe(
-      await accountIdFor(graceChurch.sub)
-    );
-    // Linking a second organization selects it.
-    const linked = await completePlanningCenterSignIn(hopeChapel);
-    expect(selectedAccountCookie(linked)).toBe(
-      await accountIdFor(hopeChapel.sub)
-    );
-    // Signing in with an organization already linked selects it again.
-    const returning = await completePlanningCenterSignIn(graceChurch);
-    expect(selectedAccountCookie(returning)).toBe(
-      await accountIdFor(graceChurch.sub)
-    );
-    expect(
-      returning.headers
-        .getSetCookie()
-        .find((candidate) =>
-          candidate.startsWith(`${PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE}=`)
-        )
-    ).toMatch(/; Max-Age=2592000; Path=\/; HttpOnly; SameSite=Lax$/u);
-  });
-
-  it("identifies itself to Planning Center on every sign-in request", async () => {
-    await signInWithPlanningCenter({
-      sub: "person-user-agent",
-      email: "agent@example.com",
-      organizationId: "org-ua",
-      organizationName: "Agent Church",
+      const [signedIn] = await database
+        .select({ id: user.id })
+        .from(user)
+        .where(eq(user.email, "jordan@example.com"));
+      const linked = await database
+        .select({ accountId: account.accountId })
+        .from(account)
+        .where(eq(account.userId, signedIn?.id ?? ""));
+      expect(linked.map((row) => row.accountId).toSorted()).toStrictEqual([
+        "person-org-a",
+        "person-org-b",
+      ]);
     });
-    expect(Object.fromEntries(userAgentsByPath)).toStrictEqual({
-      "/.well-known/openid-configuration": PLANNING_CENTER_USER_AGENT,
-      "/oauth/token": PLANNING_CENTER_USER_AGENT,
-      "/oauth/userinfo": PLANNING_CENTER_USER_AGENT,
-    });
-  });
 
-  it("records the parsed failure when the callback redirects with an error", async () => {
-    const failed = await signInWithPlanningCenter({
-      sub: "person-without-email",
-      email: null,
-      organizationId: "org-c",
-      organizationName: "New Life",
-    });
-    expect(failed.pathname).toBe("/auth");
-    expect(failed.searchParams.get("error")).toBe("email_not_found");
+    it("selects the organization each sign-in used", async () => {
+      const graceChurch = {
+        sub: "person-select-a",
+        email: "casey@example.com",
+        organizationId: "org-select-a",
+        organizationName: "Grace Church",
+      };
+      const hopeChapel = {
+        sub: "person-select-b",
+        email: "casey@example.com",
+        organizationId: "org-select-b",
+        organizationName: "Hope Chapel",
+      };
 
-    const [recorded] = await database
-      .select({
-        success: activityEvents.success,
-        errorCode: activityEvents.errorCode,
-        metadata: activityEvents.metadata,
-      })
-      .from(activityEvents)
-      .where(eq(activityEvents.eventType, "auth_sign_in_failed"));
-    expect(recorded).toStrictEqual({
-      success: false,
-      errorCode: "email_not_found",
-      metadata: { code: "email_not_found" },
+      const firstSignIn = await completePlanningCenterSignIn(graceChurch);
+      expect(selectedAccountCookie(firstSignIn)).toBe(
+        await accountIdFor(graceChurch.sub)
+      );
+      // Linking a second organization selects it.
+      const linked = await completePlanningCenterSignIn(hopeChapel);
+      expect(selectedAccountCookie(linked)).toBe(
+        await accountIdFor(hopeChapel.sub)
+      );
+      // Signing in with an organization already linked selects it again.
+      const returning = await completePlanningCenterSignIn(graceChurch);
+      expect(selectedAccountCookie(returning)).toBe(
+        await accountIdFor(graceChurch.sub)
+      );
+      expect(
+        returning.headers
+          .getSetCookie()
+          .find((candidate) =>
+            candidate.startsWith(`${PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE}=`)
+          )
+      ).toMatch(/; Max-Age=2592000; Path=\/; HttpOnly; SameSite=Lax$/u);
     });
-  });
-});
+
+    it("identifies itself to Planning Center on every sign-in request", async () => {
+      await signInWithPlanningCenter({
+        sub: "person-user-agent",
+        email: "agent@example.com",
+        organizationId: "org-ua",
+        organizationName: "Agent Church",
+      });
+      expect(Object.fromEntries(userAgentsByPath)).toStrictEqual({
+        "/.well-known/openid-configuration": PLANNING_CENTER_USER_AGENT,
+        "/oauth/token": PLANNING_CENTER_USER_AGENT,
+        "/oauth/userinfo": PLANNING_CENTER_USER_AGENT,
+      });
+    });
+
+    it("records the parsed failure when the callback redirects with an error", async () => {
+      const failed = await signInWithPlanningCenter({
+        sub: "person-without-email",
+        email: null,
+        organizationId: "org-c",
+        organizationName: "New Life",
+      });
+      expect(failed.pathname).toBe("/auth");
+      expect(failed.searchParams.get("error")).toBe("email_not_found");
+
+      const [recorded] = await database
+        .select({
+          success: activityEvents.success,
+          errorCode: activityEvents.errorCode,
+          metadata: activityEvents.metadata,
+        })
+        .from(activityEvents)
+        .where(eq(activityEvents.eventType, "auth_sign_in_failed"));
+      expect(recorded).toStrictEqual({
+        success: false,
+        errorCode: "email_not_found",
+        metadata: { code: "email_not_found" },
+      });
+    });
+  }
+);

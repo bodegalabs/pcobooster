@@ -1,3 +1,7 @@
+import {
+  createRequestContext,
+  RequestContext,
+} from "@pcobooster/api/application/context";
 import { provideAccess } from "@pcobooster/api/application/planning-center-access";
 import {
   commitRunSheetItemCreate,
@@ -8,22 +12,48 @@ import {
   createPlanningCenterServices,
   createPlanningCenterReadCaches,
 } from "@pcobooster/api/planning-center/services/factory";
+import { Server } from "@pcobooster/api/server";
 import type { SuccessOf } from "@pcobooster/api/testing/effect";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
-import { testRuntime } from "@pcobooster/api/testing/runtime";
 import { testServer } from "@pcobooster/api/testing/server";
-import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
-import { Effect } from "effect";
+import { Cause, Effect, Exit } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
-const context = {
-  request: new Request("https://pcobooster.com/api/rpc/planItems/create", {
-    method: "POST",
-  }),
-  requestId: "run-sheet-request",
-  resHeaders: new Headers(),
-  runtime: testRuntime(),
-  server: testServer(),
+/**
+ * Runs a program as a `write` endpoint's parts run: a prepare step stops when the caller
+ * leaves; a commit finishes uninterruptibly, and its real result is what the endpoint records,
+ * even though the caller has gone.
+ */
+const run = async <Value, Failure>(
+  program: Effect.Effect<Value, Failure, RequestContext | Server>,
+  signal: AbortSignal,
+  step: "prepare" | "commit"
+): Promise<Exit.Exit<Value, Failure>> => {
+  let settled: Exit.Exit<Value, Failure> | undefined;
+  const recorded = program.pipe(
+    Effect.onExit((exit) =>
+      Effect.sync(() => {
+        settled = exit;
+      })
+    ),
+    Effect.provideService(
+      RequestContext,
+      createRequestContext(
+        new Request(
+          "https://pcobooster.com/api/v1/service-types/st-1/plans/plan-1/items",
+          {
+            method: "POST",
+          }
+        )
+      )
+    ),
+    Effect.provideService(Server, testServer())
+  );
+  const exit = await Effect.runPromiseExit(
+    step === "commit" ? Effect.uninterruptible(recorded) : recorded,
+    { signal }
+  );
+  return settled ?? exit;
 };
 
 const setup = () => {
@@ -67,7 +97,7 @@ describe("run-sheet mutation cancellation", () => {
     );
     const create = vi.spyOn(services.planItems, "createPlanItem");
 
-    const pending = executeApplicationEffect(
+    const pending = run(
       provideAccess(
         prepareRunSheetItemCreate({
           serviceTypeId: "service-1",
@@ -76,16 +106,17 @@ describe("run-sheet mutation cancellation", () => {
         }),
         access
       ),
-      context,
-      controller.signal
+      controller.signal,
+      "prepare"
     );
     await vi.waitFor(() => {
       expect(getSong).toHaveBeenCalledOnce();
     });
     controller.abort();
-    await expect(pending).rejects.toMatchObject({
-      code: "CLIENT_CLOSED_REQUEST",
-    });
+    const exit = await pending;
+    expect(
+      Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause)
+    ).toBeTruthy();
 
     song.resolve({
       id: "song-1",
@@ -117,7 +148,7 @@ describe("run-sheet mutation cancellation", () => {
         })
       );
 
-    const pending = executeApplicationEffect(
+    const pending = run(
       provideAccess(
         commitRunSheetItemCreate({
           serviceTypeId: "service-1",
@@ -126,9 +157,8 @@ describe("run-sheet mutation cancellation", () => {
         }),
         access
       ),
-      context,
       controller.signal,
-      { interruptOnAbort: false }
+      "commit"
     );
     await vi.waitFor(() => {
       expect(create).toHaveBeenCalledOnce();
@@ -149,8 +179,8 @@ describe("run-sheet mutation cancellation", () => {
     });
 
     await expect(pending).resolves.toMatchObject({
-      id: "item-1",
-      title: "Song title",
+      _tag: "Success",
+      value: { id: "item-1", title: "Song title" },
     });
   });
 
@@ -177,7 +207,7 @@ describe("run-sheet mutation cancellation", () => {
         })
       );
 
-    const pending = executeApplicationEffect(
+    const pending = run(
       provideAccess(
         updateRunSheetTime({
           serviceTypeId: "service-1",
@@ -188,9 +218,8 @@ describe("run-sheet mutation cancellation", () => {
         }),
         access
       ),
-      context,
       controller.signal,
-      { interruptOnAbort: false }
+      "commit"
     );
     await vi.waitFor(() => {
       expect(updateTime).toHaveBeenCalledOnce();
@@ -208,8 +237,8 @@ describe("run-sheet mutation cancellation", () => {
     });
 
     await expect(pending).resolves.toMatchObject({
-      id: "time-1",
-      name: "Service",
+      _tag: "Success",
+      value: { id: "time-1", name: "Service" },
     });
     expect(updateNeededPosition).toHaveBeenCalledExactlyOnceWith(
       "service-1",

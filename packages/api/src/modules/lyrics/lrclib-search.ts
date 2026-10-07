@@ -1,7 +1,7 @@
-import { ExternalServiceFailure } from "@pcobooster/api/application/errors/external-service-failure";
-import { RateLimited } from "@pcobooster/api/application/errors/rate-limited";
 import { moduleLog } from "@pcobooster/api/logging";
 import type { LyricsSearchResult } from "@pcobooster/contracts/chord-charts";
+import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
+import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
 import { Effect } from "effect";
 import { z } from "zod";
 

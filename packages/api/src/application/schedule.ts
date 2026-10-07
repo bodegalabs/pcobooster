@@ -1,8 +1,5 @@
 import { ensureRequestIsOpen } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
-import { AlreadyScheduled } from "@pcobooster/api/application/errors/already-scheduled";
-import { NotFound } from "@pcobooster/api/application/errors/not-found";
-import { PositionMismatch } from "@pcobooster/api/application/errors/position-mismatch";
 import {
   PlanningCenterAccess,
   planningCenterFault,
@@ -16,6 +13,9 @@ import {
 } from "@pcobooster/api/modules/planning-center/schedule-person";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import { AlreadyScheduled } from "@pcobooster/contracts/faults/already-scheduled";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
+import { PositionMismatch } from "@pcobooster/contracts/faults/position-mismatch";
 import type {
   ScheduleAssignInput,
   ScheduleRemoveInput,

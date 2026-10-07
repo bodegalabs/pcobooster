@@ -1,3 +1,5 @@
+import { API_PREFIX } from "@pcobooster/contracts/http/route";
+
 import {
   DEFAULT_SIGN_IN_RETURN_PATH,
   SIGN_IN_RETURN_PARAM,
@@ -46,11 +48,16 @@ const proceed = (
   responseHeaders,
 });
 
-/** Sign-in and the API endpoints the signed-out browser needs stay reachable. */
+/**
+ * Sign-in and the product API stay reachable signed out. The signed-out browser calls the API
+ * (session status, feature flags, starting a demo), and the API is the authorization boundary:
+ * it answers its own 401 fault, which the client reads, where a redirect here would hand the
+ * client a sign-in page it cannot decode.
+ */
 const isSignedOutPath = (pathname: string): boolean =>
   pathname.startsWith("/api/auth") ||
-  pathname === "/api/rpc" ||
-  pathname.startsWith("/api/rpc/") ||
+  pathname === API_PREFIX ||
+  pathname.startsWith(`${API_PREFIX}/`) ||
   pathname === "/auth";
 
 /** Same-origin and relative. */

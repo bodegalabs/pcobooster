@@ -20,6 +20,9 @@ export default defineConfig({
       "lint/**/*.test.ts",
       "scripts/**/*.test.ts",
     ],
+    // Turborepo runs packages in parallel. Bound each package's workers so auth and workerd
+    // fixtures keep CPU time while other suites start, without serializing the package gate.
+    maxWorkers: 4,
     environment: "node",
     globals: true,
     clearMocks: true,

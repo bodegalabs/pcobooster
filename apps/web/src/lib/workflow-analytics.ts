@@ -1,5 +1,5 @@
-import { ORPCError } from "@orpc/client";
 import type { captureAnalytics } from "@pcobooster/analytics/client";
+import { failureCode } from "@pcobooster/client/product-client";
 import { z } from "zod";
 
 const OPERATIONS = new Set([
@@ -30,38 +30,53 @@ const errorCodeSchema = z.enum([
   "POSITION_MISMATCH",
   "CONFLICT",
   "SERVICE_UNAVAILABLE",
+  "NETWORK_ERROR",
   "GATEWAY_TIMEOUT",
   "TOO_MANY_REQUESTS",
   "BAD_GATEWAY",
   "INTERNAL_SERVER_ERROR",
+  "CLIENT_OUTDATED",
 ]);
 
-/** Only operation names and outcomes are captured, never request/response bodies or error messages. */
+/**
+ * Measures a call whose operation (`schedule.assign`) the call itself names once its request
+ * is sent (`named`), as the product client reports it from the route table. Only the selected
+ * writes are captured, and only operation names and outcomes, never request or response bodies
+ * or error messages.
+ */
 export const measureWorkflow = async <T>(
-  path: readonly string[],
-  execute: () => Promise<T>,
+  execute: (named: (operation: string) => void) => Promise<T>,
   capture: typeof captureAnalytics
 ): Promise<T> => {
-  const operation = path.join(".");
-  if (!OPERATIONS.has(operation)) {
-    return await execute();
-  }
+  let operation: string | undefined;
   const start = performance.now();
+  const measured = () =>
+    operation !== undefined && OPERATIONS.has(operation)
+      ? operation
+      : undefined;
   try {
-    const result = await execute();
-    capture("workflow completed", {
-      operation,
-      duration_ms: Math.round(performance.now() - start),
+    const result = await execute((name) => {
+      operation = name;
     });
+    const completed = measured();
+    if (completed !== undefined) {
+      capture("workflow completed", {
+        operation: completed,
+        duration_ms: Math.round(performance.now() - start),
+      });
+    }
     return result;
   } catch (error) {
-    const errorCode = errorCodeSchema.safeParse(
-      error instanceof ORPCError ? error.code : undefined
-    );
-    capture("workflow failed", {
-      operation,
-      error_code: errorCode.success ? errorCode.data : "UNKNOWN",
-    });
+    const failed = measured();
+    if (failed !== undefined) {
+      const errorCode = errorCodeSchema.safeParse(
+        error instanceof Error ? failureCode(error) : undefined
+      );
+      capture("workflow failed", {
+        operation: failed,
+        error_code: errorCode.success ? errorCode.data : "UNKNOWN",
+      });
+    }
     throw error;
   }
 };

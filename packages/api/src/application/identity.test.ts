@@ -22,7 +22,7 @@ import { Cause, Effect, Exit, Option } from "effect";
 import * as HttpClient from "effect/unstable/http/HttpClient";
 import { describe, expect, it, vi } from "vitest";
 
-const request = new Request("https://pcobooster.com/api/rpc/accounts");
+const request = new Request("https://pcobooster.com/api/v1/accounts");
 
 type IdentityRequirements = RequestContext | Server | HttpClient.HttpClient;
 

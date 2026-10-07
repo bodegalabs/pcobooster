@@ -1,5 +1,3 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import { SERVICES_PERMISSION_LEVELS } from "@pcobooster/planning-center-models/access";
 import { z } from "zod";
 
@@ -35,25 +33,5 @@ export const accessSnapshotSchema = z.object({
 });
 
 export const accessInputSchema = z.object({});
-
-const accessProcedure = oc.errors({
-  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-  FORBIDDEN: applicationErrorMap.FORBIDDEN,
-  TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-  BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
-
-export const accessContract = {
-  me: accessProcedure
-    .route({
-      method: "GET",
-      path: "/access",
-      summary:
-        "Read the signed-in person's Planning Center permissions in Services and People",
-    })
-    .input(accessInputSchema)
-    .output(accessSnapshotSchema),
-};
 
 export type AccessSnapshot = z.output<typeof accessSnapshotSchema>;

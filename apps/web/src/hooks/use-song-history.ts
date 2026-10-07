@@ -1,10 +1,10 @@
+import { callForQuery } from "@pcobooster/client/query";
 import type { SongHistoryEntry } from "@pcobooster/contracts/songs";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
-import { callForQuery } from "@/lib/request-priority";
-import { orpc } from "@/orpc-client";
+import { productClient } from "@/product-client";
 
 const SONG_HISTORY_STALE_TIME_MS = 10 * 60 * 1000;
 
@@ -16,9 +16,8 @@ export const useSongHistory = (songId: string | null) =>
       if (!isNonEmptyString(songId)) {
         throw new Error("A song is required.");
       }
-      return await callForQuery(
-        context,
-        async (options) => await orpc.songs.history({ songId }, options)
+      return await callForQuery(context, productClient, (api) =>
+        api.songs.history({ params: { songId } })
       );
     },
     enabled: isNonEmptyString(songId),
