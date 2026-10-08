@@ -22,7 +22,7 @@ For parallel remote development, see [Codex cloud development](docs/codex-cloud.
 
 This repo uses Bun for dependency management and scripts. Use `bun.lock` as the only lockfile; do not use npm or commit `package-lock.json`.
 
-Use Node.js 24 (see `.node-version`) and Bun 1.3.9 (pinned in `package.json` and CI).
+Use Node.js 24 (see `.node-version`) and Bun 1.4.2 (pinned in `package.json`; CI reads it from there).
 
 ### 1. Install dependencies
 
