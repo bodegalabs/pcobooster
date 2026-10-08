@@ -1,5 +1,4 @@
 import { startDemoSession } from "@pcobooster/api/application/demo";
-import { demoSessionToken } from "@pcobooster/api/auth/demo-access";
 import { Server } from "@pcobooster/api/server";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { Effect, Result } from "effect";
@@ -26,11 +25,11 @@ const start = async (key: string, config = enabled) =>
 
 describe(startDemoSession, () => {
   it("exchanges the link key for a session token", async () => {
-    if (enabled.demo === null) {
-      throw new Error("Expected a demo configuration");
-    }
     await expect(start(accessKey)).resolves.toStrictEqual(
-      Result.succeed({ sessionToken: demoSessionToken(enabled.demo) })
+      Result.succeed({
+        // HMAC-SHA256 of "pcobooster-demo-session-v1" keyed by `accessKey`, from openssl.
+        sessionToken: "shqkCqn_RQEf_t-kLp0NvgzYlwCjf1ncZ98azsITlLY",
+      })
     );
   });
 

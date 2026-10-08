@@ -47,6 +47,13 @@ describe("my scheduled plans cache", () => {
   it("ignores invalid cache payloads", () => {
     window.localStorage.setItem(
       "pcobooster:my-scheduled-plans:v2",
+      JSON.stringify({ savedAt: Date.now(), data: { planIds: ["plan-2"] } })
+    );
+    expect(readCachedMyScheduledPlans()?.data).toStrictEqual({
+      planIds: ["plan-2"],
+    });
+    window.localStorage.setItem(
+      "pcobooster:my-scheduled-plans:v2",
       JSON.stringify({ savedAt: Date.now(), data: { planIds: [2] } })
     );
 
@@ -60,6 +67,9 @@ describe("my scheduled plans cache", () => {
       JSON.stringify({ savedAt: Date.now(), data: { planIds: ["plan-2"] } })
     );
     window.localStorage.setItem("unrelated", "keep");
+    expect(readCachedMyScheduledPlans()?.data).toStrictEqual({
+      planIds: ["plan-2"],
+    });
 
     clearCachedMyScheduledPlans();
 

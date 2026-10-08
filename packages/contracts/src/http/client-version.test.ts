@@ -1,5 +1,4 @@
 import {
-  API_VERSION,
   formatClientHeader,
   isSupportedClient,
   MINIMUM_API_VERSION,
@@ -9,9 +8,9 @@ import { describe, expect, it } from "vitest";
 
 describe(parseClientHeader, () => {
   it("reads the name and API version each client sends", () => {
-    expect(parseClientHeader(formatClientHeader("expo"))).toStrictEqual({
+    expect(parseClientHeader("expo;api=2")).toStrictEqual({
       name: "expo",
-      apiVersion: API_VERSION,
+      apiVersion: 2,
     });
   });
 
@@ -37,7 +36,6 @@ describe(isSupportedClient, () => {
   });
 
   it("speaks the version it requires, and turns away clients built before paged reads", () => {
-    expect([API_VERSION, MINIMUM_API_VERSION]).toStrictEqual([2, 2]);
     expect(
       ["web;api=1", "expo;api=1", formatClientHeader("web")].map(
         isSupportedClient

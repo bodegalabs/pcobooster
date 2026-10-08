@@ -178,7 +178,10 @@ describe("Assign reads through the product client", () => {
     try {
       await expect(
         cache.query(assignReads.details(context, slot, ["4100111"], true))
-      ).resolves.toBeInstanceOf(Array);
+      ).resolves.toContainEqual({
+        personId: "4100111",
+        isBlockedForDate: false,
+      });
     } finally {
       if (original !== undefined) {
         Object.defineProperty(

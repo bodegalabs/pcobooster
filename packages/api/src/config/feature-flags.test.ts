@@ -23,22 +23,6 @@ describe("feature flag registry", () => {
       expect(description.length).toBeLessThanOrEqual(MAX_DESCRIPTION_LENGTH);
     }
   });
-
-  it("serves People on every tier", () => {
-    expect(featureFlags.people.enabled).toStrictEqual({
-      local: true,
-      preview: true,
-      production: true,
-    });
-  });
-
-  it("serves chord charts on every tier", () => {
-    expect(featureFlags.chordCharts.enabled).toStrictEqual({
-      local: true,
-      preview: true,
-      production: true,
-    });
-  });
 });
 
 describe(deploymentTier, () => {

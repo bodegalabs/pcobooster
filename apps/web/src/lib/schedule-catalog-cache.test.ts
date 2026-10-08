@@ -86,6 +86,9 @@ describe("schedule catalog cache", () => {
   });
 
   it("does not read plans without a service type id", () => {
+    writeCachedPlans("st-1", plans());
+
+    expect(readCachedPlans("st-1")?.[0].id).toBe("plan-1");
     expect(readCachedPlans(null)).toBeUndefined();
   });
 
@@ -93,6 +96,11 @@ describe("schedule catalog cache", () => {
     writeCachedServiceTypes(serviceTypes());
     writeCachedPlans("st-1", plans());
     window.localStorage.setItem("unrelated", "keep");
+    expect(readCachedServiceTypes()?.map(({ id }) => id)).toStrictEqual([
+      "st-1",
+      "st-2",
+    ]);
+    expect(readCachedPlans("st-1")?.[0].id).toBe("plan-1");
 
     clearCachedScheduleCatalog();
 

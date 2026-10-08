@@ -256,11 +256,23 @@ describe("attachment reads through the product client", () => {
   });
 
   it("passes the query's signal to the download, so leaving the screen stops it", async () => {
-    const { context, device, downloads } = setup();
-    await new QueryClient().query(
-      attachmentReads.file(context, device, leadSheet)
-    );
-    expect(downloads[0]?.signal).toBeInstanceOf(AbortSignal);
+    const { promise: landed, resolve: land } = Promise.withResolvers<boolean>();
+    const { context, device, downloads } = setup("account-a", {
+      beforeSave: async () => {
+        await landed;
+      },
+    });
+    const cache = new QueryClient();
+    const options = attachmentReads.file(context, device, leadSheet);
+    const read = cache.query(options);
+    await vi.waitFor(() => {
+      expect(downloads).toHaveLength(1);
+    });
+    expect(downloads[0]?.signal.aborted).toBeFalsy();
+    await cache.cancelQueries({ queryKey: options.queryKey });
+    expect(downloads[0]?.signal.aborted).toBeTruthy();
+    land(true);
+    await expect(read).rejects.toMatchObject({ message: "CancelledError" });
   });
 
   it("shows Planning Center's refusal as a typed fault", async () => {

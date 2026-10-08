@@ -70,6 +70,7 @@ describe("people search cache", () => {
   it("does not read a different query snapshot", () => {
     writeCachedPeopleSearch("andrew", people());
 
+    expect(readCachedPeopleSearch("andrew")?.data).toStrictEqual(people());
     expect(readCachedPeopleSearch("mina")).toBeUndefined();
   });
 
@@ -77,9 +78,18 @@ describe("people search cache", () => {
     writeCachedPeopleSearch("a", people());
 
     expect(readCachedPeopleSearch("a")).toBeUndefined();
+
+    writeCachedPeopleSearch("an", people());
+
+    expect(readCachedPeopleSearch("an")?.data).toStrictEqual(people());
   });
 
   it("ignores invalid cache payloads", () => {
+    window.localStorage.setItem(
+      "pcobooster:people-search:v1:andrew",
+      JSON.stringify({ savedAt: Date.now(), data: people() })
+    );
+    expect(readCachedPeopleSearch("andrew")?.data).toStrictEqual(people());
     window.localStorage.setItem(
       "pcobooster:people-search:v1:andrew",
       JSON.stringify({ savedAt: Date.now(), data: [{ id: "person-1" }] })
@@ -92,6 +102,7 @@ describe("people search cache", () => {
     writeCachedPeopleSearch("andrew", people());
     writeCachedPeopleSearch("mina", people());
     window.localStorage.setItem("unrelated", "keep");
+    expect(readCachedPeopleSearch("andrew")?.data).toStrictEqual(people());
 
     clearCachedPeopleSearch();
 
@@ -104,15 +115,15 @@ describe("people search cache", () => {
     const dataset = { presentationScope: "live" };
     vi.stubGlobal("document", { documentElement: { dataset } });
     writeCachedPeopleSearch("andrew", people());
-    expect(readCachedPeopleSearch("andrew")).toBeDefined();
+    expect(readCachedPeopleSearch("andrew")?.data).toStrictEqual(people());
     dataset.presentationScope = "present-v1-seed-a";
     expect(readCachedPeopleSearch("andrew")).toBeUndefined();
     writeCachedPeopleSearch("andrew", people());
-    expect(readCachedPeopleSearch("andrew")).toBeDefined();
+    expect(readCachedPeopleSearch("andrew")?.data).toStrictEqual(people());
     dataset.presentationScope = "present-v1-seed-b";
     expect(readCachedPeopleSearch("andrew")).toBeUndefined();
     dataset.presentationScope = "live";
-    expect(readCachedPeopleSearch("andrew")).toBeDefined();
+    expect(readCachedPeopleSearch("andrew")?.data).toStrictEqual(people());
     vi.unstubAllGlobals();
   });
 });

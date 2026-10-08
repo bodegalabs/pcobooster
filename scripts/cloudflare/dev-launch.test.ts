@@ -1,7 +1,6 @@
 import { once } from "node:events";
 import { createServer } from "node:net";
 
-import { worktreeDevPortBase } from "@pcobooster/config/dev-ports";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
@@ -69,8 +68,8 @@ describe(resolveDevLaunch, () => {
       repositoryRoot: worktreeRoot,
       linkedWorktree: true,
     });
-    expect(result.portBase).toBe(worktreeDevPortBase(worktreeRoot));
-    expect(result.environment.DEV_PORT_BASE).toBe(String(result.portBase));
+    expect(result.portBase).toBe(4730);
+    expect(result.environment.DEV_PORT_BASE).toBe("4730");
   });
 
   it("puts the product on the preview tool's assigned PORT", () => {

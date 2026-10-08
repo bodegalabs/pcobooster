@@ -43,6 +43,13 @@ describe(hydrateQueryFromCache, () => {
     }));
     hydrateQueryFromCache(client, key, readCache);
     expect(readCache).not.toHaveBeenCalled();
+    expect(client.getQueryData(key)).toStrictEqual(["live-plan"]);
+
+    const cold = new QueryClient();
+    hydrateQueryFromCache(cold, key, readCache);
+    expect(readCache).toHaveBeenCalledOnce();
+    expect(cold.getQueryData(key)).toStrictEqual(["saved-plan"]);
     client.clear();
+    cold.clear();
   });
 });

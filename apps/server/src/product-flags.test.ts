@@ -145,6 +145,10 @@ describe("endpoints behind the people flag", () => {
       .catch(() => null);
 
     expect(evaluations).toStrictEqual([]);
+
+    await client.run((api) => api.people.dashboardRoster()).catch(() => null);
+
+    expect(evaluations).toStrictEqual(accountEvaluation("people"));
   });
 });
 
