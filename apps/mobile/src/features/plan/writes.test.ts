@@ -1010,6 +1010,23 @@ describe("a status change after a failed assignment", () => {
 
 describe("unscheduling forgets a declined person", () => {
   it("does not put an unscheduled person back on the lineup for a later status change", async () => {
+    const declined = await setup();
+    await declined.writer.setStatus(
+      rosterAssignment(ids, declined.position, declined.person),
+      "declined"
+    );
+    const restoring = declined.writer.setStatus(
+      rosterAssignment(ids, declined.position, declined.person),
+      "confirmed"
+    );
+    expect(
+      declined.cache
+        .getQueryData<TeamPositionGroup[]>(
+          planReads.groups(declined.context, ids).queryKey
+        )?.[0]
+        .positions[0].filledPeople?.map((entry) => entry.rawStatus)
+    ).toStrictEqual(["C"]);
+    await restoring;
     const { writer, person, cache, context, position } = await setup();
     await writer.setStatus(rosterAssignment(ids, position, person), "declined");
     await writer.remove(rosterAssignment(ids, position, person));

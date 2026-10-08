@@ -1,5 +1,4 @@
 import { scoreAndNormalizePeople } from "@pcobooster/planning-center-models/candidate-scoring";
-import { formatPlanHistoryHalfRangeWeeksLabel } from "@pcobooster/planning-center-models/schedule-constants";
 import type {
   PersonWithAvailability,
   ScheduleFrequency,
@@ -119,7 +118,7 @@ describe(scoreAndNormalizePeople, () => {
     scoreAndNormalizePeople([busy], referenceDate, "UTC");
 
     expect(busy.recommendationReasoning?.join(" ")).toContain(
-      formatPlanHistoryHalfRangeWeeksLabel()
+      "Ranked lower: on the schedule 3 distinct days in the 4 weeks before this plan"
     );
   });
 

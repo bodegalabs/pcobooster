@@ -90,11 +90,21 @@ describe("song options cache", () => {
   it("does not read a different service type or song snapshot", () => {
     writeCachedSongOptions("song-1", "st-1", optionSet());
 
+    expect(readCachedSongOptions("song-1", "st-1")?.data.song.title).toBe(
+      "Build My Life"
+    );
     expect(readCachedSongOptions("song-2", "st-1")).toBeUndefined();
     expect(readCachedSongOptions("song-1", "st-2")).toBeUndefined();
   });
 
   it("ignores invalid cache payloads", () => {
+    window.localStorage.setItem(
+      "pcobooster:song-options:v1:st-1:song-1",
+      JSON.stringify({ savedAt: Date.now(), data: optionSet() })
+    );
+    expect(readCachedSongOptions("song-1", "st-1")?.data.song.title).toBe(
+      "Build My Life"
+    );
     window.localStorage.setItem(
       "pcobooster:song-options:v1:st-1:song-1",
       JSON.stringify({ savedAt: Date.now(), data: { song: { id: "song-1" } } })
@@ -107,6 +117,9 @@ describe("song options cache", () => {
     writeCachedSongOptions("song-1", "st-1", optionSet());
     writeCachedSongOptions("song-2", "st-1", optionSet());
     window.localStorage.setItem("unrelated", "keep");
+    expect(readCachedSongOptions("song-2", "st-1")?.data.song.title).toBe(
+      "Build My Life"
+    );
 
     clearCachedSongOptions();
 
@@ -124,6 +137,8 @@ describe("song options cache", () => {
 
     expect(readCachedSongOptions("song-1", "st-1")).toBeUndefined();
     expect(readCachedSongOptions("song-1", "st-2")).toBeUndefined();
-    expect(readCachedSongOptions("song-11", "st-1")).toBeDefined();
+    expect(readCachedSongOptions("song-11", "st-1")?.data.song.title).toBe(
+      "Build My Life"
+    );
   });
 });

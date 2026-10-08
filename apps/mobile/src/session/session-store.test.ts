@@ -108,8 +108,8 @@ describe(SessionStore, () => {
     await reloaded.restore();
     const { phase } = reloaded.getSnapshot();
     expect(
-      phase.kind === "signedIn" ? phase.account.lastUsedAt : null
-    ).toBeInstanceOf(Date);
+      phase.kind === "signedIn" ? phase.account.lastUsedAt.toISOString() : null
+    ).toBe("2026-10-01T17:00:01.000Z");
   });
 
   it("remembers several people, switches locally, and revokes a replaced token", async () => {

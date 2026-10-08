@@ -150,19 +150,27 @@ describe(getNeededTeamPositionsForPlan, () => {
   it("requests the plan's positions, needed positions, and roster", async () => {
     mocks.getServiceTypeTeamPositionsWithTeams.mockReturnValue(
       Effect.succeed({
-        data: [],
-        included: [],
+        data: [teamPosition("tp-1", "team-1", "Drums")],
+        included: [team("team-1", "Band")],
       })
     );
     mocks.getPlanNeededPositionsWithTeams.mockReturnValue(
       Effect.succeed({
-        data: [],
-        included: [],
+        data: [neededPosition("np-1", "team-1", "Drums", 2)],
+        included: [team("team-1", "Band")],
       })
     );
-    await Effect.runPromise(
+    const result = await Effect.runPromise(
       getNeededTeamPositionsForPlan("st-1", "plan-1", "series-1", dependencies)
     );
+
+    expect(result).toMatchObject([
+      {
+        teamId: "team-1",
+        teamName: "Band",
+        positions: [{ id: "tp-1", name: "Drums", neededCount: 2 }],
+      },
+    ]);
 
     expect(mocks.getServiceTypeTeamPositionsWithTeams).toHaveBeenCalledWith(
       "st-1"

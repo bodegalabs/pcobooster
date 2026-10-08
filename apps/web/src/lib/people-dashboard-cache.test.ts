@@ -200,14 +200,21 @@ describe("people dashboard cache", () => {
     writeCachedPeopleDashboardPerson("person-1", "2026-05", personDetail());
     window.localStorage.setItem("unrelated", "keep");
     window.localStorage.setItem("pcobooster:people-dashboard:v1:roster", "{}");
+    expect({
+      ...storedDashboardParts(),
+      person: readCachedPeopleDashboardPerson("person-1", "2026-05")?.data,
+    }).toStrictEqual({
+      roster: true,
+      activity: true,
+      person: personDetail(),
+    });
 
     clearCachedPeopleDashboards();
 
-    expect(readCachedPeopleDashboardRoster()).toBeUndefined();
-    expect(readCachedPeopleDashboardActivity(["person-1"])).toBeUndefined();
-    expect(
-      readCachedPeopleDashboardPerson("person-1", "2026-05")
-    ).toBeUndefined();
+    expect({
+      ...storedDashboardParts(),
+      person: readCachedPeopleDashboardPerson("person-1", "2026-05"),
+    }).toStrictEqual({ roster: false, activity: false, person: undefined });
     expect(window.localStorage.getItem("unrelated")).toBe("keep");
     expect(
       window.localStorage.getItem("pcobooster:people-dashboard:v1:roster")
@@ -232,6 +239,9 @@ describe("people dashboard cache", () => {
     writeCachedPeopleDashboardPerson("person-1", "2026-05", personDetail());
 
     expect(
+      readCachedPeopleDashboardPerson("person-1", "2026-05")?.data
+    ).toStrictEqual(personDetail());
+    expect(
       readCachedPeopleDashboardPerson("person-2", "2026-05")
     ).toBeUndefined();
     expect(
@@ -240,6 +250,13 @@ describe("people dashboard cache", () => {
   });
 
   it("ignores invalid person detail snapshots", () => {
+    window.localStorage.setItem(
+      "pcobooster:people-dashboard:v3:person:person-1:2026-05",
+      JSON.stringify({ savedAt: Date.now(), data: personDetail() })
+    );
+    expect(
+      readCachedPeopleDashboardPerson("person-1", "2026-05")?.data
+    ).toStrictEqual(personDetail());
     window.localStorage.setItem(
       "pcobooster:people-dashboard:v3:person:person-1:2026-05",
       JSON.stringify({
@@ -286,7 +303,7 @@ describe("people dashboard cache", () => {
     writeCachedPeopleDashboardPerson("person-1", "2026-05", personDetail());
     expect(
       readCachedPeopleDashboardPerson("person-1", "2026-05")
-    ).toBeDefined();
+    ).toStrictEqual(expect.objectContaining({ data: personDetail() }));
     dataset.presentationScope = "present-v1-seed-a";
     expect(
       readCachedPeopleDashboardPerson("person-1", "2026-05")
@@ -294,7 +311,7 @@ describe("people dashboard cache", () => {
     writeCachedPeopleDashboardPerson("person-1", "2026-05", personDetail());
     expect(
       readCachedPeopleDashboardPerson("person-1", "2026-05")
-    ).toBeDefined();
+    ).toStrictEqual(expect.objectContaining({ data: personDetail() }));
     dataset.presentationScope = "present-v1-seed-b";
     expect(
       readCachedPeopleDashboardPerson("person-1", "2026-05")
@@ -302,7 +319,7 @@ describe("people dashboard cache", () => {
     dataset.presentationScope = "live";
     expect(
       readCachedPeopleDashboardPerson("person-1", "2026-05")
-    ).toBeDefined();
+    ).toStrictEqual(expect.objectContaining({ data: personDetail() }));
     vi.unstubAllGlobals();
   });
 });

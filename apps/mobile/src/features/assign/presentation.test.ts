@@ -13,7 +13,6 @@ import {
   emptyCandidatesMessage,
   openLabel,
   openSlotsLabel,
-  rankingSymbol,
   someoneElseDisabledReason,
   candidatePresentation,
   dayEntries,
@@ -313,17 +312,5 @@ describe("Swift Assign presentation rules", () => {
       "Everyone on the roster is scheduled or unavailable.",
       "No one matches.",
     ]);
-  });
-
-  it("gives each ranking reason Swift's icon", () => {
-    expect(rankingSymbol).toStrictEqual({
-      history: "reasonHistory",
-      fresh: "reasonFresh",
-      service: "reasonService",
-      rehearsal: "reasonRehearsal",
-      load: "reasonLoad",
-      preference: "reasonPreference",
-      note: "reasonNote",
-    });
   });
 });

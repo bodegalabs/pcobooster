@@ -90,13 +90,18 @@ describe(installFatalSentinel, () => {
     expect(kinds).toStrictEqual(["unhandled-rejection"]);
   });
 
-  it("survives a rejection tracker that throws", () => {
-    expect(() =>
-      installFatalSentinel(null, {
-        enablePromiseRejectionTracker: () => {
-          throw new Error("unsupported");
-        },
-      })
-    ).not.toThrow();
+  it("survives a rejection tracker that throws and still records uncaught errors", () => {
+    const errorUtils = fakeErrorUtils(vi.fn<Handler>());
+    const sentinel = installFatalSentinel(errorUtils, {
+      enablePromiseRejectionTracker: () => {
+        throw new Error("unsupported");
+      },
+    });
+    const kinds: string[] = [];
+    sentinel.setRecorder((_error, kind) => {
+      kinds.push(kind);
+    });
+    errorUtils.report(new Error("boom"), true);
+    expect(kinds).toStrictEqual(["fatal"]);
   });
 });

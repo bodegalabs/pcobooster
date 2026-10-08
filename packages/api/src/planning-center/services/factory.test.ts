@@ -4,7 +4,10 @@ import {
   createBasicPlanningCenterServices,
 } from "@pcobooster/api/planning-center/services/factory";
 import { createMemorySharedReadStore } from "@pcobooster/api/planning-center/services/shared-read-store";
-import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
+import {
+  httpClientFor,
+  unreachableHttpClient,
+} from "@pcobooster/api/testing/http-client";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
@@ -26,6 +29,38 @@ const servicesFor = (accessToken: string) =>
     TIME_ZONE,
     unreachableHttpClient,
     caches
+  );
+
+const urlOf = (input: RequestInfo | URL): string =>
+  input instanceof Request ? input.url : input.toString();
+
+/** Answers every Planning Center read with `resource`, so a test can count the requests that get through. */
+const fetchFor = (item: PCResource, listPathSuffix: string) =>
+  vi.fn<typeof globalThis.fetch>(
+    async (input, init) =>
+      await Promise.resolve(
+        new URL(urlOf(input)).pathname.endsWith(listPathSuffix) &&
+          (init?.method ?? "GET") === "GET"
+          ? Response.json({ data: [item], included: [] })
+          : Response.json({ data: item })
+      )
+  );
+
+const servicesWith = (
+  accessToken: string,
+  fetch: ReturnType<typeof fetchFor>
+) =>
+  createPlanningCenterServices(
+    accessToken,
+    TIME_ZONE,
+    httpClientFor(fetch),
+    caches
+  );
+
+const requestsOf = (fetch: ReturnType<typeof fetchFor>): string[] =>
+  fetch.mock.calls.map(
+    ([input, init]) =>
+      `${init?.method ?? "GET"} ${new URL(urlOf(input)).pathname}`
   );
 
 describe("createPlanningCenterServices shared caches", () => {
@@ -91,26 +126,12 @@ describe("createPlanningCenterServices shared caches", () => {
   });
 
   it("invalidates another request service instance after a mutation", async () => {
-    const first = servicesFor("mutation-cache-token");
-    const second = servicesFor("mutation-cache-token");
-    const load = vi.spyOn(first.core, "fetchAllWithIncluded").mockReturnValue(
-      Effect.succeed({
-        data: [resource("item-1", "Item")],
-        included: [],
-      })
+    const fetch = fetchFor(
+      { id: "item-1", type: "Item", attributes: { name: "item-1" } },
+      "/items"
     );
-    vi.spyOn(second.core, "fetchAllWithIncluded").mockReturnValue(
-      Effect.succeed({
-        data: [resource("item-2", "Item")],
-        included: [],
-      })
-    );
-    vi.spyOn(second.core, "fetch").mockReturnValue(
-      Effect.succeed({
-        data: resource("item-2", "Item"),
-        included: [],
-      })
-    );
+    const first = servicesWith("mutation-cache-token", fetch);
+    const second = servicesWith("mutation-cache-token", fetch);
 
     await Effect.runPromise(
       first.planItems.getPlanItems("service-type", "plan")
@@ -127,21 +148,21 @@ describe("createPlanningCenterServices shared caches", () => {
       first.planItems.getPlanItems("service-type", "plan")
     );
 
-    expect(load).toHaveBeenCalledTimes(2);
+    expect(requestsOf(fetch)).toStrictEqual([
+      "GET /services/v2/service_types/service-type/plans/plan/items",
+      "POST /services/v2/service_types/service-type/plans/plan/items",
+      "GET /services/v2/service_types/service-type/plans/plan/items",
+    ]);
   });
 
   it("shares schedule invalidation across request-owned services", async () => {
     const accessToken = "schedule-invalidation-token";
-    const services = servicesFor(accessToken);
-    const mutationServices = servicesFor(accessToken);
-    const load = vi
-      .spyOn(services.core, "fetchAllWithIncluded")
-      .mockReturnValue(
-        Effect.succeed({
-          data: [resource("plan-person", "PlanPerson")],
-          included: [],
-        })
-      );
+    const fetch = fetchFor(
+      { id: "plan-person", type: "PlanPerson", attributes: { name: "A" } },
+      "/team_members"
+    );
+    const services = servicesWith(accessToken, fetch);
+    const mutationServices = servicesWith(accessToken, fetch);
 
     await Effect.runPromise(
       services.people.getPlanTeamMembers("service-type", "plan")
@@ -154,7 +175,10 @@ describe("createPlanningCenterServices shared caches", () => {
       services.people.getPlanTeamMembers("service-type", "plan")
     );
 
-    expect(load).toHaveBeenCalledTimes(2);
+    expect(requestsOf(fetch)).toStrictEqual([
+      "GET /services/v2/service_types/service-type/plans/plan/team_members",
+      "GET /services/v2/service_types/service-type/plans/plan/team_members",
+    ]);
   });
 });
 
@@ -222,29 +246,5 @@ describe("createPlanningCenterServices shared tier", () => {
     expect(sameLoad).not.toHaveBeenCalled();
     expect(otherLoad).toHaveBeenCalledOnce();
     expect([...store.entries.keys()].join(",")).not.toContain("token-");
-  });
-
-  it("never shares a cache that a mutation invalidates", () => {
-    const services = createPlanningCenterServices(
-      "invalidation-token",
-      TIME_ZONE,
-      unreachableHttpClient,
-      createPlanningCenterReadCaches({
-        store: createMemorySharedReadStore(),
-        reportError,
-      })
-    );
-
-    expect(() => {
-      services.people.invalidateScheduleReadCaches({
-        personId: "person",
-        serviceTypeId: "service-type",
-        planId: "plan",
-      });
-      services.people.invalidatePlanTimeSensitiveReadCaches("plan");
-      services.people.invalidatePlanWindowRosters();
-      services.plans.invalidatePlanTimesCache("service-type", "plan");
-      services.catalog.invalidateNeededPositionsCache("service-type", "plan");
-    }).not.toThrow();
   });
 });

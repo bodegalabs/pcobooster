@@ -11,7 +11,7 @@ import { describe, expect, it, vi } from "vitest";
 import libraryFixture from "../../harness/fixtures/songs.library.json";
 import { makeControlledFixture } from "../../harness/testing/controlled-fixture";
 import { chartTargets, hasChart, readChart } from "./chart";
-import { activeFirst, arrangementRows, songLoadFailure } from "./detail";
+import { arrangementRows, songLoadFailure } from "./detail";
 import { songLibraryListing, songLibrarySummary } from "./library";
 import {
   prefetchSong,
@@ -225,9 +225,10 @@ describe("songs partial and offline answers", () => {
         cache.getQueryData(options.queryKey)?.arrangements,
         chart.arrangements
       ).map((row) => [row.id, row.archived])
-    ).toStrictEqual(
-      activeFirst(chart.arrangements).map((row) => [row.id, row.archived])
-    );
+    ).toStrictEqual([
+      ["55041", false],
+      ["55042", false],
+    ]);
   });
 
   it("reads every fixture song's chart in every key and as lyrics", async () => {
@@ -239,14 +240,22 @@ describe("songs partial and offline answers", () => {
     );
     const arrangements = charts.flatMap((chart) => chart.arrangements);
     const charted = arrangements.filter(hasChart);
-    for (const arrangement of charted) {
-      for (const target of chartTargets(arrangement)) {
-        expect(readChart(arrangement, target).lines.length).toBeGreaterThan(0);
-      }
-    }
-    const empty = arrangements.length - charted.length;
-    expect(charted.length).toBeGreaterThan(0);
-    expect(empty).toBeGreaterThan(0);
+    const readings = charted.flatMap((arrangement) =>
+      chartTargets(arrangement).map(
+        (target) => readChart(arrangement, target).lines.length
+      )
+    );
+    expect({
+      arrangements: arrangements.length,
+      charted: charted.length,
+      readings: readings.length,
+      emptyReadings: readings.filter((lines) => lines === 0).length,
+    }).toStrictEqual({
+      arrangements: 36,
+      charted: 9,
+      readings: 24,
+      emptyReadings: 0,
+    });
   });
 });
 

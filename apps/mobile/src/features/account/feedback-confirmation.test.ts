@@ -20,10 +20,13 @@ describe(clearFeedbackConfirmation, () => {
 
   it("cancels the older confirmation when another feedback is sent", async () => {
     vi.useFakeTimers();
-    const clear = vi.fn<() => void>();
-    const cancel = clearFeedbackConfirmation(Date.now(), clear);
+    const clearOlder = vi.fn<() => void>();
+    const clearNewer = vi.fn<() => void>();
+    const cancel = clearFeedbackConfirmation(Date.now(), clearOlder);
     cancel();
+    clearFeedbackConfirmation(Date.now(), clearNewer);
     await vi.advanceTimersByTimeAsync(4000);
-    expect(clear).not.toHaveBeenCalled();
+    expect(clearOlder).not.toHaveBeenCalled();
+    expect(clearNewer).toHaveBeenCalledOnce();
   });
 });

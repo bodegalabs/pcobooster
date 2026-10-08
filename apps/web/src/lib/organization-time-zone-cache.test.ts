@@ -44,9 +44,18 @@ describe("organization time zone cache", () => {
     writeCachedOrganizationTimeZone("not-a-zone");
 
     expect(readCachedOrganizationTimeZone()).toBeUndefined();
+
+    writeCachedOrganizationTimeZone("America/Denver");
+
+    expect(readCachedOrganizationTimeZone()?.timeZone).toBe("America/Denver");
   });
 
   it("ignores invalid cache payloads", () => {
+    window.localStorage.setItem(
+      "pcobooster:organization-time-zone:v1",
+      JSON.stringify({ savedAt: Date.now(), timeZone: "America/Denver" })
+    );
+    expect(readCachedOrganizationTimeZone()?.timeZone).toBe("America/Denver");
     window.localStorage.setItem(
       "pcobooster:organization-time-zone:v1",
       JSON.stringify({ savedAt: Date.now(), timeZone: "not-a-zone" })
@@ -57,6 +66,9 @@ describe("organization time zone cache", () => {
 
   it("clears the cached time zone", () => {
     writeCachedOrganizationTimeZone("America/Los_Angeles");
+    expect(readCachedOrganizationTimeZone()?.timeZone).toBe(
+      "America/Los_Angeles"
+    );
 
     clearCachedOrganizationTimeZone();
 

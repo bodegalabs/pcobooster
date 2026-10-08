@@ -25,7 +25,7 @@ describe(updatePlanPersonTimes, () => {
         UpdatePlanPersonTimesDependencies["peopleService"]["invalidatePlanWindowRosters"]
       >();
 
-    await Effect.runPromise(
+    const result = await Effect.runPromise(
       updatePlanPersonTimes(
         {
           serviceTypeId: "service-type-1",
@@ -44,6 +44,18 @@ describe(updatePlanPersonTimes, () => {
       )
     );
 
+    expect(result).toStrictEqual({
+      id: "plan-person-1",
+      type: "PlanPerson",
+      attributes: {},
+    });
+    expect(update).toHaveBeenCalledWith({
+      serviceTypeId: "service-type-1",
+      planId: "plan-1",
+      personId: "person-1",
+      planPersonId: "plan-person-1",
+      planTimeIds: ["time-1"],
+    });
     expect(invalidateReads).toHaveBeenCalledWith("plan-1");
     expect(invalidateWindowRosters).toHaveBeenCalledOnce();
   });

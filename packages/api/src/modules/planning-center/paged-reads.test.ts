@@ -2072,8 +2072,8 @@ describe("plan ranges read whole", () => {
       listed,
       pages: pagesRead(server.sent, "/services/v2/service_types/st-1/plans"),
     }).toStrictEqual({
-      // Ten plans a day from April 1 (in Los Angeles, the first falls on March 31).
-      short: [short.data.length, true],
+      // Ten plans a day from April 1, 10:00 in Los Angeles: 96 land on April 1 to 10.
+      short: [96, true],
       long: [300, false],
       listed: Exit.fail(
         new PlanningCenterPaginationError({
@@ -2085,6 +2085,5 @@ describe("plan ranges read whole", () => {
       // One page covers April 1 to 10; the long range reads three, then cached pages.
       pages: [0, 100, 200],
     });
-    expect(short.data.length).toBeGreaterThan(90);
   });
 });

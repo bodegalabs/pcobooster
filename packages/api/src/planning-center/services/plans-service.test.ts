@@ -2,11 +2,12 @@ import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-erro
 import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import {
-  noContentResponse,
+  httpClientFor,
   unreachableHttpClient,
 } from "@pcobooster/api/testing/http-client";
 import { planningCenterBudgetFailures } from "@pcobooster/api/testing/planning-center-failures";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
+import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect, Exit } from "effect";
 import { describe, expect, it, vi } from "vitest";
@@ -20,6 +21,42 @@ const planResource = (id: string, sortDate: string): PCResource => ({
     sort_date: sortDate,
   },
 });
+
+const urlOf = (input: RequestInfo | URL): string =>
+  input instanceof Request ? input.url : input.toString();
+
+interface SentRequest {
+  readonly method: string;
+  readonly path: string;
+  readonly body: unknown;
+}
+
+/** A plans service over a fake Planning Center that answers each request with `answer`. */
+const serviceOver = (answer: JsonValue) => {
+  const sent: SentRequest[] = [];
+  const fetch: typeof globalThis.fetch = async (input, init) => {
+    await Promise.resolve();
+    sent.push({
+      method: init?.method ?? "GET",
+      path: new URL(urlOf(input)).pathname,
+      body:
+        init?.body instanceof Uint8Array
+          ? JSON.parse(new TextDecoder().decode(init.body))
+          : undefined,
+    });
+    return answer === null
+      ? new Response(null, { status: 204 })
+      : Response.json(answer);
+  };
+  const service = new PlanningCenterPlansService(
+    createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      httpClientFor(fetch)
+    ),
+    resolveTimeZone
+  );
+  return { service, sent };
+};
 
 describe("PlanningCenterPlansService.getPlansWithIncludedInDateRange", () => {
   it("caches range reads and returns mutation-safe copies", async () => {
@@ -159,22 +196,11 @@ describe("PlanningCenterPlansService plan times", () => {
   });
 
   it("patches plan times through the service-type plan-time endpoint", async () => {
-    const core = createBasicPlanningCenterClient(
-      testPlanningCenterToken,
-      unreachableHttpClient
-    );
-    const fetch = vi.spyOn(core, "fetch").mockReturnValue(
-      Effect.succeed({
-        data: {
-          id: "time-1",
-          type: "PlanTime",
-          attributes: { name: "Updated" },
-        },
-      })
-    );
-    const service = new PlanningCenterPlansService(core, resolveTimeZone);
+    const { service, sent } = serviceOver({
+      data: { id: "time-1", type: "PlanTime", attributes: { name: "Updated" } },
+    });
 
-    await Effect.runPromise(
+    const updated = await Effect.runPromise(
       service.updatePlanTime(
         "st-1",
         "plan-1",
@@ -186,10 +212,11 @@ describe("PlanningCenterPlansService plan times", () => {
       )
     );
 
-    expect(fetch).toHaveBeenCalledWith(
-      "/services/v2/service_types/st-1/plan_times/time-1",
-      expect.objectContaining({
+    expect(updated.attributes.name).toBe("Updated");
+    expect(sent).toStrictEqual([
+      {
         method: "PATCH",
+        path: "/services/v2/service_types/st-1/plan_times/time-1",
         body: {
           data: {
             type: "PlanTime",
@@ -204,27 +231,20 @@ describe("PlanningCenterPlansService plan times", () => {
             },
           },
         },
-      })
-    );
+      },
+    ]);
   });
 
   it("creates plan times through the plan-scoped endpoint", async () => {
-    const core = createBasicPlanningCenterClient(
-      testPlanningCenterToken,
-      unreachableHttpClient
-    );
-    const fetch = vi.spyOn(core, "fetch").mockReturnValue(
-      Effect.succeed({
-        data: {
-          id: "time-new",
-          type: "PlanTime",
-          attributes: { name: "New service" },
-        },
-      })
-    );
-    const service = new PlanningCenterPlansService(core, resolveTimeZone);
+    const { service, sent } = serviceOver({
+      data: {
+        id: "time-new",
+        type: "PlanTime",
+        attributes: { name: "New service" },
+      },
+    });
 
-    await Effect.runPromise(
+    const created = await Effect.runPromise(
       service.createPlanTime(
         "st-1",
         "plan-1",
@@ -236,10 +256,11 @@ describe("PlanningCenterPlansService plan times", () => {
       )
     );
 
-    expect(fetch).toHaveBeenCalledWith(
-      "/services/v2/service_types/st-1/plans/plan-1/plan_times",
-      expect.objectContaining({
+    expect(created.id).toBe("time-new");
+    expect(sent).toStrictEqual([
+      {
         method: "POST",
+        path: "/services/v2/service_types/st-1/plans/plan-1/plan_times",
         body: {
           data: {
             type: "PlanTime",
@@ -254,28 +275,22 @@ describe("PlanningCenterPlansService plan times", () => {
             },
           },
         },
-      })
-    );
+      },
+    ]);
   });
 
   it("deletes plan times through the service-type plan-time endpoint", async () => {
-    const core = createBasicPlanningCenterClient(
-      testPlanningCenterToken,
-      unreachableHttpClient
-    );
-    const request = vi
-      .spyOn(core, "request")
-      .mockReturnValue(Effect.succeed(noContentResponse()));
-    const service = new PlanningCenterPlansService(core, resolveTimeZone);
+    const { service, sent } = serviceOver(null);
 
     await Effect.runPromise(service.deletePlanTime("st-1", "plan-1", "time-1"));
 
-    expect(request).toHaveBeenCalledWith(
-      "/services/v2/service_types/st-1/plan_times/time-1",
+    expect(sent).toStrictEqual([
       {
         method: "DELETE",
-      }
-    );
+        path: "/services/v2/service_types/st-1/plan_times/time-1",
+        body: undefined,
+      },
+    ]);
   });
 
   it("treats missing plan times as already deleted", async () => {

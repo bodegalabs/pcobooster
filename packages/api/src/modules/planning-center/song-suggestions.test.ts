@@ -47,10 +47,14 @@ describe(suggestFromCatalog, () => {
         song("hidden", "2026-09-20T17:00:00Z", true),
         song("never", null),
         song("next-week", "2026-10-04T17:00:00Z"),
+        song("last-week", "2026-09-20T17:00:00Z"),
       ],
       now
     );
 
-    expect(suggestions).toStrictEqual({ recentlyPlayed: [], resting: [] });
+    expect(suggestions.recentlyPlayed.map((entry) => entry.id)).toStrictEqual([
+      "last-week",
+    ]);
+    expect(suggestions.resting).toStrictEqual([]);
   });
 });

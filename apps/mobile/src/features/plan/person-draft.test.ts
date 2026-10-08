@@ -38,6 +38,10 @@ describe("person sheet commit", () => {
     draft.discard();
     await draft.commit({ setStatus });
     expect(setStatus).not.toHaveBeenCalled();
+    const changed = new PersonDraft(assignment);
+    changed.status = "declined";
+    await changed.commit({ setStatus });
+    expect(setStatus).toHaveBeenCalledExactlyOnceWith(assignment, "declined");
   });
 
   it("allows a changed draft after an unchanged lifecycle cleanup", async () => {

@@ -287,7 +287,10 @@ describe("people.planWindowHistory (a paginated POST read)", () => {
       })
     );
 
-    await expect(answer).rejects.toBeInstanceOf(Unauthenticated);
+    const failure = await rejection(answer);
+
+    expect(failure).toBeInstanceOf(Unauthenticated);
+    expect(failureStatus(failure)).toBe(401);
   });
 
   it("answers 429 RateLimited with Retry-After when Planning Center limits the caller", async () => {

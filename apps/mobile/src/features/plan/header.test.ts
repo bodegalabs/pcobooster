@@ -45,11 +45,20 @@ describe("plan header", () => {
       subtitle: "Sun, Oct 4 · Sunday Gathering",
     });
     expect(
-      planHeader({ ...plan, title: "" }, "Sunday Gathering", "UTC", new Date())
-        .title
+      planHeader(
+        { ...plan, title: "" },
+        "Sunday Gathering",
+        "UTC",
+        new Date("2026-10-01T17:00:00Z")
+      ).title
     ).toBe("Roots");
     expect(
-      planHeader(null, "Sunday Gathering", "UTC", new Date())
+      planHeader(
+        null,
+        "Sunday Gathering",
+        "UTC",
+        new Date("2026-10-01T17:00:00Z")
+      )
     ).toStrictEqual({
       title: "Sunday Gathering",
       subtitle: "",

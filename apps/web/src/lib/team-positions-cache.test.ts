@@ -99,6 +99,9 @@ describe("team positions cache", () => {
     );
 
     expect(
+      readCachedTeamPositions("st-1", "plan-1", "series-1")?.data
+    ).toStrictEqual(teamPositionGroups());
+    expect(
       readCachedTeamPositions("st-1", "plan-2", "series-1")
     ).toBeUndefined();
     expect(readCachedTeamPositions("st-1", "plan-1", null)).toBeUndefined();
@@ -108,6 +111,13 @@ describe("team positions cache", () => {
   });
 
   it("ignores invalid cache payloads", () => {
+    window.localStorage.setItem(
+      "pcobooster:team-positions:v2:st-1:plan-1:series-1",
+      JSON.stringify({ savedAt: Date.now(), data: teamPositionGroups() })
+    );
+    expect(
+      readCachedTeamPositions("st-1", "plan-1", "series-1")?.data
+    ).toStrictEqual(teamPositionGroups());
     window.localStorage.setItem(
       "pcobooster:team-positions:v2:st-1:plan-1:series-1",
       JSON.stringify({ savedAt: Date.now(), data: [{ teamId: "team-1" }] })
@@ -127,6 +137,9 @@ describe("team positions cache", () => {
     );
     writeCachedTeamPositions("st-1", "plan-2", null, teamPositionGroups());
     window.localStorage.setItem("unrelated", "keep");
+    expect(readCachedTeamPositions("st-1", "plan-2", null)?.data).toStrictEqual(
+      teamPositionGroups()
+    );
 
     clearCachedTeamPositions();
 
@@ -141,15 +154,21 @@ describe("team positions cache", () => {
     const dataset = { presentationScope: "live" };
     vi.stubGlobal("document", { documentElement: { dataset } });
     writeCachedTeamPositions("st", "plan", null, teamPositionGroups());
-    expect(readCachedTeamPositions("st", "plan", null)).toBeDefined();
+    expect(readCachedTeamPositions("st", "plan", null)?.data).toStrictEqual(
+      teamPositionGroups()
+    );
     dataset.presentationScope = "present-v1-seed-a";
     expect(readCachedTeamPositions("st", "plan", null)).toBeUndefined();
     writeCachedTeamPositions("st", "plan", null, teamPositionGroups());
-    expect(readCachedTeamPositions("st", "plan", null)).toBeDefined();
+    expect(readCachedTeamPositions("st", "plan", null)?.data).toStrictEqual(
+      teamPositionGroups()
+    );
     dataset.presentationScope = "present-v1-seed-b";
     expect(readCachedTeamPositions("st", "plan", null)).toBeUndefined();
     dataset.presentationScope = "live";
-    expect(readCachedTeamPositions("st", "plan", null)).toBeDefined();
+    expect(readCachedTeamPositions("st", "plan", null)?.data).toStrictEqual(
+      teamPositionGroups()
+    );
     vi.unstubAllGlobals();
   });
 });

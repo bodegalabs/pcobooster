@@ -105,11 +105,21 @@ describe("plan items cache", () => {
   it("does not read a different plan snapshot", () => {
     writeCachedPlanItems("st-1", "plan-1", planItems());
 
+    expect(
+      readCachedPlanItems("st-1", "plan-1")?.data.map(({ id }) => id)
+    ).toStrictEqual(["item-1", "item-2"]);
     expect(readCachedPlanItems("st-1", "plan-2")).toBeUndefined();
     expect(readCachedPlanItems("st-2", "plan-1")).toBeUndefined();
   });
 
   it("ignores invalid cache payloads", () => {
+    window.localStorage.setItem(
+      "pcobooster:plan-items:v1:st-1:plan-1",
+      JSON.stringify({ savedAt: Date.now(), data: planItems() })
+    );
+    expect(
+      readCachedPlanItems("st-1", "plan-1")?.data.map(({ id }) => id)
+    ).toStrictEqual(["item-1", "item-2"]);
     window.localStorage.setItem(
       "pcobooster:plan-items:v1:st-1:plan-1",
       JSON.stringify({ savedAt: Date.now(), data: [{ id: "broken" }] })
@@ -122,6 +132,7 @@ describe("plan items cache", () => {
     writeCachedPlanItems("st-1", "plan-1", planItems());
     writeCachedPlanItems("st-1", "plan-2", planItems());
     window.localStorage.setItem("unrelated", "keep");
+    expect(readCachedPlanItems("st-1", "plan-2")?.data).toHaveLength(2);
 
     clearCachedPlanItems();
 
