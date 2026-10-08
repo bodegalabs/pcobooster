@@ -30,6 +30,10 @@ export default defineConfig({
       name: "local",
       specifier: "./lint/oxlint-plugin-local.mjs",
     },
+    {
+      name: "test-quality",
+      specifier: "./lint/oxlint-plugin-test-quality.mjs",
+    },
   ],
   rules: {
     // Flush list rows keep hover backgrounds on the list's rounded border.
@@ -52,6 +56,19 @@ export default defineConfig({
     "local/prefer-shared-controls": "error",
   },
   overrides: [
+    {
+      // A test must be able to fail when the code under test does nothing (AGENTS.md "Testing
+      // Guidelines"); vitest/expect-expect and anti-slop/no-module-mocking cover the rest.
+      files: ["**/*.test.{ts,tsx}"],
+      rules: {
+        // At least one assertion pins a produced value, not only absence, presence, or type.
+        "test-quality/no-weak-only-assertions": "error",
+        // Expected values are literals, not computed with the module under test.
+        "test-quality/no-self-referential-expected": "error",
+        // The test runs code instead of only reading constants or its own fixtures.
+        "test-quality/require-subject-call": "error",
+      },
+    },
     {
       // The Expo app (React Native). Each rule here assumes the DOM or CSS classes.
       files: ["apps/mobile/**"],

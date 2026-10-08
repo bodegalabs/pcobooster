@@ -330,10 +330,7 @@ describe("presentation mode", () => {
     expect([
       first.candidates[0].fullName,
       second.candidates[0].fullName,
-    ]).toStrictEqual([
-      presentationIdentity("org-1", "person-1", "test-seed").fullName,
-      presentationIdentity("org-2", "person-1", "test-seed").fullName,
-    ]);
+    ]).toStrictEqual(["Aaliyah Kelly", "Lily Phillips"]);
   });
 
   it("masks every person view consistently without changing source data or scheduling fields", async () => {

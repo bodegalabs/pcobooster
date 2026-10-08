@@ -246,5 +246,10 @@ describe(makePostHogApi, () => {
     await expect(
       withApi(notFound, (api) => api.getInsight(projectId, 1))
     ).resolves.toBeUndefined();
+    await expect(
+      withApi(livePostHog().handle, (api) =>
+        api.getInsight(projectId, adoptedId(firstInsight().insightId))
+      )
+    ).resolves.toMatchObject({ name: firstInsight().name });
   });
 });

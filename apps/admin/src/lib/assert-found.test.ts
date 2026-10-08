@@ -14,5 +14,6 @@ describe(assertFound, () => {
 
   it("accepts present values, including empty strings", () => {
     expect(attempt("")).not.toThrow();
+    expect(attempt(null)).toThrow(expect.toSatisfy(isNotFound));
   });
 });
