@@ -54,18 +54,6 @@
           }
         ]
       }
-    },
-    {
-      "type": "merge_queue",
-      "parameters": {
-        "merge_method": "SQUASH",
-        "max_entries_to_build": 1,
-        "min_entries_to_merge": 1,
-        "max_entries_to_merge": 1,
-        "min_entries_to_merge_wait_minutes": 0,
-        "grouping_strategy": "ALLGREEN",
-        "check_response_timeout_minutes": 60
-      }
     }
   ],
   "node_id": "RRS_lACqUmVwb3NpdG9yec5DD9MkzgDPW44",

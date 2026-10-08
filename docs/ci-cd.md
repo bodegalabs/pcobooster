@@ -1,6 +1,6 @@
 # CI/CD
 
-The Cloudflare workflow separates secretless validation from deployment: labeled pull requests deploy previews, and merges to `main` deploy staging and then production. `ci` runs dependency review, strict linting, typechecks, and tests. `cloudflare-build` runs the product's and the admin app's Vite Worker builds (with the prerendered marketing site staged into the product) without credentials. Both run for pull requests and merge queue commits; deployment jobs never run for `merge_group`.
+The Cloudflare workflow separates secretless validation from deployment: labeled pull requests deploy previews, and merges to `main` deploy staging and then production. `ci` runs dependency review, strict linting, typechecks, and tests. `cloudflare-build` runs the product's and the admin app's Vite Worker builds (with the prerendered marketing site staged into the product) without credentials. Both run for pull requests and again on the merged commit on `main`, where they gate the staging and production deploys.
 
 Run the local gates before opening a pull request:
 
@@ -54,7 +54,7 @@ Cloudflare Access protects it, and every pull request preview the same way. `alc
 
 ## Production
 
-Merge equals deploy. A push to `main` deploys production after `ci`, `cloudflare-build`, and the `staging` deploy pass. So does a manual CI run on `main` with `deploy_production`. `cloudflare-production` accepts only the `main` branch and has no approval gate. When newer `main` has superseded the revision, the job ends green without reading production secrets or deploying; the newer revision's own run deploys it. Staging and labeled previews skip superseded (or closed) revisions the same way. Post-deploy verification then fails the run unless pcobooster.com serves the merged commit. The merge queue and its required checks are the only gate before production, so keep them strict.
+Merge equals deploy. A push to `main` deploys production after `ci`, `cloudflare-build`, and the `staging` deploy pass. So does a manual CI run on `main` with `deploy_production`. `cloudflare-production` accepts only the `main` branch and has no approval gate. When newer `main` has superseded the revision, the job ends green without reading production secrets or deploying; the newer revision's own run deploys it. Staging and labeled previews skip superseded (or closed) revisions the same way. Post-deploy verification then fails the run unless pcobooster.com serves the merged commit. The required checks on the pull request, then the same checks on the merged commit, are the only gates before production, so keep them strict.
 
 After verification, the job marks the release on PostHog charts. It skips with a warning when `POSTHOG_ANNOTATION_API_KEY` is absent; see [analytics](analytics.md#deploy-annotations). PostHog dashboards are applied separately with `bun run posthog:deploy`, never by CI.
 
@@ -211,14 +211,14 @@ The production token has the same account-level deployment permissions, plus Zon
 `alchemy.ci.ts` (stack `pcobooster-ci`, stage `ci`, state in the shared `Cloudflare.state()` store) owns the CI/deploy control plane. Change these settings there, not in the GitHub, Cloudflare, or Infisical dashboards:
 
 - Repository merge settings on `bodegalabs/pcobooster`: squash on, merge commits off, auto-merge on, delete branches on merge. `allowRebaseMerge` is deliberately unmanaged; the ruleset alone keeps `main` squash-only.
-- The `main` ruleset "Protect main via pull requests" (`scripts/infra/main-ruleset.ts`): required checks `ci` and `cloudflare-build` from GitHub Actions, the squash merge queue, squash-only merges, linear history, no deletion or force pushes, and no bypass actors. `main-ruleset.test.ts` compares it with a snapshot of the live ruleset.
+- The `main` ruleset "Protect main via pull requests" (`scripts/infra/main-ruleset.ts`): required checks `ci` and `cloudflare-build` from GitHub Actions, squash-only merges, linear history, no deletion or force pushes, and no bypass actors. `main-ruleset.test.ts` compares it with a snapshot of the live ruleset.
 - The `cloudflare-preview` (any branch, no reviewers), `cloudflare-preview-cleanup` (`main` only), `cloudflare-staging` (`main` only, no reviewers), `cloudflare-production` (`main` only, no reviewers), and `testflight` (`main` only, no reviewers) environments and their variables. The repository is public, so GitHub accepts environment protection rules on the Free plan.
 - The preview and production Cloudflare deploy tokens, as account-owned API tokens.
 - `CLOUDFLARE_API_TOKEN` in each Infisical deployment project (preview `staging`, production `prod`, path `/`), written from the token Alchemy just created.
 - Staging's Access service token and its three secrets in the preview project (see [Staging](#staging)).
 - Both Infisical identities' GitHub OIDC bindings.
 
-Alchemy has no Infisical provider and its GitHub ruleset cannot express merge queues, so `scripts/infra/` adds small providers for the Infisical secret, the OIDC binding, and the ruleset. It also gives Alchemy's GitHub Repository, Environment, and Variable providers a lookup by name. Everything that already existed is adopted: the plan shows it as `adopted`, and the first deploy writes only differences. The ruleset is found by name and adopted explicitly (`adopt(true)`); it is updated in place, never recreated. All adopted GitHub and Infisical objects are retained if their declaration is removed.
+Alchemy has no Infisical provider and its GitHub ruleset cannot express allowed merge methods, so `scripts/infra/` adds small providers for the Infisical secret, the OIDC binding, and the ruleset. It also gives Alchemy's GitHub Repository, Environment, and Variable providers a lookup by name. Everything that already existed is adopted: the plan shows it as `adopted`, and the first deploy writes only differences. The ruleset is found by name and adopted explicitly (`adopt(true)`); it is updated in place, never recreated. All adopted GitHub and Infisical objects are retained if their declaration is removed.
 
 ### Credentials
 
@@ -273,6 +273,6 @@ The one-time refresh was applied on October 8 after independent review and idle 
 
 ## Merge gates
 
-The `main` ruleset requires `ci` and `cloudflare-build` and is managed by `alchemy.ci.ts`. Preserve the merge queue, squash-only merging, and absence of bypass actors. Never remove a gate merely to bypass a red or missing check.
+The `main` ruleset requires `ci` and `cloudflare-build` and is managed by `alchemy.ci.ts`. Preserve squash-only merging and the absence of bypass actors. There is deliberately no merge queue: merges rarely overlap, and `ci` and `cloudflare-build` rerun on the merged commit before staging, so a conflict between two pull requests fails there instead of deploying. Never remove a gate merely to bypass a red or missing check.
 
 Cloudflare/D1 became the live production system on September 23, 2026; see the [cutover record](cloudflare-cutover.md). Vercel temporarily forwards cached DNS traffic to Cloudflare, and Neon is retained as the source snapshot. Follow [database migration and rollback](database.md): after D1 accepts new writes, routing back to the old PostgreSQL snapshot alone is not a safe rollback.
