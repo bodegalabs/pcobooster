@@ -54,6 +54,7 @@ describe("people resource schemas", () => {
     });
 
     expect(parsed.attributes.decline_reason).toBeUndefined();
+    expect(parsed.attributes.team_name).toBe("Band");
   });
 
   it("accepts PlanPerson relationship data that Planning Center omits or nulls", () => {

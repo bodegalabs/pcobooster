@@ -39,6 +39,7 @@ const fixtureClient = () =>
   });
 
 describe("the copied fixtures", () => {
+  // oxlint-disable-next-line test-quality/no-weak-only-assertions -- schema conformance of fixture data: decoding must not throw
   it.each([...fixtures])(
     "%s decodes as the procedure's success",
     (tag, file) => {

@@ -47,6 +47,9 @@ describe("plan-only positions", () => {
   it("rejects empty names and unknown teams", () => {
     expect(insertCustomPosition(groups, "t", " ")).toBeUndefined();
     expect(insertCustomPosition(groups, "missing", "Bass")).toBeUndefined();
+    expect(insertCustomPosition(groups, "t", "Bass")?.position.name).toBe(
+      "Bass"
+    );
   });
 
   it("reuses a same-named position without replacing it", () => {

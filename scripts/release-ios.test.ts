@@ -125,6 +125,7 @@ describe("release-ios.sh before it builds", () => {
     expect(result.stderr).toContain("BLOCKED: uploads belong");
   });
 
+  // oxlint-disable-next-line test-quality/require-subject-call -- source guard on the workflow file text
   it("the sole workflow is manually dispatched on main and serialized app-wide", () => {
     for (const expected of [
       "workflow_dispatch:",
@@ -140,6 +141,7 @@ describe("release-ios.sh before it builds", () => {
     expect(workflow).not.toContain("environment: testflight");
   });
 
+  // oxlint-disable-next-line test-quality/require-subject-call, test-quality/no-weak-only-assertions -- source guard on the workflow file text
   it("grants no OIDC or write access until the reviewed enablement change", () => {
     expect(workflow).not.toMatch(/^\s+(?:id-token|contents): write/mu);
   });

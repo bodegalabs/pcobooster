@@ -447,7 +447,7 @@ describe("time edit sessions", () => {
   });
 
   it("does not send a later pending assignment in an earlier scalar save", async () => {
-    const { editing, groups, time, settle, client } = await setup(
+    const { editing, groups, time, settle, client, savedName } = await setup(
       undefined,
       true
     );
@@ -492,6 +492,7 @@ describe("time edit sessions", () => {
         })()
       ).assignedPlanPersonIds
     ).not.toContain(person.planPersonId);
+    await expect(savedName()).resolves.toBe("Scalar first");
   });
 
   it("rebases a queued roster status write over a refused time assignment", async () => {

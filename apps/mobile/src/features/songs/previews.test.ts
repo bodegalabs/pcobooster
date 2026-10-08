@@ -198,9 +198,11 @@ describe("the chart PDF read", () => {
       ...previewReads.chartPdf(context, files, input),
       retry: false,
     };
-    await expect(new QueryClient().query(options)).rejects.toBeInstanceOf(
-      NotFound
-    );
+    await expect(new QueryClient().query(options)).rejects.toMatchObject({
+      _tag: "NotFound",
+      message: "No chart for this key.",
+      resource: "chart",
+    });
   });
 
   it("never lands in the persisted cache, so no file path outlives the session", async () => {

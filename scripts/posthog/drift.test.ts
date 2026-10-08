@@ -130,6 +130,7 @@ describe(tileOrder, () => {
 
   it("returns undefined when declared insights are already in order", () => {
     expect(tileOrder(tiles, [1, 2])).toBeUndefined();
+    expect(tileOrder(tiles, [2, 1])).toStrictEqual([20, 10, 30]);
   });
 
   it("puts declared insights first and keeps other tiles after them", () => {
@@ -138,5 +139,6 @@ describe(tileOrder, () => {
 
   it("ignores declared insights that are not on the dashboard yet", () => {
     expect(tileOrder(tiles, [3, 1, 2])).toBeUndefined();
+    expect(tileOrder(tiles, [3, 2, 1])).toStrictEqual([20, 10, 30]);
   });
 });

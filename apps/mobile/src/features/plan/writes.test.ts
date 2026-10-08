@@ -1834,6 +1834,7 @@ describe("Assign and Times share one roster journal", () => {
         planReads.groups(context, ids).queryKey
       )?.[0]
       .positions[0].filledPeople?.find((entry) => entry.id === person.id);
+    expect(row?.rawStatus).toBe("C");
     expect(row?.assignedTimeIds).not.toContain(time.id);
     expect(row?.serviceTimeIds).not.toContain(time.id);
     const targetClientNative18 = client;

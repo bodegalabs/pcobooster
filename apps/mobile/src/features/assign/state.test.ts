@@ -13,7 +13,13 @@ describe("Assign selection state", () => {
     };
     expect(
       assignViewReducer(state, { kind: "position", selection: "b" })
-    ).toStrictEqual(initialViewState("b"));
+    ).toStrictEqual({
+      selection: "b",
+      filter: "",
+      selected: null,
+      errors: new Map(),
+      offersNext: false,
+    });
   });
 
   it("ignores writes finishing after a different position opened", () => {

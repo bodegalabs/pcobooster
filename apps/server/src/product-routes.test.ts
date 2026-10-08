@@ -14,7 +14,6 @@ import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { makeProductClient } from "@pcobooster/client/product-client";
 import { ClientOutdated } from "@pcobooster/contracts/faults/client-outdated";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
-import { RequestRejected } from "@pcobooster/contracts/faults/request-rejected";
 import { SERVER_VERSION_HEADER } from "@pcobooster/contracts/http/client-version";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
@@ -368,7 +367,7 @@ describe("requests that match no endpoint", () => {
           payload: { status: "C" },
         })
       )
-    ).rejects.toBeInstanceOf(RequestRejected);
+    ).rejects.toMatchObject({ _tag: "RequestRejected" });
   });
 
   it("answers an unknown /api/v1 path RequestRejected (unknown-endpoint), never NotFound", async () => {
