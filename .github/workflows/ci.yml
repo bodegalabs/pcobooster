@@ -34,6 +34,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Pull requests diff against their base to choose the affected packages.
+          fetch-depth: ${{ github.event_name == 'pull_request' && 0 || 1 }}
 
       - name: Review dependency changes
         if: github.event_name == 'pull_request'
@@ -55,11 +57,20 @@ jobs:
       - name: Lint
         run: bunx turbo run //#lint:ci
 
-      - name: Typecheck
-        run: bun run typecheck
-
-      - name: Test
-        run: bun run test
+      # Pull requests check the packages their diff touches plus every dependent. A change to shared
+      # root config (dependencies, Turborepo, TypeScript, or Vitest settings) runs everything, which
+      # `--affected` alone would miss. Pushes to main always run the full suite before staging.
+      - name: Typecheck and test
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          scope=()
+          if [ -n "$BASE" ] && ! git diff --name-only "$BASE...HEAD" |
+            grep -qE '^(package\.json|bun\.lock|bunfig\.toml|turbo\.json|tsconfig\.json|vitest\.config\.ts|\.node-version|patches/)'; then
+            scope=(--affected)
+            export TURBO_SCM_BASE="$BASE"
+          fi
+          bunx turbo run typecheck test //#typecheck:root //#test:root "${scope[@]}"
 
   cloudflare-build:
     if: github.event.action != 'labeled'
