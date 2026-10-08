@@ -4,7 +4,6 @@ on:
   pull_request:
     # `labeled` lets adding the `preview` label request a deploy for the current head.
     types: [opened, synchronize, reopened, labeled]
-  merge_group:
   push:
     branches: [main]
   workflow_dispatch:

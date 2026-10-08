@@ -73,7 +73,7 @@ To roll back before step 6, set the nameservers back to `ns1.vercel-dns.com` and
 
 ## Remaining external verification
 
-GitHub OIDC deployment and cleanup still need an approved workflow run. The protected environments require Jake's approval for every deployment. Replace the legacy required Vercel check only after the migration PR's `cloudflare-build` check succeeds; preserve the merge queue and no-bypass policy.
+GitHub OIDC deployment and cleanup still need an approved workflow run. The protected environments require Jake's approval for every deployment. Replace the legacy required Vercel check only after the migration PR's `cloudflare-build` check succeeds; preserve the no-bypass policy.
 
 Neon, Vercel projects, and legacy secrets remain retained. Their deletion is a separate decision.
 

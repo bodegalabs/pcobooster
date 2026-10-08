@@ -31,12 +31,14 @@ describe(rulesetMatches, () => {
     expect(rulesetMatches(mainRuleset, observedLive)).toBeTruthy();
   });
 
-  it("flags a missing merge queue", () => {
+  it("flags a missing required status check rule", () => {
     expect(
       rulesetMatches(
         mainRuleset,
         withRules(
-          observedLive.rules.filter((rule) => rule.type !== "merge_queue")
+          observedLive.rules.filter(
+            (rule) => rule.type !== "required_status_checks"
+          )
         )
       )
     ).toBeFalsy();
@@ -147,7 +149,7 @@ describe(convergeRuleset, () => {
     const drifted = {
       ...liveRulesetFixture,
       rules: liveRulesetFixture.rules.filter(
-        (rule) => rule.type !== "merge_queue"
+        (rule) => rule.type !== "required_status_checks"
       ),
     };
     const { requests } = await run([
