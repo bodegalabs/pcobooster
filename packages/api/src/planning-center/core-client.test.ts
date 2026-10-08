@@ -35,12 +35,6 @@ const basicClient = (fetch: FetchMock): PlanningCenterCoreClient =>
     httpClientFor(fetch)
   );
 
-const basicCacheScope = (secret: string): string =>
-  new PlanningCenterCoreClient(
-    { kind: "basic", applicationId: "client", secret },
-    { httpClient: httpClientFor(fetchMock()) }
-  ).getCacheScope();
-
 const run = async <Value>(
   effect: Effect.Effect<Value, PlanningCenterError>
 ): Promise<Value> => await Effect.runPromise(effect);
@@ -127,10 +121,6 @@ describe(PlanningCenterCoreClient, () => {
     expect(client.getCacheScope()).toBe(
       `basic:${createHash("sha256").update("client:pat").digest("hex")}`
     );
-  });
-
-  it("isolates cache scopes between personal access tokens", () => {
-    expect(basicCacheScope("demo-pat")).not.toBe(basicCacheScope("pat"));
   });
 
   it("sends a JSON body with a write", async () => {

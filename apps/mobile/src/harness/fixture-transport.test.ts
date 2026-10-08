@@ -191,7 +191,7 @@ describe("fixture HTTP parity", () => {
         payload: { title: "Changed" },
       })
     );
-    expect(updated.id).toBeDefined();
+    expect(updated).toMatchObject({ id: item.id, title: "Changed" });
     const removed = await client.run((api) =>
       api.schedule.remove({
         params: { planPersonId: "member-1" },

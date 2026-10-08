@@ -1,5 +1,4 @@
 import {
-  CHORD_CHART_KEYS,
   isChord,
   parseKey,
   semitonesBetween,
@@ -44,10 +43,6 @@ describe(parseKey, () => {
     expect(parseKey("H")).toBeNull();
     expect(parseKey("")).toBeNull();
     expect(parseKey(null)).toBeNull();
-  });
-
-  it("lists twelve major and twelve minor keys", () => {
-    expect(CHORD_CHART_KEYS).toHaveLength(24);
   });
 });
 

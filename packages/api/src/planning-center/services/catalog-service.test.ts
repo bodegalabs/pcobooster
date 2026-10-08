@@ -1,10 +1,16 @@
 import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
-import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
+import {
+  httpClientFor,
+  unreachableHttpClient,
+} from "@pcobooster/api/testing/http-client";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
+
+const urlOf = (input: RequestInfo | URL): string =>
+  input instanceof Request ? input.url : input.toString();
 
 const createCoreClientMock = () => {
   const core = createBasicPlanningCenterClient(
@@ -14,13 +20,11 @@ const createCoreClientMock = () => {
   const fetchMock = vi.spyOn(core, "fetch");
   const fetchCollectionMock = vi.spyOn(core, "fetchCollection");
   const fetchAllMock = vi.spyOn(core, "fetchAll");
-  const fetchAllWithIncludedMock = vi.spyOn(core, "fetchAllWithIncluded");
   return {
     core,
     fetchMock,
     fetchCollectionMock,
     fetchAllMock,
-    fetchAllWithIncludedMock,
   };
 };
 
@@ -76,27 +80,43 @@ describe("PlanningCenterCatalogService read cache", () => {
   });
 
   it("caches plan needed positions through the shared cache", async () => {
-    const { core, fetchAllWithIncludedMock } = createCoreClientMock();
-    fetchAllWithIncludedMock.mockReturnValue(
-      Effect.succeed({
-        data: [resource("needed-1", "NeededPosition")],
-        included: [resource("team-1", "Team")],
-      })
+    const fetch = vi.fn<typeof globalThis.fetch>(
+      async () =>
+        await Promise.resolve(
+          Response.json({
+            data: [
+              {
+                id: "needed-1",
+                type: "NeededPosition",
+                attributes: { name: "Acoustic Guitar" },
+              },
+            ],
+            included: [
+              { id: "team-1", type: "Team", attributes: { name: "Band" } },
+            ],
+          })
+        )
     );
-    const service = new PlanningCenterCatalogService(core);
+    const service = new PlanningCenterCatalogService(
+      createBasicPlanningCenterClient(
+        testPlanningCenterToken,
+        httpClientFor(fetch)
+      )
+    );
 
-    await Effect.runPromise(
+    const first = await Effect.runPromise(
       service.getServiceTypePlanNeededPositionsWithTeams("st-1", "plan-1")
     );
-    await Effect.runPromise(
+    const second = await Effect.runPromise(
       service.getServiceTypePlanNeededPositionsWithTeams("st-1", "plan-1")
     );
 
-    expect(fetchAllWithIncludedMock).toHaveBeenCalledOnce();
-    expect(fetchAllWithIncludedMock.mock.calls[0]?.slice(0, 3)).toStrictEqual([
-      "/services/v2/service_types/st-1/plans/plan-1/needed_positions",
-      { include: "team" },
-      5,
+    expect(second).toStrictEqual(first);
+    expect(second.data.map((position) => position.id)).toStrictEqual([
+      "needed-1",
+    ]);
+    expect(fetch.mock.calls.map(([input]) => urlOf(input))).toStrictEqual([
+      "https://api.planningcenteronline.com/services/v2/service_types/st-1/plans/plan-1/needed_positions?include=team&per_page=100",
     ]);
   });
 });

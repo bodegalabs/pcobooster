@@ -83,11 +83,17 @@ describe(toPostHogCapture, () => {
 
 describe(createPostHogActivityForwarder, () => {
   it("does not send without a key", async () => {
-    const send = vi.fn<typeof fetch>();
+    const send = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(null, { status: 200 }));
     await createPostHogActivityForwarder({ apiKey: undefined, fetch: send })(
       scheduleEvent
     );
-    expect(send).not.toHaveBeenCalled();
+    expect(send).toHaveBeenCalledTimes(0);
+    await createPostHogActivityForwarder({ apiKey: "key", fetch: send })(
+      scheduleEvent
+    );
+    expect(send).toHaveBeenCalledOnce();
   });
 
   it("posts the capture payload", async () => {
@@ -102,9 +108,25 @@ describe(createPostHogActivityForwarder, () => {
     const [url, init] = send.mock.calls[0] ?? [];
     expect(url).toBe("https://us.i.posthog.com/i/v0/e/");
     expect(init?.method).toBe("POST");
-    expect(JSON.parse(z.string().parse(init?.body))).toStrictEqual(
-      toPostHogCapture("key", scheduleEvent, null, NOW)
-    );
+    expect(JSON.parse(z.string().parse(init?.body))).toStrictEqual({
+      api_key: "key",
+      event: "schedule assign attempted",
+      distinct_id: "user-1",
+      timestamp: "2026-09-23T17:00:00.000Z",
+      properties: {
+        source: "server",
+        success: false,
+        status_code: 409,
+        error_code: "POSITION_MISMATCH",
+        service_type_id: "st-1",
+        plan_id: "plan-1",
+        team_id: "team-1",
+        position_id: "position-1",
+        schedule_status: null,
+        organization_id: null,
+        one_off: false,
+      },
+    });
   });
 
   it("rejects failed deliveries so callers can log them", async () => {

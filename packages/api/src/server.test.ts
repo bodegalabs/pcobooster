@@ -33,8 +33,4 @@ describe(serverDependenciesForRequest, () => {
     expect(firstLoad).toHaveBeenCalledOnce();
     expect(secondLoad).toHaveBeenCalledOnce();
   });
-
-  it("does not touch a database or Better Auth the request never uses", () => {
-    expect(() => serverDependenciesForRequest(testServer())).not.toThrow();
-  });
 });

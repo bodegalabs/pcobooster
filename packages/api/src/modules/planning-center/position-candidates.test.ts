@@ -725,9 +725,13 @@ describe("position candidate list", () => {
 
     const recent = result.find((row) => row.id === recentPersonId);
     const unused = result.find((row) => row.id === unusedPersonId);
-    expect(recent?.frequency?.recentServedDays).toBeGreaterThan(0);
+    expect(recent?.frequency?.recentServedDays).toBe(1);
     expect(unused?.frequency?.recentServedDays ?? 0).toBe(0);
-    expect(recent?.recommendationScore).not.toBe(unused?.recommendationScore);
+    // Served last week ranks lowest, never served ranks highest: neither collapses to 50.
+    expect([
+      recent?.recommendationScore,
+      unused?.recommendationScore,
+    ]).toStrictEqual([0, 100]);
   });
 
   it("includes adjacent history from other service types in the shared plan window", async () => {

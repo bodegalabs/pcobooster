@@ -373,6 +373,11 @@ describe("plan item query state", () => {
       },
     ]);
     writeCachedSongOptions("song-1", "service-1", songOptions());
+    expect([
+      readCachedPlanItems("service-1", "plan-1")?.data[0]?.id,
+      readCachedSongSearch("build")?.data[0]?.id,
+      readCachedSongOptions("song-1", "service-1")?.data.song.id,
+    ]).toStrictEqual(["item-1", "song-1", "song-1"]);
 
     settlePlanItemsQuery(queryClient, queryKey);
 

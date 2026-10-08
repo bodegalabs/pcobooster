@@ -68,7 +68,9 @@ describe(submitFeedback, () => {
 
   it("stays in the database when forwarding is disabled", async () => {
     const deps = dependencies({ forward: null });
-    await submitFeedback(submission, deps);
+    await expect(submitFeedback(submission, deps)).resolves.toStrictEqual({
+      id: 7,
+    });
     expect(deps.loadPerson).not.toHaveBeenCalled();
   });
 

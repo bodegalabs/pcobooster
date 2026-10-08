@@ -86,5 +86,9 @@ describe(getCachedPeopleDashboardPersonDetail, () => {
     );
 
     expect(placeholder).toBeUndefined();
+    expect(
+      getCachedPeopleDashboardPersonDetail([dashboard()], "person-1", "2026-05")
+        ?.month.label
+    ).toBe("May 2026");
   });
 });

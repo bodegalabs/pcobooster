@@ -487,8 +487,8 @@ describe(makeDiagnostics, () => {
     expect(signals.map((signal) => signal.aborted)).toStrictEqual([true]);
   });
 
-  it("never throws to its caller when the transport fails", async () => {
-    const { diagnostics } = harness();
+  it("keeps a fatal on disk and settles normally when the transport throws", async () => {
+    const file = memoryFiles();
     const failing = makeDiagnostics({
       enabled: true,
       release,
@@ -496,13 +496,11 @@ describe(makeDiagnostics, () => {
         await Promise.resolve();
         throw new Error("offline");
       },
-      pending: null,
+      pending: makePendingFatals(file, () => START, file.purgeMarker),
     });
+    failing.recordFatal(new Error("crash"));
     signIn(failing);
-    expect(() => {
-      failing.captureException(new Error("x"), "handled");
-    }).not.toThrow();
-    await failing.settled();
-    await diagnostics.settled();
+    await expect(failing.settled()).resolves.toBeUndefined();
+    expect(file.stored()).toBeTruthy();
   });
 });

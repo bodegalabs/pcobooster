@@ -99,8 +99,18 @@ describe(createPostHogFeedbackForwarder, () => {
     await forward?.(feedback, null);
     const [url, init] = send.mock.calls[0] ?? [];
     expect(url).toBe("https://us.i.posthog.com/i/v0/e/");
-    expect(JSON.parse(z.string().parse(init?.body))).toStrictEqual(
-      toPostHogFeedbackCapture("key", feedback, null, NOW)
-    );
+    expect(JSON.parse(z.string().parse(init?.body))).toStrictEqual({
+      api_key: "key",
+      event: "feedback submitted",
+      distinct_id: "user-1",
+      timestamp: "2026-09-23T17:00:00.000Z",
+      properties: {
+        source: "server",
+        feedback_id: 7,
+        message: "The lineup view froze after I dragged a song.",
+        path: "/services/st-1/plans/plan-1/lineup",
+        $session_id: "session-1",
+      },
+    });
   });
 });

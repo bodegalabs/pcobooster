@@ -34,15 +34,12 @@ describe(parsePlanRoute, () => {
 });
 
 describe(assertPlanView, () => {
-  it("accepts every plan view", () => {
+  it("accepts every plan view and renders not-found for unknown views", () => {
     for (const view of ["overview", "assign", "lineup", "plan", "times"]) {
       expect(() => {
         assertPlanView(view);
       }).not.toThrow();
     }
-  });
-
-  it("renders not-found for unknown views", () => {
     expect(() => {
       assertPlanView("unknown");
     }).toThrow(expect.toSatisfy(isNotFound));

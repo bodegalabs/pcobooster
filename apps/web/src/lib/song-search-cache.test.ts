@@ -69,10 +69,16 @@ describe("song search cache", () => {
   it("does not read a different query snapshot", () => {
     writeCachedSongSearch("build", songs());
 
+    expect(readCachedSongSearch("build")?.data[0].title).toBe("Build My Life");
     expect(readCachedSongSearch("life")).toBeUndefined();
   });
 
   it("ignores invalid cache payloads", () => {
+    window.localStorage.setItem(
+      "pcobooster:song-search:v2:build",
+      JSON.stringify({ savedAt: Date.now(), data: songs() })
+    );
+    expect(readCachedSongSearch("build")?.data[0].title).toBe("Build My Life");
     window.localStorage.setItem(
       "pcobooster:song-search:v2:build",
       JSON.stringify({ savedAt: Date.now(), data: [{ id: "song-1" }] })
@@ -85,6 +91,7 @@ describe("song search cache", () => {
     writeCachedSongSearch("build", songs());
     writeCachedSongSearch("life", songs());
     window.localStorage.setItem("unrelated", "keep");
+    expect(readCachedSongSearch("life")?.data[0].title).toBe("Build My Life");
 
     clearCachedSongSearch();
 
