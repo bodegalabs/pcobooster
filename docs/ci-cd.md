@@ -245,6 +245,32 @@ A job already running when step 2 revokes the old token fails; re-run it.
 
 The first `infra:deploy` replaces the hand-made tokens rather than rotating Alchemy's. It creates generation 1 and overwrites `CLOUDFLARE_API_TOKEN` in both projects, but the hand-made tokens stay valid because Alchemy never managed them. After a preview and a production deploy succeed on the new tokens, delete the hand-made ones in the Cloudflare dashboard (Manage Account → Account API Tokens): preview `fb50d1add65f36b1376ba24b8de59b56` and production `8241ade77e46e28393c7d7ffa4dd1793`.
 
+## Cloudflare drift
+
+### Refreshing the production zone activation record
+
+The `Cloudflare drift` workflow reads provider state and reports configuration or zone-status changes. `scripts/cloudflare/drift-comparison.ts` excludes only verified provider representation differences and timestamps; it retains zone status.
+
+On October 8, 2026, run [37810110050](https://github.com/bodegalabs/pcobooster/actions/runs/37810110050) confirmed all 11 staging resources matched. Production differed only in the logical `Zone` status: Alchemy still recorded `pcobooster.com` as `pending`, while the same zone had been active since September 23. `FormerZone` is the separate `worshipadmin.com` record and is outside this maintenance operation.
+
+`refresh-production-zone-activation.ts` is custom maintenance through Alchemy's public `StateService` and Zone provider APIs. Alchemy beta.79 has no targeted accept-live operation: the [drift CLI](https://alchemy.run/cli/drift) repairs every observed resource, and the [state CLI](https://alchemy.run/cli/state) lists, reads, or deletes records. This script reads only `pcobooster/prod/Zone` and its exact provider zone; it updates only the recorded status and activation/modification timestamps. It preserves desired props, resource lifecycle metadata, bindings, and all other attributes. It never invokes provider reconciliation or changes Cloudflare zone settings, DNS, Workers, or `FormerZone`.
+
+Use the saved default Alchemy Cloudflare profile, with stray deployment credentials removed. The dry run does not need application secrets or evaluate the application stack:
+
+```sh
+env -u CLOUDFLARE_API_TOKEN -u CLOUDFLARE_ACCOUNT_ID bun scripts/cloudflare/refresh-production-zone-activation.ts
+```
+
+After reviewing the reported three fields, confirm no local or GitHub production deployment is running or queued in the `cloudflare-prod` concurrency group. Then apply the single record refresh:
+
+```sh
+env -u CLOUDFLARE_API_TOKEN -u CLOUDFLARE_ACCOUNT_ID bun scripts/cloudflare/refresh-production-zone-activation.ts --apply
+```
+
+The script requires the hardcoded account, zone ID, and hostname to match both stored and observed attributes, and permits only `pending` to `active`. It refuses configuration changes, missing resources, unstable resource lifecycle states, and a changed record immediately before the write. Alchemy's StateService has no atomic compare-and-set, so keeping deployments idle remains necessary. The script verifies the record after writing; a later invocation returns `already-active` without writing. Finally dispatch the read-only `Cloudflare drift` workflow on `main` and verify both stage reports. Keep status comparisons enabled so future inactive or moved zones remain visible.
+
+The one-time refresh was applied on October 8 after independent review and idle deployment checks, using the saved `admin` Alchemy profile. A subsequent invocation returned `already-active` with no differing fields. Read-only [run 37811619586](https://github.com/bodegalabs/pcobooster/actions/runs/37811619586) then passed on revision `352dd1d442a8444c975d650770371c64a0bfaad4`: all 25 production resources and all 11 staging resources matched. The ordinary drift matcher remained unchanged.
+
 ## Merge gates
 
 The `main` ruleset requires `ci` and `cloudflare-build` and is managed by `alchemy.ci.ts`. Preserve the merge queue, squash-only merging, and absence of bypass actors. Never remove a gate merely to bypass a red or missing check.
