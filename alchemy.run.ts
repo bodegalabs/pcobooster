@@ -1,6 +1,10 @@
 import { readdirSync } from "node:fs";
 import path from "node:path";
 
+import {
+  planningCenterFallbackTimeZone,
+  productionPostHogKey,
+} from "@pcobooster/config/public-environment";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import * as Drizzle from "alchemy/Drizzle";
@@ -148,6 +152,8 @@ export default Alchemy.Stack(
     process.env.ADMIN_BASE_PATH = production ? "" : "/admin";
     // Picks the product favicon (`apps/web/vite.config.ts`); the build stamp hashes the stage.
     process.env.PCOBOOSTER_STAGE = stage;
+    process.env.POSTHOG_PROJECT_KEY = production ? productionPostHogKey : "";
+    process.env.PLANNING_CENTER_TIME_ZONE = planningCenterFallbackTimeZone;
     yield* Effect.promise(async () => {
       await prepareCloudflareBuild(stage);
     });

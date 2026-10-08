@@ -43,9 +43,9 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 150
     # A new environment, unprovisioned until approved. Do not reuse `testflight`, whose
-    # existing identity can read broad production secrets and has no reviewer gate.
+    # existing environment has broad production credentials and has no reviewer gate.
     environment: ios-release-upload
-    # Enablement grants, in its reviewed change only: OIDC for the isolated Infisical identity,
+    # Enablement grants, in its reviewed change only: isolated release credentials,
     # and a ledger writer limited to the ios-release-ledger branch.
     permissions:
       contents: read
@@ -55,7 +55,7 @@ jobs:
       - name: Enablement gate
         run: |
           echo 'BLOCKED: no uploader or signing credential retrieval is enabled.' >&2
-          echo 'Approve and prove the isolated Infisical identity, protected environment, ledger branch, signing export, artifact and symbol gates described in docs/ci-cd.md before enabling this stage.' >&2
+          echo 'Approve and prove the isolated release credentials, protected environment, ledger branch, signing export, artifact and symbol gates described in docs/ci-cd.md before enabling this stage.' >&2
           exit 1
 
       - name: Checkout dispatched revision
@@ -112,13 +112,7 @@ jobs:
           bun run --cwd apps/mobile ios:release-smoke --build
 
       # Only App Store Connect read/signing keys and the symbol-upload key, from the isolated
-      # project bound to this environment's OIDC subject. Never the production app project.
-      - name: Read isolated release credentials
-        uses: ./.github/actions/infisical
-        with:
-          identity-id: ${{ vars.INFISICAL_IDENTITY_ID }}
-          project-id: ${{ vars.INFISICAL_PROJECT_ID }}
-          env-slug: ${{ vars.INFISICAL_ENV_SLUG }}
+      # release environment, explicitly injected by its separate enablement change.
 
       - name: Release one build
         id: release

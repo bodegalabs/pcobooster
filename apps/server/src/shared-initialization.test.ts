@@ -7,7 +7,10 @@ import { build } from "rolldown";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { createIsolatedMiniflare } from "../../../scripts/testing/miniflare";
-import { cachedAcrossRequests } from "./shared-initialization";
+import {
+  cachedAcrossRequests,
+  cachedAcrossRequestsBy,
+} from "./shared-initialization";
 
 const CONCURRENT_REQUESTS = 6;
 const REQUEST_TIMEOUT_MS = 5000;
@@ -64,6 +67,136 @@ describe(cachedAcrossRequests, () => {
     });
     script = output[0].code;
   }, WORKERD_TEST_TIMEOUT_MS);
+
+  it(
+    "uses a rotated native Secrets Store binding without losing concurrent request bodies",
+    async () => {
+      const worker = await createIsolatedMiniflare(
+        "secret-rotation",
+        convertV4MiniflareOptions({
+          modules: true,
+          compatibilityDate: "2026-09-01",
+          script,
+          secretsStoreSecrets: {
+            ROTATING_SECRET: {
+              store_id: "fixture-store",
+              secret_name: "fixture-key",
+            },
+          },
+        })
+      );
+      try {
+        const admin = (
+          await worker.getSecretsStoreSecretAPI("ROTATING_SECRET")
+        )();
+        const id = await admin.create("first-credential");
+        const request = async (clock: number, body: string) => {
+          const response = await worker.dispatchFetch(
+            `http://localhost/rotation?clock=${clock}`,
+            { method: "POST", body }
+          );
+          expect(response.status).toBe(200);
+          return await response.json();
+        };
+        await expect(request(0, "initial-body")).resolves.toStrictEqual({
+          credential: "first-credential",
+          generation: 1,
+          body: "initial-body",
+        });
+        await admin.update("rotated-credential", id);
+        await expect(request(99, "cached-body")).resolves.toStrictEqual({
+          credential: "first-credential",
+          generation: 1,
+          body: "cached-body",
+        });
+        await expect(
+          Promise.all([
+            request(100, "body-a"),
+            request(100, "body-b"),
+            request(100, "body-c"),
+          ])
+        ).resolves.toStrictEqual([
+          { credential: "rotated-credential", generation: 2, body: "body-a" },
+          { credential: "rotated-credential", generation: 2, body: "body-b" },
+          { credential: "rotated-credential", generation: 2, body: "body-c" },
+        ]);
+      } finally {
+        await worker.dispose();
+      }
+    },
+    WORKERD_TEST_TIMEOUT_MS
+  );
+
+  it("refreshes after expiry and rebuilds only when the resolved credential changes", async () => {
+    let clock = 0;
+    let secret = "first-key";
+    let reads = 0;
+    let builds = 0;
+    const result = await Effect.runPromise(
+      Effect.gen(function* rotatingCredential() {
+        const read = yield* cachedAcrossRequests(
+          Effect.sync(() => {
+            reads += 1;
+            return { secret };
+          }),
+          { ttlMs: 100, now: () => clock }
+        );
+        const server = yield* cachedAcrossRequestsBy(
+          read,
+          (key) =>
+            Effect.sync(() => {
+              builds += 1;
+              return `server:${key.secret}`;
+            }),
+          (left, right) => left.secret === right.secret
+        );
+        const initial = yield* server;
+        clock = 100;
+        const unchanged = yield* server;
+        secret = "rotated-key";
+        clock = 199;
+        const cached = yield* server;
+        clock = 200;
+        const rotated = yield* Effect.all([server, server, server], {
+          concurrency: "unbounded",
+        });
+        return [initial, unchanged, cached, ...rotated];
+      })
+    );
+    expect(result).toStrictEqual([
+      "server:first-key",
+      "server:first-key",
+      "server:first-key",
+      "server:rotated-key",
+      "server:rotated-key",
+      "server:rotated-key",
+    ]);
+    expect([reads, builds]).toStrictEqual([3, 2]);
+  });
+
+  it("retries a failed configuration rebuild", async () => {
+    let attempts = 0;
+    const result = await Effect.runPromise(
+      Effect.gen(function* retryConfiguration() {
+        const server = yield* cachedAcrossRequestsBy(
+          Effect.succeed("key"),
+          () =>
+            Effect.suspend(() => {
+              attempts += 1;
+              return attempts === 1
+                ? Effect.fail(new BuildFailed({ attempt: attempts }))
+                : Effect.succeed("recovered-server");
+            }),
+          (left, right) => left === right
+        );
+        return [yield* Effect.flip(server), yield* server];
+      })
+    );
+    expect(result).toStrictEqual([
+      new BuildFailed({ attempt: 1 }),
+      "recovered-server",
+    ]);
+  });
 
   it(
     "lets every request that waited on a cold start read its own body in workerd",

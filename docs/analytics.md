@@ -25,11 +25,11 @@ To change a dashboard:
 
 Edits made in the PostHog UI to managed fields are overwritten by the next deploy. Make them in code instead, or copy them into `reports.ts` first.
 
-Both scripts read the production Infisical project: its Cloudflare token for Alchemy state, and a PostHog personal API key, `POSTHOG_PERSONAL_API_KEY`, stored in the `/posthog` folder. CI reads only `/`, so it never sees that key. Scope the key to project 614621 with `project:read`, `project:write`, `dashboard:read`, `dashboard:write`, `insight:read`, and `insight:write`.
+Both scripts read `POSTHOG_PERSONAL_API_KEY` from the Keychain `posthog` scope and use the saved Alchemy Cloudflare profile for state. Product CI never sees that key. Scope the key to project 614621 with `project:read`, `project:write`, `dashboard:read`, `dashboard:write`, `insight:read`, and `insight:write`.
 
 ### Deploy annotations
 
-After `verify-deployment.ts` succeeds, the production CI job runs `scripts/posthog/annotate-deploy.ts`. It adds a project-wide annotation, "Deployed <commit sha>", so charts show when each release went live. It uses `POSTHOG_ANNOTATION_API_KEY` from Infisical Production `/`, a personal API key scoped to project 614621 with only `annotation:write`. If the key is missing, or PostHog rejects the request, the step logs a warning and the deploy still succeeds.
+After `verify-deployment.ts` succeeds, the production CI job runs `scripts/posthog/annotate-deploy.ts`. It adds a project-wide annotation, "Deployed <commit sha>", so charts show when each release went live. It uses `POSTHOG_ANNOTATION_API_KEY` from the production GitHub environment, a personal API key scoped to project 614621 with only `annotation:write`. If the key is missing, or PostHog rejects the request, the step logs a warning and the deploy still succeeds.
 
 ## Collection
 
@@ -112,7 +112,7 @@ Replay masks all page text and inputs, blocks media/iframes, removes document me
 
 ## Configuration and release
 
-`POSTHOG_PROJECT_KEY` belongs in **Infisical Production `/`** of the `pcobooster-production` project, which Alchemy reads at deploy time. It is a public ingestion token, not a personal API key. Leave it absent from Development and Staging. The API binds it at runtime, and both apps' `vite.config.ts` inline it as `import.meta.env.VITE_POSTHOG_KEY`. Turborepo and the Alchemy build stamp (`scripts/cloudflare/prepare.ts`) include it in their cache keys, so a changed key rebuilds the independently prerendered marketing assets.
+The public ingestion key is committed in `packages/config/src/public-environment.ts` for deployed web/API configuration and in the mobile release rules for archive validation. It is not a personal API key. The application stack binds it and inlines it only in production. The Alchemy build stamp hashes it so rotations rebuild the prerendered marketing assets. Change both public constants in a reviewed commit if it rotates.
 
 The host is fixed to `https://us.i.posthog.com`, matching project 614621. Traffic goes directly to PostHog; there is no added proxy or domain cost. A production deployment is required after changing the key. Removing the PostHog key and redeploying disables PostHog capture.
 

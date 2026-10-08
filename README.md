@@ -30,21 +30,15 @@ Use Node.js 24 (see `.node-version`) and Bun 1.4.2 (pinned in `package.json`; CI
 bun install --frozen-lockfile
 ```
 
-### 2. Configure local secrets with Infisical
+### 2. Configure local secrets with macOS Keychain
 
-Install the [Infisical CLI](https://infisical.com/docs/cli/usage) and run `infisical login`. This repository's `.infisical.json` links to the PCOBooster Infisical project. Add local values to its **Development** environment at the root path (`/`); [application configuration](docs/environment.md) lists the expected keys. Do not paste secret values into issues, chat, or committed files.
+Existing developers run `bun run secrets:migrate` to review the names to import from their current Infisical login, then `bun run secrets:migrate --apply`. Values move through pipes into Keychain and are verified without being printed. This importer is needed only for migration.
 
-Required local keys:
+For a new credential, use `bun run secrets:set local PLANNING_CENTER_PAT` and enter it at the hidden prompt. [Application configuration](docs/environment.md) lists the scopes and expected keys. Never put a secret value in command arguments, chat, issues, or committed files.
 
-- `BETTER_AUTH_SECRET`
-- `PLANNING_CENTER_OAUTH_CLIENT_ID`
-- `PLANNING_CENTER_OAUTH_CLIENT_SECRET`
+`bun run dev` loads the Keychain `local` scope and signs you in as the owner of its Planning Center personal access token. `PLANNING_CENTER_CLIENT` and `PLANNING_CENTER_PAT` belong only to this scope. `dev:auth` uses real OAuth and `dev:present` enables presentation mode. The servers bind to `127.0.0.1`; deployed Workers ignore the development bypass. Each stage gets separate D1 data.
 
-`bun run dev` signs you in as the owner of a Planning Center personal access token. Set `PLANNING_CENTER_CLIENT` and `PLANNING_CENTER_PAT` **only in Development's `/local` folder**. `bun run dev`, `bun run dev:auth`, and `bun run dev:present` read both `/` and `/local`, while deployments read only their dedicated Infisical source. The dev servers bind to `127.0.0.1` so this bypass is not exposed on your LAN. The bypass is ignored when `NODE_ENV=production`, but the PAT must never be copied to production or preview. Alchemy creates a separate D1 database per stage. Presentation mode can be started with a command, so it does not need a stored secret.
-
-The normal Bun commands load Infisical automatically. The CLI injects variables into the command process and does not write an env file. For one-off local commands that need the bypass, use `infisical run --env=dev --path=/ --path=/local -- <command>`. Use only `--path=/` for deployable Development secrets.
-
-For deployments, Infisical supplies application secrets to Alchemy, which writes Worker bindings. Cloudflare credentials stay in an Alchemy profile. See [configuration](docs/environment.md) and [deployment](docs/ci-cd.md).
+One-off local tools use `bun run secrets:run local -- <command>`. Credentials are allowlisted by scope and injected into the command process without an env file. Cloudflare login stays in the saved Alchemy profile. Deployed app secrets live in Cloudflare Secrets Store; GitHub environment secrets supply deployment credentials. See [configuration](docs/environment.md), [migration](docs/secrets-migration.md), and [deployment](docs/ci-cd.md).
 
 ### 3. Start the app
 
@@ -78,7 +72,7 @@ This enables `PRESENTATION_MODE=1` for the local dev servers. It is ignored when
 
 Search matches the fictional names. Its first request loads the People directory; subsequent requests reuse the account-scoped directory cache for five minutes. Browser people caches and React Query caches are isolated from normal mode. `PRESENTATION_SEED` optionally changes the aliases and browser cache namespace.
 
-Stop the server, run `bun run dev`, and reload open tabs to return to normal mode. Do not store `PRESENTATION_MODE` in Infisical if you want the command to control it. The flag is ignored in production . It does not change authentication or grant API access.
+Stop the server, run `bun run dev`, and reload open tabs to return to normal mode. Do not store `PRESENTATION_MODE` in Keychain if you want the command to control it. The flag is ignored in production . It does not change authentication or grant API access.
 
 This masks person fields for app presentations, not the underlying dataset: IDs, schedules, team/position names, plan titles, and free-form plan-item text remain real. Review those custom labels before a public recording. Actions still write to the real Planning Center account; server logs and external Planning Center pages are outside the masking scope.
 

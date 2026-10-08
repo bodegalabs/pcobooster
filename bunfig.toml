@@ -1,2 +1,2 @@
-# Keep environment loading explicit through Infisical in local scripts.
+# Keep environment loading explicit through Keychain or CI environment injection in local scripts.
 env = false

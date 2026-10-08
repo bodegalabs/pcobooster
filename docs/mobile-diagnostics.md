@@ -118,7 +118,7 @@ Do not set `EXPO_PUBLIC_DIAGNOSTICS_PROBES` for a release (see [Verification bui
 2. With `POSTHOG_CLI_API_KEY` and `POSTHOG_CLI_PROJECT_ID=614621` set for this command only (like the App Store Connect key): `bun run --cwd apps/mobile ios:source-maps upload --maps "$out/maps" --bundle <same>`. This requires `posthog-cli` 0.18.9 (`POSTHOG_CLI`, else on PATH; install with `bun add -g @posthog/cli@0.18.9 --trust`). It repeats step 1, runs `hermes clone`, records and checks the cloned map, then runs `hermes upload --release-mode event` against `https://us.posthog.com`. Any failure fails the release.
 3. Keep `$out/maps` (with `packager/provenance.json`) beside the archive.
 
-A personal API key scoped to project 614621 with error-tracking write access belongs in Infisical Production next to the other release credentials. It has not been created yet.
+A personal API key scoped to project 614621 with error-tracking write access belongs in the isolated Apple release credential scope. It has not been created yet.
 
 ## Verification builds
 

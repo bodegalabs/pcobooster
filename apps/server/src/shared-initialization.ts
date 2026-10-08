@@ -14,17 +14,67 @@ import { Effect, Exit } from "effect";
  * failure until it is recycled.
  */
 export const cachedAcrossRequests = <A, E, R>(
-  self: Effect.Effect<A, E, R>
+  self: Effect.Effect<A, E, R>,
+  options: { readonly ttlMs?: number; readonly now?: () => number } = {}
 ): Effect.Effect<Effect.Effect<A, E, R>> =>
   Effect.sync(() => {
-    let pending: Promise<Exit.Exit<A, E>> | undefined;
+    const ttlMs = options.ttlMs ?? Number.POSITIVE_INFINITY;
+    const now = options.now ?? Date.now;
+    if (ttlMs <= 0 || Number.isNaN(ttlMs)) {
+      throw new Error("Cache lifetime must be positive");
+    }
+    let pending:
+      | { readonly promise: Promise<Exit.Exit<A, E>>; expiresAt: number }
+      | undefined;
     return Effect.gen(function* awaitShared() {
       const started =
-        pending ?? Effect.runPromiseExitWith(yield* Effect.context<R>())(self);
+        pending !== undefined && now() < pending.expiresAt
+          ? pending
+          : {
+              promise: Effect.runPromiseExitWith(yield* Effect.context<R>())(
+                self
+              ),
+              expiresAt: Number.POSITIVE_INFINITY,
+            };
       pending = started;
-      const exit = yield* Effect.promise(async () => await started);
+      const exit = yield* Effect.promise(async () => await started.promise);
       if (Exit.isFailure(exit) && pending === started) {
         pending = undefined;
+      } else if (
+        Exit.isSuccess(exit) &&
+        started.expiresAt === Number.POSITIVE_INFINITY
+      ) {
+        started.expiresAt = now() + ttlMs;
+      }
+      return yield* exit;
+    });
+  });
+
+/** Share initialization for one resolved configuration; a changed configuration starts a new run. */
+export const cachedAcrossRequestsBy = <Key, A, E, R>(
+  input: Effect.Effect<Key, E, R>,
+  build: (key: Key) => Effect.Effect<A, E, R>,
+  equal: (left: Key, right: Key) => boolean
+): Effect.Effect<Effect.Effect<A, E, R>> =>
+  Effect.sync(() => {
+    let current:
+      | { readonly key: Key; readonly promise: Promise<Exit.Exit<A, E>> }
+      | undefined;
+    return Effect.gen(function* awaitConfiguration() {
+      const key = yield* input;
+      const started =
+        current !== undefined && equal(key, current.key)
+          ? current
+          : {
+              key,
+              promise: Effect.runPromiseExitWith(yield* Effect.context<R>())(
+                build(key)
+              ),
+            };
+      current = started;
+      const exit = yield* Effect.promise(async () => await started.promise);
+      if (Exit.isFailure(exit) && current === started) {
+        current = undefined;
       }
       return yield* exit;
     });

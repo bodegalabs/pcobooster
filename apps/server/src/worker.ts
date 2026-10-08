@@ -7,9 +7,9 @@ import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pa
 import type { SharedReadStore } from "@pcobooster/api/planning-center/services/shared-read-store";
 import { createServerDependencies } from "@pcobooster/api/server";
 import type { FeatureFlagSource } from "@pcobooster/api/server";
-import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import { Config, Effect, Layer, Redacted, Scope } from "effect";
+import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import { Database } from "./database";
 import { waitUntilAfterDisconnect } from "./disconnect";
@@ -23,10 +23,14 @@ import type { AuthWriteLimiter } from "./http-app";
 import { apiWorkerObservability, apiWorkerTelemetry } from "./observability";
 import { PlanningCenterCache } from "./planning-center-cache";
 import { postHogProcedureReporter } from "./procedure-reporting";
-import { cachedAcrossRequests } from "./shared-initialization";
+import { readAuthSecret, readRuntimeSecret } from "./runtime-secrets";
+import {
+  cachedAcrossRequests,
+  cachedAcrossRequestsBy,
+} from "./shared-initialization";
 import { currentStageSettings } from "./stage";
 
-const PREVIEW_SECRET_PLACEHOLDER = "minted-by-alchemy-random-at-runtime";
+const SECRET_REFRESH_MS = 60_000;
 
 /**
  * Auth writes (sign-in, sign-out, native sign-in start and exchange; see `http-app.ts`) each
@@ -43,55 +47,40 @@ const optionalSecret = (name: string) =>
 const optionalString = (name: string) =>
   Config.String(name).pipe(Config.withDefault(""));
 
-/**
- * Settings each stage reads. Every `Config` read here, in the Worker's construction phase, is
- * bound to the Worker at deploy time and read back from its environment at runtime.
- */
+/** Bind immutable configuration during construction; read stored secrets inside requests. */
 const readEnvironment = Effect.gen(function* readEnvironment() {
   const { production, local, publicOrigin, previewOriginPattern } =
     yield* currentStageSettings;
-  // Production keeps its Infisical secret so existing sessions stay valid; each preview mints
-  // its own, stored in Alchemy state and discarded with the stage.
-  const configuredSecret =
-    production || local ? yield* secret("BETTER_AUTH_SECRET") : undefined;
-  const authSecret: Effect.Effect<string> =
-    configuredSecret === undefined
-      ? (yield* (yield* Alchemy.Random("BetterAuthSecret")).text).pipe(
-          Effect.map(Redacted.value)
-        )
-      : Effect.succeed(configuredSecret);
-  const environment: Omit<ServerEnvironment, "BETTER_AUTH_SECRET"> = {
+  const authSecret = yield* readAuthSecret;
+  const clientId = yield* readRuntimeSecret("PLANNING_CENTER_OAUTH_CLIENT_ID");
+  const clientSecret = yield* readRuntimeSecret(
+    "PLANNING_CENTER_OAUTH_CLIENT_SECRET"
+  );
+  const proxySecret = local
+    ? Effect.succeed("")
+    : yield* readRuntimeSecret("OAUTH_PROXY_SECRET");
+  const demoAccess = production
+    ? yield* readRuntimeSecret("DEMO_ACCESS_KEY")
+    : Effect.succeed("");
+  const demoClient = production
+    ? yield* readRuntimeSecret("DEMO_PLANNING_CENTER_CLIENT")
+    : Effect.succeed("");
+  const demoPat = production
+    ? yield* readRuntimeSecret("DEMO_PLANNING_CENTER_PAT")
+    : Effect.succeed("");
+  const environment = {
     NODE_ENV: local ? "development" : "production",
     APP_ENV: production ? "production" : "preview",
-    // Bound as a Worker prop (`apiProps`); see there for why it is not read from GITHUB_SHA here.
     PCOBOOSTER_VERSION: yield* optionalString("PCOBOOSTER_VERSION"),
     BETTER_AUTH_URL: publicOrigin,
     OAUTH_PREVIEW_ORIGIN_PATTERN: previewOriginPattern,
-    OAUTH_PROXY_SECRET: local
-      ? ""
-      : yield* optionalSecret("OAUTH_PROXY_SECRET"),
     OAUTH_PROXY_PRODUCTION_URL: local ? "" : "https://pcobooster.com",
-    PLANNING_CENTER_OAUTH_CLIENT_ID: yield* secret(
-      "PLANNING_CENTER_OAUTH_CLIENT_ID"
-    ),
-    PLANNING_CENTER_OAUTH_CLIENT_SECRET: yield* secret(
-      "PLANNING_CENTER_OAUTH_CLIENT_SECRET"
-    ),
     PLANNING_CENTER_TIME_ZONE: yield* Config.String(
       "PLANNING_CENTER_TIME_ZONE"
     ).pipe(Config.withDefault("America/Los_Angeles")),
-    // Production only: the read-only demo and the product's PostHog project.
-    DEMO_ACCESS_KEY: production ? yield* optionalSecret("DEMO_ACCESS_KEY") : "",
-    DEMO_PLANNING_CENTER_CLIENT: production
-      ? yield* optionalSecret("DEMO_PLANNING_CENTER_CLIENT")
-      : "",
-    DEMO_PLANNING_CENTER_PAT: production
-      ? yield* optionalSecret("DEMO_PLANNING_CENTER_PAT")
-      : "",
     POSTHOG_PROJECT_KEY: production
-      ? yield* optionalSecret("POSTHOG_PROJECT_KEY")
+      ? yield* optionalString("POSTHOG_PROJECT_KEY")
       : "",
-    // Local only: the dev auth bypass, its personal access token, and presentation mode.
     DEV_AUTH_BYPASS: local ? yield* optionalString("DEV_AUTH_BYPASS") : "",
     PLANNING_CENTER_CLIENT: local
       ? yield* optionalSecret("PLANNING_CENTER_CLIENT")
@@ -102,25 +91,26 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
     PRESENTATION_MODE: local ? yield* optionalString("PRESENTATION_MODE") : "",
     PRESENTATION_SEED: local ? yield* optionalSecret("PRESENTATION_SEED") : "",
   };
-  // Validate now, while Alchemy deploys, so a bad setting fails the deploy instead of the
-  // first request. A preview's minted secret only exists at runtime, so it stands in here.
-  yield* Effect.try({
-    try: () =>
-      resolveServerConfig({
-        ...environment,
-        BETTER_AUTH_SECRET: configuredSecret ?? PREVIEW_SECRET_PLACEHOLDER,
-      }),
-    catch: (error) =>
-      new Error(`Invalid API Worker settings: ${String(error)}`, {
-        cause: error,
-      }),
-  }).pipe(Effect.orDie);
-  return authSecret.pipe(
-    Effect.map((BETTER_AUTH_SECRET): ServerEnvironment => ({
+  return Effect.gen(function* resolveEnvironment() {
+    const resolved: ServerEnvironment = {
       ...environment,
-      BETTER_AUTH_SECRET,
-    }))
-  );
+      BETTER_AUTH_SECRET: yield* authSecret,
+      PLANNING_CENTER_OAUTH_CLIENT_ID: yield* clientId,
+      PLANNING_CENTER_OAUTH_CLIENT_SECRET: yield* clientSecret,
+      OAUTH_PROXY_SECRET: yield* proxySecret,
+      DEMO_ACCESS_KEY: yield* demoAccess,
+      DEMO_PLANNING_CENTER_CLIENT: yield* demoClient,
+      DEMO_PLANNING_CENTER_PAT: yield* demoPat,
+    };
+    yield* Effect.try({
+      try: () => resolveServerConfig(resolved),
+      catch: () =>
+        new Error(
+          "Invalid API Worker settings; check the configured secret names and required values"
+        ),
+    }).pipe(Effect.orDie);
+    return resolved;
+  });
 });
 
 /**
@@ -181,43 +171,51 @@ export default class Api extends Cloudflare.Worker<Api>()(
     }).pipe(Scope.provide(isolateScope));
     // The D1, KV, and Flagship bindings and a runtime-minted secret are only readable inside a
     // request, so the server is built by the first one and shared by the rest of the isolate's
-    // lifetime. Not `Effect.cached`: requests that arrive while the first one builds must not
+    // lifetime until a refreshed secret changes. Not `Effect.cached`: requests that arrive while the first one builds must not
     // resume inside it; see `cachedAcrossRequests`.
-    const isolate = yield* cachedAcrossRequests(
-      Effect.gen(function* buildServer() {
-        const config = resolveServerConfig(yield* resolveEnvironment);
-        const binding = yield* database.raw;
-        const featureFlagSource: FeatureFlagSource =
-          flags === undefined
-            ? { kind: "registry", tier: "local" }
-            : { kind: "flagship", binding: yield* flags.raw };
-        const namespace = yield* planningCenterCache.raw;
-        const rateLimit = yield* authRateLimit.raw;
-        const planningCenterReadStore: SharedReadStore = {
-          get: async (key) => await namespace.get(key, "text"),
-          put: async (key, value, { expirationTtl }) => {
-            await namespace.put(key, value, { expirationTtl });
-          },
-        };
-        const server = createServerDependencies(
-          config,
-          binding,
-          featureFlagSource,
-          planningCenterReadStore
-        );
-        // Better Auth starts initializing (including OIDC discovery) when created. workerd ties
-        // that I/O to the current request, so it must settle before this request ends or every
-        // later request would wait on it forever.
-        yield* Effect.promise(async () => {
-          await server.auth.$context;
-        });
-        const report = postHogProcedureReporter(config.postHogProjectKey);
-        const allowAuthWrite: AuthWriteLimiter = async (clientIp) => {
-          const outcome = await rateLimit.limit({ key: clientIp });
-          return outcome.success;
-        };
-        return { server, report, allowAuthWrite };
-      })
+    const refreshedEnvironment = yield* cachedAcrossRequests(
+      resolveEnvironment,
+      { ttlMs: SECRET_REFRESH_MS }
+    );
+    const isolate = yield* cachedAcrossRequestsBy(
+      refreshedEnvironment,
+      (environment) =>
+        Effect.gen(function* buildServer() {
+          const config = resolveServerConfig(environment);
+          const binding = yield* database.raw;
+          const featureFlagSource: FeatureFlagSource =
+            flags === undefined
+              ? { kind: "registry", tier: "local" }
+              : { kind: "flagship", binding: yield* flags.raw };
+          const namespace = yield* planningCenterCache.raw;
+          const rateLimit = yield* authRateLimit.raw;
+          const planningCenterReadStore: SharedReadStore = {
+            get: async (key) => await namespace.get(key, "text"),
+            put: async (key, value, { expirationTtl }) => {
+              await namespace.put(key, value, { expirationTtl });
+            },
+          };
+          const server = createServerDependencies(
+            config,
+            binding,
+            featureFlagSource,
+            planningCenterReadStore
+          );
+          // Better Auth starts initializing (including OIDC discovery) when created. workerd ties
+          // that I/O to the current request, so it must settle before this request ends or every
+          // later request would wait on it forever.
+          yield* Effect.promise(async () => {
+            await server.auth.$context;
+          });
+          const report = postHogProcedureReporter(config.postHogProjectKey);
+          const allowAuthWrite: AuthWriteLimiter = async (clientIp) => {
+            const outcome = await rateLimit.limit({ key: clientIp });
+            return outcome.success;
+          };
+          return { server, report, allowAuthWrite };
+        }),
+      // Values remain in memory only; equality never emits them into logs or state.
+      (left, right) => JSON.stringify(left) === JSON.stringify(right)
     );
     return {
       fetch: Effect.gen(function* fetch() {
@@ -226,7 +224,19 @@ export default class Api extends Cloudflare.Worker<Api>()(
           Effect.provideService(IsolateServer, { server, report }),
           Effect.provideService(AuthWriteLimit, allowAuthWrite)
         );
-      }),
+      }).pipe(
+        Effect.catchTag("SecretError", () =>
+          Effect.logError(
+            "Runtime secret read failed; serving unavailable"
+          ).pipe(
+            Effect.as(
+              HttpServerResponse.text("Service temporarily unavailable", {
+                status: 503,
+              })
+            )
+          )
+        )
+      ),
     };
   }).pipe(
     // Workers Logs indexes each field of a structured line.
@@ -234,6 +244,7 @@ export default class Api extends Cloudflare.Worker<Api>()(
     Effect.provide(
       Layer.unwrap(currentStageSettings.pipe(Effect.map(apiWorkerTelemetry)))
     ),
+    Effect.provide(Cloudflare.SecretsStore.ReadSecretBinding),
     Effect.provide(Cloudflare.D1.QueryDatabaseBinding),
     Effect.provide(Cloudflare.KV.ReadWriteNamespaceBinding),
     Effect.provide(Cloudflare.Flagship.ReadFlagsBinding),

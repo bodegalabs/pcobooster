@@ -26,7 +26,7 @@ Dates are integer milliseconds, booleans are integers, and JSON is text. Use Dri
 
 The original schema/migrations are archived in `packages/api/migrations-postgres` solely for the one-time transfer. `pg` remains a development dependency for that tool. The app no longer reads PostgreSQL.
 
-`bun run db:rehearse` takes a repeatable-read, read-only snapshot of Infisical Production's legacy `DATABASE_URL` and imports into disposable local D1. It preserves users, provider accounts/tokens, sessions, verification data, Planning Center identities, and activity history. Every table must match by count and SHA-256; foreign keys must pass. Identical partial imports resume safely, while differing or extra destination rows fail before any writes.
+`bun run db:rehearse` takes a repeatable-read, read-only snapshot of the Keychain recovery scope's legacy `DATABASE_URL` and imports into disposable local D1. It preserves users, provider accounts/tokens, sessions, verification data, Planning Center identities, and activity history. Every table must match by count and SHA-256; foreign keys must pass. Identical partial imports resume safely, while differing or extra destination rows fail before any writes.
 
 For the final remote transfer, freeze every old Vercel ingress (including immutable URLs/previews and GET OAuth callbacks), stop other writers, drain in-flight requests, then run `scripts/database/migrate-from-postgres.ts --database-id <verified D1 UUID>` with credentials injected into the process. Never print source rows or tokens. Save the count/hash receipt. Preserve production `BETTER_AUTH_SECRET` and cookie scope so signed sessions remain valid.
 

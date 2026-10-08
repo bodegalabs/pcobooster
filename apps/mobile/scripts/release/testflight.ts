@@ -2,8 +2,8 @@
  * The supported local TestFlight release, run from this Mac until the CI executor is enabled:
  * preflight, signed export, the signed-export gate, one upload, then App Store Connect processing.
  *
- * Usage, from a clean checkout of origin/main with Production `/apple` injected:
- *   infisical run --env=prod --path=/apple --projectId=<id> -- bun run --cwd apps/mobile ios:testflight [--yes]
+ * Usage, from a clean checkout of origin/main with the Keychain `apple` scope:
+ *   bun run secrets:run apple -- bun run --cwd apps/mobile ios:testflight [--yes]
  *
  * 1. Refuses automation, a preset BUILD_NUMBER, or a missing App Store Connect key.
  * 2. Requires HEAD to be origin/main with no changes, then `bun install --frozen-lockfile`,
@@ -137,7 +137,7 @@ const assertLocalRun = (env: Env): void => {
   }
   if (ascKeyFromEnv(env) === null) {
     throw new Error(
-      "Inject Production /apple (ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_BASE64): build numbers, upload, and processing all read App Store Connect."
+      "Load the Keychain apple scope (ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_BASE64): build numbers, upload, and processing all read App Store Connect."
     );
   }
   releaseAnalyticsKey(env);
