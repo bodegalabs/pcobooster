@@ -53,6 +53,12 @@ describe(readVersion, () => {
     await expect(
       readVersion("https://example.test", answeringHealth({ status: "ok" }))
     ).resolves.toBeUndefined();
+    await expect(
+      readVersion(
+        "https://example.test",
+        answeringHealth({ status: "ok", version: "b57ca91" })
+      )
+    ).resolves.toBe("b57ca91");
   });
 
   it.each([
@@ -66,6 +72,12 @@ describe(readVersion, () => {
     await expect(
       readVersion("https://example.test", respondWith(response))
     ).resolves.toBeUndefined();
+    await expect(
+      readVersion(
+        "https://example.test",
+        answeringHealth({ status: "ok", version: "b57ca91" })
+      )
+    ).resolves.toBe("b57ca91");
   });
 });
 
@@ -87,6 +99,12 @@ describe(readWebVersion, () => {
     await expect(
       readWebVersion("https://example.test", respondWith(response))
     ).resolves.toBeUndefined();
+    await expect(
+      readWebVersion(
+        "https://example.test",
+        respondWith(Response.json({ version: "b57ca91" }))
+      )
+    ).resolves.toBe("b57ca91");
   });
 });
 

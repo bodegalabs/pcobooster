@@ -42,6 +42,7 @@ describe(parseRatePeriodMs, () => {
     "ignores unusable period %j",
     (period) => {
       expect(parseRatePeriodMs(period)).toBeUndefined();
+      expect(parseRatePeriodMs("20 seconds")).toBe(20_000);
     }
   );
 });

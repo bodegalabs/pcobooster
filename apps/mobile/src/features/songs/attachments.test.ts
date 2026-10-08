@@ -287,9 +287,10 @@ describe("attachment reads through the product client", () => {
       }),
       retry: false,
     };
-    await expect(new QueryClient().query(options)).rejects.toBeInstanceOf(
-      Forbidden
-    );
+    await expect(new QueryClient().query(options)).rejects.toMatchObject({
+      _tag: "Forbidden",
+      message: "Your song access is None.",
+    });
   });
 
   it("persists the file list but never a signed link or a file path", async () => {

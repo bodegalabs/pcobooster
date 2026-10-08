@@ -175,7 +175,10 @@ describe("Partial answers", () => {
     });
     await expect(
       cache.query(peopleReads.activity(context, ["a"]))
-    ).rejects.toBeInstanceOf(ContinuationStalledError);
+    ).rejects.toMatchObject({
+      name: "ContinuationStalledError",
+      operation: "people.dashboardActivity",
+    });
   });
 
   it("follows the person continuation and stops on one that does not move", async () => {

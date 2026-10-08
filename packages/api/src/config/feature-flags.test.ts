@@ -10,6 +10,7 @@ const flagshipKeyPattern = /^[\w-]{1,64}$/u;
 const MAX_DESCRIPTION_LENGTH = 512;
 
 describe("feature flag registry", () => {
+  // oxlint-disable-next-line test-quality/require-subject-call -- registry conformance: the two declarations must name the same flags
   it("defines exactly the flags the contracts name", () => {
     expect(featureFlagNames).toStrictEqual(Object.keys(featureFlags));
   });

@@ -82,7 +82,7 @@ describe("Search typed reads", () => {
     await old;
     expect(cache.getQueryData(options.queryKey)).toBeUndefined();
     expect(
-      cache.getQueryData(searchReads.people(context, "Grace").queryKey)
-    ).toBeDefined();
+      cache.getQueryData(searchReads.people(context, "Grace").queryKey)?.[0]
+    ).toMatchObject({ id: "4100154", fullName: "June Albright" });
   });
 });

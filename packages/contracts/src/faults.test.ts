@@ -1,14 +1,28 @@
 import { faultOutcome, productFaultSchema } from "@pcobooster/contracts/faults";
 import type { ProductFaultTag } from "@pcobooster/contracts/faults";
+import { AlreadyScheduled } from "@pcobooster/contracts/faults/already-scheduled";
+import { ClientOutdated } from "@pcobooster/contracts/faults/client-outdated";
+import { Conflict } from "@pcobooster/contracts/faults/conflict";
 import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
+import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
+import { InternalError } from "@pcobooster/contracts/faults/internal-error";
+import { InvalidInput } from "@pcobooster/contracts/faults/invalid-input";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { PersistenceFailure } from "@pcobooster/contracts/faults/persistence-failure";
+import { PositionMismatch } from "@pcobooster/contracts/faults/position-mismatch";
+import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
+import { RequestRejected } from "@pcobooster/contracts/faults/request-rejected";
+import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import { Schema } from "effect";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 const wire = Schema.toCodecJson(productFaultSchema);
 const encode = Schema.encodeSync(wire);
 const decode = Schema.decodeUnknownSync(wire);
+
+const classStatus = (tag: string) =>
+  productFaultSchema.members.find((fault) => fault.identifier === tag)?.ast
+    .annotations?.httpApiStatus;
 
 describe("faults on the wire", () => {
   it("never encodes server-only detail", () => {
@@ -60,21 +74,80 @@ describe("faults on the wire", () => {
     );
   });
 
-  it("pins each fault's status and code", () => {
-    expect(faultOutcome).toStrictEqual({
-      Unauthenticated: { status: 401, code: "UNAUTHORIZED" },
-      Forbidden: { status: 403, code: "FORBIDDEN" },
-      InvalidInput: { status: 400, code: "BAD_REQUEST" },
-      RequestRejected: { status: 400, code: "BAD_REQUEST" },
-      ClientOutdated: { status: 426, code: "CLIENT_OUTDATED" },
-      NotFound: { status: 404, code: "NOT_FOUND" },
-      Conflict: { status: 409, code: "CONFLICT" },
-      AlreadyScheduled: { status: 409, code: "ALREADY_SCHEDULED" },
-      PositionMismatch: { status: 409, code: "POSITION_MISMATCH" },
-      RateLimited: { status: 429, code: "TOO_MANY_REQUESTS" },
-      ExternalServiceFailure: { status: 502, code: "BAD_GATEWAY" },
-      PersistenceFailure: { status: 500, code: "INTERNAL_SERVER_ERROR" },
-      InternalError: { status: 500, code: "INTERNAL_SERVER_ERROR" },
-    });
+  it("answers each constructed fault with its pinned status and code", () => {
+    const rows = [
+      [new Unauthenticated({ message: "Sign in" }), 401, "UNAUTHORIZED"],
+      [new Forbidden({ message: "No access" }), 403, "FORBIDDEN"],
+      [new InvalidInput({ message: "Bad input" }), 400, "BAD_REQUEST"],
+      [
+        new RequestRejected({ message: "Rejected", reason: "invalid-payload" }),
+        400,
+        "BAD_REQUEST",
+      ],
+      [
+        new ClientOutdated({ message: "Update", minimumProtocolVersion: 2 }),
+        426,
+        "CLIENT_OUTDATED",
+      ],
+      [
+        new NotFound({ message: "No plan", resource: "plan" }),
+        404,
+        "NOT_FOUND",
+      ],
+      [new Conflict({ message: "Clash", reason: "stale" }), 409, "CONFLICT"],
+      [
+        new AlreadyScheduled({ message: "Already scheduled" }),
+        409,
+        "ALREADY_SCHEDULED",
+      ],
+      [
+        new PositionMismatch({
+          message: "Mismatch",
+          details: {
+            selected: {
+              teamId: "t",
+              teamName: "Band",
+              positionId: "p",
+              positionName: "Keys",
+            },
+            created: { planPersonId: "pp", teamPositionName: "Bass" },
+          },
+        }),
+        409,
+        "POSITION_MISMATCH",
+      ],
+      [
+        new RateLimited({ message: "Slow down", service: "planning-center" }),
+        429,
+        "TOO_MANY_REQUESTS",
+      ],
+      [
+        new ExternalServiceFailure({
+          message: "Upstream failed",
+          service: "planning-center",
+        }),
+        502,
+        "BAD_GATEWAY",
+      ],
+      [
+        new PersistenceFailure({ detail: "D1 failed" }),
+        500,
+        "INTERNAL_SERVER_ERROR",
+      ],
+      [new InternalError({}), 500, "INTERNAL_SERVER_ERROR"],
+    ] as const;
+    expect(
+      rows.map(([fault]) => ({
+        tag: fault._tag,
+        status: classStatus(fault._tag),
+        outcome: faultOutcome[fault._tag],
+      }))
+    ).toStrictEqual(
+      rows.map(([fault, status, code]) => ({
+        tag: fault.constructor.name,
+        status,
+        outcome: { status, code },
+      }))
+    );
   });
 });
