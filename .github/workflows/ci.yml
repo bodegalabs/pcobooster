@@ -159,23 +159,34 @@ jobs:
           persist-credentials: false
       - name: Setup toolchain
         uses: ./.github/actions/setup
-      - name: Reject closed or superseded preview revisions
+      # A closed PR needs no preview and a newer head's own run deploys it, so these end green
+      # without deploying instead of failing the run.
+      - name: Skip closed or superseded preview revisions
+        id: current
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           current=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '[.state, .head.sha] | join(":")')
-          test "$current" = "open:$EXPECTED_HEAD"
+          if [ "$current" = "open:$EXPECTED_HEAD" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Skipping the preview: the pull request is now $current."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Read preview-only secrets
+        if: steps.current.outputs.deploy == 'true'
         uses: ./.github/actions/infisical
         with:
           identity-id: ${{ vars.INFISICAL_IDENTITY_ID }}
           project-id: ${{ vars.INFISICAL_PROJECT_ID }}
           env-slug: ${{ vars.INFISICAL_ENV_SLUG }}
       - name: Deploy labeled preview
+        if: steps.current.outputs.deploy == 'true'
         run: bun alchemy deploy --stage "$PREVIEW_STAGE" --no-input --yes
       - name: Verify preview serves this commit
+        if: steps.current.outputs.deploy == 'true'
         run: bun scripts/cloudflare/verify-deployment.ts "$PREVIEW_ORIGIN" "$GITHUB_SHA"
 
   staging:
@@ -202,23 +213,34 @@ jobs:
           persist-credentials: false
       - name: Setup toolchain
         uses: ./.github/actions/setup
-      - name: Reject superseded staging revisions
+      # The newer revision's own run deploys it, so a superseded run ends green without deploying
+      # instead of failing the run on `main`.
+      - name: Skip superseded staging revisions
+        id: current
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           current=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)
-          test "$current" = "$GITHUB_SHA"
+          if [ "$current" = "$GITHUB_SHA" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Skipping the staging deploy: main has moved on to $current."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          fi
       # The preview project also holds staging's Access service token and its id.
       - name: Read preview-only secrets
+        if: steps.current.outputs.deploy == 'true'
         uses: ./.github/actions/infisical
         with:
           identity-id: ${{ vars.INFISICAL_IDENTITY_ID }}
           project-id: ${{ vars.INFISICAL_PROJECT_ID }}
           env-slug: ${{ vars.INFISICAL_ENV_SLUG }}
       - name: Deploy staging revision
+        if: steps.current.outputs.deploy == 'true'
         run: bun alchemy deploy --stage staging --no-input --yes
       # Passes Cloudflare Access with CLOUDFLARE_ACCESS_CLIENT_ID and CLOUDFLARE_ACCESS_CLIENT_SECRET.
       - name: Verify staging serves this commit
+        if: steps.current.outputs.deploy == 'true'
         run: bun scripts/cloudflare/verify-deployment.ts https://pcobooster-staging-web.jakebodea.workers.dev "$GITHUB_SHA"
 
   production:
@@ -247,22 +269,34 @@ jobs:
           persist-credentials: false
       - name: Setup toolchain
         uses: ./.github/actions/setup
-      - name: Reject superseded production revisions
+      # The newer revision's own run deploys it, so a superseded run ends green without deploying
+      # instead of failing the run on `main`.
+      - name: Skip superseded production revisions
+        id: current
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           current=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)
-          test "$current" = "$GITHUB_SHA"
+          if [ "$current" = "$GITHUB_SHA" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Skipping the production deploy: main has moved on to $current."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Read production-only secrets
+        if: steps.current.outputs.deploy == 'true'
         uses: ./.github/actions/infisical
         with:
           identity-id: ${{ vars.INFISICAL_IDENTITY_ID }}
           project-id: ${{ vars.INFISICAL_PROJECT_ID }}
           env-slug: ${{ vars.INFISICAL_ENV_SLUG }}
       - name: Deploy production revision
+        if: steps.current.outputs.deploy == 'true'
         run: bun alchemy deploy --stage prod --no-input --yes
       - name: Verify production serves this commit
+        if: steps.current.outputs.deploy == 'true'
         run: bun scripts/cloudflare/verify-deployment.ts https://pcobooster.com "$GITHUB_SHA"
       # Warns and skips when POSTHOG_ANNOTATION_API_KEY is absent; never fails the deploy.
       - name: Mark the deploy on PostHog charts
+        if: steps.current.outputs.deploy == 'true'
         run: bun scripts/posthog/annotate-deploy.ts "$GITHUB_SHA"
