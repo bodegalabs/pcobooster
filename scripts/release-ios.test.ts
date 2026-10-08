@@ -157,7 +157,7 @@ describe("release-ios.sh before it builds", () => {
     expect(rest.length).toBeGreaterThan(0);
   });
 
-  it("orders the blocked release steps: exact checkout, rerun refusal, gates, credentials, one release", () => {
+  it("orders the blocked release steps: exact checkout, rerun refusal, gates, one release", () => {
     const names = releaseSteps()
       .slice(1)
       .map((step) => step.split("\n")[0]);
@@ -169,7 +169,6 @@ describe("release-ios.sh before it builds", () => {
       "CI gate",
       "Install pinned release tools",
       "Release simulator smoke at this revision",
-      "Read isolated release credentials",
       "Release one build",
       "Report App Store Connect processing",
       "Retain release artifacts",

@@ -15,6 +15,7 @@
     "alchemy.cleanup.ts",
     "alchemy.ci.ts",
     "alchemy.posthog.ts",
+    "alchemy.secrets.ts",
     "packages/api/src/cloudflare.d.ts"
   ]
 }

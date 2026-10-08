@@ -21,13 +21,13 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
-      id-token: write
     environment: cloudflare-preview-cleanup
     concurrency:
       group: cloudflare-pr-${{ github.event.pull_request.number }}
       cancel-in-progress: false
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       PREVIEW_STAGE: pr-${{ github.event.pull_request.number }}
     steps:
       # pull_request_target is used only for cleanup from trusted main, never PR code.
@@ -45,12 +45,6 @@ jobs:
         run: |
           current=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq .state)
           test "$current" = closed
-      - name: Read preview Cloudflare credentials
-        uses: ./.github/actions/infisical
-        with:
-          identity-id: ${{ vars.INFISICAL_IDENTITY_ID }}
-          project-id: ${{ vars.INFISICAL_PROJECT_ID }}
-          env-slug: ${{ vars.INFISICAL_ENV_SLUG }}
       - name: Remove closed pull request resources
         run: bun alchemy destroy alchemy.cleanup.ts --stage "$PREVIEW_STAGE" --no-input --yes
 
@@ -60,7 +54,6 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-      id-token: write
       pull-requests: read
     environment: cloudflare-preview-cleanup
     concurrency:
@@ -68,6 +61,7 @@ jobs:
       cancel-in-progress: false
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     steps:
       - name: Checkout trusted default branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -76,12 +70,6 @@ jobs:
           persist-credentials: false
       - name: Setup toolchain
         uses: ./.github/actions/setup
-      - name: Read preview Cloudflare credentials
-        uses: ./.github/actions/infisical
-        with:
-          identity-id: ${{ vars.INFISICAL_IDENTITY_ID }}
-          project-id: ${{ vars.INFISICAL_PROJECT_ID }}
-          env-slug: ${{ vars.INFISICAL_ENV_SLUG }}
       - name: Destroy stages whose pull request is closed
         env:
           GITHUB_TOKEN: ${{ github.token }}

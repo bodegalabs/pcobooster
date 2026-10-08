@@ -6,7 +6,7 @@ The public site is a separate TanStack Start app at `apps/marketing`, prerendere
 
 - `bun run dev`: API on port 3000, product on port 3001, marketing on port 3002, and admin on port 3003 in the main checkout. Worktrees get their own four ports; see [local ports](environment.md#local-ports).
 - `bun run dev:present`: the same, with anonymized Planning Center people in the product.
-- `bun run dev:marketing`: marketing only, with no database, Infisical, OAuth, or session requirement.
+- `bun run dev:marketing`: marketing only, with no database, Keychain, OAuth, or session requirement.
 
 Use the product port (3001 in the main checkout) to test the whole journey, including Open app. In development, the product forwards `/api/*` to the local API Worker through its service binding and proxies `/`, `/about`, and `/marketing/*` to the marketing port (3002). Marketing uses full document navigation so it never asks the product router to load a marketing page (or vice versa).
 

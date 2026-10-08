@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./tsconfig.base.json": "./tsconfig.base.json",
-    "./dev-ports": "./src/dev-ports.ts"
+    "./dev-ports": "./src/dev-ports.ts",
+    "./public-environment": "./src/public-environment.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

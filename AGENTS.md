@@ -41,13 +41,13 @@
 - `bun run db:generate`: generate SQLite migrations from the Drizzle schema interactively. `Drizzle.Schema` (`apps/server/src/database.ts`) also generates them on `bun run dev`/deploy; commit every generated migration (a test enforces it). Name new migrations with `bun run --cwd packages/api db:generate --name <what_changed>`. Alchemy applies them at startup/deploy. Migrations must keep the deployed code working (expand, then contract); see [docs/database.md](docs/database.md#migrations-must-keep-the-running-app-online).
 - Stages: `local`, per-PR `pr-<number>` previews, `staging` (persistent, deployed from `main` before production, behind Cloudflare Access; flags use the preview tier), and `prod`. See [docs/ci-cd.md](docs/ci-cd.md#staging).
 - Deployment and rollback changes: read [docs/ci-cd.md](docs/ci-cd.md) and [docs/database.md](docs/database.md). Merges to `main` deploy production automatically through CI. Confirm any deployment you run yourself (`deploy:*`, `infra:deploy`) with the user before executing it.
-- `bun run infra:plan`: dry-run the CI/deploy control plane (`alchemy.ci.ts`: GitHub ruleset, environments, Cloudflare deploy tokens, Infisical secrets and OIDC bindings) with drift detection. Apply only with `bun run infra:deploy` after the user confirms.
+- `bun run infra:plan`: dry-run the CI/deploy control plane (`alchemy.ci.ts`: GitHub ruleset, environments, Cloudflare deploy tokens and encrypted GitHub environment secrets) with drift detection. Apply only with `bun run infra:deploy` after the user confirms.
 
 ### Codex cloud sessions
 
 - Setup/maintenance scripts live under `scripts/codex-cloud/`; see [docs/codex-cloud.md](docs/codex-cloud.md).
 - `bun run ci` is secretless. Local D1 belongs to the checkout; no Neon branch setup or teardown is required.
-- Cloud app commands read only Infisical Development `/cloud`. Keep local PAT and deployment secrets out of cloud sessions.
+- Cloud app commands accept only their dedicated development credentials through the `cloud` allowlist; macOS reads Keychain, Linux reads host-injected secrets. Keep local PAT and deployment secrets out of cloud sessions.
 
 ## Coding Style & Naming Conventions
 

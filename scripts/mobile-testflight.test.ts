@@ -137,7 +137,7 @@ describe("the local TestFlight release", () => {
     [{ BUILD_NUMBER: "380" }, "Unset BUILD_NUMBER"],
     [
       { ASC_KEY_ID: "", ASC_ISSUER_ID: "", ASC_KEY_P8_BASE64: "" },
-      "Inject Production /apple",
+      "Load the Keychain apple scope",
     ],
     [{ EXPO_PUBLIC_POSTHOG_KEY: "phc_other" }, "PostHog project key"],
   ])("refuses %j before touching anything", async (change, message) => {

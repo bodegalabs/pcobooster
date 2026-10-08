@@ -58,7 +58,7 @@ const resolvePortBase = (
 
 const missingTokenMessage = [
   "bun run dev signs in as the owner of a Planning Center personal access token, but",
-  "PLANNING_CENTER_CLIENT or PLANNING_CENTER_PAT is missing from Infisical Development /local.",
+  "PLANNING_CENTER_CLIENT or PLANNING_CENTER_PAT is missing from the macOS Keychain local scope.",
   "Add both (see docs/environment.md#developer-credentials), or run `bun run dev:auth` to sign in",
   "through Planning Center OAuth instead.",
 ].join("\n");
@@ -92,7 +92,7 @@ export const resolveDevLaunch = (input: DevLaunchInput): DevLaunch => {
     environment: {
       ...inherited,
       DEV_PORT_BASE: String(portBase),
-      // The command, not Infisical, decides: the PAT by default, OAuth with `--oauth`.
+      // The command decides: the PAT by default, OAuth with `--oauth`.
       DEV_AUTH_BYPASS: oauth ? "" : "1",
     },
   };

@@ -41,7 +41,7 @@ Every screen runs the same code and live Planning Center reads as a signed-in se
    openssl rand -base64 24 | tr '+/' '-_' | tr -d '='
    ```
 
-3. Add these to Infisical Production `/`, then redeploy:
+3. Set these in the Keychain production scope, review `secrets:plan:production`, then apply the secrets stack after approval:
 
    | Key                           | Value                       |
    | ----------------------------- | --------------------------- |

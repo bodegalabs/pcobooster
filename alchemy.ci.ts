@@ -1,8 +1,7 @@
 /**
  * The CI/deploy control plane: repository merge settings, the `main` ruleset, the deployment
  * environments and their variables, Cloudflare deploy tokens, staging's Access service token, and
- * the Infisical secrets and OIDC bindings that hand them to GitHub Actions. GitHub never stores a
- * Cloudflare token.
+ * encrypted GitHub environment secrets that hand credentials to GitHub Actions.
  *
  * Run it locally with `bun run infra:plan` and `bun run infra:deploy`; see docs/ci-cd.md for the
  * credentials each needs. The stack keeps its state in the shared Cloudflare state store under
@@ -14,16 +13,11 @@ import * as Cloudflare from "alchemy/Cloudflare";
 import * as GitHub from "alchemy/GitHub";
 import * as Output from "alchemy/Output";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
-import { Effect, Layer, Redacted } from "effect";
+import { Config, Effect, Layer, Redacted } from "effect";
 
 import { existingZoneId, formerDomain } from "./scripts/cloudflare/zones";
 import { accountApiTokenProvider } from "./scripts/infra/cloudflare";
 import { gitHubProviders, GitHubRuleset } from "./scripts/infra/github";
-import {
-  InfisicalOidcAuth,
-  InfisicalSecret,
-  infisicalProviders,
-} from "./scripts/infra/infisical";
 import { mainRuleset } from "./scripts/infra/main-ruleset";
 
 const owner = "bodegalabs";
@@ -32,19 +26,13 @@ const accountId = "984b82870acd18daf8bda97bad966b38";
 
 /**
  * Deploy tokens are minted per generation. Bumping `generation` mints fresh tokens, writes them
- * to Infisical, and then revokes the previous generation in the same deploy. Rotate before
+ * to GitHub environment secrets, and then revokes the previous generation in the same deploy. Rotate before
  * `expiresOn`.
  */
 const deployTokens = {
   generation: 1,
   expiresOn: "2027-09-23T23:59:59Z",
 } as const;
-
-const githubOidcIssuer = "https://token.actions.githubusercontent.com";
-const githubOidcAudience = `https://github.com/${owner}/${repository}`;
-/** Immutable subjects (owner and repository ids) survive renames and cannot be re-registered. */
-const githubOidcSubject = (environment: string) =>
-  `repo:${owner}@305914027/${repository}@1125110564:environment:${environment}`;
 
 const accountScope = { [`com.cloudflare.api.account.${accountId}`]: "*" };
 /** Account-level Flagship Write (includes read); Alchemy's typed catalog does not list it yet. */
@@ -71,28 +59,19 @@ const deployPermissions: Cloudflare.ApiToken.PermissionGroupRef[] = [
   ACCESS_APPS_WRITE,
 ];
 
-/** One Infisical project per trust level; each GitHub environment reads exactly one. */
+/** Separate deployment tokens per trust level; credentials stay scoped to GitHub environments. */
 interface DeployTarget {
   readonly key: "Preview" | "Production";
-  readonly projectId: string;
-  readonly envSlug: string;
-  readonly identityId: string;
-  readonly boundSubject: string;
-  readonly boundClaims: Readonly<Record<string, string>>;
+  readonly environments: readonly string[];
   readonly policies: Cloudflare.ApiToken.Policy[];
 }
-
 const preview: DeployTarget = {
   key: "Preview",
-  projectId: "586fd830-7861-4b84-a8a6-d05c9bf7a14a",
-  envSlug: "staging",
-  identityId: "c569372e-b397-477c-934a-be65f9d982da",
-  // Infisical glob: exactly `cloudflare-preview`, `cloudflare-preview-cleanup`, and
-  // `cloudflare-staging`.
-  boundSubject: githubOidcSubject(
-    "{cloudflare-preview,cloudflare-preview-cleanup,cloudflare-staging}"
-  ),
-  boundClaims: {},
+  environments: [
+    "cloudflare-preview",
+    "cloudflare-preview-cleanup",
+    "cloudflare-staging",
+  ],
   policies: [
     {
       effect: "allow",
@@ -101,21 +80,9 @@ const preview: DeployTarget = {
     },
   ],
 };
-
-/**
- * Production also ships the iOS app: a `testflight` job (the Expo app's, once it lands) releases
- * the same verified `main` revision the production deploy just served, so it shares production's
- * trust level and secrets (the PostHog key built into the app and the App Store Connect API key).
- */
 const production: DeployTarget = {
   key: "Production",
-  projectId: "2eca20e1-20ac-4f06-a086-99ea5c590483",
-  envSlug: "prod",
-  identityId: "8018b3d8-bf89-4d3f-a4a5-98ac80ca343c",
-  // Infisical glob: exactly `cloudflare-production` and `testflight`.
-  boundSubject: githubOidcSubject("{cloudflare-production,testflight}"),
-  // The environment already only accepts `main`; the claim makes Infisical check it too.
-  boundClaims: { ref: "refs/heads/main" },
+  environments: ["cloudflare-production"],
   policies: [
     {
       effect: "allow",
@@ -240,26 +207,15 @@ const deployTarget = Effect.fn("deployTarget")(function* deployTarget(
       expiresOn: deployTokens.expiresOn,
     }
   );
-  yield* InfisicalSecret(`${target.key}CloudflareApiToken`, {
-    projectId: target.projectId,
-    environment: target.envSlug,
-    secretPath: "/",
-    name: "CLOUDFLARE_API_TOKEN",
-    value: token.value,
-    comment: `Managed by alchemy.ci.ts (${tokenName}). Rotate by bumping deployTokens.generation.`,
-  });
-  yield* InfisicalOidcAuth(`${target.key}OidcAuth`, {
-    identityId: target.identityId,
-    oidcDiscoveryUrl: githubOidcIssuer,
-    boundIssuer: githubOidcIssuer,
-    boundAudiences: githubOidcAudience,
-    boundSubject: target.boundSubject,
-    boundClaims: target.boundClaims,
-    accessTokenTTL: 3600,
-    accessTokenMaxTTL: 3600,
-    accessTokenNumUsesLimit: 0,
-    accessTokenTrustedIps: ["0.0.0.0/0", "::/0"],
-  });
+  for (const environment of target.environments) {
+    yield* GitHub.Secret(`${target.key}${environment}CloudflareApiToken`, {
+      owner,
+      repository,
+      environment,
+      name: "CLOUDFLARE_API_TOKEN",
+      value: token.value,
+    }).pipe(RemovalPolicy.retain());
+  }
   return token.tokenId;
 });
 
@@ -280,7 +236,7 @@ const requireClientSecret = (
 /**
  * Lets the staging deploy job verify the deploy through Cloudflare Access without a login.
  * `alchemy.run.ts` admits it by id; the client credentials use the names Alchemy's Access client
- * reads. They live in the preview project, whose identity can already overwrite staging's Workers.
+ * reads. They live only in the preview and staging GitHub environments.
  * Rotate by bumping `clientSecretVersion`.
  */
 const stagingAccessServiceToken = Effect.gen(function* stagingAccessToken() {
@@ -289,31 +245,29 @@ const stagingAccessServiceToken = Effect.gen(function* stagingAccessToken() {
     duration: "8760h",
     clientSecretVersion: 1,
   });
-  const location = {
-    projectId: preview.projectId,
-    environment: preview.envSlug,
-    secretPath: "/",
-  };
-  const comment =
-    "Managed by alchemy.ci.ts (pcobooster-staging-deploy-check service token).";
-  yield* InfisicalSecret("StagingAccessServiceTokenId", {
-    ...location,
-    name: "STAGING_ACCESS_SERVICE_TOKEN_ID",
-    value: Output.map(toRedacted)(token.serviceTokenId),
-    comment,
-  });
-  yield* InfisicalSecret("StagingAccessClientId", {
-    ...location,
-    name: "CLOUDFLARE_ACCESS_CLIENT_ID",
-    value: Output.map(toRedacted)(token.clientId),
-    comment,
-  });
-  yield* InfisicalSecret("StagingAccessClientSecret", {
-    ...location,
-    name: "CLOUDFLARE_ACCESS_CLIENT_SECRET",
-    value: Output.map(requireClientSecret)(token.clientSecret),
-    comment,
-  });
+  for (const environment of ["cloudflare-preview", "cloudflare-staging"]) {
+    yield* GitHub.Variable(`${environment}StagingAccessServiceTokenId`, {
+      owner,
+      repository,
+      environment,
+      name: "STAGING_ACCESS_SERVICE_TOKEN_ID",
+      value: token.serviceTokenId,
+    }).pipe(RemovalPolicy.retain());
+    yield* GitHub.Secret(`${environment}StagingAccessClientId`, {
+      owner,
+      repository,
+      environment,
+      name: "CLOUDFLARE_ACCESS_CLIENT_ID",
+      value: Output.map(toRedacted)(token.clientId),
+    }).pipe(RemovalPolicy.retain());
+    yield* GitHub.Secret(`${environment}StagingAccessClientSecret`, {
+      owner,
+      repository,
+      environment,
+      name: "CLOUDFLARE_ACCESS_CLIENT_SECRET",
+      value: Output.map(requireClientSecret)(token.clientSecret),
+    }).pipe(RemovalPolicy.retain());
+  }
   return token.serviceTokenId;
 });
 
@@ -322,8 +276,7 @@ export default Alchemy.Stack(
   {
     providers: Layer.mergeAll(
       gitHubProviders(),
-      accountApiTokenProvider(),
-      infisicalProviders()
+      accountApiTokenProvider()
     ).pipe(Layer.provideMerge(Cloudflare.providers())),
     state: ciState,
   },
@@ -357,11 +310,20 @@ export default Alchemy.Stack(
       }).pipe(RemovalPolicy.retain());
       const variables = {
         CLOUDFLARE_ACCOUNT_ID: accountId,
-        INFISICAL_PROJECT_ID: environment.target.projectId,
-        INFISICAL_IDENTITY_ID: environment.target.identityId,
-        INFISICAL_ENV_SLUG: environment.target.envSlug,
         ...environment.variables,
       };
+      if (
+        environment.name !== "testflight" &&
+        environment.name !== "cloudflare-preview-cleanup"
+      ) {
+        Object.assign(variables, {
+          PCOBOOSTER_ADMIN_EMAILS: yield* Config.String(
+            environment.target.key === "Production"
+              ? "CI_PRODUCTION_ADMIN_EMAILS"
+              : "CI_PREVIEW_ADMIN_EMAILS"
+          ),
+        });
+      }
       for (const [name, value] of Object.entries(variables)) {
         yield* GitHub.Variable(`${environment.id}${name}`, {
           ...target,
@@ -372,15 +334,24 @@ export default Alchemy.Stack(
       }
     }
 
-    // Turns on the `testflight` CI job, which the Expo app will bring back (the Swift app's is
-    // gone). Deploy it only once the App Store Connect key is in Infisical Production
-    // (docs/ci-cd.md, iOS releases).
+    // Legacy TestFlight switch remains inert; the release executor stays blocked.
     yield* GitHub.Variable("TestFlightReleases", {
       ...target,
       name: "TESTFLIGHT_RELEASES",
       value: "enabled",
     });
 
+    const annotationKey = yield* Config.Redacted(
+      "POSTHOG_ANNOTATION_API_KEY"
+    ).pipe(Config.option);
+    if (annotationKey._tag === "Some") {
+      yield* GitHub.Secret("ProductionPostHogAnnotationKey", {
+        ...target,
+        environment: "cloudflare-production",
+        name: "POSTHOG_ANNOTATION_API_KEY",
+        value: annotationKey.value,
+      }).pipe(RemovalPolicy.retain());
+    }
     const previewTokenId = yield* deployTarget(preview);
     const stagingServiceTokenId = yield* stagingAccessServiceToken;
     const productionZoneIds: string[] = [];

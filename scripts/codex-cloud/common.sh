@@ -74,20 +74,8 @@ codex_cloud_ensure_bun() {
     "expected Bun ${CODEX_CLOUD_BUN_VERSION}, found $(bun --version)."
 }
 
-codex_cloud_ensure_infisical() {
-  if command -v infisical >/dev/null 2>&1; then
-    return
-  fi
-
-  curl --fail --silent --show-error --location \
-    https://artifacts-cli.infisical.com/setup.deb.sh |
-    sudo -E bash
-  codex_cloud_install_apt_packages infisical
-}
-
 codex_cloud_bootstrap() {
   codex_cloud_ensure_base_tools
   codex_cloud_ensure_node
   codex_cloud_ensure_bun
-  codex_cloud_ensure_infisical
 }
