@@ -54,7 +54,7 @@ Cloudflare Access protects it, and every pull request preview the same way. `alc
 
 ## Production
 
-Merge equals deploy. A push to `main` deploys production after `ci`, `cloudflare-build`, and the `staging` deploy pass. So does a manual CI run on `main` with `deploy_production`. `cloudflare-production` accepts only the `main` branch and has no approval gate. The job rejects a revision superseded by newer `main` before reading production secrets. Post-deploy verification then fails the run unless pcobooster.com serves the merged commit. The merge queue and its required checks are the only gate before production, so keep them strict.
+Merge equals deploy. A push to `main` deploys production after `ci`, `cloudflare-build`, and the `staging` deploy pass. So does a manual CI run on `main` with `deploy_production`. `cloudflare-production` accepts only the `main` branch and has no approval gate. When newer `main` has superseded the revision, the job ends green without reading production secrets or deploying; the newer revision's own run deploys it. Staging and labeled previews skip superseded (or closed) revisions the same way. Post-deploy verification then fails the run unless pcobooster.com serves the merged commit. The merge queue and its required checks are the only gate before production, so keep them strict.
 
 After verification, the job marks the release on PostHog charts. It skips with a warning when `POSTHOG_ANNOTATION_API_KEY` is absent; see [analytics](analytics.md#deploy-annotations). PostHog dashboards are applied separately with `bun run posthog:deploy`, never by CI.
 

@@ -1194,7 +1194,9 @@ describe("candidate availability over thousands of repeating blockouts", () => {
       readOnce: true,
       everyCallWithinBudget: true,
     });
-  });
+    // Usually well under a second; CI runs this beside every other package's suite, and one
+    // merge-queue run hit the 5 s default under that contention.
+  }, 20_000);
 });
 
 describe("person detail over paged plan times", () => {
