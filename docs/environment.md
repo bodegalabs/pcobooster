@@ -45,7 +45,7 @@ Feature flags are typed infrastructure, not secret settings. `packages/contracts
 - **Browser.** The product never inlines flags. One call, `features.status`, answers every flag for the visitor. The app layout loads it on the server (`featuresQueryOptions` in `apps/web/src/lib/features.ts`) so the navigation renders with the answers; routes guard with `beforeLoad: featureGuard(name)`, and components read a flag with `useFeatureEnabled(name)`.
 - **Adding a flag.** Add its name to `featureFlagNames`, then follow the type errors: a registry entry, a not-found answer in `requireFeatureFlag`, and, if it hides a feature the access review lists, its `AppFeature` in `apps/web/src/lib/planning-center-access.ts`. Removing a flag is the reverse; Alchemy deletes it from Flagship on the next deploy.
 
-Deploying Flagship resources needs Flagship access: the deploy tokens need Flagship Write (see [CI/CD](ci-cd.md#oidc-and-token-scope)), and a local Alchemy OAuth profile needs the `flagship.read` and `flagship.write` scopes (`bun alchemy profile edit`, then sign in again). Flagship is in public beta; Cloudflare has not announced pricing.
+Deploying Flagship resources needs Flagship access: the deploy tokens need Flagship Write (see [CI/CD](ci-cd.md#deployment-credentials-and-token-scope)), and a local Alchemy OAuth profile needs the `flagship.read` and `flagship.write` scopes (`bun alchemy profile edit`, then sign in again). Flagship is in public beta; Cloudflare has not announced pricing.
 
 ## Developer credentials
 
