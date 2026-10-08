@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-readonly CODEX_CLOUD_BUN_VERSION="1.3.9"
+readonly CODEX_CLOUD_BUN_VERSION="1.4.2"
 readonly CODEX_CLOUD_NODE_MAJOR="24"
 
 codex_cloud_fail() {
