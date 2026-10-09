@@ -77,8 +77,9 @@ export const pcResourceResponseSchema = Schema.Struct({
 
 /** A collection's `data`; a single resource where a list was expected reads as a list of one. */
 const collectionDataSchema = Schema.Union([
-  pcResourceSchema,
+  // Lists first: nearly every collection answer is one, so the union rarely tries twice.
   pcResourcesSchema,
+  pcResourceSchema,
 ]).pipe(
   Schema.decodeTo(
     Schema.mutable(Schema.Array(Schema.toType(pcResourceSchema))),
