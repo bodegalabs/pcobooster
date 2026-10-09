@@ -288,7 +288,7 @@ const ON_MAIN: UpdateCheckout = { head: SHA, originMain: SHA, dirty: false };
 const HERMES = Buffer.from("c61fbc03c103191f", "hex");
 const BUNDLE = Buffer.concat([
   HERMES,
-  Buffer.from(`bytecode ${POSTHOG_PROJECT_KEY}`),
+  Buffer.from(`bytecode ${POSTHOG_PROJECT_KEY} ${SHA}`),
 ]);
 
 const ENV = {
@@ -411,7 +411,7 @@ describe(runUpdatePublish, () => {
         "checkout",
         "bunx expo-updates runtimeversion:resolve --platform ios",
         `rm -rf build/updates/${SHA}`,
-        `bunx expo export --platform ios --output-dir build/updates/${SHA}/export --dump-sourcemap`,
+        `bunx expo export --platform ios --output-dir build/updates/${SHA}/export --dump-sourcemap --clear`,
         `bun run scripts/hermes-gate/gate.ts --bundle build/updates/${SHA}/export/_expo/static/js/ios/index.hbc`,
         "bunx expo config --type public --json",
         "save release",
@@ -437,7 +437,7 @@ describe(runUpdatePublish, () => {
     );
     const exportEnv =
       envs[
-        `bunx expo export --platform ios --output-dir build/updates/${SHA}/export --dump-sourcemap`
+        `bunx expo export --platform ios --output-dir build/updates/${SHA}/export --dump-sourcemap --clear`
       ];
     const deployEnv =
       envs["bun alchemy deploy alchemy.mobile-updates.ts --stage prod --yes"];
@@ -483,27 +483,35 @@ describe(runUpdatePublish, () => {
     });
   });
 
-  it("publishes nothing when the export is not Hermes bytecode, lacks the analytics key, or is not confirmed", async () => {
+  it("publishes nothing when the export is not Hermes bytecode, lacks the analytics key or revision, or is not confirmed", async () => {
     const notHermes = harness({
       bundle: Buffer.from(`plain ${POSTHOG_PROJECT_KEY}`),
     });
     const noAnalytics = harness({
       bundle: Buffer.concat([HERMES, Buffer.from("bytecode")]),
     });
+    const noRevision = harness({
+      bundle: Buffer.concat([HERMES, Buffer.from(POSTHOG_PROJECT_KEY)]),
+    });
     const declined = harness({ confirmed: false });
     expect({
       notHermes: await failureOf(runUpdatePublish(notHermes.deps, OPTIONS)),
       noAnalytics: await failureOf(runUpdatePublish(noAnalytics.deps, OPTIONS)),
+      noRevision: await failureOf(runUpdatePublish(noRevision.deps, OPTIONS)),
       declined: await failureOf(runUpdatePublish(declined.deps, OPTIONS)),
-      deployed: [notHermes.steps, noAnalytics.steps, declined.steps].map(
-        deployed
-      ),
+      deployed: [
+        notHermes.steps,
+        noAnalytics.steps,
+        noRevision.steps,
+        declined.steps,
+      ].map(deployed),
     }).toStrictEqual({
       notHermes: "_expo/static/js/ios/index.hbc is not Hermes bytecode.",
       noAnalytics:
         "The exported JavaScript does not embed the PostHog project key; analytics and diagnostics would be off. Nothing was published.",
+      noRevision: `The exported JavaScript does not carry revision ${SHA}; diagnostics would misname it. Nothing was published.`,
       declined: "Not confirmed. Nothing was published.",
-      deployed: [false, false, false],
+      deployed: [false, false, false, false],
     });
   });
 

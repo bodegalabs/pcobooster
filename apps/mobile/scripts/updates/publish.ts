@@ -229,6 +229,8 @@ const exportUpdate = (
       "--output-dir",
       exportDirectory,
       "--dump-sourcemap",
+      // Metro's cache could hold another revision's inlined `EXPO_PUBLIC_` values.
+      "--clear",
     ],
     context.env,
     "apps/mobile"
@@ -246,6 +248,12 @@ const exportUpdate = (
   if (!Buffer.from(launch.bytes).includes(analyticsKey)) {
     throw new Error(
       "The exported JavaScript does not embed the PostHog project key; analytics and diagnostics would be off. Nothing was published."
+    );
+  }
+  // Diagnostics name the JavaScript a phone runs by this revision.
+  if (!Buffer.from(launch.bytes).includes(context.revision)) {
+    throw new Error(
+      `The exported JavaScript does not carry revision ${context.revision}; diagnostics would misname it. Nothing was published.`
     );
   }
   deps.log("==> Release Hermes gate (exported bytecode)");
