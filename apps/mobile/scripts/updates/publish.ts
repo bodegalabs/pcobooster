@@ -340,6 +340,39 @@ const expectedAnswer = (published: PublishedUpdate): ExpectedAnswer =>
         noUpdateAvailable: published.noUpdateAvailable.body,
       };
 
+/**
+ * Rolling back a runtime version no phone has an update for would report success and change
+ * nothing for the builds actually running the update.
+ */
+const assertUpdatePublished = async (
+  deps: PublishDependencies,
+  stage: UpdateStage,
+  origin: string,
+  runtimeVersion: string
+): Promise<void> => {
+  const live = await deps.liveAnswer(origin, runtimeVersion);
+  if (live.kind !== "update") {
+    throw new Error(
+      `${stage} has no update for runtime version ${runtimeVersion} to roll back. Pass the --runtime-version of the builds running it; \`bun run ios:update:status --runtime-version <fingerprint>\` shows what each is told.`
+    );
+  }
+};
+
+/**
+ * A first update for a runtime version reaches only builds made with this exact native layer;
+ * after a native change it reaches no installed build at all, which nothing else would show.
+ */
+const reachNote = async (
+  deps: PublishDependencies,
+  origin: string,
+  runtimeVersion: string
+): Promise<string> => {
+  const live = await deps.liveAnswer(origin, runtimeVersion);
+  return live.kind === "nothing"
+    ? " Nothing is published for this runtime version yet: it reaches only builds whose `build/release/runtime-version` matches."
+    : "";
+};
+
 export const runUpdatePublish = async (
   deps: PublishDependencies,
   options: PublishOptions
@@ -413,14 +446,7 @@ export const runUpdatePublish = async (
   let summary: string;
   let code: string;
   if (options.rollback) {
-    // Rolling back a runtime version no phone has an update for would report success and change
-    // nothing for the builds actually running the update.
-    const live = await deps.liveAnswer(origin, runtimeVersion);
-    if (live.kind !== "update") {
-      throw new Error(
-        `${options.stage} has no update for runtime version ${runtimeVersion} to roll back. Pass the --runtime-version of the builds running it; \`bun run ios:update:status --runtime-version <fingerprint>\` shows what each is told.`
-      );
-    }
+    await assertUpdatePublished(deps, options.stage, origin, runtimeVersion);
     published = verified(
       publishedRollBack(deps.now(), options.sign),
       options.verify
@@ -448,9 +474,12 @@ export const runUpdatePublish = async (
     uploads,
   };
   const releasePath = deps.saveRelease(release);
+  const reach = options.rollback
+    ? ""
+    : await reachNote(deps, origin, runtimeVersion);
   if (
     !(await deps.confirm(
-      `Publish to ${options.stage} for runtime version ${runtimeVersion}: ${summary}, from ${before.head}.`,
+      `Publish to ${options.stage} for runtime version ${runtimeVersion}: ${summary}, from ${before.head}.${reach}`,
       code
     ))
   ) {

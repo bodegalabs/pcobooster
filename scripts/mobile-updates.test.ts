@@ -345,6 +345,7 @@ const harness = (fake: Fake = {}) => {
   const envs: Record<string, Readonly<Record<string, string | undefined>>> = {};
   const checkouts = [...(fake.checkouts ?? [ON_MAIN, ON_MAIN])];
   const saved: PreparedRelease[] = [];
+  const summaries: string[] = [];
   const live: string[] = [];
   const record = (
     command: string,
@@ -398,8 +399,9 @@ const harness = (fake: Fake = {}) => {
       saved.push(release);
       return "/tmp/release-prod.json";
     },
-    confirm: async (_summary, code) => {
+    confirm: async (summary, code) => {
       steps.push(`confirm ${code}`);
+      summaries.push(summary);
       return await Promise.resolve(fake.confirmed ?? true);
     },
     checkLive: async (origin, runtimeVersion, expected) => {
@@ -410,7 +412,7 @@ const harness = (fake: Fake = {}) => {
     now: () => new Date("2026-10-08T20:00:00Z"),
     log: () => {},
   };
-  return { deps, steps, envs, saved, live };
+  return { deps, steps, envs, saved, live, summaries };
 };
 
 const OPTIONS: PublishOptions = {
@@ -605,6 +607,22 @@ describe(runUpdatePublish, () => {
       live: [`https://pcobooster.com ${RUNTIME} rollBackToEmbedded`],
       record: [],
     });
+  });
+
+  it("warns before the first update for a runtime version that it reaches only matching builds", async () => {
+    const first = harness({ live: { kind: "nothing" } });
+    const next = harness();
+
+    await runUpdatePublish(first.deps, OPTIONS);
+    await runUpdatePublish(next.deps, OPTIONS);
+
+    expect(
+      [first.summaries[0], next.summaries[0]].map((summary) =>
+        summary?.endsWith(
+          "Nothing is published for this runtime version yet: it reaches only builds whose `build/release/runtime-version` matches."
+        )
+      )
+    ).toStrictEqual([true, false]);
   });
 
   it("refuses to roll back a runtime version that has no update published", async () => {
