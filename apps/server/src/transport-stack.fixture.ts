@@ -20,11 +20,13 @@
 import { createAuth } from "@pcobooster/api/auth";
 import { createDatabase } from "@pcobooster/api/db/client";
 import { account, session, user } from "@pcobooster/api/db/schema";
+import { MobileUpdates } from "@pcobooster/api/http/mobile-updates";
 import { PROCEDURE_LOG_MESSAGE } from "@pcobooster/api/http/outcome";
 import { IsolateServer } from "@pcobooster/api/http/procedure-scope";
 import { structuredLogging } from "@pcobooster/api/logging";
 import type { FeatureFlags } from "@pcobooster/api/modules/feature-flags/feature-flags";
 import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
+import { emptyUpdateStore } from "@pcobooster/api/testing/mobile-updates";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import * as Alchemy from "alchemy";
@@ -576,6 +578,7 @@ export default class TransportStackFixture extends Cloudflare.Worker<TransportSt
             yield* withScriptedDisconnect(httpRequest)
           ),
           Effect.provideService(IsolateServer, { server, report: null }),
+          Effect.provideService(MobileUpdates, emptyUpdateStore),
           Effect.provideService(HttpClient.HttpClient, fakePlanningCenter)
         );
       }).pipe(Effect.provide(fixtureLogging)),

@@ -272,6 +272,38 @@ test(
 );
 
 test(
+  "answers iOS update checks and asset downloads from the stage's update bucket",
+  Effect.gen(function* updateBucket() {
+    const url = yield* apiUrl;
+    const [check, asset] = yield* Effect.promise(
+      async () =>
+        await Promise.all([
+          fetch(`${url}/api/updates/manifest`, {
+            headers: {
+              "expo-protocol-version": "1",
+              "expo-platform": "ios",
+              "expo-runtime-version": "0".repeat(40),
+            },
+          }),
+          fetch(`${url}/api/updates/assets/${"A".repeat(43)}`),
+        ])
+    );
+
+    // The local bucket is empty: nothing published, no such asset.
+    assert.deepStrictEqual(
+      [
+        check.status,
+        check.headers.get("expo-protocol-version"),
+        asset.status,
+        asset.headers.get("cache-control"),
+      ],
+      [204, "1", 404, "private, no-store"]
+    );
+  }),
+  requestTimeout
+);
+
+test(
   "answers ClientOutdated (426) to a client below the supported API version or without one",
   Effect.gen(function* outdatedClient() {
     const url = yield* apiUrl;

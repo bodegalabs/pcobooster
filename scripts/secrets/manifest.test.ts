@@ -74,6 +74,23 @@ describe("secret ownership boundaries", () => {
     });
   });
 
+  it("gives update publishing the signing key and no Cloudflare token", () => {
+    expect(
+      commandEnvironment(
+        "mobile-updates",
+        { PATH: "/usr/bin", CLOUDFLARE_API_TOKEN: "inherited-deploy" },
+        {
+          UPDATES_SIGNING_KEY_PEM_BASE64: "signing-key",
+          CLOUDFLARE_API_TOKEN: "deploy",
+          ASC_KEY_P8_BASE64: "apple-key",
+        }
+      )
+    ).toStrictEqual({
+      PATH: "/usr/bin",
+      UPDATES_SIGNING_KEY_PEM_BASE64: "signing-key",
+    });
+  });
+
   it("makes previews consume only the broker and provider credentials", () => {
     expect(storedRuntimeKeys(false)).toStrictEqual([
       "OAUTH_PROXY_SECRET",

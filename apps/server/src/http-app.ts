@@ -1,22 +1,32 @@
 /**
  * The API Worker's one HTTP router, built once per isolate before any request: the product API
- * (`/api/v1`, Effect HttpApi), Better Auth (`/api/auth/*`, with its per-IP write limit), and
- * liveness (`/`, `/health`). Around it, in this order from the outside in:
+ * (`/api/v1`, Effect HttpApi), Better Auth (`/api/auth/*`, with its per-IP write limit), the iOS
+ * app's over-the-air updates (`/api/updates/*`, whose protocol Expo fixes), and liveness (`/`,
+ * `/health`). Around it, in this order from the outside in:
  * - the cache policy: `Cache-Control: private, no-store` and the release header on every
  *   response, preflights and unknown paths included;
  * - CORS: only the product origin, with credentials;
  * - disconnects: a product call whose caller leaves stops if it reads and finishes if it writes.
  *
  * Nothing request-scoped is built in: each request brings the isolate's server and error
- * reporter (`IsolateServer`) and, in the Worker, its auth rate limit (`AuthWriteLimit`).
+ * reporter (`IsolateServer`), the stage's update bucket (`MobileUpdates`), and, in the Worker, its
+ * auth rate limit (`AuthWriteLimit`).
  */
 import { NATIVE_SIGN_IN_START_PATH } from "@pcobooster/api/auth/native-sign-in";
+import {
+  updateAssetRoute,
+  updateCheckRoute,
+} from "@pcobooster/api/http/mobile-updates";
 import { IsolateServer } from "@pcobooster/api/http/procedure-scope";
 import { productApiLayer } from "@pcobooster/api/http/server";
 import type { ProductApiOptions } from "@pcobooster/api/http/server";
 import { unmatchedProductRequest } from "@pcobooster/api/http/unmatched";
 import { SERVER_VERSION_HEADER } from "@pcobooster/contracts/http/client-version";
 import { API_PREFIX } from "@pcobooster/contracts/http/route";
+import {
+  assetPath,
+  UPDATE_CHECK_PATH,
+} from "@pcobooster/contracts/mobile-updates";
 import { Context, Effect, Layer, Option, Scope } from "effect";
 import * as HttpEffect from "effect/unstable/http/HttpEffect";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
@@ -119,6 +129,8 @@ const routesLayer = <Services>(options: HttpAppOptions<Services>) => {
     ),
     HttpRouter.add("GET", "/api/auth/*", auth),
     HttpRouter.add("POST", "/api/auth/*", auth),
+    HttpRouter.add("GET", UPDATE_CHECK_PATH, updateCheckRoute),
+    HttpRouter.add("GET", assetPath(":hash"), updateAssetRoute),
     HttpRouter.add("GET", "/", HttpServerResponse.text("OK")),
     HttpRouter.add(
       "GET",

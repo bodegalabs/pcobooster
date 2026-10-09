@@ -1,8 +1,11 @@
 import { deploymentTier } from "@pcobooster/api/config/feature-flags";
 import type { ServerEnvironment } from "@pcobooster/api/config/server-config";
 import { resolveServerConfig } from "@pcobooster/api/config/server-config";
+import { MobileUpdates } from "@pcobooster/api/http/mobile-updates";
 import { IsolateServer } from "@pcobooster/api/http/procedure-scope";
 import { structuredLogging } from "@pcobooster/api/logging";
+import { UpdateStoreUnavailable } from "@pcobooster/api/modules/mobile-updates/update-store";
+import type { UpdateStore } from "@pcobooster/api/modules/mobile-updates/update-store";
 import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
 import type { SharedReadStore } from "@pcobooster/api/planning-center/services/shared-read-store";
 import { createServerDependencies } from "@pcobooster/api/server";
@@ -20,6 +23,7 @@ import {
   makeHttpApp,
 } from "./http-app";
 import type { AuthWriteLimiter } from "./http-app";
+import { MobileUpdateBucket } from "./mobile-update-bucket";
 import { apiWorkerObservability, apiWorkerTelemetry } from "./observability";
 import { PlanningCenterCache } from "./planning-center-cache";
 import { postHogProcedureReporter } from "./procedure-reporting";
@@ -31,6 +35,11 @@ import {
 import { currentStageSettings } from "./stage";
 
 const SECRET_REFRESH_MS = 60_000;
+
+const unreadableBucket = (cause: unknown) =>
+  new UpdateStoreUnavailable({
+    reason: cause instanceof Error ? cause.message : "R2 read failed",
+  });
 
 /**
  * Auth writes (sign-in, sign-out, native sign-in start and exchange; see `http-app.ts`) each
@@ -115,7 +124,7 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
 
 /**
  * The API Worker: one Effect router (`http-app.ts`) serves the product API (`/api/v1`), Better
- * Auth, and liveness.
+ * Auth, the iOS app's over-the-air updates, and liveness.
  */
 export default class Api extends Cloudflare.Worker<Api>()(
   "Api",
@@ -143,6 +152,10 @@ export default class Api extends Cloudflare.Worker<Api>()(
     const planningCenterCache = yield* Cloudflare.KV.ReadWriteNamespace(
       yield* PlanningCenterCache
     );
+    // Read-only: the publisher writes updates on the operator's Mac (`scripts/mobile-updates`).
+    const mobileUpdates = yield* Cloudflare.R2.ReadBucket(
+      yield* MobileUpdateBucket
+    );
     const tier = deploymentTier(yield* currentStageSettings);
     // `alchemy dev` has no local Flagship: its binding would proxy to a live app, which needs
     // Cloudflare credentials and cloud resources. The local stage serves registry values.
@@ -169,7 +182,7 @@ export default class Api extends Cloudflare.Worker<Api>()(
       pacer,
       afterDisconnect: waitUntilAfterDisconnect,
     }).pipe(Scope.provide(isolateScope));
-    // The D1, KV, and Flagship bindings and a runtime-minted secret are only readable inside a
+    // The D1, KV, R2, and Flagship bindings and a runtime-minted secret are only readable inside a
     // request, so the server is built by the first one and shared by the rest of the isolate's
     // lifetime until a refreshed secret changes. Not `Effect.cached`: requests that arrive while the first one builds must not
     // resume inside it; see `cachedAcrossRequests`.
@@ -189,6 +202,32 @@ export default class Api extends Cloudflare.Worker<Api>()(
               : { kind: "flagship", binding: yield* flags.raw };
           const namespace = yield* planningCenterCache.raw;
           const rateLimit = yield* authRateLimit.raw;
+          const updateBucket = yield* mobileUpdates.raw;
+          const updates: UpdateStore = {
+            readText: (key) =>
+              Effect.tryPromise({
+                try: async () => {
+                  const object = await updateBucket.get(key);
+                  return object === null ? null : await object.text();
+                },
+                catch: unreadableBucket,
+              }),
+            readAsset: (key) =>
+              Effect.tryPromise({
+                try: async () => {
+                  const object = await updateBucket.get(key);
+                  return object === null
+                    ? null
+                    : {
+                        bytes: new Uint8Array(await object.arrayBuffer()),
+                        contentType:
+                          object.httpMetadata?.contentType ??
+                          "application/octet-stream",
+                      };
+                },
+                catch: unreadableBucket,
+              }),
+          };
           const planningCenterReadStore: SharedReadStore = {
             get: async (key) => await namespace.get(key, "text"),
             put: async (key, value, { expirationTtl }) => {
@@ -212,17 +251,18 @@ export default class Api extends Cloudflare.Worker<Api>()(
             const outcome = await rateLimit.limit({ key: clientIp });
             return outcome.success;
           };
-          return { server, report, allowAuthWrite };
+          return { server, report, allowAuthWrite, updates };
         }),
       // Values remain in memory only; equality never emits them into logs or state.
       (left, right) => JSON.stringify(left) === JSON.stringify(right)
     );
     return {
       fetch: Effect.gen(function* fetch() {
-        const { server, report, allowAuthWrite } = yield* isolate;
+        const { server, report, allowAuthWrite, updates } = yield* isolate;
         return yield* http.pipe(
           Effect.provideService(IsolateServer, { server, report }),
-          Effect.provideService(AuthWriteLimit, allowAuthWrite)
+          Effect.provideService(AuthWriteLimit, allowAuthWrite),
+          Effect.provideService(MobileUpdates, updates)
         );
       }).pipe(
         Effect.catchTag("SecretError", () =>
@@ -247,6 +287,7 @@ export default class Api extends Cloudflare.Worker<Api>()(
     Effect.provide(Cloudflare.SecretsStore.ReadSecretBinding),
     Effect.provide(Cloudflare.D1.QueryDatabaseBinding),
     Effect.provide(Cloudflare.KV.ReadWriteNamespaceBinding),
+    Effect.provide(Cloudflare.R2.ReadBucketBinding),
     Effect.provide(Cloudflare.Flagship.ReadFlagsBinding),
     Effect.provide(Cloudflare.Workers.RateLimitBinding)
   )

@@ -3,7 +3,15 @@
   "compilerOptions": {
     "strict": true,
     "allowImportingTsExtensions": true,
-    "types": ["node"]
+    "types": ["node"],
+    "allowJs": true
   },
-  "include": ["index.ts", "app", "src", "scripts", "app.config.ts"]
+  "include": [
+    "index.ts",
+    "app",
+    "src",
+    "scripts",
+    "app.config.ts",
+    "fingerprint.config.cjs"
+  ]
 }

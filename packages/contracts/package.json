@@ -11,6 +11,7 @@
     "./faults/*": "./src/faults/*.ts",
     "./features": "./src/features.ts",
     "./feedback": "./src/feedback.ts",
+    "./mobile-updates": "./src/mobile-updates.ts",
     "./people": "./src/people.ts",
     "./request-priority": "./src/request-priority.ts",
     "./http/*": "./src/http/*.ts"

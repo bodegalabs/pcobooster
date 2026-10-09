@@ -1,11 +1,14 @@
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
+import { MobileUpdates } from "@pcobooster/api/http/mobile-updates";
 import type { ReportProcedureFailure } from "@pcobooster/api/http/outcome";
 import { IsolateServer } from "@pcobooster/api/http/procedure-scope";
 import type { ScheduleAuditDependencies } from "@pcobooster/api/http/schedule-audit";
+import type { UpdateStore } from "@pcobooster/api/modules/mobile-updates/update-store";
 import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
 import type { ServerDependencies } from "@pcobooster/api/server";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { recordLogs } from "@pcobooster/api/testing/logs";
+import { emptyUpdateStore } from "@pcobooster/api/testing/mobile-updates";
 import { makeProductClient } from "@pcobooster/client/product-client";
 import type {
   ProductClient,
@@ -33,6 +36,8 @@ export interface HttpAppTestOptions {
   readonly httpClient?: HttpClient.HttpClient;
   /** Records the spans endpoints run in. */
   readonly tracer?: Tracer.Tracer;
+  /** The update bucket; empty by default. */
+  readonly updates?: UpdateStore;
 }
 
 export interface HttpAppTest {
@@ -82,6 +87,10 @@ export const serveHttpForTest = (options: HttpAppTestOptions): HttpAppTest => {
                 server: options.server,
                 report: options.report ?? null,
               }),
+              Effect.provideService(
+                MobileUpdates,
+                options.updates ?? emptyUpdateStore
+              ),
               Effect.provideService(
                 HttpClient.HttpClient,
                 options.httpClient ?? unreachableHttpClient

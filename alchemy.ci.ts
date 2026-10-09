@@ -50,6 +50,9 @@ const deployPermissions: Cloudflare.ApiToken.PermissionGroupRef[] = [
   // Each deployed stage declares a KV namespace for the shared Planning Center read cache
   // (`apps/server/src/planning-center-cache.ts`).
   "Workers KV Storage Write",
+  // Each deployed stage declares an R2 bucket for the iOS app's over-the-air updates
+  // (`apps/server/src/mobile-update-bucket.ts`). Deploys create and bind it; they never write updates.
+  "Workers R2 Storage Write",
   // The shared Alchemy state store keeps its bearer token in the account Secrets Store.
   "Secrets Store Write",
   // Each deployed stage declares a Flagship app and its flags (`apps/server/src/feature-flags.ts`).
