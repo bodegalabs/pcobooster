@@ -79,6 +79,15 @@ export default defineConfig({
         "jsx-a11y/prefer-tag-over-role": "off",
       },
     },
+    {
+      // The Remotion launch video. Every animated value is computed from the frame number
+      // and has to reach the element through `style`; CSS transitions can't be captured.
+      files: ["apps/video/**"],
+      rules: {
+        "shadcn/no-inline-styles": "off",
+        "react-doctor/no-inline-exhaustive-style": "off",
+      },
+    },
   ],
   settings: jsPluginSettings,
 });
