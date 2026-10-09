@@ -1,4 +1,4 @@
-import type { SongHistoryEntry } from "@pcobooster/contracts/songs";
+import type { SongHistoryEntry } from "@pcobooster/contracts/http/songs";
 import {
   formatCalendarDateLabel,
   formatCalendarDayInTimeZone,

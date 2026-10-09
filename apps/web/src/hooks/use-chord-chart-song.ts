@@ -1,4 +1,7 @@
 import { callForQuery } from "@pcobooster/client/query";
+import { Conflict } from "@pcobooster/contracts/faults/conflict";
+import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import type {
   ChordChartArrangement,
   ChordChartCreateInput,
@@ -7,10 +10,7 @@ import type {
   ChordChartSongOutput,
   ChordChartUpdateInput,
   LyricsSearchResult,
-} from "@pcobooster/contracts/chord-charts";
-import { Conflict } from "@pcobooster/contracts/faults/conflict";
-import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
-import { NotFound } from "@pcobooster/contracts/faults/not-found";
+} from "@pcobooster/contracts/http/chord-charts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryClient, QueryFunctionContext } from "@tanstack/react-query";
 import { useMemo } from "react";

@@ -3,8 +3,8 @@ import {
   toPostHogFeedbackCapture,
 } from "@pcobooster/api/modules/analytics/posthog-feedback";
 import type { SubmittedFeedback } from "@pcobooster/api/modules/analytics/posthog-feedback";
+import { Schema } from "effect";
 import { describe, expect, it, vi } from "vitest";
-import { z } from "zod";
 
 const NOW = new Date("2026-09-23T17:00:00.000Z");
 
@@ -99,7 +99,9 @@ describe(createPostHogFeedbackForwarder, () => {
     await forward?.(feedback, null);
     const [url, init] = send.mock.calls[0] ?? [];
     expect(url).toBe("https://us.i.posthog.com/i/v0/e/");
-    expect(JSON.parse(z.string().parse(init?.body))).toStrictEqual({
+    expect(
+      JSON.parse(Schema.decodeUnknownSync(Schema.String)(init?.body))
+    ).toStrictEqual({
       api_key: "key",
       event: "feedback submitted",
       distinct_id: "user-1",

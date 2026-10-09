@@ -29,6 +29,11 @@ const person = { id: "1", type: "Person", attributes: { name: "Alex" } };
 
 const fetchMock = (): FetchMock => vi.fn<typeof globalThis.fetch>();
 
+const songsPageUrl = (offset: number) =>
+  `https://api.planningcenteronline.com/services/v2/songs?offset=${offset}&per_page=100`;
+const titledSongsPageUrl = (offset: number) =>
+  `https://api.planningcenteronline.com/services/v2/songs?offset=${offset}&order=title&per_page=100`;
+
 const basicClient = (fetch: FetchMock): PlanningCenterCoreClient =>
   createBasicPlanningCenterClient(
     testPlanningCenterToken,
@@ -392,6 +397,86 @@ describe(PlanningCenterCoreClient, () => {
       firstUrl,
       secondUrl,
     ]);
+  });
+
+  it("requests the pages after the first together once the first reports the collection's size", async () => {
+    const thirdPageRequested = Promise.withResolvers<null>();
+    const fetch = fetchMock().mockImplementation(async (input) => {
+      const url = urlOf(input);
+      if (url === titledSongsPageUrl(200)) {
+        thirdPageRequested.resolve(null);
+        return jsonResponse({ data: [{ ...person, id: "3" }], links: {} });
+      }
+      if (url === titledSongsPageUrl(100)) {
+        // Answers only once the third page was asked for, so reading page by page never ends.
+        await thirdPageRequested.promise;
+        return jsonResponse({
+          data: [{ ...person, id: "2" }],
+          links: { next: titledSongsPageUrl(200) },
+        });
+      }
+      return jsonResponse({
+        data: [person],
+        meta: { total_count: 250 },
+        links: { next: titledSongsPageUrl(100) },
+      });
+    });
+
+    const response = await run(
+      basicClient(fetch).fetchAllWithIncluded(
+        "/services/v2/songs",
+        { order: "title" },
+        10
+      )
+    );
+
+    expect({
+      ids: response.data.map((item) => item.id),
+      urls: fetch.mock.calls.map(([input]) => urlOf(input)),
+    }).toStrictEqual({
+      ids: ["1", "2", "3"],
+      urls: [
+        "https://api.planningcenteronline.com/services/v2/songs?order=title&per_page=100",
+        titledSongsPageUrl(100),
+        titledSongsPageUrl(200),
+      ],
+    });
+  });
+
+  it("follows the next link past a collection's reported size when it grew meanwhile", async () => {
+    const fetch = fetchMock()
+      .mockResolvedValueOnce(
+        jsonResponse({
+          data: [person],
+          meta: { total_count: 150 },
+          links: { next: songsPageUrl(100) },
+        })
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          data: [{ ...person, id: "2" }],
+          links: { next: songsPageUrl(200) },
+        })
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ data: [{ ...person, id: "3" }], links: {} })
+      );
+
+    const response = await run(
+      basicClient(fetch).fetchAllWithIncluded("/services/v2/songs")
+    );
+
+    expect({
+      ids: response.data.map((item) => item.id),
+      urls: fetch.mock.calls.map(([input]) => urlOf(input)),
+    }).toStrictEqual({
+      ids: ["1", "2", "3"],
+      urls: [
+        "https://api.planningcenteronline.com/services/v2/songs?per_page=100",
+        songsPageUrl(100),
+        songsPageUrl(200),
+      ],
+    });
   });
 
   it("fails rather than return part of a collection longer than its page limit", async () => {

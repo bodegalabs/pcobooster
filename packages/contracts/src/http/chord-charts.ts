@@ -195,3 +195,17 @@ export const chordCharts = planningCenterGroup(
     feature: "chordCharts",
   })
 );
+
+export type ChordChartLayout = typeof chordChartLayoutSchema.Type;
+export type ChordChartArrangement = typeof chordChartArrangementSchema.Type;
+export type ChordChartSong = typeof chordChartSongSchema.Type;
+export type ChordChartSongOutput = typeof chordChartSongOutputSchema.Type;
+export type ChordChartSongInput = typeof chordChartSongInputSchema.Type;
+export type ChordChartUpdateInput = typeof chordChartUpdateInputSchema.Type;
+export type ChordChartCreateInput = typeof chordChartCreateInputSchema.Type;
+export type ChordChartSongCreateInput =
+  typeof chordChartSongCreateInputSchema.Type;
+export type ChordChartPdfInput = typeof chordChartPdfInputSchema.Type;
+export type ChordChartPdf = typeof chordChartPdfOutputSchema.Type;
+export type LyricsSearchResult = typeof lyricsSearchResultSchema.Type;
+export type LyricsSearchInput = typeof lyricsSearchInputSchema.Type;

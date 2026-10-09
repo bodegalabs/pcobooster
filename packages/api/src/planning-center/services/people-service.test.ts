@@ -19,9 +19,8 @@ import type {
   JsonValue,
 } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { Effect, Exit } from "effect";
+import { Effect, Exit, Schema } from "effect";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
 
 const resource = (
   id: string,
@@ -57,7 +56,9 @@ const serviceOver = (
       url: new URL(urlOf(input)),
       body:
         init?.body instanceof Uint8Array
-          ? z.json().parse(JSON.parse(new TextDecoder().decode(init.body)))
+          ? Schema.decodeUnknownSync(Schema.fromJsonString(Schema.MutableJson))(
+              new TextDecoder().decode(init.body)
+            )
           : undefined,
     };
     sent.push(request);
@@ -135,6 +136,10 @@ describe("PlanningCenterPeopleService.getPlanTeamMembers", () => {
     expect(Object.fromEntries(sent[0]?.url.searchParams ?? [])).toStrictEqual({
       include: "person,team,plan",
       per_page: "100",
+      "fields[Person]":
+        "first_name,last_name,photo_url,photo_thumbnail_url,archived_at",
+      "fields[Plan]":
+        "title,series_title,sort_date,created_at,planning_center_url,plan_people_count,series,service_type,plan_times",
     });
   });
 });
@@ -261,7 +266,11 @@ describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
     expect(fetchAllWithIncluded).toHaveBeenCalledOnce();
     expect(fetchAllWithIncluded.mock.calls[0]?.slice(0, 2)).toStrictEqual([
       "/services/v2/teams",
-      { include: "people,team_leaders,service_types" },
+      {
+        include: "people,team_leaders,service_types",
+        "fields[Person]":
+          "first_name,last_name,photo_url,photo_thumbnail_url,archived_at",
+      },
     ]);
     expect(second.people.map((person) => person.id)).toStrictEqual([
       "person-1",
@@ -317,6 +326,9 @@ describe("PlanningCenterPeopleService.getPersonSchedulesAfter", () => {
         include: "plan_times",
         order: "starts_at",
         per_page: "100",
+        "fields[Schedule]":
+          "status,sort_date,team_name,team_position_name,service_type_name,decline_reason,plan,team,service_type,plan_person,plan_times,times",
+        "fields[PlanTime]": "name,starts_at,ends_at,time_type",
       },
     ]);
   });
@@ -886,6 +898,9 @@ describe("PlanningCenterPeopleService.getPersonSchedulesAfter with an instant", 
         include: "plan_times",
         order: "starts_at",
         per_page: "100",
+        "fields[Schedule]":
+          "status,sort_date,team_name,team_position_name,service_type_name,decline_reason,plan,team,service_type,plan_person,plan_times,times",
+        "fields[PlanTime]": "name,starts_at,ends_at,time_type",
       },
     ]);
   });

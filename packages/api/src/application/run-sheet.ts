@@ -46,19 +46,19 @@ import type {
   PlanItemsListInput,
   PlanItemsReorderInput,
   PlanItemsUpdateInput,
-} from "@pcobooster/contracts/plan-items";
-import type { PlanPeopleUpdateTimesInput } from "@pcobooster/contracts/plan-people";
+} from "@pcobooster/contracts/http/plan-items";
+import type { PlanPeopleUpdateTimesInput } from "@pcobooster/contracts/http/plan-people";
 import type {
   PlanTimesCreateInput,
   PlanTimesDeleteInput,
   PlanTimesListInput,
   PlanTimesUpdateInput,
-} from "@pcobooster/contracts/plan-times";
+} from "@pcobooster/contracts/http/plan-times";
 import type {
   SongsHistoryInput,
   SongsOptionsInput,
   SongsSearchInput,
-} from "@pcobooster/contracts/songs";
+} from "@pcobooster/contracts/http/songs";
 import type {
   PlanItem,
   PlanTime,

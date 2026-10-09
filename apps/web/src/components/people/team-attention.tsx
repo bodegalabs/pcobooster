@@ -1,4 +1,4 @@
-import type { PeopleDashboardRosterPerson } from "@pcobooster/contracts/people-schemas";
+import type { PeopleDashboardRosterPerson } from "@pcobooster/contracts/http/people-schemas";
 import { CalendarClock, HeartHandshake, MailQuestionMark } from "lucide-react";
 import { useState } from "react";
 import type { ReactNode } from "react";

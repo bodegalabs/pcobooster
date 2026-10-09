@@ -1,7 +1,7 @@
 import type {
   PeopleDashboardPerson,
   ServingRhythm,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import { describe, expect, it } from "vitest";
 
 import {

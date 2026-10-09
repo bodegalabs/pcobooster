@@ -1,70 +1,99 @@
-import type { JsonValue } from "@pcobooster/planning-center-models/json";
+import { optionalText } from "@pcobooster/api/planning-center/attribute-schemas";
+import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type {
   PCApiResponse,
   PCRelationship,
   PCResource,
   PCResourceIdentifier,
 } from "@pcobooster/planning-center-models/types";
-import { z } from "zod";
+import { Effect, Schema, SchemaGetter } from "effect";
 
-const optionalLinkSchema = z
-  .string()
-  .nullish()
-  .transform((link) => link ?? undefined);
+/** A JSON:API link; `null` and a missing link both read as absent. */
+const optionalLinkSchema = optionalText;
 
-export const pcResourceIdentifierSchema = z.object({
-  type: z.string(),
-  id: z.string(),
-}) satisfies z.ZodType<PCResourceIdentifier>;
+export const pcResourceIdentifierSchema = Schema.Struct({
+  type: Schema.String,
+  id: Schema.String,
+}) satisfies Schema.Codec<PCResourceIdentifier, unknown>;
 
-export const pcRelationshipSchema = z.object({
-  data: z
-    .union([pcResourceIdentifierSchema, z.array(pcResourceIdentifierSchema)])
-    .nullish(),
-  links: z.object({ related: optionalLinkSchema }).optional(),
-}) satisfies z.ZodType<PCRelationship>;
+export const pcRelationshipSchema = Schema.Struct({
+  data: Schema.optional(
+    Schema.NullOr(
+      Schema.Union([
+        pcResourceIdentifierSchema,
+        Schema.mutable(Schema.Array(pcResourceIdentifierSchema)),
+      ])
+    )
+  ),
+  links: Schema.optional(Schema.Struct({ related: optionalLinkSchema })),
+}) satisfies Schema.Codec<PCRelationship, unknown>;
+
+const isJsonObject = (value: unknown): value is JsonObject =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 
 /**
- * Resources are only decoded from `JSON.parse` output, whose values are JSON by construction.
- * Walking every attribute again with `z.json()` cost several ms of Worker CPU per page.
+ * Resources are only decoded from `JSON.parse` output, whose values are JSON by construction, so
+ * attributes are checked to be an object and never walked: validating every attribute again cost
+ * several ms of Worker CPU per page. Each module validates the fields it consumes.
  */
-const parsedJsonValueSchema = z.custom<JsonValue>();
+const attributesSchema = Schema.declare(isJsonObject).pipe(
+  Schema.withDecodingDefault(Effect.succeed({}))
+);
 
-// Preserve API attributes so each module can validate the fields it consumes.
-export const pcResourceSchema = z.object({
-  type: z.string(),
-  id: z.string(),
-  attributes: z.record(z.string(), parsedJsonValueSchema).default({}),
-  relationships: z.record(z.string(), pcRelationshipSchema).optional(),
-}) satisfies z.ZodType<PCResource>;
+export const pcResourceSchema = Schema.Struct({
+  type: Schema.String,
+  id: Schema.String,
+  attributes: attributesSchema,
+  relationships: Schema.optional(
+    Schema.Record(Schema.String, pcRelationshipSchema)
+  ),
+}) satisfies Schema.Codec<PCResource, unknown>;
+
+export const pcResourcesSchema = Schema.mutable(Schema.Array(pcResourceSchema));
 
 const responseMetadata = {
-  included: z.array(pcResourceSchema).optional(),
-  meta: z
-    .object({
-      total_count: z.number().optional(),
-      count: z.number().optional(),
-      next: z.object({ offset: z.number() }).optional(),
-      prev: z.object({ offset: z.number() }).optional(),
+  included: Schema.optional(pcResourcesSchema),
+  meta: Schema.optional(
+    Schema.Struct({
+      total_count: Schema.optional(Schema.Finite),
+      count: Schema.optional(Schema.Finite),
+      next: Schema.optional(Schema.Struct({ offset: Schema.Finite })),
+      prev: Schema.optional(Schema.Struct({ offset: Schema.Finite })),
     })
-    .optional(),
-  links: z
-    .object({
+  ),
+  links: Schema.optional(
+    Schema.Struct({
       self: optionalLinkSchema,
       next: optionalLinkSchema,
       prev: optionalLinkSchema,
     })
-    .optional(),
+  ),
 };
 
-export const pcResourceResponseSchema = z.object({
+export const pcResourceResponseSchema = Schema.Struct({
   data: pcResourceSchema,
   ...responseMetadata,
-}) satisfies z.ZodType<PCApiResponse<PCResource>>;
+}) satisfies Schema.Codec<PCApiResponse<PCResource>, unknown>;
 
-export const pcCollectionResponseSchema = z.object({
-  data: z
-    .union([pcResourceSchema, z.array(pcResourceSchema)])
-    .transform((data) => (Array.isArray(data) ? data : [data])),
+/** A collection's `data`; a single resource where a list was expected reads as a list of one. */
+const collectionDataSchema = Schema.Union([
+  // Lists first: nearly every collection answer is one, so the union rarely tries twice.
+  pcResourcesSchema,
+  pcResourceSchema,
+]).pipe(
+  Schema.decodeTo(
+    Schema.mutable(Schema.Array(Schema.toType(pcResourceSchema))),
+    {
+      decode: SchemaGetter.transform(
+        (data: PCResource | PCResource[]): PCResource[] =>
+          Array.isArray(data) ? data : [data]
+      ),
+      encode: SchemaGetter.transform((data: PCResource[]) => data),
+    }
+  )
+);
+
+export const pcCollectionResponseSchema = Schema.Struct({
+  data: collectionDataSchema,
   ...responseMetadata,
-}) satisfies z.ZodType<PCApiResponse<PCResource[]>>;
+}) satisfies Schema.Codec<PCApiResponse<PCResource[]>, unknown>;

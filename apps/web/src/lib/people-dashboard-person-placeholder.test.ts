@@ -1,4 +1,4 @@
-import type { PeopleDashboardRoster } from "@pcobooster/contracts/people-schemas";
+import type { PeopleDashboardRoster } from "@pcobooster/contracts/http/people-schemas";
 import { describe, expect, it } from "vitest";
 
 import { assemblePeopleDashboard } from "@/lib/people-dashboard";

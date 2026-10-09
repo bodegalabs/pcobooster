@@ -1,6 +1,12 @@
-import { posthog } from "posthog-js";
-import type { CaptureResult } from "posthog-js";
-import { z } from "zod";
+import { Schema } from "effect";
+import type {
+  CaptureOptions,
+  CaptureResult,
+  ExceptionAutoCaptureConfig,
+  PostHog,
+  PostHogConfig,
+  Properties,
+} from "posthog-js";
 
 import {
   analyticsUrl,
@@ -11,90 +17,153 @@ import {
 } from "./privacy";
 import { replayOptions } from "./replay";
 
-type AnalyticsEvent =
+const isString = Schema.is(Schema.String);
+
+export type AnalyticsEvent =
   | "marketing cta clicked"
   | "sign in started"
   | "sign in failed"
   | "app opened"
   | "workflow completed"
   | "workflow failed";
-let initialized = false;
-let currentUserId: string | undefined;
+/** The parts of the PostHog SDK the client uses; the real SDK, or a test's fake. */
+export interface AnalyticsSdk {
+  readonly init: (token: string, config: Partial<PostHogConfig>) => void;
+  readonly capture: (
+    event: string,
+    properties: Properties,
+    options?: CaptureOptions
+  ) => void;
+  readonly captureException: (error: Error, properties: Properties) => void;
+  readonly get_session_id: () => string;
+  readonly get_distinct_id: () => string;
+  readonly get_property: (name: "$user_id") => string | undefined;
+  readonly identify: (distinctId: string) => void;
+  readonly reset: () => void;
+  readonly startSessionRecording: () => void;
+  readonly stopSessionRecording: () => void;
+  readonly startExceptionAutocapture: (
+    config: ExceptionAutoCaptureConfig
+  ) => void;
+  readonly stopExceptionAutocapture: () => void;
+}
 
-/** Replay retains its own route gate; errors cover every authenticated product route. */
-const syncSessionRecording = (): void => {
-  if (canRecordSession(window.location.pathname, currentUserId !== undefined)) {
-    // Respect the project's sampling and minimum-duration controls.
-    posthog.startSessionRecording();
-  } else {
-    posthog.stopSessionRecording();
-  }
-  if (
-    canReportException(window.location.pathname, currentUserId !== undefined)
-  ) {
-    posthog.startExceptionAutocapture({
-      capture_unhandled_errors: true,
-      capture_unhandled_rejections: true,
-      capture_console_errors: false,
-    });
-  } else {
-    posthog.stopExceptionAutocapture();
-  }
-};
+/** Most captures held while the SDK loads; a sign-in click lands well within this. */
+const MAX_HELD_CAPTURES = 20;
 
-const beforeSend = (event: CaptureResult | null): CaptureResult | null => {
-  if (initialized && event?.event === "$pageview") {
-    // Also stop capture on same-document navigation outside product routes.
-    syncSessionRecording();
-  }
-  return prepareAnalyticsEvent(
-    event,
-    window.location.pathname,
-    currentUserId !== undefined
-  );
-};
+/**
+ * The browser analytics client. `loadSdk` brings in the SDK the first time analytics starts, so
+ * pages that never initialize (most of the product until the account answers) never download or
+ * run it. Captures sent after analytics starts but before the SDK loads are held and sent once
+ * it has.
+ */
+export const createAnalyticsClient = (
+  loadSdkModule: () => Promise<AnalyticsSdk>
+) => {
+  /** The SDK once it is initialized. */
+  let posthog: AnalyticsSdk | undefined;
+  let loadingSdk: Promise<AnalyticsSdk> | undefined;
+  /** Captures sent after analytics started but before the SDK finished loading, in order. */
+  const heldCaptures: (() => void)[] = [];
 
-export const captureAnalytics = (
-  event: AnalyticsEvent,
-  properties: Record<string, string | number | boolean> = {}
-): void => {
-  if (!initialized) {
-    return;
-  }
-  try {
-    posthog.capture(
+  let currentUserId: string | undefined;
+  /** Raised by `resetAnalytics`, so an initialization still loading the SDK identifies nobody. */
+  let generation = 0;
+  /** The generation whose initialization is waiting for the SDK, if any. */
+  let initializingGeneration: number | undefined;
+
+  /**
+   * Holds a capture while this session's initialization loads the SDK. Outside analytics, or
+   * after a sign-out abandoned that load, there is no session to send it for.
+   */
+  const holdUntilLoaded = (capture: () => void): void => {
+    if (
+      initializingGeneration === generation &&
+      heldCaptures.length < MAX_HELD_CAPTURES
+    ) {
+      heldCaptures.push(capture);
+    }
+  };
+
+  const loadSdk = async (): Promise<AnalyticsSdk> => {
+    loadingSdk ??= loadSdkModule();
+    try {
+      return await loadingSdk;
+    } catch (error) {
+      // A failed download is retried by the next initialization, not cached for the session.
+      loadingSdk = undefined;
+      heldCaptures.length = 0;
+      throw error;
+    }
+  };
+
+  /** Replay retains its own route gate; errors cover every authenticated product route. */
+  const syncSessionRecording = (sdk: AnalyticsSdk): void => {
+    if (
+      canRecordSession(window.location.pathname, currentUserId !== undefined)
+    ) {
+      // Respect the project's sampling and minimum-duration controls.
+      sdk.startSessionRecording();
+    } else {
+      sdk.stopSessionRecording();
+    }
+    if (
+      canReportException(window.location.pathname, currentUserId !== undefined)
+    ) {
+      sdk.startExceptionAutocapture({
+        capture_unhandled_errors: true,
+        capture_unhandled_rejections: true,
+        capture_console_errors: false,
+      });
+    } else {
+      sdk.stopExceptionAutocapture();
+    }
+  };
+
+  const beforeSend = (event: CaptureResult | null): CaptureResult | null => {
+    if (posthog !== undefined && event?.event === "$pageview") {
+      // Also stop capture on same-document navigation outside product routes.
+      syncSessionRecording(posthog);
+    }
+    return prepareAnalyticsEvent(
       event,
-      properties,
-      event === "marketing cta clicked" || event === "sign in started"
-        ? { transport: "sendBeacon", send_instantly: true }
-        : undefined
+      window.location.pathname,
+      currentUserId !== undefined
     );
-  } catch {
-    // Event delivery is best effort.
-  }
-};
+  };
 
-/** Analytics must never prevent sign-in, navigation, or a successful provider write. */
-export const initializeAnalytics = (
-  key: string | undefined,
-  production: boolean,
-  userId?: string
-): void => {
-  if (
-    typeof window === "undefined" ||
-    !canInitializeAnalytics(key, window.location.hostname, production) ||
-    key === undefined ||
-    key === ""
-  ) {
-    return;
-  }
-  try {
-    const productDocument =
-      window.location.pathname === "/auth" ||
-      canReportException(window.location.pathname, true);
-    currentUserId = userId;
-    if (!initialized) {
-      posthog.init(key, {
+  const captureAnalytics = (
+    event: AnalyticsEvent,
+    properties: Record<string, string | number | boolean> = {}
+  ): void => {
+    if (posthog === undefined) {
+      holdUntilLoaded(() => {
+        captureAnalytics(event, properties);
+      });
+      return;
+    }
+    try {
+      posthog.capture(
+        event,
+        properties,
+        event === "marketing cta clicked" || event === "sign in started"
+          ? { transport: "sendBeacon", send_instantly: true }
+          : undefined
+      );
+    } catch {
+      // Event delivery is best effort.
+    }
+  };
+
+  /** Initializes the SDK once, or identifies a different person on a later call. */
+  const startSdk = (
+    sdk: AnalyticsSdk,
+    key: string,
+    productDocument: boolean,
+    userId: string | undefined
+  ): void => {
+    if (posthog === undefined) {
+      sdk.init(key, {
         api_host: "https://us.i.posthog.com",
         ui_host: "https://us.posthog.com",
         defaults: "2026-01-30",
@@ -123,78 +192,138 @@ export const initializeAnalytics = (
         disable_capture_url_hashes: true,
         get_current_url: analyticsUrl,
         before_send: beforeSend,
-        loaded: (client) => {
+        loaded: () => {
           if (userId !== undefined) {
-            const previousUserId = z
-              .string()
-              .safeParse(client.get_property("$user_id"));
-            if (previousUserId.success && previousUserId.data !== userId) {
-              client.reset();
+            const previousUserId: unknown = sdk.get_property("$user_id");
+            if (isString(previousUserId) && previousUserId !== userId) {
+              sdk.reset();
             }
-            client.identify(userId);
+            sdk.identify(userId);
           }
         },
       });
-      initialized = true;
+      posthog = sdk;
+      for (const capture of heldCaptures.splice(0)) {
+        capture();
+      }
       if (userId !== undefined) {
         captureAnalytics("app opened");
       }
-    } else if (userId !== undefined && posthog.get_distinct_id() !== userId) {
-      const previousUserId = z
-        .string()
-        .safeParse(posthog.get_property("$user_id"));
-      if (previousUserId.success && previousUserId.data !== userId) {
-        posthog.reset();
+    } else if (userId !== undefined && sdk.get_distinct_id() !== userId) {
+      const previousUserId: unknown = sdk.get_property("$user_id");
+      if (isString(previousUserId) && previousUserId !== userId) {
+        sdk.reset();
       }
-      posthog.identify(userId);
+      sdk.identify(userId);
       captureAnalytics("app opened");
     }
-    syncSessionRecording();
-  } catch {
-    // SDK or browser-storage failures must not affect the product.
-  }
-};
+  };
 
-/**
- * Reports an error React caught in an error boundary, which never reaches the global
- * handlers that exception autocapture listens to. The privacy guard drops it outside
- * authenticated product routes.
- */
-export const captureAnalyticsException = (
-  error: Error,
-  properties: Record<string, string | number | boolean> = {}
-): void => {
-  if (!initialized) {
-    return;
-  }
-  try {
-    posthog.captureException(error, properties);
-  } catch {
-    // Error reporting is best effort.
-  }
-};
-
-/** Lets server-side events, such as feedback, link to this session's replay. */
-export const getAnalyticsSessionId = (): string | null => {
-  if (!initialized) {
-    return null;
-  }
-  try {
-    return posthog.get_session_id() || null;
-  } catch {
-    return null;
-  }
-};
-
-export const resetAnalytics = (): void => {
-  currentUserId = undefined;
-  if (initialized) {
-    try {
-      posthog.stopSessionRecording();
-      posthog.stopExceptionAutocapture();
-      posthog.reset();
-    } catch {
-      // Sign-out must work even when browser storage is unavailable.
+  /** Analytics must never prevent sign-in, navigation, or a successful provider write. */
+  const initializeAnalytics = (
+    key: string | undefined,
+    production: boolean,
+    userId?: string
+  ): void => {
+    if (
+      typeof window === "undefined" ||
+      !canInitializeAnalytics(key, window.location.hostname, production) ||
+      key === undefined ||
+      key === ""
+    ) {
+      return;
     }
-  }
+    const productDocument =
+      window.location.pathname === "/auth" ||
+      canReportException(window.location.pathname, true);
+    currentUserId = userId;
+    const startedIn = generation;
+    initializingGeneration = generation;
+    void (async () => {
+      try {
+        const sdk = await loadSdk();
+        if (startedIn !== generation) {
+          return;
+        }
+        startSdk(sdk, key, productDocument, userId);
+        syncSessionRecording(sdk);
+      } catch {
+        // SDK, network, or browser-storage failures must not affect the product.
+      }
+    })();
+  };
+
+  /**
+   * Reports an error React caught in an error boundary, which never reaches the global
+   * handlers that exception autocapture listens to. The privacy guard drops it outside
+   * authenticated product routes.
+   */
+  const captureAnalyticsException = (
+    error: Error,
+    properties: Record<string, string | number | boolean> = {}
+  ): void => {
+    if (posthog === undefined) {
+      holdUntilLoaded(() => {
+        captureAnalyticsException(error, properties);
+      });
+      return;
+    }
+    try {
+      posthog.captureException(error, properties);
+    } catch {
+      // Error reporting is best effort.
+    }
+  };
+
+  /** Lets server-side events, such as feedback, link to this session's replay. */
+  const getAnalyticsSessionId = (): string | null => {
+    if (posthog === undefined) {
+      return null;
+    }
+    try {
+      return posthog.get_session_id() || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const resetAnalytics = (): void => {
+    currentUserId = undefined;
+    generation += 1;
+    heldCaptures.length = 0;
+    if (posthog !== undefined) {
+      try {
+        posthog.stopSessionRecording();
+        posthog.stopExceptionAutocapture();
+        posthog.reset();
+      } catch {
+        // Sign-out must work even when browser storage is unavailable.
+      }
+    }
+  };
+
+  return {
+    captureAnalytics,
+    initializeAnalytics,
+    captureAnalyticsException,
+    getAnalyticsSessionId,
+    resetAnalytics,
+  };
 };
+
+const importPostHog = async (): Promise<PostHog> => {
+  const sdk = await import("posthog-js");
+  return sdk.posthog;
+};
+
+const browserAnalytics = createAnalyticsClient(importPostHog);
+
+/** Sends a product event once analytics has started for this document. */
+export const { captureAnalytics } = browserAnalytics;
+/** Analytics must never prevent sign-in, navigation, or a successful provider write. */
+export const { initializeAnalytics } = browserAnalytics;
+/** Reports an error React caught in an error boundary (see `createAnalyticsClient`). */
+export const { captureAnalyticsException } = browserAnalytics;
+/** Lets server-side events, such as feedback, link to this session's replay. */
+export const { getAnalyticsSessionId } = browserAnalytics;
+export const { resetAnalytics } = browserAnalytics;

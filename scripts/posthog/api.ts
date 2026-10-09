@@ -1,9 +1,9 @@
 /**
- * The PostHog REST calls the Alchemy providers need, validated with zod. The personal API
+ * The PostHog REST calls the Alchemy providers need, validated with Effect Schema. The personal API
  * key stays Redacted and is sent only as a bearer header; it never enters Alchemy state.
  */
 import type { JsonValue } from "@pcobooster/analytics/reports";
-import { Config, Context, Data, Effect, Layer } from "effect";
+import { Config, Context, Data, Effect, Layer, Schema } from "effect";
 import type { Redacted } from "effect";
 import {
   FetchHttpClient,
@@ -11,7 +11,6 @@ import {
   HttpClientRequest,
 } from "effect/unstable/http";
 import type { HttpClientResponse } from "effect/unstable/http";
-import { z } from "zod";
 
 import type { JsonRecord, Tile } from "./drift";
 
@@ -21,45 +20,51 @@ export class PostHogApiError extends Data.TaggedError("PostHogApiError")<{
   readonly message: string;
 }> {}
 
-const dashboardSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  description: z.string().nullish(),
-  pinned: z.boolean(),
-  deleted: z.boolean().optional(),
-  tags: z.array(z.string()).optional(),
-  tiles: z
-    .array(
-      z.object({
-        id: z.number(),
-        order: z.number().nullish(),
-        insight: z.object({ id: z.number() }).nullish(),
+const dashboardSchema = Schema.Struct({
+  id: Schema.Finite,
+  name: Schema.String,
+  description: Schema.optional(Schema.NullOr(Schema.String)),
+  pinned: Schema.Boolean,
+  deleted: Schema.optional(Schema.Boolean),
+  tags: Schema.optional(Schema.Array(Schema.String)),
+  tiles: Schema.optional(
+    Schema.Array(
+      Schema.Struct({
+        id: Schema.Finite,
+        order: Schema.optional(Schema.NullOr(Schema.Finite)),
+        insight: Schema.optional(
+          Schema.NullOr(Schema.Struct({ id: Schema.Finite }))
+        ),
       })
     )
-    .optional(),
+  ),
 });
 
-const insightSchema = z.object({
-  id: z.number(),
-  short_id: z.string(),
-  name: z.string().nullish(),
-  description: z.string().nullish(),
-  favorited: z.boolean().optional(),
-  deleted: z.boolean().optional(),
-  tags: z.array(z.string()).optional(),
-  query: z.json(),
-  dashboards: z.array(z.number()).optional(),
-  dashboard_tiles: z
-    .array(
-      z.object({ dashboard_id: z.number(), deleted: z.boolean().nullish() })
+const insightSchema = Schema.Struct({
+  id: Schema.Finite,
+  short_id: Schema.String,
+  name: Schema.optional(Schema.NullOr(Schema.String)),
+  description: Schema.optional(Schema.NullOr(Schema.String)),
+  favorited: Schema.optional(Schema.Boolean),
+  deleted: Schema.optional(Schema.Boolean),
+  tags: Schema.optional(Schema.Array(Schema.String)),
+  query: Schema.Json,
+  dashboards: Schema.optional(Schema.Array(Schema.Finite)),
+  dashboard_tiles: Schema.optional(
+    Schema.Array(
+      Schema.Struct({
+        dashboard_id: Schema.Finite,
+        deleted: Schema.optional(Schema.NullOr(Schema.Boolean)),
+      })
     )
-    .optional(),
+  ),
 });
 
 /** Project responses include the public ingestion token; callers keep only named settings. */
-const projectSchema = z
-  .record(z.string(), z.json())
-  .and(z.object({ id: z.number() }));
+const projectSchema = Schema.StructWithRest(
+  Schema.Struct({ id: Schema.Finite }),
+  [Schema.Record(Schema.String, Schema.Json)]
+);
 
 export interface Dashboard {
   readonly dashboardId: number;
@@ -81,9 +86,9 @@ export interface Insight {
   readonly dashboardIds: readonly number[];
 }
 
-export type ProjectSnapshot = z.infer<typeof projectSchema>;
+export type ProjectSnapshot = typeof projectSchema.Type;
 
-const toDashboard = (value: z.infer<typeof dashboardSchema>): Dashboard => {
+const toDashboard = (value: typeof dashboardSchema.Type): Dashboard => {
   const tiles = (value.tiles ?? []).map((tile, index) => ({
     tileId: tile.id,
     insightId: tile.insight?.id ?? null,
@@ -100,7 +105,7 @@ const toDashboard = (value: z.infer<typeof dashboardSchema>): Dashboard => {
   };
 };
 
-const toInsight = (value: z.infer<typeof insightSchema>): Insight => {
+const toInsight = (value: typeof insightSchema.Type): Insight => {
   // `dashboards` is deprecated for API-key callers; `dashboard_tiles` replaces it.
   const dashboardIds =
     value.dashboard_tiles === undefined
@@ -189,7 +194,7 @@ const required =
 const readBody = <Output>(
   operation: string,
   response: HttpClientResponse.HttpClientResponse,
-  schema: z.ZodType<Output>
+  schema: Schema.Codec<Output, unknown>
 ): Effect.Effect<Output | undefined, PostHogApiError> => {
   const fail = (message: string) =>
     new PostHogApiError({ operation, status: response.status, message });
@@ -204,12 +209,11 @@ const readBody = <Output>(
   }
   return response.json.pipe(
     Effect.mapError(() => fail("Response was not JSON")),
-    Effect.flatMap((json) => {
-      const parsed = schema.safeParse(json);
-      return parsed.success
-        ? Effect.succeed(parsed.data)
-        : Effect.fail(fail(z.prettifyError(parsed.error)));
-    })
+    Effect.flatMap((json) =>
+      Schema.decodeUnknownEffect(schema)(json).pipe(
+        Effect.mapError(({ message }) => fail(message))
+      )
+    )
   );
 };
 
@@ -225,7 +229,7 @@ export const makePostHogApi = (
     operation: string,
     method: "GET" | "PATCH" | "POST",
     path: string,
-    schema: z.ZodType<Output>,
+    schema: Schema.Codec<Output, unknown>,
     body?: JsonValue
   ): Effect.Effect<Output | undefined, PostHogApiError> => {
     const request = HttpClientRequest.make(method)(`${base}${path}`).pipe(
@@ -315,7 +319,7 @@ export const makePostHogApi = (
         "reorder dashboard tiles",
         "POST",
         `${projectPath(projectId)}/dashboards/${dashboardId}/reorder_tiles/`,
-        z.json(),
+        Schema.Json,
         { tile_order: tileOrder }
       ).pipe(Effect.asVoid),
     getInsight: (projectId, insightId) =>

@@ -1,26 +1,19 @@
-import { peopleSearchResultSchema } from "@pcobooster/contracts/people-schemas";
-import type { PeopleSearchResult } from "@pcobooster/contracts/people-schemas";
-import { z } from "zod";
+import { peopleSearchResultSchema } from "@pcobooster/contracts/http/people-schemas";
+import type { PeopleSearchResult } from "@pcobooster/contracts/http/people-schemas";
+import { mutableArray } from "@pcobooster/contracts/http/schema";
 
 import { presentationCacheKey } from "@/lib/presentation-cache";
+import { savedAnswer } from "@/lib/stored-json";
 
 const CACHE_VERSION = "v1";
 const CACHE_KEY_PREFIX = `pcobooster:people-search:${CACHE_VERSION}:`;
-
-interface CachedPayload {
-  savedAt: number;
-  data: PeopleSearchResult[];
-}
 
 export interface PeopleSearchCacheEntry {
   savedAt: number;
   data: PeopleSearchResult[];
 }
 
-const cachedPayloadSchema = z.object({
-  savedAt: z.number(),
-  data: z.array(peopleSearchResultSchema),
-});
+const cachedPayload = savedAnswer(mutableArray(peopleSearchResultSchema));
 
 export const normalizePeopleSearchQuery = (query: string): string =>
   query.trim().toLowerCase();
@@ -38,15 +31,7 @@ export const readCachedPeopleSearch = (
   }
 
   try {
-    const raw = storage.getItem(buildCacheKey(normalizedQuery));
-    if (raw === null) {
-      return undefined;
-    }
-    const parsed = cachedPayloadSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success) {
-      return undefined;
-    }
-    return parsed.data;
+    return cachedPayload.parse(storage.getItem(buildCacheKey(normalizedQuery)));
   } catch {
     return undefined;
   }
@@ -63,13 +48,13 @@ export const writeCachedPeopleSearch = (
   }
 
   try {
-    storage.setItem(
-      buildCacheKey(normalizedQuery),
-      JSON.stringify({
-        savedAt: Date.now(),
-        data: results,
-      } satisfies CachedPayload)
-    );
+    const saved = cachedPayload.stringify({
+      savedAt: Date.now(),
+      data: results,
+    });
+    if (saved !== undefined) {
+      storage.setItem(buildCacheKey(normalizedQuery), saved);
+    }
   } catch {
     // Ignore storage write failures (private mode/quota).
   }

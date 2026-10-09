@@ -45,3 +45,8 @@ export const accounts = plainGroup(
     success: accountSwitchSchema,
   })
 );
+
+export type PlanningCenterAccount = typeof planningCenterAccountSchema.Type;
+export type PlanningCenterAccountsResponse =
+  typeof planningCenterAccountsSchema.Type;
+export type AccountsSelectInput = typeof accountsSelectInputSchema.Type;

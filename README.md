@@ -120,7 +120,7 @@ bun run ci
 bun run build
 ```
 
-Tests are colocated under `packages/*/src` and `apps/*/src`. Feature modules accept narrow typed dependencies so tests can exercise behavior without replacing modules. API inputs and answers are validated with Effect Schema (the server decodes inputs, the client decodes answers); provider responses and persisted browser caches are validated with Zod.
+Tests are colocated under `packages/*/src` and `apps/*/src`. Feature modules accept narrow typed dependencies so tests can exercise behavior without replacing modules. Everything is validated with Effect Schema: the server decodes inputs, the client decodes answers, and Planning Center responses, KV entries, and persisted browser caches (written and read through each endpoint's own schema) are decoded the same way.
 
 Pull requests must pass the GitHub `ci` and `cloudflare-build` checks. See [CI/CD](docs/ci-cd.md) for the merge gates, deployment flow, dependency update policy, and rollback procedure.
 

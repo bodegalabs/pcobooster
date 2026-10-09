@@ -1,3 +1,4 @@
+import { orFallback } from "@pcobooster/api/planning-center/attribute-schemas";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import type { PlanningCenterAccessService } from "@pcobooster/api/planning-center/services/access-service";
@@ -13,8 +14,7 @@ import {
   isNumber,
 } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { Effect } from "effect";
-import { z } from "zod";
+import { Effect, Schema } from "effect";
 
 export interface AccessSnapshotDependencies {
   readonly accessService: Pick<
@@ -46,16 +46,13 @@ const orDenied = <Value>(
   );
 
 /** A flag Planning Center may leave out; anything but `true` means no. */
-const flagSchema = z
-  .union([z.literal(true), z.json().transform(() => false)])
-  .optional()
-  .transform((flag) => flag ?? false);
+const flagSchema = orFallback(Schema.Boolean, false);
 
 /**
  * Services `Person` permission fields. `permissions` and `max_permissions` are the
  * deprecated names for the plan levels, kept as fallbacks.
  */
-const servicesPersonSchema = z.object({
+const servicesPersonSchema = Schema.Struct({
   site_administrator: flagSchema,
   plan_permissions: servicesPermissionLevelSchema,
   permissions: servicesPermissionLevelSchema,
@@ -66,11 +63,8 @@ const servicesPersonSchema = z.object({
 });
 
 /** `permissions` is the person's level in that service type (undocumented values). */
-const serviceTypeSchema = z.object({
-  name: z
-    .union([z.string(), z.json().transform(() => "")])
-    .optional()
-    .transform((name) => name ?? ""),
+const serviceTypeSchema = Schema.Struct({
+  name: orFallback(Schema.String, ""),
   permissions: servicesPermissionLevelSchema,
 });
 
@@ -109,7 +103,9 @@ const readServicesAccess = (
       ],
       { concurrency: "unbounded" }
     );
-    const person = servicesPersonSchema.parse(me.attributes);
+    const person = Schema.decodeUnknownSync(servicesPersonSchema)(
+      me.attributes
+    );
     return {
       status: "granted",
       organizationAdministrator: person.site_administrator,
@@ -125,7 +121,9 @@ const readServicesAccess = (
       ).size,
       serviceTypes: sortedActiveServiceTypes(rawServiceTypes ?? []).map(
         (raw) => {
-          const serviceType = serviceTypeSchema.parse(raw.attributes);
+          const serviceType = Schema.decodeUnknownSync(serviceTypeSchema)(
+            raw.attributes
+          );
           return {
             id: raw.id,
             name: serviceType.name,

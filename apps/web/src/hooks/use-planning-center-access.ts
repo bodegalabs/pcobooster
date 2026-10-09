@@ -1,5 +1,5 @@
 import { callForQuery } from "@pcobooster/client/query";
-import type { AccessSnapshot } from "@pcobooster/contracts/access";
+import type { AccessSnapshot } from "@pcobooster/contracts/http/access";
 import {
   deriveFeatureAccess,
   serviceTypeAbilities,
@@ -9,11 +9,16 @@ import type {
   ServiceTypeAbilities,
 } from "@pcobooster/planning-center-models/access";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 import { useAccountsQuery } from "@/hooks/use-account-panel";
 import { featuresQueryOptions } from "@/lib/features";
 import { visibleFeatureAccess } from "@/lib/planning-center-access";
+import {
+  readCachedPlanningCenterAccess,
+  writeCachedPlanningCenterAccess,
+} from "@/lib/planning-center-access-cache";
+import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
 import { productClient } from "@/product-client";
 
@@ -21,16 +26,30 @@ const ACCESS_STALE_TIME_MS = 10 * 60 * 1000;
 
 /**
  * Keyed by the selected account, so after a switch the previous account's permissions never
- * stand in for the new one's while they load.
+ * stand in for the new one's while they load. Saved per account, so a reload within the stale
+ * time reuses the snapshot instead of spending Planning Center requests on it.
  */
 const usePlanningCenterAccessQuery = () => {
   const { data: accounts } = useAccountsQuery();
+  const accountId = accounts?.selectedAccountId ?? null;
+  const queryKey = queryKeys.planningCenterAccess(accountId);
+  const readSaved = useCallback(
+    () =>
+      accounts === undefined
+        ? undefined
+        : readCachedPlanningCenterAccess(accountId),
+    [accountId, accounts]
+  );
+  useHydrateQueryFromCache(queryKey, readSaved);
   return useQuery<AccessSnapshot>({
-    queryKey: queryKeys.planningCenterAccess(
-      accounts?.selectedAccountId ?? null
-    ),
-    queryFn: async (context) =>
-      await callForQuery(context, productClient, (api) => api.access.me()),
+    queryKey,
+    queryFn: async (context) => {
+      const snapshot = await callForQuery(context, productClient, (api) =>
+        api.access.me()
+      );
+      writeCachedPlanningCenterAccess(accountId, snapshot);
+      return snapshot;
+    },
     enabled: accounts !== undefined,
     staleTime: ACCESS_STALE_TIME_MS,
   });

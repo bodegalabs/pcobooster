@@ -6,7 +6,7 @@ import type {
   PeopleDashboardRoster,
   PeopleDashboardRosterPerson,
   PeopleDashboardTeam,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 
 /** People whose schedules load without asking in the all-teams scope; more load on request. */
 export const PEOPLE_DASHBOARD_SAMPLE_SIZE = 48;

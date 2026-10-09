@@ -2,7 +2,7 @@ import {
   initializeAnalytics,
   resetAnalytics,
 } from "@pcobooster/analytics/client";
-import type { PlanningCenterAccountsResponse } from "@pcobooster/contracts/accounts";
+import type { PlanningCenterAccountsResponse } from "@pcobooster/contracts/http/accounts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";

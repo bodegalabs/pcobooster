@@ -37,3 +37,5 @@ export const feedback = plainGroup(
     success: feedbackSubmitOutputSchema,
   })
 );
+
+export type FeedbackSubmitInput = typeof feedbackSubmitInputSchema.Type;

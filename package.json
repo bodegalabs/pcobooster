@@ -56,8 +56,7 @@
     "secrets:deploy:production": "bun run secrets:run production -- bun alchemy deploy alchemy.secrets.ts --stage prod"
   },
   "dependencies": {
-    "drizzle-orm": "1.0.0-rc.5-ab785fc",
-    "zod": "^4.6.5"
+    "drizzle-orm": "1.0.0-rc.5-ab785fc"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20260923.1",

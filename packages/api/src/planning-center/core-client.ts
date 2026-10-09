@@ -36,14 +36,22 @@ import type {
   PCApiResponse,
   PCResource,
 } from "@pcobooster/planning-center-models/types";
-import { Clock, Duration, Effect, Exit, Option, Schedule } from "effect";
+import {
+  Clock,
+  Duration,
+  Effect,
+  Exit,
+  Option,
+  Result,
+  Schedule,
+  Schema,
+} from "effect";
 import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
 import * as HttpClient from "effect/unstable/http/HttpClient";
 import type { HttpClientError } from "effect/unstable/http/HttpClientError";
 import * as HttpClientRequest from "effect/unstable/http/HttpClientRequest";
 import type { HttpClientResponse } from "effect/unstable/http/HttpClientResponse";
 import type { HttpMethod } from "effect/unstable/http/HttpMethod";
-import { z } from "zod";
 
 const log = moduleLog("planning-center/core");
 const PC_BASE_URL = "https://api.planningcenteronline.com";
@@ -52,7 +60,11 @@ const ATTEMPT_TIMEOUT_MS = 15_000;
 const MAX_RETRIES = 2;
 const RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
 const MS_PER_SECOND = 1000;
-const errorBodySchema = z.record(z.string(), z.json());
+const errorBodySchema = Schema.Record(Schema.String, Schema.MutableJson);
+type ErrorBody = typeof errorBodySchema.Type;
+const decodeErrorBody = Schema.decodeUnknownOption(
+  Schema.fromJsonString(errorBodySchema)
+);
 
 /** Every expected Planning Center failure; anything else is a defect. */
 export type PlanningCenterError =
@@ -84,6 +96,48 @@ type ResponseHeaders = HttpClientResponse["headers"];
 
 /** Planning Center's largest page; every collection read asks for it. */
 export const PLANNING_CENTER_PAGE_SIZE = 100;
+
+/**
+ * Pages after the first that one collection read requests at once. Workers keep six
+ * connections open per invocation and queue the rest, so more would only wait.
+ */
+const PAGE_READ_CONCURRENCY = 6;
+
+/**
+ * The links to the pages after `first`, up to `maxPages` in all, when the first page says
+ * how many records the collection holds and its next link pages by our page size. Each link
+ * is Planning Center's own next link with only its offset changed, so the pages read are
+ * the ones following the links one by one would read. Anything else returns no links, and
+ * the caller follows the next links instead.
+ */
+const followingPageUrls = (
+  first: PCApiResponse<PCResource[]>,
+  maxPages: number
+): string[] => {
+  const total = first.meta?.total_count;
+  const next = first.links?.next;
+  if (total === undefined || !isNonEmptyString(next)) {
+    return [];
+  }
+  const nextUrl = new URL(next, PC_BASE_URL);
+  if (
+    Number(nextUrl.searchParams.get("offset")) !== PLANNING_CENTER_PAGE_SIZE
+  ) {
+    return [];
+  }
+  const pages = Math.min(
+    Math.ceil(total / PLANNING_CENTER_PAGE_SIZE),
+    maxPages
+  );
+  return Array.from({ length: Math.max(0, pages - 1) }, (_, index) => {
+    const url = new URL(nextUrl);
+    url.searchParams.set(
+      "offset",
+      String((index + 1) * PLANNING_CENTER_PAGE_SIZE)
+    );
+    return url.toString();
+  });
+};
 
 /** One page of a collection, and the offset of the next when there is one. */
 export interface PlanningCenterPage {
@@ -250,62 +304,60 @@ const readRateLimitInfo = (
 });
 
 /** Planning Center reports JSON:API errors as `{ errors: [{ code, title, detail }] }`. */
-const listedErrorCodeSchema = z.object({
-  errors: z.array(z.object({ code: z.string() })).min(1),
-});
+const decodeListedErrorCode = Schema.decodeUnknownOption(
+  Schema.Struct({
+    errors: Schema.Array(Schema.Struct({ code: Schema.String })).check(
+      Schema.isMinLength(1)
+    ),
+  })
+);
 
 /** What a JSON:API error list says went wrong; validation errors put it in `detail`. */
-export const listedErrorDetailsSchema = z.object({
-  errors: z
-    .array(
-      z.object({ title: z.string().optional(), detail: z.string().optional() })
-    )
-    .min(1),
-});
+const decodeListedErrorDetails = Schema.decodeUnknownOption(
+  Schema.Struct({
+    errors: Schema.Array(
+      Schema.Struct({
+        title: Schema.optional(Schema.String),
+        detail: Schema.optional(Schema.String),
+      })
+    ).check(Schema.isMinLength(1)),
+  })
+);
 
-/** Each listed error's detail, or its title when it has none. */
-export const listedErrorDetails = (
-  body: z.infer<typeof listedErrorDetailsSchema>
-): string[] =>
-  body.errors.flatMap(({ detail, title }) => {
-    const text = detail ?? title;
-    return isNonEmptyString(text) ? [text] : [];
+/**
+ * Each listed error's detail, or its title when it has none; nothing when `body` is not a
+ * JSON:API error list.
+ */
+export const listedErrorDetails = (body: JsonValue | undefined): string[] =>
+  Option.match(decodeListedErrorDetails(body), {
+    onNone: () => [],
+    onSome: ({ errors }) =>
+      errors.flatMap(({ detail, title }) => {
+        const text = detail ?? title;
+        return isNonEmptyString(text) ? [text] : [];
+      }),
   });
 
-const errorTitle = (
-  body: z.infer<typeof errorBodySchema>
-): string | undefined => {
+const errorTitle = (body: ErrorBody): string | undefined => {
   if (isString(body.error)) {
     return body.error;
   }
   if (isString(body.message)) {
     return body.message;
   }
-  const listed = listedErrorDetailsSchema.safeParse(body);
-  const details = listed.success ? listedErrorDetails(listed.data) : [];
+  const details = listedErrorDetails(body);
   return details.length > 0 ? details.join("; ") : undefined;
 };
 
-const errorCode = (
-  body: z.infer<typeof errorBodySchema>
-): string | undefined => {
+const errorCode = (body: ErrorBody): string | undefined => {
   if (isString(body.code)) {
     return body.code;
   }
-  const listed = listedErrorCodeSchema.safeParse(body);
-  return listed.success ? listed.data.errors[0]?.code : undefined;
+  return Option.getOrUndefined(decodeListedErrorCode(body))?.errors[0]?.code;
 };
 
-const parseErrorBody = (
-  responseBody: string
-): z.infer<typeof errorBodySchema> | null => {
-  try {
-    const parsed = errorBodySchema.safeParse(JSON.parse(responseBody));
-    return parsed.success ? parsed.data : null;
-  } catch {
-    return null;
-  }
-};
+const parseErrorBody = (responseBody: string): ErrorBody | null =>
+  Option.getOrNull(decodeErrorBody(responseBody));
 
 const buildApiError = (
   status: number,
@@ -345,13 +397,23 @@ const readResponseText = (
 ): Effect.Effect<string, PlanningCenterNetworkError> =>
   Effect.mapError(response.text, networkFailure);
 
+/** Parses a JSON body and decodes it, failing with the schema's issue when either step fails. */
+type JsonBodyDecoder<Output> = (
+  text: string
+) => Result.Result<Output, Schema.SchemaError>;
+
+const decodeResourceResponse: JsonBodyDecoder<PCApiResponse<PCResource>> =
+  Schema.decodeUnknownResult(Schema.fromJsonString(pcResourceResponseSchema));
+const decodeCollectionResponse: JsonBodyDecoder<PCApiResponse<PCResource[]>> =
+  Schema.decodeUnknownResult(Schema.fromJsonString(pcCollectionResponseSchema));
+
 /**
  * Reads the JSON body within whatever remains of the attempt's time budget and decodes it with
- * `schema`. The schema is the only validation pass: `JSON.parse` output is JSON by
- * construction, and re-walking a 100-plan page with `z.json()` cost ~14 ms of Worker CPU.
+ * `decode`. The schema is the only validation pass: `JSON.parse` output is JSON by
+ * construction, and re-walking a 100-plan page as generic JSON cost ~14 ms of Worker CPU.
  */
 const readJsonBody =
-  <Output>(schema: z.ZodType<Output>) =>
+  <Output>(decode: JsonBodyDecoder<Output>) =>
   ({
     response,
     startedAt,
@@ -376,16 +438,13 @@ const readJsonBody =
           })
         );
       }
-      const decoded = yield* Effect.try({
-        try: () => schema.safeParse(JSON.parse(text)),
-        catch: (error) => invalidProviderResponse(response.status, error),
-      });
-      if (!decoded.success) {
+      const decoded = decode(text);
+      if (Result.isFailure(decoded)) {
         return yield* Effect.fail(
-          invalidProviderResponse(response.status, decoded.error)
+          invalidProviderResponse(response.status, decoded.failure)
         );
       }
-      return decoded.data;
+      return decoded.success;
     });
 
 /** Fails before sending when this invocation may not make another request. */
@@ -757,23 +816,23 @@ export class PlanningCenterCoreClient {
   private fetchJson<Output>(
     endpoint: string,
     options: PlanningCenterRequestOptions,
-    schema: z.ZodType<Output>
+    decode: JsonBodyDecoder<Output>
   ): Effect.Effect<Output, PlanningCenterError> {
-    return Effect.flatMap(this.send(endpoint, options), readJsonBody(schema));
+    return Effect.flatMap(this.send(endpoint, options), readJsonBody(decode));
   }
 
   fetch(
     endpoint: string,
     options: PlanningCenterRequestOptions = {}
   ): Effect.Effect<PCApiResponse<PCResource>, PlanningCenterError> {
-    return this.fetchJson(endpoint, options, pcResourceResponseSchema);
+    return this.fetchJson(endpoint, options, decodeResourceResponse);
   }
 
   fetchCollection(
     endpoint: string,
     options: PlanningCenterRequestOptions = {}
   ): Effect.Effect<PCApiResponse<PCResource[]>, PlanningCenterError> {
-    return this.fetchJson(endpoint, options, pcCollectionResponseSchema);
+    return this.fetchJson(endpoint, options, decodeCollectionResponse);
   }
 
   /** Every page of a collection; fails rather than return part of it past `maxPages`. */
@@ -818,7 +877,9 @@ export class PlanningCenterCoreClient {
 
   /**
    * At most `maxPages` pages from the start of a collection, for reads whose order puts what
-   * they need first. `next` is the following page's link when the collection goes on.
+   * they need first. `next` is the following page's link when the collection goes on. When
+   * the first page reports the collection's size, the pages after it are read together
+   * rather than one after another; a collection that grew meanwhile is followed on by link.
    */
   fetchFirstPages(
     endpoint: string,
@@ -836,6 +897,21 @@ export class PlanningCenterCoreClient {
         ...params,
         per_page: String(PLANNING_CENTER_PAGE_SIZE),
       });
+      /** Keeps a page's records and returns its next link. */
+      const collect = (
+        response: PCApiResponse<PCResource[]>
+      ): string | null => {
+        data.push(...response.data);
+        for (const resource of response.included ?? []) {
+          const key = `${resource.type}:${resource.id}`;
+          if (!seenIncluded.has(key)) {
+            seenIncluded.add(key);
+            included.push(resource);
+          }
+        }
+        const nextUrl: string | undefined = response.links?.next;
+        return isNonEmptyString(nextUrl) ? nextUrl : null;
+      };
       while (url !== null && pages < maxPages) {
         if (seenUrls.has(url)) {
           return yield* Effect.fail(
@@ -849,16 +925,21 @@ export class PlanningCenterCoreClient {
         seenUrls.add(url);
         pages += 1;
         const response: PCApiResponse<PCResource[]> = yield* fetchPage(url);
-        data.push(...response.data);
-        for (const resource of response.included ?? []) {
-          const key = `${resource.type}:${resource.id}`;
-          if (!seenIncluded.has(key)) {
-            seenIncluded.add(key);
-            included.push(resource);
+        url = collect(response);
+        const following =
+          pages === 1 ? followingPageUrls(response, maxPages) : [];
+        if (following.length > 0) {
+          const responses = yield* Effect.forEach(following, fetchPage, {
+            concurrency: PAGE_READ_CONCURRENCY,
+          });
+          for (const page of responses) {
+            url = collect(page);
           }
+          for (const followingUrl of following) {
+            seenUrls.add(followingUrl);
+          }
+          pages += following.length;
         }
-        const nextUrl: string | undefined = response.links?.next;
-        url = isNonEmptyString(nextUrl) ? nextUrl : null;
       }
       if (url !== null) {
         yield* log.info("Planning Center read stopped at its page limit", {

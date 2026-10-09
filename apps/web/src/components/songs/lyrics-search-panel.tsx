@@ -1,5 +1,5 @@
 import { failureMessage } from "@pcobooster/client/product-client";
-import type { LyricsSearchResult } from "@pcobooster/contracts/chord-charts";
+import type { LyricsSearchResult } from "@pcobooster/contracts/http/chord-charts";
 import { Search } from "lucide-react";
 import { useState } from "react";
 

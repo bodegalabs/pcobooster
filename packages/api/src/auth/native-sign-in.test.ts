@@ -32,6 +32,7 @@ import {
 } from "@pcobooster/api/db/schema";
 import { testServerConfig } from "@pcobooster/api/testing/server";
 import { and, eq, like } from "drizzle-orm";
+import { Schema } from "effect";
 import {
   afterAll,
   afterEach,
@@ -41,7 +42,6 @@ import {
   it,
   vi,
 } from "vitest";
-import { z } from "zod";
 
 import { createLocalD1 } from "../../../../scripts/database/local-d1";
 import { LOCAL_WORKER_TEST_TIMEOUT_MS } from "../../../../scripts/testing/miniflare";
@@ -61,12 +61,18 @@ const HANDOFF_CODE = /^[\w-]{43}$/u;
 const MILLISECONDS_PER_SECOND = 1000;
 const SESSION_REFRESH_AFTER_MS = 2 * 24 * 60 * 60 * MILLISECONDS_PER_SECOND;
 
-const errorBodySchema = z.object({ code: z.string() });
-const markerFieldsSchema = z.record(z.string(), z.string());
-const sessionBodySchema = z
-  .object({ user: z.object({ id: z.string() }) })
-  .nullable();
-const signInResponseSchema = z.object({ url: z.string() });
+const decodeErrorBody = Schema.decodeUnknownSync(
+  Schema.Struct({ code: Schema.String })
+);
+const decodeMarkerFields = Schema.decodeUnknownSync(
+  Schema.Record(Schema.String, Schema.String)
+);
+const decodeSessionBody = Schema.decodeUnknownSync(
+  Schema.NullOr(Schema.Struct({ user: Schema.Struct({ id: Schema.String }) }))
+);
+const decodeSignInResponse = Schema.decodeUnknownSync(
+  Schema.Struct({ url: Schema.String })
+);
 
 let auth: ReturnType<typeof createAuth>;
 const handler = async (request: Request): Promise<Response> =>
@@ -99,7 +105,7 @@ const exchangeWith = async (
   });
 
 const errorCode = async (response: Response): Promise<string> => {
-  const body = errorBodySchema.parse(await response.json());
+  const body = decodeErrorBody(await response.json());
   return body.code;
 };
 
@@ -182,7 +188,7 @@ const webSignInStart = async (cookie = ""): Promise<Response> =>
   );
 
 const authorizationUrlOf = async (response: Response): Promise<string> => {
-  const { url } = signInResponseSchema.parse(await response.json());
+  const { url } = decodeSignInResponse(await response.json());
   return url;
 };
 
@@ -567,7 +573,7 @@ describe("native sign-in", { timeout: LOCAL_WORKER_TEST_TIMEOUT_MS }, () => {
     const separator = signed.lastIndexOf(".");
     // Swap in an attacker's challenge but keep the original signature.
     const forged = `${JSON.stringify({
-      ...markerFieldsSchema.parse(JSON.parse(signed.slice(0, separator))),
+      ...decodeMarkerFields(JSON.parse(signed.slice(0, separator))),
       challenge: createPkcePair().challenge,
     })}${signed.slice(separator)}`;
     const callback = await callbackFor(
@@ -640,7 +646,7 @@ describe("native sign-in", { timeout: LOCAL_WORKER_TEST_TIMEOUT_MS }, () => {
         headers: { cookie: cookieHeader(callback) },
       })
     );
-    const refreshedSession = sessionBodySchema.parse(await refreshed.json());
+    const refreshedSession = decodeSessionBody(await refreshed.json());
 
     expect(refreshedSession?.user.id).toBe(await userIdFor(person.email));
     expect(
@@ -739,7 +745,7 @@ describe("native sign-in", { timeout: LOCAL_WORKER_TEST_TIMEOUT_MS }, () => {
     );
 
     expect(signOut.status).toBe(200);
-    expect(sessionBodySchema.parse(await afterSignOut.json())).toBeNull();
+    expect(decodeSessionBody(await afterSignOut.json())).toBeNull();
     await expect(sessionCountFor(person.email)).resolves.toBe(0);
   });
 });

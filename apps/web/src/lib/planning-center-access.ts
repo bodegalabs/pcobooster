@@ -7,9 +7,10 @@ import type {
   FeatureAccess,
   ServiceTypeAbilities,
 } from "@pcobooster/planning-center-models/access";
-import { z } from "zod";
+import { Schema } from "effect";
 
 import type { DashboardView } from "@/lib/schedule-navigation";
+import { storedJson } from "@/lib/stored-json";
 
 /** The flag each flagged feature sits behind; the others are always in the product. */
 const featureFlagOf: Readonly<Partial<Record<AppFeature, FeatureFlagName>>> = {
@@ -43,22 +44,14 @@ export const accessFingerprint = (features: readonly FeatureAccess[]): string =>
 export const ACCESS_REVIEW_DISMISSALS_KEY =
   "pcobooster:access-review-dismissed:v1";
 
-const dismissalsSchema = z.record(z.string(), z.string());
+const storedDismissals = storedJson(
+  Schema.Record(Schema.String, Schema.String)
+);
 
 /** The fingerprint each account last dismissed, keyed by account id. */
 export const parseAccessReviewDismissals = (
   raw: string | null
-): Record<string, string> => {
-  if (raw === null) {
-    return {};
-  }
-  try {
-    const parsed = dismissalsSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : {};
-  } catch {
-    return {};
-  }
-};
+): Record<string, string> => storedDismissals.parse(raw) ?? {};
 
 export const recordAccessReviewDismissal = (
   raw: string | null,

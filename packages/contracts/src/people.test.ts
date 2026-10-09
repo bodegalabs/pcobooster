@@ -1,17 +1,18 @@
 import {
-  PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE,
   peopleCandidateDetailsInputSchema,
   peoplePlanWindowHistoryInputSchema,
-} from "@pcobooster/contracts/people";
+} from "@pcobooster/contracts/http/people";
 import {
   blockoutSchema,
+  candidateHistorySchema,
   peopleDashboardActivityBatchSchema,
   peopleDashboardPersonDetailSchema,
   peopleDashboardPersonSchema,
   peopleDashboardRosterSchema,
   positionCandidatesSchema,
-  scheduleFrequencySchema,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
+import { PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE } from "@pcobooster/contracts/people";
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
 
 const rhythm = {
@@ -56,25 +57,23 @@ const month = {
   startsOnWeekday: 2,
 };
 
-const frequency = {
-  recentServedDays: 1,
-  last60Days: 2,
-  last90Days: 3,
-  lastServedDate: new Date("2026-09-13T17:00:00Z"),
-  totalServed: 10,
-  recentRehearsalOnlyDays: 1,
-  rehearsalLast60Days: 2,
-  rehearsalLast90Days: 3,
-  lastRehearsalDate: new Date("2026-09-12T17:00:00Z"),
-  totalRehearsals: 10,
-  upcomingServices: 1,
-  nextUpcomingDate: new Date("2026-09-20T17:00:00Z"),
-  upcomingRehearsals: 1,
-  nextRehearsalDate: new Date("2026-09-19T17:00:00Z"),
+const candidateHistory = {
+  serviceHistory: [
+    {
+      id: "schedule-1",
+      sourceScheduleId: "schedule-1",
+      planId: "plan-1",
+      date: new Date("2026-09-13T17:00:00Z"),
+      teamPositionName: "Keys",
+      status: "C",
+      timeType: "service",
+    },
+  ],
+  selectedPlanAssignments: [],
 };
 
 describe("people read contracts", () => {
-  it("retains real dates throughout blockouts and schedule frequency", () => {
+  it("retains real dates throughout blockouts and schedule history", () => {
     const blockout = {
       id: "blockout-1",
       reason: "Unavailable",
@@ -84,20 +83,29 @@ describe("people read contracts", () => {
       share: false,
       timeZone: "America/Los_Angeles",
     };
-    expect(blockoutSchema.parse(blockout)).toStrictEqual(blockout);
-    expect(scheduleFrequencySchema.parse(frequency)).toStrictEqual(frequency);
+    expect(Schema.decodeUnknownSync(blockoutSchema)(blockout)).toStrictEqual(
+      blockout
+    );
     expect(
-      blockoutSchema.safeParse({
+      Schema.decodeUnknownSync(candidateHistorySchema)(candidateHistory)
+    ).toStrictEqual(candidateHistory);
+    expect(() =>
+      Schema.decodeUnknownSync(blockoutSchema)({
         ...blockout,
         startsAt: blockout.startsAt.toISOString(),
-      }).success
-    ).toBeFalsy();
-    expect(
-      scheduleFrequencySchema.safeParse({
-        ...frequency,
-        lastServedDate: "2026-09-13T17:00:00Z",
-      }).success
-    ).toBeFalsy();
+      })
+    ).toThrow(Schema.SchemaError);
+    expect(() =>
+      Schema.decodeUnknownSync(candidateHistorySchema)({
+        ...candidateHistory,
+        serviceHistory: [
+          {
+            ...candidateHistory.serviceHistory[0],
+            date: "2026-09-13T17:00:00Z",
+          },
+        ],
+      })
+    ).toThrow(Schema.SchemaError);
   });
 
   it("splits a dashboard person into roster identity and batch activity", () => {
@@ -149,27 +157,29 @@ describe("people read contracts", () => {
       continuation: null,
     };
 
-    expect(peopleDashboardRosterSchema.parse(roster)).toStrictEqual(roster);
-    expect(peopleDashboardActivityBatchSchema.parse(batch)).toStrictEqual(
-      batch
-    );
+    expect(
+      Schema.decodeUnknownSync(peopleDashboardRosterSchema)(roster)
+    ).toStrictEqual(roster);
+    expect(
+      Schema.decodeUnknownSync(peopleDashboardActivityBatchSchema)(batch)
+    ).toStrictEqual(batch);
     // A person detail carries the same rhythm the dashboard reads.
     expect(
-      peopleDashboardPersonSchema.parse({
+      Schema.decodeUnknownSync(peopleDashboardPersonSchema)({
         ...roster.people[0],
         ...activity,
         rhythm,
       })
     ).toStrictEqual(dashboardPerson);
-    expect(
-      peopleDashboardPersonSchema.safeParse({
+    expect(() =>
+      Schema.decodeUnknownSync(peopleDashboardPersonSchema)({
         ...roster.people[0],
         ...activity,
-      }).success
-    ).toBeFalsy();
-    expect(peopleDashboardPersonDetailSchema.parse(detail)).toStrictEqual(
-      detail
-    );
+      })
+    ).toThrow(Schema.SchemaError);
+    expect(
+      Schema.decodeUnknownSync(peopleDashboardPersonDetailSchema)(detail)
+    ).toStrictEqual(detail);
   });
 
   it("keeps an empty slot distinct from a missing one", () => {
@@ -199,31 +209,32 @@ describe("people read contracts", () => {
       ],
     };
 
-    expect(positionCandidatesSchema.parse(candidates)).toStrictEqual(
-      candidates
-    );
     expect(
-      positionCandidatesSchema.safeParse({
+      Schema.decodeUnknownSync(positionCandidatesSchema)(candidates)
+    ).toStrictEqual(candidates);
+    expect(() =>
+      Schema.decodeUnknownSync(positionCandidatesSchema)({
         ...candidates,
         candidates: [
           { ...candidates.candidates[0], selectedPlanSlot: undefined },
         ],
-      }).success
-    ).toBeFalsy();
+      })
+    ).toThrow(Schema.SchemaError);
   });
 
   it("retains the full plan instant and bounds batch lookups", () => {
     const history = { date: "2026-09-20T00:30:00-07:00" };
 
-    expect(peoplePlanWindowHistoryInputSchema.parse(history)).toStrictEqual(
-      history
-    );
     expect(
-      peoplePlanWindowHistoryInputSchema.safeParse({ date: "2026-09-20" })
-        .success
-    ).toBeFalsy();
-    expect(
-      peopleCandidateDetailsInputSchema.safeParse({
+      Schema.decodeUnknownSync(peoplePlanWindowHistoryInputSchema)(history)
+    ).toStrictEqual(history);
+    expect(() =>
+      Schema.decodeUnknownSync(peoplePlanWindowHistoryInputSchema)({
+        date: "2026-09-20",
+      })
+    ).toThrow(Schema.SchemaError);
+    expect(() =>
+      Schema.decodeUnknownSync(peopleCandidateDetailsInputSchema)({
         personIds: Array.from(
           { length: PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE + 1 },
           (_, index) => String(index)
@@ -231,8 +242,8 @@ describe("people read contracts", () => {
         planId: "plan-1",
         date: history.date,
         scheduleHistory: false,
-      }).success
-    ).toBeFalsy();
+      })
+    ).toThrow(Schema.SchemaError);
     const continuation = {
       personIds: ["1"],
       planId: "plan-1",
@@ -255,12 +266,12 @@ describe("people read contracts", () => {
         ],
       },
     };
-    expect(peopleCandidateDetailsInputSchema.parse(continuation)).toStrictEqual(
-      continuation
-    );
-    // A page offset is a whole, non-negative number; anything else is not a cursor.
     expect(
-      peopleCandidateDetailsInputSchema.safeParse({
+      Schema.decodeUnknownSync(peopleCandidateDetailsInputSchema)(continuation)
+    ).toStrictEqual(continuation);
+    // A page offset is a whole, non-negative number; anything else is not a cursor.
+    expect(() =>
+      Schema.decodeUnknownSync(peopleCandidateDetailsInputSchema)({
         ...continuation,
         continuation: {
           people: [
@@ -273,7 +284,7 @@ describe("people read contracts", () => {
             },
           ],
         },
-      }).success
-    ).toBeFalsy();
+      })
+    ).toThrow(Schema.SchemaError);
   });
 });

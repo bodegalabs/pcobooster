@@ -1,18 +1,17 @@
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 
-import { z } from "zod";
-
 import { readKeychain } from "./keychain";
 import {
   commandEnvironment,
+  parseSecretScope,
+  processExit,
   requiredScopeKeys,
-  secretScopeSchema,
   selectScopeValues,
 } from "./manifest";
 
 const [scopeInput, separator, command, ...args] = process.argv.slice(2);
-const scope = secretScopeSchema.parse(scopeInput);
+const scope = parseSecretScope(scopeInput);
 if (separator !== "--" || command === undefined) {
   throw new Error("Usage: secrets:run <scope> -- <command> [arguments]");
 }
@@ -47,7 +46,5 @@ const stop = (signal: NodeJS.Signals): void => {
 };
 process.on("SIGINT", stop);
 process.on("SIGTERM", stop);
-const [code] = z
-  .tuple([z.number().nullable(), z.string().nullable()])
-  .parse(await once(child, "exit"));
+const [code] = processExit(await once(child, "exit"));
 process.exitCode = code ?? 1;

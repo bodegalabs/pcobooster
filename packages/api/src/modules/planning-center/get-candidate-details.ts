@@ -9,7 +9,7 @@ import type {
   PlanTimesProgress,
   PlanTimesWanted,
 } from "@pcobooster/api/modules/planning-center/people/plan-time-pages";
-import { scheduleResourceSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
+import { decodeScheduleResource } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import { selectedPlanAssignmentsFor } from "@pcobooster/api/modules/planning-center/people/selected-plan-assignments";
 import {
   blockoutDateCoversPlanDate,
@@ -46,7 +46,7 @@ import type {
   PCResource,
   RawSchedule,
 } from "@pcobooster/planning-center-models/types";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 
 const log = moduleLog("planning-center/candidate-details");
 
@@ -246,9 +246,9 @@ const scheduleHistoryFrom = (
 ): CandidateHistory => {
   const schedules: RawSchedule[] = [];
   for (const resource of data) {
-    const parsed = scheduleResourceSchema.safeParse(resource);
-    if (parsed.success) {
-      schedules.push(parsed.data);
+    const parsed = decodeScheduleResource(resource);
+    if (Option.isSome(parsed)) {
+      schedules.push(parsed.value);
     }
   }
   const listed = new Set(

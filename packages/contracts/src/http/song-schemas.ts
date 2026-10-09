@@ -1,4 +1,4 @@
-/** Song answers. Ported from the zod schemas in `../song-schemas.ts`. */
+/** Song answers. */
 import { layoutOptionSchema } from "@pcobooster/contracts/http/plan-item-schemas";
 import { finiteNumber, mutableArray } from "@pcobooster/contracts/http/schema";
 import { Schema } from "effect";
@@ -41,3 +41,8 @@ export const songOptionSetSchema = Schema.Struct({
   suggestedLayoutId: Schema.NullOr(Schema.String),
   layoutMode: Schema.Literals(["unavailable", "existing-only", "editable"]),
 });
+
+export type SongCatalogEntry = typeof songCatalogEntrySchema.Type;
+export type KeyOption = typeof keyOptionSchema.Type;
+export type ArrangementOption = typeof arrangementOptionSchema.Type;
+export type SongOptionSet = typeof songOptionSetSchema.Type;

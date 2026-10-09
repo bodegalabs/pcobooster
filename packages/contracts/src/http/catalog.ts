@@ -128,3 +128,14 @@ export const catalog = planningCenterGroup(
     }
   )
 );
+
+export type ServiceType = typeof serviceTypeSchema.Type;
+export type Plan = typeof planSchema.Type;
+export type FilledPositionPerson = typeof filledPositionPersonSchema.Type;
+export type PlanPersonNotification = typeof planPersonNotificationSchema.Type;
+export type TeamPosition = typeof teamPositionSchema.Type;
+export type TeamPositionGroup = typeof teamPositionGroupSchema.Type;
+export type PlansInput = typeof plansInputSchema.Type;
+export type PlanInput = typeof planInputSchema.Type;
+export type AdjacentPlansInput = typeof adjacentPlansInputSchema.Type;
+export type TeamPositionsInput = typeof teamPositionsInputSchema.Type;

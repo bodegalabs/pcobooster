@@ -8,7 +8,6 @@ import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-erro
 import {
   isPlanningCenterError,
   listedErrorDetails,
-  listedErrorDetailsSchema,
 } from "@pcobooster/api/planning-center/core-client";
 import type {
   PlanningCenterError,
@@ -24,6 +23,7 @@ import type { ServerDependencies } from "@pcobooster/api/server";
 import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
 import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { InvalidInput } from "@pcobooster/contracts/faults/invalid-input";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
 import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import {
@@ -141,6 +141,7 @@ export const createPlanningCenterAccessDependencies = (
 });
 
 const PLANNING_CENTER_FORBIDDEN_STATUS = 403;
+const PLANNING_CENTER_NOT_FOUND_STATUS = 404;
 const PLANNING_CENTER_UNAUTHORIZED_STATUS = 401;
 const PLANNING_CENTER_VALIDATION_STATUS = 422;
 /** Planning Center's rate window; a caller that waits this long starts a fresh one. */
@@ -154,8 +155,7 @@ const NO_APP_ACCESS_MESSAGE =
 
 /** Planning Center's own reason for rejecting a change, written for people. */
 const rejectedChangeMessage = (error: PlanningCenterApiError): string => {
-  const listed = listedErrorDetailsSchema.safeParse(error.details);
-  const details = listed.success ? listedErrorDetails(listed.data) : [];
+  const details = listedErrorDetails(error.details);
   return details.length > 0
     ? `Planning Center didn't accept that change: ${details.join("; ")}`
     : "Planning Center didn't accept that change.";
@@ -266,6 +266,24 @@ export const explainPlanningCenterDenial =
         ? new Forbidden({ message })
         : failure
     );
+
+/**
+ * Reports a person Planning Center Services has no record of (a 404 on their own Services
+ * person, schedules, or plan people) as `NotFound`: they are in People only, on no Services team
+ * or schedule yet. Only for reads whose other requests recover their own 404s.
+ */
+export const explainMissingServicesPerson = <Value, Failure, Requirements>(
+  effect: Effect.Effect<Value, Failure, Requirements>
+): Effect.Effect<Value, Failure | NotFound, Requirements> =>
+  Effect.mapError(effect, (failure) =>
+    failure instanceof PlanningCenterApiError &&
+    failure.status === PLANNING_CENTER_NOT_FOUND_STATUS
+      ? new NotFound({
+          resource: "services-person",
+          message: "This person isn't in Planning Center Services yet.",
+        })
+      : failure
+  );
 
 /** Reports Planning Center failures as application faults; defects stay defects. */
 export const withPlanningCenterFaults = <Value, Requirements>(

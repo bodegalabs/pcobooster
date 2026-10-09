@@ -1,9 +1,8 @@
 import { moduleLog } from "@pcobooster/api/logging";
-import type { LyricsSearchResult } from "@pcobooster/contracts/chord-charts";
 import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
 import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
-import { Effect } from "effect";
-import { z } from "zod";
+import type { LyricsSearchResult } from "@pcobooster/contracts/http/chord-charts";
+import { Effect, Result, Schema } from "effect";
 
 const log = moduleLog("lyrics/lrclib");
 
@@ -17,17 +16,20 @@ const REQUEST_TIMEOUT_MS = 8000;
 const MAX_RESULTS = 12;
 const HTTP_TOO_MANY_REQUESTS = 429;
 
-const lrclibRecordSchema = z.object({
-  id: z.number(),
-  trackName: z.string().nullable().optional(),
-  artistName: z.string().nullable().optional(),
-  albumName: z.string().nullable().optional(),
-  duration: z.number().nullable().optional(),
-  instrumental: z.boolean().nullable().optional(),
-  plainLyrics: z.string().nullable().optional(),
+const lrclibRecordSchema = Schema.Struct({
+  id: Schema.Finite,
+  trackName: Schema.optional(Schema.NullOr(Schema.String)),
+  artistName: Schema.optional(Schema.NullOr(Schema.String)),
+  albumName: Schema.optional(Schema.NullOr(Schema.String)),
+  duration: Schema.optional(Schema.NullOr(Schema.Finite)),
+  instrumental: Schema.optional(Schema.NullOr(Schema.Boolean)),
+  plainLyrics: Schema.optional(Schema.NullOr(Schema.String)),
 });
 
-const lrclibSearchResponseSchema = z.array(lrclibRecordSchema);
+const lrclibSearchResponseSchema = Schema.Array(lrclibRecordSchema);
+const decodeLrclibSearchResponse = Schema.decodeUnknownResult(
+  lrclibSearchResponseSchema
+);
 
 export interface LyricsSearchDependencies {
   readonly fetch: typeof globalThis.fetch;
@@ -38,7 +40,7 @@ const lyricsKey = (lyrics: string) =>
 
 /** Songs with lyrics, each distinct text once: the same recording is often listed many times. */
 export const toLyricsSearchResults = (
-  records: z.output<typeof lrclibSearchResponseSchema>
+  records: typeof lrclibSearchResponseSchema.Type
 ): LyricsSearchResult[] => {
   const results: LyricsSearchResult[] = [];
   const seen = new Set<string>();
@@ -98,20 +100,19 @@ export const searchLyrics = (
       );
     }
     const parsed = yield* Effect.tryPromise({
-      try: async () =>
-        lrclibSearchResponseSchema.safeParse(await response.json()),
+      try: async () => decodeLrclibSearchResponse(await response.json()),
       catch: (cause) =>
         failure("The lyrics service sent an unreadable answer.", cause),
     });
-    if (!parsed.success) {
+    if (Result.isFailure(parsed)) {
       return yield* failure(
         "The lyrics service sent an unexpected answer.",
-        parsed.error
+        parsed.failure
       );
     }
-    const results = toLyricsSearchResults(parsed.data);
+    const results = toLyricsSearchResults(parsed.success);
     yield* log.info("Lyrics search finished", {
-      records: parsed.data.length,
+      records: parsed.success.length,
       results: results.length,
     });
     return results;

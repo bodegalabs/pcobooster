@@ -4,30 +4,15 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./access": "./src/access.ts",
-    "./accounts": "./src/accounts.ts",
     "./admin": "./src/admin.ts",
-    "./catalog": "./src/catalog.ts",
     "./chord-charts": "./src/chord-charts.ts",
     "./demo": "./src/demo.ts",
     "./faults": "./src/faults.ts",
     "./faults/*": "./src/faults/*.ts",
     "./features": "./src/features.ts",
     "./feedback": "./src/feedback.ts",
-    "./identity": "./src/identity.ts",
     "./people": "./src/people.ts",
-    "./people-schemas": "./src/people-schemas.ts",
-    "./plan-item-schemas": "./src/plan-item-schemas.ts",
-    "./plan-items": "./src/plan-items.ts",
-    "./plan-people": "./src/plan-people.ts",
-    "./plan-time-schemas": "./src/plan-time-schemas.ts",
-    "./needed-positions": "./src/needed-positions.ts",
-    "./plan-times": "./src/plan-times.ts",
     "./request-priority": "./src/request-priority.ts",
-    "./schedule": "./src/schedule.ts",
-    "./session": "./src/session.ts",
-    "./song-schemas": "./src/song-schemas.ts",
-    "./songs": "./src/songs.ts",
     "./http/*": "./src/http/*.ts"
   },
   "scripts": {
@@ -36,8 +21,7 @@
   },
   "dependencies": {
     "@pcobooster/planning-center-models": "workspace:*",
-    "effect": "4.0.0-rc.117",
-    "zod": "^4.6.5"
+    "effect": "4.0.0-rc.117"
   },
   "devDependencies": {
     "@pcobooster/config": "workspace:*",

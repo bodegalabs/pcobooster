@@ -9,7 +9,7 @@ import {
 } from "node:fs";
 import path from "node:path";
 
-import { z } from "zod";
+import { Schema } from "effect";
 
 import {
   artifactKindForPath,
@@ -90,7 +90,11 @@ const readIndependentVerification = (
       "--verifier-verdict, --verifier-summary, and --verifier-source must be provided together"
     );
   }
-  return independentVerificationSchema.parse({ source, summary, verdict });
+  return Schema.decodeUnknownSync(independentVerificationSchema)({
+    source,
+    summary,
+    verdict,
+  });
 };
 
 const runCapturedCommand = async (
@@ -213,7 +217,7 @@ const readReceipt = (receiptPath: string): LoadedReceipt => {
     : path.resolve(repositoryRoot, receiptPath);
   return {
     directory: path.dirname(absolutePath),
-    receipt: proofReceiptSchema.parse(
+    receipt: Schema.decodeUnknownSync(proofReceiptSchema)(
       JSON.parse(readFileSync(absolutePath, "utf-8"))
     ),
   };
@@ -296,7 +300,10 @@ const runProof = async (args: readonly string[]): Promise<void> => {
   const riskTier =
     requestedRisk === "auto"
       ? automaticRiskTier
-      : maxRiskTier(automaticRiskTier, riskTierSchema.parse(requestedRisk));
+      : maxRiskTier(
+          automaticRiskTier,
+          Schema.decodeUnknownSync(riskTierSchema)(requestedRisk)
+        );
   const timestamp = new Date().toISOString().replaceAll(/[:.]/gu, "-");
   const proofDirectory = path.join(
     repositoryRoot,
@@ -430,24 +437,24 @@ const publish = (args: readonly string[]): void => {
   }
   doctor();
   const { directory } = readReceipt(receiptPath);
-  const prState = z
-    .object({
-      baseRefOid: z.string(),
-      comments: z.array(z.object({ body: z.string() })),
-      headRefOid: z.string(),
-    })
-    .parse(
-      JSON.parse(
-        execFileSync(
-          "gh",
-          ["pr", "view", pr, "--json", "baseRefOid,comments,headRefOid"],
-          {
-            cwd: repositoryRoot,
-            encoding: "utf-8",
-          }
-        )
-      )
-    );
+  const prState = Schema.decodeUnknownSync(
+    Schema.fromJsonString(
+      Schema.Struct({
+        baseRefOid: Schema.String,
+        comments: Schema.Array(Schema.Struct({ body: Schema.String })),
+        headRefOid: Schema.String,
+      })
+    )
+  )(
+    execFileSync(
+      "gh",
+      ["pr", "view", pr, "--json", "baseRefOid,comments,headRefOid"],
+      {
+        cwd: repositoryRoot,
+        encoding: "utf-8",
+      }
+    )
+  );
   if (prState.headRefOid !== receipt.headSha) {
     fail(
       `PR head ${prState.headRefOid} does not match proof head ${receipt.headSha}`

@@ -2,7 +2,7 @@ import type {
   PeopleDashboardDayKind,
   PeopleDashboardMonth,
   PeopleDashboardMonthDay,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import { formatCalendarDateLabel } from "@pcobooster/planning-center-models/calendar";
 
 import type { MonthGridDayTone } from "@/components/ui/month-grid-day";

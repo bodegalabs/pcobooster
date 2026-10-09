@@ -40,7 +40,7 @@ import type {
 import { createAuthEndpoint, createAuthMiddleware } from "better-auth/api";
 import { expireCookie, parseSetCookieHeader } from "better-auth/cookies";
 import { makeSignature } from "better-auth/crypto";
-import { z } from "zod";
+import { Function, Option, Schema, SchemaGetter } from "effect";
 
 /** The only places a native sign-in returns to, compared exactly. Never read from elsewhere. */
 export const NATIVE_REDIRECT_URIS = [
@@ -117,39 +117,63 @@ const HANDOFF_CODE = /^[\w-]{43}$/u;
  * A start parameter given once. Better Auth parses a repeated parameter as an array; it counts as
  * missing, so the request gets the documented error instead of a generic validation failure.
  */
-const singleQueryValue = z
-  .union([z.string(), z.array(z.string())])
-  .optional()
-  .transform((value) => (Array.isArray(value) ? undefined : value));
+const singleQueryValue = Schema.optional(
+  Schema.Union([
+    Schema.String,
+    Schema.Array(Schema.String).pipe(
+      Schema.decodeTo(Schema.Undefined, {
+        decode: SchemaGetter.transform(Function.constUndefined),
+        encode: SchemaGetter.transform((): readonly string[] => []),
+      })
+    ),
+  ])
+);
 
-const startQuerySchema = z.object({
-  code_challenge: z.string().regex(S256_CHALLENGE),
-  code_challenge_method: z.literal("S256"),
-  state: z.string().regex(APP_STATE),
+const matching = (pattern: RegExp) =>
+  Schema.String.check(Schema.isPattern(pattern));
+
+const decodeStartQuery = Schema.decodeUnknownOption(
+  Schema.Struct({
+    code_challenge: matching(S256_CHALLENGE),
+    code_challenge_method: Schema.Literal("S256"),
+    state: matching(APP_STATE),
+  })
+);
+
+const markerSchema = Schema.Struct({
+  redirectUri: Schema.Literals(NATIVE_REDIRECT_URIS),
+  challenge: matching(S256_CHALLENGE),
+  appState: matching(APP_STATE),
+  oauthState: Schema.NonEmptyString,
 });
+type NativeSignInMarker = typeof markerSchema.Type;
+/** The marker cookie's JSON text; anything malformed or unexpected reads as missing. */
+const decodeMarker = Schema.decodeUnknownOption(
+  Schema.fromJsonString(markerSchema)
+);
 
-const markerSchema = z.object({
-  redirectUri: z.enum(NATIVE_REDIRECT_URIS),
-  challenge: z.string().regex(S256_CHALLENGE),
-  appState: z.string().regex(APP_STATE),
-  oauthState: z.string().min(1),
+const handoffSchema = Schema.Struct({
+  sessionToken: Schema.NonEmptyString,
+  userId: Schema.NonEmptyString,
+  selectedAccountId: Schema.NullOr(Schema.NonEmptyString),
+  challenge: matching(S256_CHALLENGE),
 });
-type NativeSignInMarker = z.infer<typeof markerSchema>;
+type NativeSignInHandoff = typeof handoffSchema.Type;
+/** A stored handoff's JSON text; anything malformed or unexpected reads as missing. */
+const decodeHandoff = Schema.decodeUnknownOption(
+  Schema.fromJsonString(handoffSchema)
+);
 
-const handoffSchema = z.object({
-  sessionToken: z.string().min(1),
-  userId: z.string().min(1),
-  selectedAccountId: z.string().min(1).nullable(),
-  challenge: z.string().regex(S256_CHALLENGE),
-});
-type NativeSignInHandoff = z.infer<typeof handoffSchema>;
+const decodeExchangeBody = Schema.decodeUnknownOption(
+  Schema.Struct({
+    code: matching(HANDOFF_CODE),
+    codeVerifier: matching(CODE_VERIFIER),
+  })
+);
 
-const exchangeBodySchema = z.object({
-  code: z.string().regex(HANDOFF_CODE),
-  codeVerifier: z.string().regex(CODE_VERIFIER),
-});
-
-const callbackQuerySchema = z.object({ state: z.string() });
+const decodeCallbackQuery = Schema.decodeUnknownOption(
+  Schema.Struct({ state: Schema.String })
+);
 
 /** The exchange's response body. */
 export interface NativeSignInExchangeResult {
@@ -216,19 +240,6 @@ const appRedirect = (
   parameters: Readonly<Record<string, string>>
 ): string => `${redirectUri}?${new URLSearchParams(parameters).toString()}`;
 
-/** Parses stored JSON text with a schema; anything malformed or unexpected is `null`. */
-const parseStored = <Schema extends z.ZodType>(
-  schema: Schema,
-  stored: string
-): z.infer<Schema> | null => {
-  try {
-    const parsed = schema.safeParse(JSON.parse(stored));
-    return parsed.success ? parsed.data : null;
-  } catch {
-    return null;
-  }
-};
-
 /** Scoped to Better Auth's routes: only the provider callback reads it. */
 const markerCookie = (ctx: GenericEndpointContext) =>
   ctx.context.createAuthCookie(MARKER_COOKIE, {
@@ -236,16 +247,19 @@ const markerCookie = (ctx: GenericEndpointContext) =>
     maxAge: MARKER_MAX_AGE_SECONDS,
   });
 
-const signedCookieValueSchema = z.string().min(1);
+const isSignedCookieValue = Schema.is(Schema.NonEmptyString);
 
 const readMarker = async (
   ctx: GenericEndpointContext
 ): Promise<NativeSignInMarker | null> => {
   // A missing, tampered, or unsigned cookie verifies to null (or false).
-  const value = signedCookieValueSchema.safeParse(
-    await ctx.getSignedCookie(markerCookie(ctx).name, ctx.context.secret)
+  const value: unknown = await ctx.getSignedCookie(
+    markerCookie(ctx).name,
+    ctx.context.secret
   );
-  return value.success ? parseStored(markerSchema, value.data) : null;
+  return isSignedCookieValue(value)
+    ? Option.getOrNull(decodeMarker(value))
+    : null;
 };
 
 const setCookieName = (entry: string): string =>
@@ -352,12 +366,14 @@ export const nativeSignIn = () =>
         {
           method: "GET",
           // Read loosely so a bad parameter can still be reported to a valid redirect URI.
-          query: z.object({
-            code_challenge: singleQueryValue,
-            code_challenge_method: singleQueryValue,
-            state: singleQueryValue,
-            redirect_uri: singleQueryValue,
-          }),
+          query: Schema.toStandardSchemaV1(
+            Schema.Struct({
+              code_challenge: singleQueryValue,
+              code_challenge_method: singleQueryValue,
+              state: singleQueryValue,
+              redirect_uri: singleQueryValue,
+            })
+          ),
           metadata: HIDE_METADATA,
         },
         async (ctx) => {
@@ -381,8 +397,8 @@ export const nativeSignIn = () =>
                   : { error, state: echoedState }
               )
             );
-          const parameters = startQuerySchema.safeParse(ctx.query);
-          if (!parameters.success) {
+          const parameters = Option.getOrUndefined(decodeStartQuery(ctx.query));
+          if (parameters === undefined) {
             throw failure("invalid_request");
           }
           const provider = ctx.context.socialProviders.find(
@@ -408,8 +424,8 @@ export const nativeSignIn = () =>
             });
             const marker: NativeSignInMarker = {
               redirectUri,
-              challenge: parameters.data.code_challenge,
-              appState: parameters.data.state,
+              challenge: parameters.code_challenge,
+              appState: parameters.state,
               oauthState: state,
             };
             const cookie = markerCookie(ctx);
@@ -439,13 +455,13 @@ export const nativeSignIn = () =>
         {
           method: "POST",
           // Validated below, so every malformed body gets the same error code.
-          body: z.unknown(),
+          body: Schema.toStandardSchemaV1(Schema.Unknown),
           metadata: HIDE_METADATA,
         },
         async (ctx) => {
           ctx.setHeader("cache-control", "no-store");
-          const body = exchangeBodySchema.safeParse(ctx.body);
-          if (!body.success) {
+          const body = Option.getOrUndefined(decodeExchangeBody(ctx.body));
+          if (body === undefined) {
             throw apiError(
               "INVALID_REQUEST",
               "Send a JSON body with code and codeVerifier."
@@ -463,18 +479,16 @@ export const nativeSignIn = () =>
           // Single use: consuming deletes the code, including when the verifier is wrong.
           const stored =
             await ctx.context.internalAdapter.consumeVerificationValue(
-              handoffIdentifier(body.data.code)
+              handoffIdentifier(body.code)
             );
           if (stored === null) {
             throw rejected("unknown_or_expired_code");
           }
-          const handoff = parseStored(handoffSchema, stored.value);
+          const handoff = Option.getOrNull(decodeHandoff(stored.value));
           if (handoff === null) {
             throw rejected("malformed_handoff");
           }
-          if (
-            !verifierMatchesChallenge(body.data.codeVerifier, handoff.challenge)
-          ) {
+          if (!verifierMatchesChallenge(body.codeVerifier, handoff.challenge)) {
             await discardSession(ctx, handoff.sessionToken);
             throw rejected("verifier_mismatch");
           }
@@ -516,12 +530,14 @@ export const nativeSignIn = () =>
               return;
             }
             const marker = await readMarker(ctx);
-            const callback = callbackQuerySchema.safeParse(ctx.query);
+            const callback = Option.getOrUndefined(
+              decodeCallbackQuery(ctx.query)
+            );
             // No marker for this flow: a web sign-in, or a native start abandoned in this browser.
             if (
               marker === null ||
-              !callback.success ||
-              callback.data.state !== marker.oauthState
+              callback === undefined ||
+              callback.state !== marker.oauthState
             ) {
               return;
             }

@@ -2,7 +2,7 @@ import type {
   ChordChartArrangement,
   ChordChartSong,
   LyricsSearchResult,
-} from "@pcobooster/contracts/chord-charts";
+} from "@pcobooster/contracts/http/chord-charts";
 import { parseKey } from "@pcobooster/planning-center-models/chord-chart-chords";
 import {
   importChordChart,

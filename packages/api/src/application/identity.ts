@@ -25,13 +25,11 @@ import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { PersistenceFailure } from "@pcobooster/contracts/faults/persistence-failure";
 import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
-import {
-  enabledFeaturesSchema,
-  featureFlagNames,
-} from "@pcobooster/contracts/features";
+import { featureFlagNames } from "@pcobooster/contracts/features";
 import type { EnabledFeatures } from "@pcobooster/contracts/features";
+import { enabledFeaturesSchema } from "@pcobooster/contracts/http/features";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
-import { Cause, Effect } from "effect";
+import { Cause, Effect, Schema } from "effect";
 import * as HttpClient from "effect/unstable/http/HttpClient";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
@@ -441,7 +439,7 @@ export const getEnabledFeatures = (
       { concurrency: "unbounded" }
     );
     // The schema checks every flag got an answer.
-    return enabledFeaturesSchema.parse(
+    return Schema.decodeUnknownSync(enabledFeaturesSchema)(
       Object.fromEntries(
         featureFlagNames.map((flag, index) => [flag, answers[index]])
       )

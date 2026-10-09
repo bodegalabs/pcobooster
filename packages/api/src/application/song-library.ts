@@ -5,7 +5,7 @@ import {
 } from "@pcobooster/api/application/planning-center-access";
 import { PlanningCenterSongs } from "@pcobooster/api/application/planning-center/songs";
 import { getSongLibrary } from "@pcobooster/api/modules/planning-center/song-library";
-import type { SongLibrary } from "@pcobooster/contracts/songs";
+import type { SongLibrary } from "@pcobooster/contracts/http/songs";
 import { Effect } from "effect";
 
 /** The Songs page's library; it exists only where the `chordCharts` flag is on. */

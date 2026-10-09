@@ -20,7 +20,7 @@ import type {
   ScheduleAssignInput,
   ScheduleRemoveInput,
   ScheduleUpdateStatusInput,
-} from "@pcobooster/contracts/schedule";
+} from "@pcobooster/contracts/http/schedule";
 import { isString } from "@pcobooster/planning-center-models/json";
 import { Effect } from "effect";
 

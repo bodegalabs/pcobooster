@@ -1,8 +1,8 @@
-import { PEOPLE_DASHBOARD_ACTIVITY_BATCH_SIZE } from "@pcobooster/contracts/people";
 import type {
   PeopleDashboardActivity,
   PeopleDashboardRoster,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
+import { PEOPLE_DASHBOARD_ACTIVITY_BATCH_SIZE } from "@pcobooster/contracts/people";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryClient, QueryFunctionContext } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";

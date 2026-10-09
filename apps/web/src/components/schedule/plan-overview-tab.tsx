@@ -1,4 +1,4 @@
-import type { Plan } from "@pcobooster/contracts/catalog";
+import type { Plan } from "@pcobooster/contracts/http/catalog";
 import { formatCalendarDateLabel } from "@pcobooster/planning-center-models/calendar";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {

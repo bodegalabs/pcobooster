@@ -1,11 +1,12 @@
 import { createHash } from "node:crypto";
 import path from "node:path";
 
-import { z } from "zod";
+import { isoDateTime } from "@pcobooster/contracts/http/schema";
+import { Schema } from "effect";
 
 export const riskTiers = ["low", "medium", "high", "critical"] as const;
 export type RiskTier = (typeof riskTiers)[number];
-export const riskTierSchema = z.enum(riskTiers);
+export const riskTierSchema = Schema.Literals(riskTiers);
 
 export const verdicts = ["PASS", "PASS_WITH_NOTES", "FAIL", "BLOCKED"] as const;
 export type Verdict = (typeof verdicts)[number];
@@ -63,53 +64,56 @@ export const requiresVisualEvidence = (paths: readonly string[]): boolean =>
       !testPath.test(changedPath)
   );
 
-const artifactKindSchema = z.enum(["image", "video"]);
+const text = Schema.NonEmptyString;
+const sha256Hex = Schema.String.check(Schema.isPattern(/^[a-f\d]{64}$/u));
+const list = <Item extends Schema.Top>(item: Item) =>
+  Schema.mutable(Schema.Array(item));
 
-export const proofArtifactSchema = z.object({
-  alt: z.string().min(1),
-  kind: artifactKindSchema,
-  path: z.string().min(1),
-  sha256: z.string().regex(/^[a-f\d]{64}$/u),
+export const proofArtifactSchema = Schema.Struct({
+  alt: text,
+  kind: Schema.Literals(["image", "video"]),
+  path: text,
+  sha256: sha256Hex,
 });
 
-export const proofCommandSchema = z.object({
-  command: z.string().min(1),
-  durationMs: z.number().nonnegative(),
-  exitCode: z.number().int(),
-  logPath: z.string().min(1),
-  name: z.string().min(1),
-  sha256: z.string().regex(/^[a-f\d]{64}$/u),
-  status: z.enum(["pass", "fail"]),
+export const proofCommandSchema = Schema.Struct({
+  command: text,
+  durationMs: Schema.Finite.check(Schema.isGreaterThanOrEqualTo(0)),
+  exitCode: Schema.Int,
+  logPath: text,
+  name: text,
+  sha256: sha256Hex,
+  status: Schema.Literals(["pass", "fail"]),
 });
 
-export const independentVerificationSchema = z.object({
-  source: z.string().min(1),
-  summary: z.string().min(1),
-  verdict: z.enum(["PASS", "PASS_WITH_NOTES"]),
+export const independentVerificationSchema = Schema.Struct({
+  source: text,
+  summary: text,
+  verdict: Schema.Literals(["PASS", "PASS_WITH_NOTES"]),
 });
 
-export const proofReceiptSchema = z.object({
-  artifacts: z.array(proofArtifactSchema),
-  base: z.object({ ref: z.string().min(1), sha: z.string().min(1) }),
-  changedFiles: z.array(z.string().min(1)).min(1),
-  commands: z.array(proofCommandSchema).min(1),
-  createdAt: z.iso.datetime(),
-  flows: z.array(z.string().min(1)),
-  focusedChecks: z.array(proofCommandSchema),
-  headSha: z.string().min(1),
-  independentVerification: independentVerificationSchema.nullable(),
-  notes: z.array(z.string().min(1)),
-  patchId: z.string().min(1),
-  requiresVisualEvidence: z.boolean(),
+export const proofReceiptSchema = Schema.Struct({
+  artifacts: list(proofArtifactSchema),
+  base: Schema.Struct({ ref: text, sha: text }),
+  changedFiles: list(text).check(Schema.isMinLength(1)),
+  commands: list(proofCommandSchema).check(Schema.isMinLength(1)),
+  createdAt: isoDateTime,
+  flows: list(text),
+  focusedChecks: list(proofCommandSchema),
+  headSha: text,
+  independentVerification: Schema.NullOr(independentVerificationSchema),
+  notes: list(text),
+  patchId: text,
+  requiresVisualEvidence: Schema.Boolean,
   riskTier: riskTierSchema,
-  rollback: z.string().min(1).nullable(),
-  schemaVersion: z.literal(1),
-  verdict: z.enum(verdicts),
+  rollback: Schema.NullOr(text),
+  schemaVersion: Schema.Literal(1),
+  verdict: Schema.Literals(verdicts),
 });
 
-export type ProofArtifact = z.infer<typeof proofArtifactSchema>;
-export type ProofCommand = z.infer<typeof proofCommandSchema>;
-export type ProofReceipt = z.infer<typeof proofReceiptSchema>;
+export type ProofArtifact = typeof proofArtifactSchema.Type;
+export type ProofCommand = typeof proofCommandSchema.Type;
+export type ProofReceipt = typeof proofReceiptSchema.Type;
 
 export const expectedCommandNames = (
   riskTier: RiskTier,

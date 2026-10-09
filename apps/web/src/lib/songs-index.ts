@@ -1,4 +1,4 @@
-import type { SongLibraryEntry } from "@pcobooster/contracts/songs";
+import type { SongLibraryEntry } from "@pcobooster/contracts/http/songs";
 import { scoreSongSearch } from "@pcobooster/planning-center-models/song-search";
 
 /** The song in Planning Center Services, where it can be hidden or deleted. */

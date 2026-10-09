@@ -6,46 +6,55 @@ import type {
   AdminUserAccountDetail,
 } from "@pcobooster/contracts/admin";
 import { sql } from "drizzle-orm";
-import { z } from "zod";
+import { Schema } from "effect";
 
-const databaseDateSchema = z.union([z.date(), z.string(), z.number()]);
-const databaseCountSchema = z.union([z.number(), z.string()]);
-const accountActivityRowSchema = z.object({
-  user_id: z.string(),
-  name: z.string(),
-  email: z.string(),
-  image: z.string().nullable(),
-  created_at: databaseDateSchema,
-  updated_at: databaseDateSchema,
-  linked_accounts: databaseCountSchema,
-  providers: z
-    .string()
-    .transform((value) => z.array(z.string()).parse(JSON.parse(value))),
-  active_sessions: databaseCountSchema,
-  login_events: databaseCountSchema,
-  login_events_7d: databaseCountSchema,
-  login_events_30d: databaseCountSchema,
-  sign_out_events: databaseCountSchema,
-  activity_events: databaseCountSchema,
-  first_login_at: databaseDateSchema.nullable(),
-  last_login_at: databaseDateSchema.nullable(),
-  last_activity_at: databaseDateSchema.nullable(),
-});
-const linkedAccountRowSchema = z.object({
-  id: z.string(),
-  provider_account_id: z.string(),
-  provider_id: z.string(),
-  created_at: databaseDateSchema,
-  updated_at: databaseDateSchema,
-  scope: z.string().nullable(),
-  access_token_expires_at: databaseDateSchema.nullable(),
-  refresh_token_expires_at: databaseDateSchema.nullable(),
-  access_token: z.string().nullable(),
-  activity_events: databaseCountSchema,
-  linked_events: databaseCountSchema,
-  first_activity_at: databaseDateSchema.nullable(),
-  last_activity_at: databaseDateSchema.nullable(),
-});
+const databaseDateSchema = Schema.Union([
+  Schema.Date,
+  Schema.String,
+  Schema.Finite,
+]);
+const databaseCountSchema = Schema.Union([Schema.Finite, Schema.String]);
+const accountActivityRowsSchema = Schema.Array(
+  Schema.Struct({
+    user_id: Schema.String,
+    name: Schema.String,
+    email: Schema.String,
+    image: Schema.NullOr(Schema.String),
+    created_at: databaseDateSchema,
+    updated_at: databaseDateSchema,
+    linked_accounts: databaseCountSchema,
+    /** SQLite's `json_group_array` text. */
+    providers: Schema.fromJsonString(
+      Schema.mutable(Schema.Array(Schema.String))
+    ),
+    active_sessions: databaseCountSchema,
+    login_events: databaseCountSchema,
+    login_events_7d: databaseCountSchema,
+    login_events_30d: databaseCountSchema,
+    sign_out_events: databaseCountSchema,
+    activity_events: databaseCountSchema,
+    first_login_at: Schema.NullOr(databaseDateSchema),
+    last_login_at: Schema.NullOr(databaseDateSchema),
+    last_activity_at: Schema.NullOr(databaseDateSchema),
+  })
+);
+const linkedAccountRowsSchema = Schema.Array(
+  Schema.Struct({
+    id: Schema.String,
+    provider_account_id: Schema.String,
+    provider_id: Schema.String,
+    created_at: databaseDateSchema,
+    updated_at: databaseDateSchema,
+    scope: Schema.NullOr(Schema.String),
+    access_token_expires_at: Schema.NullOr(databaseDateSchema),
+    refresh_token_expires_at: Schema.NullOr(databaseDateSchema),
+    access_token: Schema.NullOr(Schema.String),
+    activity_events: databaseCountSchema,
+    linked_events: databaseCountSchema,
+    first_activity_at: Schema.NullOr(databaseDateSchema),
+    last_activity_at: Schema.NullOr(databaseDateSchema),
+  })
+);
 
 const toNumber = Number;
 
@@ -124,10 +133,8 @@ export const getAccountActivity = async (
     order by a.last_login_at desc nulls last, u."createdAt" desc;
   `);
 
-  return accountActivityRowSchema
-    .array()
-    .parse(rows)
-    .map((row) => ({
+  return Schema.decodeUnknownSync(accountActivityRowsSchema)(rows).map(
+    (row) => ({
       userId: row.user_id,
       name: row.name,
       email: row.email,
@@ -145,7 +152,8 @@ export const getAccountActivity = async (
       firstLoginAt: toIsoString(row.first_login_at),
       lastLoginAt: toIsoString(row.last_login_at),
       lastActivityAt: toIsoString(row.last_activity_at),
-    }));
+    })
+  );
 };
 
 export const getUserAccountDetail = async (
@@ -191,32 +199,29 @@ export const getUserAccountDetail = async (
   );
 
   const linkedAccountDetails = await Promise.all(
-    linkedAccountRowSchema
-      .array()
-      .parse(rows)
-      .map(async (row) => {
-        const storedIdentity = await getPlanningCenterAccountIdentity(
-          row.id,
-          database
-        );
-        return {
-          id: row.id,
-          providerAccountId: row.provider_account_id,
-          providerId: row.provider_id,
-          createdAt: toIsoString(row.created_at) ?? "",
-          updatedAt: toIsoString(row.updated_at) ?? "",
-          scope: row.scope,
-          accessTokenExpiresAt: toIsoString(row.access_token_expires_at),
-          refreshTokenExpiresAt: toIsoString(row.refresh_token_expires_at),
-          activityEvents: toNumber(row.activity_events),
-          linkedEvents: toNumber(row.linked_events),
-          firstActivityAt: toIsoString(row.first_activity_at),
-          lastActivityAt: toIsoString(row.last_activity_at),
-          identity:
-            storedIdentity ??
-            (await getPlanningCenterIdentityFromAccessToken(row.access_token)),
-        };
-      })
+    Schema.decodeUnknownSync(linkedAccountRowsSchema)(rows).map(async (row) => {
+      const storedIdentity = await getPlanningCenterAccountIdentity(
+        row.id,
+        database
+      );
+      return {
+        id: row.id,
+        providerAccountId: row.provider_account_id,
+        providerId: row.provider_id,
+        createdAt: toIsoString(row.created_at) ?? "",
+        updatedAt: toIsoString(row.updated_at) ?? "",
+        scope: row.scope,
+        accessTokenExpiresAt: toIsoString(row.access_token_expires_at),
+        refreshTokenExpiresAt: toIsoString(row.refresh_token_expires_at),
+        activityEvents: toNumber(row.activity_events),
+        linkedEvents: toNumber(row.linked_events),
+        firstActivityAt: toIsoString(row.first_activity_at),
+        lastActivityAt: toIsoString(row.last_activity_at),
+        identity:
+          storedIdentity ??
+          (await getPlanningCenterIdentityFromAccessToken(row.access_token)),
+      };
+    })
   );
 
   return {

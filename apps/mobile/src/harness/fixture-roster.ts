@@ -45,6 +45,7 @@ import type {
   CandidatesData,
   HistoryData,
 } from "../features/plan/schedule-optimism";
+import serviceTypeFixtures from "./fixtures/catalog.serviceTypes.json";
 import candidateFixtures from "./fixtures/people.positionCandidates.json";
 import searchFixtures from "./fixtures/people.search.json";
 
@@ -118,6 +119,51 @@ const matchesRoster = (
 
 const candidatesCodec = Schema.toCodecJson(positionCandidatesSchema);
 const historyCodec = Schema.toCodecJson(planWindowHistoryBatchSchema);
+const historyInput = Schema.Struct({
+  serviceTypeId: Schema.optional(Schema.String),
+});
+const serviceTypeNames = new Map(
+  serviceTypeFixtures.default.map(({ id, name }) => [id, name])
+);
+
+/**
+ * One service type's share of the recorded window, as the API answers a call that names it:
+ * its plans, the rows on them, and their times.
+ */
+const historyForServiceType = (
+  batch: HistoryData[number],
+  serviceTypeId: string | undefined
+): HistoryData[number] => {
+  if (serviceTypeId === undefined) {
+    return batch;
+  }
+  const name = serviceTypeNames.get(serviceTypeId);
+  const plans = batch.plans.filter(
+    ({ serviceTypeName }) => serviceTypeName === name
+  );
+  const planIds = new Set(plans.map(({ id }) => id));
+  const people = batch.people.flatMap(({ personId, rows }) => {
+    const kept = rows.filter(
+      ({ planId }) => planId !== null && planIds.has(planId)
+    );
+    return kept.length === 0 ? [] : [{ personId, rows: kept }];
+  });
+  const timeIds = new Set(
+    people.flatMap(({ rows }) =>
+      rows.flatMap(({ timeIds: times, serviceTimeIds }) => [
+        ...times,
+        ...serviceTimeIds,
+      ])
+    )
+  );
+  return {
+    ...batch,
+    plans,
+    people,
+    planTimes: batch.planTimes.filter(({ id }) => timeIds.has(id)),
+    loadedPlanCount: plans.length,
+  };
+};
 const slotInput = Schema.Struct({
   planId: Schema.String,
   teamId: Schema.String,
@@ -185,8 +231,14 @@ export const makeFixtureRoster = () => {
     }
     return encodeJson(Schema.encodeSync(candidatesCodec)(data));
   };
-  const replayHistory = (fixture: Json): Json => {
-    let calls: HistoryData = [Schema.decodeUnknownSync(historyCodec)(fixture)];
+  const replayHistory = (payload: Json, fixture: Json): Json => {
+    const { serviceTypeId } = Schema.decodeUnknownSync(historyInput)(payload);
+    let calls: HistoryData = [
+      historyForServiceType(
+        Schema.decodeUnknownSync(historyCodec)(fixture),
+        serviceTypeId
+      ),
+    ];
     for (const edit of edits) {
       if (edit.kind === "remove") {
         calls = removeWindowRows(calls, edit.identity, edit.positionName);
@@ -360,7 +412,7 @@ export const makeFixtureRoster = () => {
       return replayCandidates(payload, fixture);
     }
     if (tag === "people.planWindowHistory") {
-      return replayHistory(fixture);
+      return replayHistory(payload, fixture);
     }
     if (tag === "planTimes.update" || tag === "planTimes.delete") {
       mutateTime(tag, payload);

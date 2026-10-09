@@ -1,11 +1,10 @@
 import { callForQuery, speculativeQuery } from "@pcobooster/client/query";
-import type { peoplePlanWindowHistoryInputSchema } from "@pcobooster/contracts/http/people";
-import { PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE } from "@pcobooster/contracts/people";
 import type {
   CandidateDetailsBatch,
   PlanWindowHistoryBatch,
   PositionCandidates,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
+import { PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE } from "@pcobooster/contracts/people";
 import {
   assembleCandidateList,
   CANDIDATE_DETAILS_BATCH_CONCURRENCY,
@@ -15,8 +14,7 @@ import {
   needsScheduleHistory,
   planCandidateDetailsBatches,
   prefetchCandidateDetailBatches,
-  nextWindowContinuation,
-  windowHistoryAdvanced,
+  readPlanWindowHistory,
 } from "@pcobooster/planning-center-models/candidate-list";
 import type {
   CandidateDetail,
@@ -31,6 +29,7 @@ import type {
 } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { loadServiceTypes } from "@/hooks/use-service-types";
 import { isQueryFresh } from "@/lib/intent-prefetch";
 import {
   readCachedCandidateAvailability,
@@ -107,44 +106,24 @@ export const createPositionCandidatesQueryOptions = ({
   staleTime: CANDIDATE_LIST_STALE_TIME_MS,
 });
 
-type WindowContinuation =
-  (typeof peoplePlanWindowHistoryInputSchema.Encoded)["continuation"];
-
-/**
- * Follows the window's continuation until every roster is read. Each call is its own Worker
- * invocation, so each stays within the per-call request budget, and each takes the query's
- * priority at the time it is sent.
- */
-const fetchPlanWindowHistory = async (
-  dateKey: string,
-  context: QueryFunctionContext,
-  continuation?: WindowContinuation
-): Promise<PlanWindowHistoryBatch[]> => {
-  const batch = await callForQuery(context, productClient, (api) =>
-    api.people.planWindowHistory({
-      payload: { date: dateKey, continuation },
-    })
-  );
-  const next = nextWindowContinuation(batch);
-  if (next === null) {
-    return [batch];
-  }
-  if (
-    continuation !== undefined &&
-    !windowHistoryAdvanced(continuation, batch)
-  ) {
-    throw new Error("Plan window history made no progress.");
-  }
-  return [batch, ...(await fetchPlanWindowHistory(dateKey, context, next))];
-};
-
 /** History from the rosters around one plan date; every position and plan on it shares it. */
 export const createPlanWindowHistoryQueryOptions = (dateKey: string) => ({
   queryKey: queryKeys.planWindowHistory(dateKey),
   queryFn: async (
     context: QueryFunctionContext
   ): Promise<PlanWindowHistoryBatch[]> => {
-    const calls = await fetchPlanWindowHistory(dateKey, context);
+    const serviceTypes = await loadServiceTypes(context.client);
+    // Each call is its own Worker invocation within the per-call request budget, and each
+    // takes the query's priority at the time it is sent.
+    const calls = await readPlanWindowHistory(
+      serviceTypes.map(({ id }) => id),
+      async (serviceTypeId, continuation) =>
+        await callForQuery(context, productClient, (api) =>
+          api.people.planWindowHistory({
+            payload: { date: dateKey, serviceTypeId, continuation },
+          })
+        )
+    );
     writeCachedPlanWindowHistory(dateKey, calls);
     return calls;
   },

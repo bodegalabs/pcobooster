@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { Effect, Schema, SchemaGetter } from "effect";
 
 /**
  * What the signed-in person's Planning Center permissions let them do in this app.
@@ -42,13 +42,18 @@ const findLevel = <Level extends string>(
  * A Services level from Planning Center, whatever its casing or separators. Planning Center
  * doesn't document every value, so anything missing or unrecognized reads as unknown (null).
  */
-export const servicesPermissionLevelSchema = z
-  .union([
-    z.string().transform((name) => findLevel(SERVICES_PERMISSION_LEVELS, name)),
-    z.json().transform(() => null),
-  ])
-  .optional()
-  .transform((level) => level ?? null);
+export const servicesPermissionLevelSchema = Schema.NullOr(Schema.String).pipe(
+  Schema.decodeTo(Schema.NullOr(Schema.Literals(SERVICES_PERMISSION_LEVELS)), {
+    decode: SchemaGetter.transform((name: string | null) =>
+      name === null ? null : findLevel(SERVICES_PERMISSION_LEVELS, name)
+    ),
+    encode: SchemaGetter.transform(
+      (level: ServicesPermissionLevel | null): string | null => level
+    ),
+  }),
+  Schema.catchDecoding(() => Effect.succeedSome(null)),
+  Schema.withDecodingDefault(Effect.succeed(null))
+);
 
 const servicesRank = (level: ServicesPermissionLevel | null): number =>
   level === null ? -1 : SERVICES_PERMISSION_LEVELS.indexOf(level);

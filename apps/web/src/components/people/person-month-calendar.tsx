@@ -1,7 +1,7 @@
 import type {
   PeopleDashboardMonth,
   PeopleDashboardMonthDay,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 
 import {
   buildCalendarCells,

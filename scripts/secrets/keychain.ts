@@ -2,12 +2,15 @@ import { spawn } from "node:child_process";
 import { once } from "node:events";
 import path from "node:path";
 
-import { z } from "zod";
+import { Option, Schema } from "effect";
 
-import { keychainService, scopeKeys } from "./manifest";
+import { keychainService, processExit, scopeKeys } from "./manifest";
 import type { SecretScope } from "./manifest";
 
-const replySchema = z.object({ values: z.record(z.string(), z.string()) });
+// Decoded without throwing: a failure message would echo the secret values in the reply.
+const decodeReply = Schema.decodeUnknownOption(
+  Schema.Struct({ values: Schema.Record(Schema.String, Schema.String) })
+);
 
 const keychain = async (
   scope: SecretScope,
@@ -42,9 +45,7 @@ const keychain = async (
       values,
     })
   );
-  const [code] = z
-    .tuple([z.number().nullable(), z.string().nullable()])
-    .parse(await exited);
+  const [code] = processExit(await exited);
   if (code !== 0) {
     throw new Error(
       `Keychain helper failed. ${Buffer.concat(errors).toString().trim()}`
@@ -56,11 +57,11 @@ const keychain = async (
   } catch {
     throw new Error("Keychain returned an invalid reply");
   }
-  const parsed = replySchema.safeParse(decoded);
-  if (!parsed.success) {
+  const reply = decodeReply(decoded);
+  if (Option.isNone(reply)) {
     throw new Error("Keychain returned an invalid reply");
   }
-  return parsed.data.values;
+  return { ...reply.value.values };
 };
 
 export const readKeychain = async (

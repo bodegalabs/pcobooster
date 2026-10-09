@@ -10,7 +10,8 @@
  */
 import { spawnSync } from "node:child_process";
 
-import { z } from "zod";
+import { isoDateTimeWithOffset } from "@pcobooster/contracts/http/schema";
+import { Schema } from "effect";
 
 import type { CloudflareResource } from "./stages";
 import { previewStages, sweepDecision } from "./stages";
@@ -32,25 +33,29 @@ const accountId = required("CLOUDFLARE_ACCOUNT_ID");
 const githubToken = required("GITHUB_TOKEN");
 const repository = required("GITHUB_REPOSITORY");
 
-const cloudflareResponse = z.object({
-  success: z.boolean(),
-  errors: z.array(z.unknown()),
-  result: z.array(
-    z.object({
-      id: z.string().optional(),
-      name: z.string().optional(),
-      modified_on: z.iso.datetime({ offset: true }).optional(),
-      created_at: z.iso.datetime({ offset: true }).optional(),
-    })
-  ),
-  result_info: z.object({ total_pages: z.number().optional() }).optional(),
-});
+const decodeCloudflareResponse = Schema.decodeUnknownSync(
+  Schema.Struct({
+    success: Schema.Boolean,
+    errors: Schema.Array(Schema.Unknown),
+    result: Schema.Array(
+      Schema.Struct({
+        id: Schema.optional(Schema.String),
+        name: Schema.optional(Schema.String),
+        modified_on: Schema.optional(isoDateTimeWithOffset),
+        created_at: Schema.optional(isoDateTimeWithOffset),
+      })
+    ),
+    result_info: Schema.optional(
+      Schema.Struct({ total_pages: Schema.optional(Schema.Finite) })
+    ),
+  })
+);
 
 const cloudflareList = async (path: string) => {
   const response = await fetch(`${cloudflareApi}${path}`, {
     headers: { authorization: `Bearer ${cloudflareToken}` },
   });
-  const body = cloudflareResponse.parse(await response.json());
+  const body = decodeCloudflareResponse(await response.json());
   if (!body.success) {
     throw new Error(`GET ${path} failed: ${JSON.stringify(body.errors)}`);
   }
@@ -86,7 +91,9 @@ const databases = async (): Promise<CloudflareResource[]> => {
   }
 };
 
-const pullRequestState = z.object({ state: z.enum(["open", "closed"]) });
+const decodePullRequestState = Schema.decodeUnknownSync(
+  Schema.Struct({ state: Schema.Literals(["open", "closed"]) })
+);
 
 const isOpen = async (pullRequest: number): Promise<boolean> => {
   const response = await fetch(
@@ -106,7 +113,7 @@ const isOpen = async (pullRequest: number): Promise<boolean> => {
       `Reading pull request #${pullRequest} failed: ${response.status}`
     );
   }
-  return pullRequestState.parse(await response.json()).state === "open";
+  return decodePullRequestState(await response.json()).state === "open";
 };
 
 const destroy = (pullRequest: number): boolean => {

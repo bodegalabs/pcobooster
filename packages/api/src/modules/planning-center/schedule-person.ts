@@ -3,13 +3,12 @@ import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-cent
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import { InvalidInput } from "@pcobooster/contracts/faults/invalid-input";
-import type { scheduleAssignInputSchema } from "@pcobooster/contracts/schedule";
+import type { ScheduleAssignInput } from "@pcobooster/contracts/http/schedule";
 import { isString } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
-import type { z } from "zod";
 
-export type SchedulePersonInput = z.output<typeof scheduleAssignInputSchema>;
+export type SchedulePersonInput = ScheduleAssignInput;
 
 export interface ScheduleDependencies {
   catalog: Pick<

@@ -5,8 +5,8 @@ import {
 } from "@pcobooster/api/auth/demo-access";
 import type { DemoConfiguration } from "@pcobooster/api/auth/demo-access";
 import { Server } from "@pcobooster/api/server";
-import type { DemoStartInput } from "@pcobooster/contracts/demo";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
+import type { DemoStartInput } from "@pcobooster/contracts/http/demo";
 import { Effect } from "effect";
 
 /**

@@ -112,10 +112,7 @@ const buildRuntime = (
   parts: RuntimeParts
 ): AppRuntime => {
   const { fetch, secrets, signIn, now, origin } = parts;
-  const scheduler = createRequestScheduler({
-    quietMs: SPECULATIVE_QUIET_MS,
-    maxConcurrentRequests: 2,
-  });
+  const scheduler = createRequestScheduler({ quietMs: SPECULATIVE_QUIET_MS });
   // The session and the client refer to each other: the client's header getter reads the
   // session, and the session's own calls go through the client.
   let client: AppClients | null = null;

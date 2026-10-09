@@ -6,6 +6,7 @@ import { clearCachedOrganizationTimeZone } from "@/lib/organization-time-zone-ca
 import { clearCachedPeopleDashboards } from "@/lib/people-dashboard-cache";
 import { clearCachedPeopleSearch } from "@/lib/people-search-cache";
 import { clearCachedPlanItems } from "@/lib/plan-items-cache";
+import { clearCachedPlanningCenterAccess } from "@/lib/planning-center-access-cache";
 import { clearCachedPositionCandidates } from "@/lib/position-candidates-cache";
 import { clearRecentSongs } from "@/lib/recent-songs";
 import { clearCachedScheduleCatalog } from "@/lib/schedule-catalog-cache";
@@ -22,6 +23,7 @@ const clearCachedApiAnswers = (): void => {
   clearCachedMyScheduledPlans();
   clearCachedOrganizationTimeZone();
   clearCachedPlanItems();
+  clearCachedPlanningCenterAccess();
   clearCachedScheduleCatalog();
   clearCachedSongOptions();
   clearCachedSongSearch();
@@ -37,9 +39,10 @@ export const clearAccountScopedCaches = (): void => {
 
 /**
  * Raise when the API's answers change shape or transport, so answers saved by an older build
- * are dropped instead of shown. 3: answers come from the HttpApi client (`/api/v1`).
+ * are dropped instead of shown. 3: answers come from the HttpApi client (`/api/v1`). 4: answers
+ * are saved and read through each endpoint's Effect schema (`lib/stored-json.ts`).
  */
-const API_CACHE_GENERATION = "3";
+const API_CACHE_GENERATION = "4";
 const API_CACHE_GENERATION_KEY = "pcobooster:api-cache-generation";
 
 /** Drops API answers an older build saved; drafts and recent songs survive. Runs at startup. */

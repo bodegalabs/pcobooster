@@ -13,12 +13,14 @@
 import { setTimeout as sleep } from "node:timers/promises";
 
 import { makeProductClient } from "@pcobooster/client/product-client";
-import { z } from "zod";
+import { Option, Schema } from "effect";
 
 const attemptIntervalMs = 5000;
 const defaultDeadlineMs = 180_000;
 
-const webVersionResponse = z.object({ version: z.string() });
+const decodeVersionResponse = Schema.decodeUnknownOption(
+  Schema.Struct({ version: Schema.String })
+);
 
 type Fetch = typeof fetch;
 
@@ -57,8 +59,8 @@ export const readWebVersion = async (
     if (!response.ok) {
       return undefined;
     }
-    const parsed = webVersionResponse.safeParse(await response.json());
-    return parsed.success ? parsed.data.version : undefined;
+    return Option.getOrUndefined(decodeVersionResponse(await response.json()))
+      ?.version;
   } catch {
     return undefined;
   }

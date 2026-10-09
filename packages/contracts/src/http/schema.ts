@@ -1,32 +1,29 @@
-/**
- * Schema building blocks the contracts share, each matching the zod rule it replaces
- * (`../*.ts`), so the API contracts accept and answer exactly what the zod transport did.
- */
+/** Schema building blocks the contracts share. */
 import { Schema } from "effect";
 
-/** `z.string().trim().min(1)`: trimmed, then non-empty. */
+/** An identifier: trimmed, then non-empty. */
 export const requiredId = Schema.Trim.check(Schema.isMinLength(1));
 
 /**
- * `z.array(item)`: a mutable array, as zod infers, so payloads pass to programs that take
- * `T[]` and answers keep the element types the apps already use.
+ * A mutable array, so payloads pass to programs that take `T[]` and answers keep the element
+ * types the apps already use.
  */
 export const mutableArray = <Item extends Schema.Top>(item: Item) =>
   Schema.mutable(Schema.Array(item));
 
-/** `z.number()`: zod rejects NaN and the infinities. */
+/** A number that is neither NaN nor an infinity. */
 export const finiteNumber = Schema.Finite;
 
-/** `z.number().int()`: a safe integer. */
+/** A safe integer. */
 export const integer = Schema.Int;
 
-/** `z.number().int().nonnegative()`. */
+/** A safe integer, zero or more. */
 export const nonNegativeInteger = Schema.Int.check(
   Schema.isGreaterThanOrEqualTo(0)
 );
 
 /**
- * zod 4's ISO date regex: a real calendar day (leap years included), `T`, a 24-hour time with
+ * An ISO date-time: a real calendar day (leap years included), `T`, a 24-hour time with
  * seconds and any fraction, then `Z` or (with offsets) `±hh:mm`.
  */
 const isoDate =
@@ -40,10 +37,10 @@ const OFFSET_DATE_TIME = new RegExp(
   "u"
 );
 
-/** `z.iso.datetime()`: a UTC instant written with `Z`. */
+/** A UTC instant written with `Z`. */
 export const isoDateTime = Schema.String.check(Schema.isPattern(UTC_DATE_TIME));
 
-/** `z.iso.datetime({ offset: true })`: `Z` or a numeric offset, kept as written. */
+/** An instant with `Z` or a numeric offset, kept as written. */
 export const isoDateTimeWithOffset = Schema.String.check(
   Schema.isPattern(OFFSET_DATE_TIME)
 );

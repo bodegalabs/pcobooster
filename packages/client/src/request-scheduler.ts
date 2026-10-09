@@ -17,9 +17,8 @@ export const SPECULATIVE_QUIET_MS = 250;
 export interface RequestScheduler {
   /**
    * Runs one product call. While any interactive call is in flight, and for `quietMs` after the
-   * last one settles, speculative tasks wait. With a configured concurrency cap, all calls
-   * share its admission slots; queued interactive work goes first. An aborted queued call
-   * rejects without invoking its callback.
+   * last one settles, speculative tasks wait. A call whose signal already aborted rejects
+   * without invoking its callback.
    */
   track: <Result>(
     priority: RequestPriority,
@@ -57,59 +56,9 @@ const runTask = async (entry: QueuedTask) => {
 
 export const createRequestScheduler = ({
   quietMs,
-  maxConcurrentRequests = Number.POSITIVE_INFINITY,
 }: {
   quietMs: number;
-  /** Mobile caps all product calls at two; other clients retain their existing admission. */
-  maxConcurrentRequests?: number;
 }): RequestScheduler => {
-  if (!(maxConcurrentRequests >= 1)) {
-    throw new Error("Request concurrency must be at least one");
-  }
-  let activeCalls = 0;
-  const admissions: { priority: RequestPriority; start: () => void }[] = [];
-  const drainAdmissions = () => {
-    while (activeCalls < maxConcurrentRequests && admissions.length > 0) {
-      const interactive = admissions.findIndex(
-        (entry) => entry.priority === "interactive"
-      );
-      const [next] = admissions.splice(Math.max(0, interactive), 1);
-      if (next !== undefined) {
-        activeCalls += 1;
-        next.start();
-      }
-    }
-  };
-  const admit = async (priority: RequestPriority, signal?: AbortSignal) => {
-    throwIfAborted(signal);
-    if (activeCalls < maxConcurrentRequests && admissions.length === 0) {
-      activeCalls += 1;
-      return;
-    }
-    const ready = Promise.withResolvers<null>();
-    const entry = {
-      priority,
-      start: () => {
-        ready.resolve(null);
-      },
-    };
-    const abort = () => {
-      const index = admissions.indexOf(entry);
-      if (index !== -1) {
-        admissions.splice(index, 1);
-        ready.reject(
-          signal?.reason ?? new DOMException("Aborted", "AbortError")
-        );
-      }
-    };
-    admissions.push(entry);
-    signal?.addEventListener("abort", abort, { once: true });
-    try {
-      await ready.promise;
-    } finally {
-      signal?.removeEventListener("abort", abort);
-    }
-  };
   const queue: QueuedTask[] = [];
   let interactiveInFlight = 0;
   let running = false;
@@ -160,24 +109,17 @@ export const createRequestScheduler = ({
     call: () => Promise<Result>,
     signal?: AbortSignal
   ): Promise<Result> => {
-    if (priority === "interactive") {
-      interactiveInFlight += 1;
-      cancelQuietTimer();
+    throwIfAborted(signal);
+    if (priority === "speculative") {
+      return await call();
     }
-    let admitted = false;
+    interactiveInFlight += 1;
+    // The quiet period restarts once this call settles.
+    cancelQuietTimer();
     try {
-      await admit(priority, signal);
-      admitted = true;
-      throwIfAborted(signal);
       return await call();
     } finally {
-      if (admitted) {
-        activeCalls -= 1;
-      }
-      if (priority === "interactive") {
-        interactiveInFlight -= 1;
-      }
-      drainAdmissions();
+      interactiveInFlight -= 1;
       pump();
     }
   };

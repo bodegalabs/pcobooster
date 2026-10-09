@@ -1,33 +1,29 @@
-import { z } from "zod";
+import { Schema } from "effect";
 
 import { readBrowserStorage, writeBrowserStorage } from "@/lib/browser-storage";
+import { storedJson } from "@/lib/stored-json";
 
 export const RECENT_SONGS_STORAGE_KEY = "pcobooster:recent-songs";
 const MAX_RECENT_SONGS = 8;
 
-const recentSongSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  author: z.string(),
+const recentSongSchema = Schema.Struct({
+  id: Schema.String,
+  title: Schema.String,
+  author: Schema.String,
 });
 
-export type RecentSong = z.output<typeof recentSongSchema>;
+export type RecentSong = typeof recentSongSchema.Type;
+
+const storedRecentSongs = storedJson(
+  Schema.mutable(Schema.Array(recentSongSchema))
+);
 
 /**
  * Songs this browser opened most recently, newest first. The search catalog is cached for
  * up to an hour, so this is also how a song added moments ago is found again.
  */
-export const parseRecentSongs = (stored: string | null): RecentSong[] => {
-  if (stored === null) {
-    return [];
-  }
-  try {
-    const parsed = z.array(recentSongSchema).safeParse(JSON.parse(stored));
-    return parsed.success ? parsed.data : [];
-  } catch {
-    return [];
-  }
-};
+export const parseRecentSongs = (stored: string | null): RecentSong[] =>
+  storedRecentSongs.parse(stored) ?? [];
 
 export const readRecentSongs = (): RecentSong[] =>
   parseRecentSongs(readBrowserStorage(RECENT_SONGS_STORAGE_KEY));

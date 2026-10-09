@@ -1,6 +1,6 @@
 import type { captureAnalytics } from "@pcobooster/analytics/client";
 import { failureCode } from "@pcobooster/client/product-client";
-import { z } from "zod";
+import { Option, Schema } from "effect";
 
 const OPERATIONS = new Set([
   "schedule.assign",
@@ -21,22 +21,24 @@ const OPERATIONS = new Set([
   "chordCharts.createSong",
   "feedback.submit",
 ]);
-const errorCodeSchema = z.enum([
-  "UNAUTHORIZED",
-  "FORBIDDEN",
-  "NOT_FOUND",
-  "BAD_REQUEST",
-  "ALREADY_SCHEDULED",
-  "POSITION_MISMATCH",
-  "CONFLICT",
-  "SERVICE_UNAVAILABLE",
-  "NETWORK_ERROR",
-  "GATEWAY_TIMEOUT",
-  "TOO_MANY_REQUESTS",
-  "BAD_GATEWAY",
-  "INTERNAL_SERVER_ERROR",
-  "CLIENT_OUTDATED",
-]);
+const decodeErrorCode = Schema.decodeUnknownOption(
+  Schema.Literals([
+    "UNAUTHORIZED",
+    "FORBIDDEN",
+    "NOT_FOUND",
+    "BAD_REQUEST",
+    "ALREADY_SCHEDULED",
+    "POSITION_MISMATCH",
+    "CONFLICT",
+    "SERVICE_UNAVAILABLE",
+    "NETWORK_ERROR",
+    "GATEWAY_TIMEOUT",
+    "TOO_MANY_REQUESTS",
+    "BAD_GATEWAY",
+    "INTERNAL_SERVER_ERROR",
+    "CLIENT_OUTDATED",
+  ])
+);
 
 /**
  * Measures a call whose operation (`schedule.assign`) the call itself names once its request
@@ -69,12 +71,12 @@ export const measureWorkflow = async <T>(
   } catch (error) {
     const failed = measured();
     if (failed !== undefined) {
-      const errorCode = errorCodeSchema.safeParse(
+      const errorCode = decodeErrorCode(
         error instanceof Error ? failureCode(error) : undefined
       );
       capture("workflow failed", {
         operation: failed,
-        error_code: errorCode.success ? errorCode.data : "UNKNOWN",
+        error_code: Option.getOrElse(errorCode, () => "UNKNOWN"),
       });
     }
     throw error;

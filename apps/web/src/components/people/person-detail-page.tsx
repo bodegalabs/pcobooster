@@ -1,4 +1,5 @@
-import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
+import type { PeopleDashboardPerson } from "@pcobooster/contracts/http/people-schemas";
 import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
 import { planningCenterPersonUrl } from "@pcobooster/planning-center-models/planning-center-person-url";
 import { ExternalLink } from "lucide-react";
@@ -97,6 +98,52 @@ const PersonHeading = ({
   );
 };
 
+/** A person Planning Center Services has no record of: they are in People only. */
+const NotInServices = () => (
+  <div
+    className="border-border/40 text-muted-foreground flex flex-col gap-1 rounded-lg border px-4 py-8 text-sm"
+    aria-live="polite"
+  >
+    <span className="text-foreground font-medium">Not in Services yet</span>
+    <span>
+      They’re in Planning Center People but not on a Services team or schedule
+      yet, so there’s no serving history to show.
+    </span>
+  </div>
+);
+
+/**
+ * Why the person's details are missing: not in Services (nothing to retry), or a failed read.
+ */
+const PersonDetailFailure = ({
+  error,
+  isFetching,
+  onRetry,
+}: {
+  error: Error;
+  isFetching: boolean;
+  onRetry: () => void;
+}) =>
+  // Planning Center Services has no record of them: they are in People only.
+  error instanceof NotFound && error.resource === "services-person" ? (
+    <NotInServices />
+  ) : (
+    <div
+      className="border-border/40 text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border px-4 py-8 text-sm"
+      aria-live="polite"
+    >
+      <span className="text-destructive">Person details failed to load.</span>
+      <Button
+        variant="outline"
+        size="xs"
+        disabled={isFetching}
+        onClick={onRetry}
+      >
+        Retry
+      </Button>
+    </div>
+  );
+
 /**
  * Month paging only changes a search param; the query keeps the page populated while the
  * next month loads.
@@ -108,7 +155,7 @@ export const PersonDetailPage = ({
   personId: string;
   month: string | null;
 }) => {
-  const { data, isError, isFetching, isPlaceholderData, refetch } =
+  const { data, error, isError, isFetching, isPlaceholderData, refetch } =
     usePeopleDashboardPerson(personId, month);
   const { rosterPerson, teamPace } = usePersonDashboardContext(personId);
   const orgTimeZone = useOrganizationTimeZone();
@@ -131,9 +178,8 @@ export const PersonDetailPage = ({
               // they served on lately.
               teams={rosterPerson?.teams ?? person.teams}
             />
-          ) : (
-            <PersonHeaderSkeleton />
-          )}
+          ) : null}
+          {person === null && !isError ? <PersonHeaderSkeleton /> : null}
           <PlanningCenterPersonLink
             personId={personId}
             name={person?.name ?? rosterPerson?.name ?? "this person"}
@@ -146,24 +192,13 @@ export const PersonDetailPage = ({
       </header>
 
       {isError ? (
-        <div
-          className="border-border/40 text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border px-4 py-8 text-sm"
-          aria-live="polite"
-        >
-          <span className="text-destructive">
-            Person details failed to load.
-          </span>
-          <Button
-            variant="outline"
-            size="xs"
-            disabled={isFetching}
-            onClick={() => {
-              void refetch();
-            }}
-          >
-            Retry
-          </Button>
-        </div>
+        <PersonDetailFailure
+          error={error}
+          isFetching={isFetching}
+          onRetry={() => {
+            void refetch();
+          }}
+        />
       ) : null}
       {!isError && data === undefined ? <PersonDetailBodySkeleton /> : null}
       {!isError && data !== undefined ? (

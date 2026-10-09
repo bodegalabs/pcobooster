@@ -1,27 +1,20 @@
+import { Schema } from "effect";
 import { useCallback, useMemo } from "react";
-import { z } from "zod";
 
 import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import { readBrowserStorage } from "@/lib/browser-storage";
+import { storedJson } from "@/lib/stored-json";
 
 const STORAGE_KEY = "schedule-collapsed-teams:by-plan";
-const collapsedTeamsSchema = z.record(
-  z.string(),
-  z.record(z.string(), z.boolean())
+const collapsedTeamsSchema = Schema.Record(
+  Schema.String,
+  Schema.Record(Schema.String, Schema.Boolean)
 );
-type CollapsedTeamsByPlan = z.infer<typeof collapsedTeamsSchema>;
+type CollapsedTeamsByPlan = typeof collapsedTeamsSchema.Type;
+const stored = storedJson(collapsedTeamsSchema);
 
-const parseCollapsedTeams = (raw: string | null): CollapsedTeamsByPlan => {
-  if (raw === null) {
-    return {};
-  }
-  try {
-    const parsed = collapsedTeamsSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : {};
-  } catch {
-    return {};
-  }
-};
+const parseCollapsedTeams = (raw: string | null): CollapsedTeamsByPlan =>
+  stored.parse(raw) ?? {};
 
 export const useCollapsedTeams = () => {
   const [raw, setRaw] = useBrowserStorage(STORAGE_KEY);

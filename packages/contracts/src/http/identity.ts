@@ -1,4 +1,4 @@
-/** Ported from the zod schema in `../identity.ts`. */
+/** Who a Planning Center account belongs to. */
 import { Schema } from "effect";
 
 export const planningCenterIdentitySchema = Schema.Struct({
@@ -8,3 +8,5 @@ export const planningCenterIdentitySchema = Schema.Struct({
   organizationId: Schema.NullOr(Schema.String),
   organizationName: Schema.NullOr(Schema.String),
 });
+
+export type PlanningCenterIdentity = typeof planningCenterIdentitySchema.Type;

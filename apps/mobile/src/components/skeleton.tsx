@@ -57,7 +57,7 @@ interface SkeletonProps {
 
 /**
  * A loading placeholder with the web's choreography: invisible for the first 120 ms so fast
- * loads never flash, a 240 ms fade in, then a soft shimmer sweep every 1.6 s. Reduce Motion
+ * loads never flash, a 240 ms fade in, then a quick shimmer sweep every second. Reduce Motion
  * keeps the delayed fade and drops the sweep.
  */
 export const Skeleton = ({

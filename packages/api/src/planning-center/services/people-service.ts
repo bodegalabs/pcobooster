@@ -12,6 +12,12 @@ import {
   stableParams,
 } from "@pcobooster/api/planning-center/services/read-cache";
 import {
+  personScheduleFieldsParams,
+  planRosterFieldsParams,
+  positionAssignmentFieldsParams,
+  teamDirectoryFieldsParams,
+} from "@pcobooster/api/planning-center/sparse-fields";
+import {
   isNonEmptyString,
   isString,
 } from "@pcobooster/planning-center-models/json";
@@ -113,6 +119,7 @@ const personSchedulesParams = (
   after,
   include: "plan_times",
   order: newestFirst ? "-starts_at" : "starts_at",
+  ...personScheduleFieldsParams,
 });
 
 export interface PlanningCenterPeopleServiceCaches {
@@ -570,7 +577,10 @@ export class PlanningCenterPeopleService {
         this.core
           .fetchAllWithIncluded(
             `/services/v2/service_types/${serviceTypeId}/team_positions/${positionId}/person_team_position_assignments`,
-            { include: "person,team_position" },
+            {
+              include: "person,team_position",
+              ...positionAssignmentFieldsParams,
+            },
             10
           )
           .pipe(Effect.map(toResourceCollection))
@@ -618,7 +628,11 @@ export class PlanningCenterPeopleService {
     return this.core
       .fetchAllWithIncluded(
         `/services/v2/service_types/${serviceTypeId}/plans/${planId}/team_members`,
-        { include: "person,team,plan", per_page: "100" },
+        {
+          include: "person,team,plan",
+          per_page: "100",
+          ...planRosterFieldsParams,
+        },
         PLAN_ROSTER_MAX_PAGES
       )
       .pipe(Effect.map(toResourceCollection));
@@ -882,7 +896,10 @@ export class PlanningCenterPeopleService {
     return this.core
       .fetchFirstPages(
         "/services/v2/teams",
-        { include: "people,team_leaders,service_types" },
+        {
+          include: "people,team_leaders,service_types",
+          ...teamDirectoryFieldsParams,
+        },
         TEAM_PAGES_MAX
       )
       .pipe(Effect.map(collectTeamPeople));

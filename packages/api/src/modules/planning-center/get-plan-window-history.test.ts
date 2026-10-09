@@ -4,7 +4,6 @@ import type {
   PlanWindowHistoryDependencies,
   PlanWindowHistoryInput,
 } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
-import { planTimeResourceSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
 import {
@@ -18,7 +17,7 @@ import { isString } from "@pcobooster/planning-center-models/json";
 import { expandPlanWindowHistory } from "@pcobooster/planning-center-models/plan-window-history";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 /** Sunday May 3, 2026, 10:00 UTC. */
 const PLAN_DATE = "2026-05-03T10:00:00.000Z";
@@ -242,6 +241,26 @@ describe(getPlanWindowHistory, () => {
     }).toStrictEqual({ loaded: 20, deferred: 0, reported: requests });
   });
 
+  it("reads only the named service type's plans and rosters", async () => {
+    const { batch, requests } = await runCall(
+      { date: PLAN_DATE, serviceTypeId: "st-1" },
+      createOrg({ serviceTypes: 3, plansPerServiceType: 2, rangeRequests: 1 })
+    );
+
+    expect({
+      rows: batch.people.flatMap(({ personId, rows }) =>
+        rows.map(({ planId }) => `${personId}@${planId}`)
+      ),
+      deferred: batch.deferredPlans.length + batch.deferredRanges.length,
+      requests,
+    }).toStrictEqual({
+      rows: ["st-1-p@st-1-plan-0", "st-1-p@st-1-plan-1"],
+      deferred: 0,
+      // Service types, time zone, one range page, and two rosters.
+      requests: 5,
+    });
+  });
+
   it("reads a roster in every follow-up call even when its plan ranges are not cached", async () => {
     const { loaded, requests } = await loadAll(
       createOrg({ serviceTypes: 12, plansPerServiceType: 4, rangeRequests: 1 })
@@ -451,10 +470,18 @@ describe("range plan-time parsing", () => {
       rangeRequests: 1,
       planPeople: () => 0,
     });
+    // Validating a time reads its `starts_at` once; counting the reads counts the validations.
+    let startsAtReads = 0;
     const included: PCResource[] = Array.from({ length: 100 }, (_, index) => ({
       type: "PlanTime",
       id: `time-${index}`,
-      attributes: { starts_at: "2026-04-20T10:00:00Z", time_type: "service" },
+      attributes: {
+        get starts_at() {
+          startsAtReads += 1;
+          return "2026-04-20T10:00:00Z";
+        },
+        time_type: "service",
+      },
       relationships: {
         plan: { data: { type: "Plan", id: `st-0-plan-${index % 35}` } },
       },
@@ -468,18 +495,13 @@ describe("range plan-time parsing", () => {
             .pipe(Effect.map((range) => ({ ...range, included }))),
       },
     };
-    const parse = vi.spyOn(planTimeResourceSchema, "safeParse");
-    try {
-      const { batch, requests } = await runCall(
-        { date: PLAN_DATE },
-        dependencies
-      );
-      expect(batch.loadedPlanCount).toBe(35);
-      expect(batch.planTimes).toHaveLength(100);
-      expect(requests).toBe(3);
-      expect(parse).toHaveBeenCalledTimes(included.length);
-    } finally {
-      parse.mockRestore();
-    }
+    const { batch, requests } = await runCall(
+      { date: PLAN_DATE },
+      dependencies
+    );
+    expect(batch.loadedPlanCount).toBe(35);
+    expect(batch.planTimes).toHaveLength(100);
+    expect(requests).toBe(3);
+    expect(startsAtReads).toBe(100);
   });
 });

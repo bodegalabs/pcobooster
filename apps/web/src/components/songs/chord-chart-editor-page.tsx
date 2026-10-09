@@ -2,7 +2,7 @@ import { failureMessage } from "@pcobooster/client/product-client";
 import type {
   ChordChartArrangement,
   ChordChartSong,
-} from "@pcobooster/contracts/chord-charts";
+} from "@pcobooster/contracts/http/chord-charts";
 import {
   CHORD_CHART_KEYS,
   parseKey,

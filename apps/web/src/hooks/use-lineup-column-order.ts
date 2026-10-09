@@ -1,26 +1,21 @@
+import { Schema } from "effect";
 import { useCallback, useMemo } from "react";
-import { z } from "zod";
 
 import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import { readBrowserStorage } from "@/lib/browser-storage";
+import { storedJson } from "@/lib/stored-json";
 
 const STORAGE_KEY = "lineup-column-order:by-service-type";
-const lineupColumnOrderSchema = z.record(z.string(), z.array(z.string()));
-type LineupColumnOrderByServiceType = z.infer<typeof lineupColumnOrderSchema>;
+const lineupColumnOrderSchema = Schema.Record(
+  Schema.String,
+  Schema.mutable(Schema.Array(Schema.String))
+);
+type LineupColumnOrderByServiceType = typeof lineupColumnOrderSchema.Type;
+const stored = storedJson(lineupColumnOrderSchema);
 
 const parseLineupColumnOrder = (
   raw: string | null
-): LineupColumnOrderByServiceType => {
-  if (raw === null) {
-    return {};
-  }
-  try {
-    const parsed = lineupColumnOrderSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : {};
-  } catch {
-    return {};
-  }
-};
+): LineupColumnOrderByServiceType => stored.parse(raw) ?? {};
 
 export const useLineupColumnOrder = () => {
   const [raw, setRaw] = useBrowserStorage(STORAGE_KEY);

@@ -19,11 +19,11 @@
     "@tanstack/react-start": "1.168.58",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.3.0",
+    "effect": "4.0.0-rc.117",
     "jose": "^6.2.12",
     "lucide-react": "^1.47.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0",
-    "zod": "^4.6.5"
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.58.0",

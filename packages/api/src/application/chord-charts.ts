@@ -26,7 +26,7 @@ import type {
   ChordChartUpdateInput,
   LyricsSearchInput,
   LyricsSearchResult,
-} from "@pcobooster/contracts/chord-charts";
+} from "@pcobooster/contracts/http/chord-charts";
 import { Effect } from "effect";
 
 const viewDenied = explainPlanningCenterDenial(

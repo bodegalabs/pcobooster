@@ -1,25 +1,12 @@
-import { z } from "zod";
+import { myScheduledPlansDataSchema } from "@pcobooster/contracts/http/people-schemas";
+import type { MyScheduledPlansData } from "@pcobooster/contracts/http/people-schemas";
 
-export interface MyScheduledPlansData {
-  planIds: string[];
-}
+import { savedAnswer } from "@/lib/stored-json";
 
 const CACHE_KEY = "pcobooster:my-scheduled-plans:v2";
 const LEGACY_CACHE_KEY_PREFIX = "pcobooster:my-scheduled-plans:v1:";
 
-interface CachedPayload {
-  savedAt: number;
-  data: MyScheduledPlansData;
-}
-
-const myScheduledPlansDataSchema = z.object({
-  planIds: z.array(z.string()),
-});
-
-const cachedPayloadSchema = z.object({
-  savedAt: z.number(),
-  data: myScheduledPlansDataSchema,
-});
+const cachedPayload = savedAnswer(myScheduledPlansDataSchema);
 
 export interface MyScheduledPlansCacheEntry {
   savedAt: number;
@@ -35,19 +22,7 @@ export const readCachedMyScheduledPlans = ():
   }
 
   try {
-    const raw = storage.getItem(CACHE_KEY);
-    if (raw === null) {
-      return undefined;
-    }
-    const parsed = cachedPayloadSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success) {
-      return undefined;
-    }
-
-    return {
-      savedAt: parsed.data.savedAt,
-      data: parsed.data.data,
-    };
+    return cachedPayload.parse(storage.getItem(CACHE_KEY));
   } catch {
     return undefined;
   }
@@ -60,13 +35,10 @@ export const writeCachedMyScheduledPlans = (data: MyScheduledPlansData) => {
   }
 
   try {
-    storage.setItem(
-      CACHE_KEY,
-      JSON.stringify({
-        savedAt: Date.now(),
-        data,
-      } satisfies CachedPayload)
-    );
+    const saved = cachedPayload.stringify({ savedAt: Date.now(), data });
+    if (saved !== undefined) {
+      storage.setItem(CACHE_KEY, saved);
+    }
   } catch {
     // Ignore storage write failures (private mode/quota).
   }

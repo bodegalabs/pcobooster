@@ -1,10 +1,10 @@
+import type { MyScheduledPlansData } from "@pcobooster/contracts/http/people-schemas";
 import { useQuery } from "@tanstack/react-query";
 
 import {
   readCachedMyScheduledPlans,
   writeCachedMyScheduledPlans,
 } from "@/lib/my-scheduled-plans-cache";
-import type { MyScheduledPlansData } from "@/lib/my-scheduled-plans-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
 import { productClient } from "@/product-client";

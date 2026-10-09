@@ -6,7 +6,7 @@ import { DEFAULT_CATALOG_MAX_PAGES } from "@pcobooster/api/planning-center/servi
 import type {
   SongLibrary,
   SongLibraryEntry,
-} from "@pcobooster/contracts/songs";
+} from "@pcobooster/contracts/http/songs";
 import { isString } from "@pcobooster/planning-center-models/json";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";

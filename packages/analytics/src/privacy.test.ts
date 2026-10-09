@@ -1,5 +1,5 @@
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
 
 import {
   analyticsPath,
@@ -141,9 +141,11 @@ describe("analytics privacy boundary", () => {
     ).toBeNull();
 
     const prepared = prepareAnalyticsEvent(event, "/people/123", true);
-    const [exception] = z
-      .array(z.object({ value: z.string(), stacktrace: z.unknown() }))
-      .parse(prepared?.properties.$exception_list);
+    const [exception] = Schema.decodeUnknownSync(
+      Schema.Array(
+        Schema.Struct({ value: Schema.String, stacktrace: Schema.Unknown })
+      )
+    )(prepared?.properties.$exception_list);
     expect(exception?.value).toHaveLength(500);
     expect(exception?.stacktrace).toStrictEqual({
       type: "raw",

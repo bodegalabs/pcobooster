@@ -9,13 +9,13 @@
  */
 import { isDeepStrictEqual } from "node:util";
 
+import { isoDateTimeWithOffset } from "@pcobooster/contracts/http/schema";
 import * as Alchemist from "alchemy/Alchemist";
 import { AuthProviders } from "alchemy/Auth/AuthProvider";
 import * as Cloudflare from "alchemy/Cloudflare";
 import * as Provider from "alchemy/Provider";
 import * as State from "alchemy/State";
-import { Context, Effect, Layer } from "effect";
-import { z } from "zod";
+import { Context, Effect, Layer, Option, Schema } from "effect";
 
 import { differingFields, driftValueSchema } from "./drift-report";
 import type { DriftValue } from "./drift-report";
@@ -28,17 +28,22 @@ const identity = {
 };
 const activationFields = new Set(["status", "activatedOn", "modifiedOn"]);
 
-const zoneAttributesSchema = z
-  .object({
-    name: z.string(),
-    zoneId: z.string(),
-    accountId: z.string(),
-    status: z.enum(["initializing", "pending", "active", "moved"]),
-    activatedOn: z.iso.datetime({ offset: true }).nullish(),
-    modifiedOn: z.iso.datetime({ offset: true }),
-  })
-  .catchall(driftValueSchema);
-type ZoneAttributes = z.infer<typeof zoneAttributesSchema>;
+const zoneAttributesSchema = Schema.StructWithRest(
+  Schema.Struct({
+    name: Schema.String,
+    zoneId: Schema.String,
+    accountId: Schema.String,
+    status: Schema.Literals(["initializing", "pending", "active", "moved"]),
+    activatedOn: Schema.optional(Schema.NullOr(isoDateTimeWithOffset)),
+    modifiedOn: isoDateTimeWithOffset,
+  }),
+  [Schema.Record(Schema.String, driftValueSchema)]
+);
+type ZoneAttributes = typeof zoneAttributesSchema.Type;
+const decodeZoneAttributes = Schema.decodeUnknownOption(zoneAttributesSchema);
+const decodeDriftJson = Schema.decodeUnknownSync(
+  Schema.fromJsonString(driftValueSchema)
+);
 
 export interface RefreshDependencies {
   readonly get: () => Promise<State.PersistedState | undefined>;
@@ -72,11 +77,11 @@ const resourceState = (
 };
 
 const attributes = (value: DriftValue): ZoneAttributes => {
-  const result = zoneAttributesSchema.safeParse(value);
-  if (!result.success) {
+  const result = decodeZoneAttributes(value);
+  if (Option.isNone(result)) {
     throw new Error("Refusing: invalid or missing Zone attributes.");
   }
-  const parsed = result.data;
+  const parsed = result.value;
   for (const [field, expected] of Object.entries(identity)) {
     if (parsed[field] !== expected) {
       throw new Error(`Refusing: Zone identity mismatch in ${field}.`);
@@ -98,7 +103,7 @@ export const refreshProductionZoneActivation = async (
   }
   // Match drift inspection's JSON representation, where absent optional attributes are omitted.
   const expectedJson = JSON.stringify(persisted.attr);
-  const expectedValue = driftValueSchema.parse(JSON.parse(expectedJson));
+  const expectedValue = decodeDriftJson(expectedJson);
   const expected = attributes(expectedValue);
   const observedValue = await dependencies.observe(persisted);
   const observed = attributes(observedValue);
@@ -196,7 +201,7 @@ if (import.meta.main) {
                   }).pipe(Effect.provide(context))
                 );
                 const observedJson = JSON.stringify(observed ?? null);
-                return driftValueSchema.parse(JSON.parse(observedJson));
+                return decodeDriftJson(observedJson);
               },
               set: async (value) => {
                 await Effect.runPromise(store.set({ ...target, value }));

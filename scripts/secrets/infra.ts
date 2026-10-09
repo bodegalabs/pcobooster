@@ -1,9 +1,8 @@
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 
-import { z } from "zod";
-
 import { readKeychain } from "./keychain";
+import { processExit } from "./manifest";
 
 const [command, ...args] = process.argv.slice(2);
 if (command === undefined) {
@@ -21,9 +20,7 @@ github.stdout.on("data", (chunk: Buffer) => {
   chunks.push(chunk);
 });
 github.stderr.resume();
-const [githubCode] = z
-  .tuple([z.number().nullable(), z.string().nullable()])
-  .parse(await once(github, "close"));
+const [githubCode] = processExit(await once(github, "close"));
 if (githubCode !== 0) {
   throw new Error("GitHub credentials unavailable; run gh auth login");
 }
@@ -50,7 +47,5 @@ const stop = (signal: NodeJS.Signals): void => {
 };
 process.on("SIGINT", stop);
 process.on("SIGTERM", stop);
-const [code] = z
-  .tuple([z.number().nullable(), z.string().nullable()])
-  .parse(await once(child, "exit"));
+const [code] = processExit(await once(child, "exit"));
 process.exitCode = code ?? 1;

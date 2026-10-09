@@ -9,7 +9,10 @@ import type {
   PlanningCenterAccessSnapshot,
   ServicesAccess,
 } from "@pcobooster/planning-center-models/access";
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
+
+const decodeLevel = Schema.decodeUnknownSync(servicesPermissionLevelSchema);
 
 type GrantedServices = Extract<ServicesAccess, { status: "granted" }>;
 
@@ -54,19 +57,15 @@ const availability = (
 
 describe("Services permission levels", () => {
   it("reads Planning Center's names regardless of casing and separators", () => {
-    expect(servicesPermissionLevelSchema.parse("Scheduled Viewer")).toBe(
-      "Scheduled Viewer"
-    );
-    expect(servicesPermissionLevelSchema.parse("scheduled_viewer")).toBe(
-      "Scheduled Viewer"
-    );
-    expect(servicesPermissionLevelSchema.parse(" editor ")).toBe("Editor");
+    expect(decodeLevel("Scheduled Viewer")).toBe("Scheduled Viewer");
+    expect(decodeLevel("scheduled_viewer")).toBe("Scheduled Viewer");
+    expect(decodeLevel(" editor ")).toBe("Editor");
   });
 
   it("treats unknown or missing values as unknown", () => {
-    expect(servicesPermissionLevelSchema.parse("Owner")).toBeNull();
-    expect(servicesPermissionLevelSchema.parse(3)).toBeNull();
-    expect(servicesPermissionLevelSchema.parse(null)).toBeNull();
+    expect(decodeLevel("Owner")).toBeNull();
+    expect(decodeLevel(3)).toBeNull();
+    expect(decodeLevel(null)).toBeNull();
   });
 });
 

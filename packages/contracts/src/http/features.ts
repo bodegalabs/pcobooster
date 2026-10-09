@@ -5,8 +5,8 @@ import { plainGroup } from "@pcobooster/contracts/http/group";
 import { Schema } from "effect";
 
 /**
- * Whether each flag is on for this visitor; every flag is present, as zod's exhaustive
- * `z.record(z.enum(featureFlagNames), z.boolean())` requires.
+ * Whether each flag is on for this visitor; every flag is present, so a flag the API leaves out
+ * fails decoding rather than reading as off.
  */
 export const enabledFeaturesSchema = Schema.Struct({
   people: Schema.Boolean,

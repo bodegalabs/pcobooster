@@ -1,5 +1,5 @@
 import { callForQuery } from "@pcobooster/client/query";
-import type { SongHistoryEntry } from "@pcobooster/contracts/songs";
+import type { SongHistoryEntry } from "@pcobooster/contracts/http/songs";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useQuery } from "@tanstack/react-query";
 

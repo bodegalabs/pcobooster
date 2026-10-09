@@ -1,4 +1,4 @@
-/** Run-sheet item answers. Ported from the zod schemas in `../plan-item-schemas.ts`. */
+/** Run-sheet item answers. */
 import { finiteNumber, mutableArray } from "@pcobooster/contracts/http/schema";
 import { Schema } from "effect";
 
@@ -58,3 +58,11 @@ export const planItemSchema = Schema.Struct({
   key: Schema.NullOr(planItemKeySchema),
   layout: Schema.NullOr(layoutOptionSchema),
 });
+
+export type PlanItemSong = typeof planItemSongSchema.Type;
+export type PlanItemArrangement = typeof planItemArrangementSchema.Type;
+export type PlanItemType = typeof planItemTypeSchema.Type;
+export type PlanItemServicePosition = typeof planItemServicePositionSchema.Type;
+export type PlanItemKey = typeof planItemKeySchema.Type;
+export type LayoutOption = typeof layoutOptionSchema.Type;
+export type PlanItem = typeof planItemSchema.Type;

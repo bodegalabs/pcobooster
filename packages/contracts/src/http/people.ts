@@ -45,6 +45,11 @@ const planDateSchema = isoDateTimeWithOffset;
 
 export const peoplePlanWindowHistoryInputSchema = Schema.Struct({
   date: planDateSchema,
+  /**
+   * Reads only this service type's plans. Clients read the window one service type per call,
+   * in parallel; omit it to read every active service type in one call.
+   */
+  serviceTypeId: Schema.optional(requiredId),
   /** Where the previous call stopped; omit on the first call. */
   continuation: Schema.optional(
     Schema.Struct({
@@ -172,3 +177,16 @@ export const people = planningCenterGroup(
     success: myScheduledPlansDataSchema,
   })
 );
+
+export type PeoplePositionCandidatesInput =
+  typeof peoplePositionCandidatesInputSchema.Type;
+export type PeoplePlanWindowHistoryInput =
+  typeof peoplePlanWindowHistoryInputSchema.Type;
+export type PeopleCandidateDetailsInput =
+  typeof peopleCandidateDetailsInputSchema.Type;
+export type PeopleSearchInput = typeof peopleSearchInputSchema.Type;
+export type PeopleBlockoutsInput = typeof peopleBlockoutsInputSchema.Type;
+export type PeopleDashboardActivityInput =
+  typeof peopleDashboardActivityInputSchema.Type;
+export type PeopleDashboardPersonInput =
+  typeof peopleDashboardPersonInputSchema.Type;

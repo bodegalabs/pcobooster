@@ -13,3 +13,5 @@ export const session = plainGroup(
     success: sessionStatusSchema,
   })
 );
+
+export type SessionStatus = typeof sessionStatusSchema.Type;

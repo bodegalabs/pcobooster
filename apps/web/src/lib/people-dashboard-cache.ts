@@ -2,15 +2,17 @@ import {
   peopleDashboardActivitySchema,
   peopleDashboardPersonDetailSchema,
   peopleDashboardRosterSchema,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import type {
   PeopleDashboardActivity,
   PeopleDashboardPersonDetail,
   PeopleDashboardRoster,
-} from "@pcobooster/contracts/people-schemas";
-import { z } from "zod";
+} from "@pcobooster/contracts/http/people-schemas";
+import { Schema } from "effect";
 
 import { presentationCacheKey } from "@/lib/presentation-cache";
+import { savedAnswer, storedJson } from "@/lib/stored-json";
+import type { StoredJson } from "@/lib/stored-json";
 
 /** Every version's entries, so clearing also drops older versions' saved people. */
 const STORAGE_PREFIX = "pcobooster:people-dashboard:";
@@ -22,11 +24,6 @@ const ROSTER_KEY = `${KEY_PREFIX}roster`;
 const ACTIVITY_KEY = `${KEY_PREFIX}activity`;
 /** Activity older than this is dropped when new activity is saved. */
 const ACTIVITY_RETENTION_MS = 24 * 60 * 60 * 1000;
-
-interface CachedPayload<T> {
-  savedAt: number;
-  data: T;
-}
 
 export interface PeopleDashboardRosterCacheEntry {
   savedAt: number;
@@ -43,21 +40,18 @@ export interface PeopleDashboardPersonCacheEntry {
   data: PeopleDashboardPersonDetail;
 }
 
-const cachedRosterPayloadSchema = z.object({
-  savedAt: z.number(),
-  data: peopleDashboardRosterSchema,
-});
+const cachedRosterPayload = savedAnswer(peopleDashboardRosterSchema);
 
-const cachedActivityPayloadSchema = z.record(
-  z.string(),
-  z.object({ savedAt: z.number(), data: peopleDashboardActivitySchema })
+const cachedActivityPayloadSchema = Schema.Record(
+  Schema.String,
+  Schema.Struct({ savedAt: Schema.Finite, data: peopleDashboardActivitySchema })
 );
-type CachedActivityPayload = z.output<typeof cachedActivityPayloadSchema>;
+type CachedActivityPayload = typeof cachedActivityPayloadSchema.Type;
+const cachedActivityPayload = storedJson(cachedActivityPayloadSchema);
 
-const cachedPersonDetailPayloadSchema = z.object({
-  savedAt: z.number(),
-  data: peopleDashboardPersonDetailSchema,
-});
+const cachedPersonDetailPayload = savedAnswer(
+  peopleDashboardPersonDetailSchema
+);
 
 const buildPersonDetailCacheKey = (
   personId: string,
@@ -67,36 +61,31 @@ const buildPersonDetailCacheKey = (
     `${PERSON_DETAIL_KEY_PREFIX}${encodeURIComponent(personId)}:${encodeURIComponent(month ?? "current")}`
   );
 
-/** Reads and validates a stored entry; throws only on malformed JSON. */
+/** Reads a stored entry; one that does not decode reads as missing. */
 const readStorageEntry = <Entry>(
   key: string,
-  schema: z.ZodType<Entry>
-): Entry | undefined => {
-  const raw = globalThis.window?.localStorage.getItem(
-    presentationCacheKey(key)
+  stored: StoredJson<Entry>
+): Entry | undefined =>
+  stored.parse(
+    globalThis.window?.localStorage.getItem(presentationCacheKey(key)) ?? null
   );
-  if (raw === null || raw === undefined) {
-    return undefined;
-  }
-  const parsed = schema.safeParse(JSON.parse(raw));
-  return parsed.success ? parsed.data : undefined;
-};
 
-const writeStorageJson = (
+const writeStorageJson = <Entry>(
   key: string,
-  value: PeopleDashboardRosterCacheEntry | CachedActivityPayload
+  stored: StoredJson<Entry>,
+  value: Entry
 ): void => {
-  globalThis.window?.localStorage.setItem(
-    presentationCacheKey(key),
-    JSON.stringify(value)
-  );
+  const saved = stored.stringify(value);
+  if (saved !== undefined) {
+    globalThis.window?.localStorage.setItem(presentationCacheKey(key), saved);
+  }
 };
 
 export const readCachedPeopleDashboardRoster = ():
   | PeopleDashboardRosterCacheEntry
   | undefined => {
   try {
-    return readStorageEntry(ROSTER_KEY, cachedRosterPayloadSchema);
+    return readStorageEntry(ROSTER_KEY, cachedRosterPayload);
   } catch {
     return undefined;
   }
@@ -106,17 +95,17 @@ export const writeCachedPeopleDashboardRoster = (
   data: PeopleDashboardRoster
 ): void => {
   try {
-    writeStorageJson(ROSTER_KEY, {
+    writeStorageJson(ROSTER_KEY, cachedRosterPayload, {
       savedAt: Date.now(),
       data,
-    } satisfies CachedPayload<PeopleDashboardRoster>);
+    });
   } catch {
     // Ignore storage failures; query invalidation still refreshes live data.
   }
 };
 
 const readActivityPayload = (): CachedActivityPayload =>
-  readStorageEntry(ACTIVITY_KEY, cachedActivityPayloadSchema) ?? {};
+  readStorageEntry(ACTIVITY_KEY, cachedActivityPayload) ?? {};
 
 /** Saved activity for every one of `personIds`, or nothing if any is missing. */
 export const readCachedPeopleDashboardActivity = (
@@ -143,15 +132,16 @@ export const writeCachedPeopleDashboardActivity = (
 ): void => {
   try {
     const savedAt = Date.now();
-    const payload: CachedActivityPayload = Object.fromEntries(
-      Object.entries(readActivityPayload()).filter(
-        ([, entry]) => savedAt - entry.savedAt < ACTIVITY_RETENTION_MS
-      )
-    );
+    const payload: Record<string, CachedActivityPayload[string]> =
+      Object.fromEntries(
+        Object.entries(readActivityPayload()).filter(
+          ([, entry]) => savedAt - entry.savedAt < ACTIVITY_RETENTION_MS
+        )
+      );
     for (const activity of activities) {
       payload[activity.id] = { savedAt, data: activity };
     }
-    writeStorageJson(ACTIVITY_KEY, payload);
+    writeStorageJson(ACTIVITY_KEY, cachedActivityPayload, payload);
   } catch {
     // Ignore storage failures; query invalidation still refreshes live data.
   }
@@ -167,15 +157,9 @@ export const readCachedPeopleDashboardPerson = (
   }
 
   try {
-    const raw = storage.getItem(buildPersonDetailCacheKey(personId, month));
-    if (raw === null) {
-      return undefined;
-    }
-    const parsed = cachedPersonDetailPayloadSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success) {
-      return undefined;
-    }
-    return parsed.data;
+    return cachedPersonDetailPayload.parse(
+      storage.getItem(buildPersonDetailCacheKey(personId, month))
+    );
   } catch {
     return undefined;
   }
@@ -192,13 +176,13 @@ export const writeCachedPeopleDashboardPerson = (
   }
 
   try {
-    storage.setItem(
-      buildPersonDetailCacheKey(personId, month),
-      JSON.stringify({
-        savedAt: Date.now(),
-        data,
-      } satisfies CachedPayload<PeopleDashboardPersonDetail>)
-    );
+    const saved = cachedPersonDetailPayload.stringify({
+      savedAt: Date.now(),
+      data,
+    });
+    if (saved !== undefined) {
+      storage.setItem(buildPersonDetailCacheKey(personId, month), saved);
+    }
   } catch {
     // Ignore storage failures; query invalidation still refreshes live data.
   }

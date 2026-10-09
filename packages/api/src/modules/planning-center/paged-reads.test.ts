@@ -69,6 +69,11 @@ import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect, Exit, Option, Schema } from "effect";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+// Each test here compares whole paged reads, fresh and warm, with an exhaustive read: hundreds of
+// pages decoded through the real client. That takes well under a second locally but several
+// seconds on a busy CI runner, past Vitest's 5 s default.
+vi.setConfig({ testTimeout: 20_000 });
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** Sunday May 3, 2026, 10:00 UTC: the selected plan's full instant. */
 const PLAN_DATE = "2026-05-03T10:00:00.000Z";

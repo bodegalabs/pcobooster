@@ -40,7 +40,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useServicePlanSelection } from "@/hooks/use-service-plan-selection";
 import type { ServicePlanTableSelectorProps } from "@/lib/service-plan-selection";
-import { dateRangeSchema } from "@/lib/service-plan-selection";
+import { parseDateRange } from "@/lib/service-plan-selection";
 import { cn } from "@/lib/utils";
 
 interface PlanListProps {
@@ -429,7 +429,7 @@ export const ServicePlanTableSelector = ({
             className="w-full"
             value={dateRangeFilter}
             onChange={(event) => {
-              setDateRangeFilter(dateRangeSchema.parse(event.target.value));
+              setDateRangeFilter(parseDateRange(event.target.value));
             }}
             aria-label="Filter date range"
           >

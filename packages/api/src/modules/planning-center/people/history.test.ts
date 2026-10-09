@@ -9,6 +9,7 @@ import type {
   PCResource,
   ServiceHistoryItem,
 } from "@pcobooster/planning-center-models/types";
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
 
 const schedule = (params: {
@@ -95,7 +96,7 @@ describe(mapSchedulesToServiceHistory, () => {
       { type: "Plan", id: "service", attributes: { title: "Duplicate plan" } },
     ];
     const result = mapSchedulesToServiceHistory(
-      [scheduleResourceSchema.parse(resource)],
+      [Schema.decodeUnknownSync(scheduleResourceSchema)(resource)],
       included
     );
     expect(
@@ -120,7 +121,9 @@ describe(mapSchedulesToServiceHistory, () => {
         teamId: "rehearsal",
         planTimeIds: ["other"],
       }),
-    ].map((resource) => scheduleResourceSchema.parse(resource));
+    ].map((resource) =>
+      Schema.decodeUnknownSync(scheduleResourceSchema)(resource)
+    );
     const result = mapSchedulesToServiceHistory(schedules, [
       planTime("other", "other"),
       team("rehearsal", true),
@@ -150,7 +153,9 @@ describe(mapSchedulesToServiceHistory, () => {
         sortDate: "2026-02-25T00:00:00Z",
         teamId: "team-reh",
       }),
-    ].map((resource) => scheduleResourceSchema.parse(resource));
+    ].map((resource) =>
+      Schema.decodeUnknownSync(scheduleResourceSchema)(resource)
+    );
 
     const included = [
       {
@@ -205,7 +210,9 @@ describe(mapSchedulesToServiceHistory, () => {
         sortDate: "2026-02-22T00:00:00Z",
         planTimeIds: ["pt-service-1", "pt-rehearsal-1"],
       }),
-    ].map((resource) => scheduleResourceSchema.parse(resource));
+    ].map((resource) =>
+      Schema.decodeUnknownSync(scheduleResourceSchema)(resource)
+    );
 
     const included = [
       {
@@ -259,7 +266,9 @@ describe("declined assignments", () => {
         status: "C",
         planTimeIds: ["pt-ok"],
       }),
-    ].map((resource) => scheduleResourceSchema.parse(resource));
+    ].map((resource) =>
+      Schema.decodeUnknownSync(scheduleResourceSchema)(resource)
+    );
 
     const included = [
       {
