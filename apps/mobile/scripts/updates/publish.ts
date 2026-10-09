@@ -44,13 +44,14 @@ import {
 import type { PublishedUpdate } from "@pcobooster/contracts/mobile-updates";
 import { Schema } from "effect";
 
+import { readVersion } from "../../../../scripts/cloudflare/verify-deployment";
 import { sourceState } from "../release/artifact-provenance";
 import {
   automationMarker,
   releaseAnalyticsKey,
 } from "../release/release-rules";
-import { checkLiveUpdate } from "./live-check";
-import type { ExpectedAnswer } from "./live-check";
+import { checkLiveUpdate, readLiveAnswer } from "./live-check";
+import type { ExpectedAnswer, LiveAnswer, LiveCheckReport } from "./live-check";
 import { encodePreparedRelease, RELEASE_VARIABLE } from "./prepared-release";
 import type { PreparedRelease, UpdateStage } from "./prepared-release";
 import {
@@ -76,16 +77,37 @@ const CLOUDFLARE_ACCOUNT_ID = "984b82870acd18daf8bda97bad966b38";
 const PRODUCTION_ORIGIN = "https://pcobooster.com";
 
 /** Credentials no step but the signer may see; Alchemy uses the operator's login instead. */
-const WITHHELD = new Set([
-  SIGNING_KEY_VARIABLE,
-  "CLOUDFLARE_API_TOKEN",
-  "EXPO_PUBLIC_PCOB_RELEASE_SMOKE",
-]);
+const WITHHELD = new Set([SIGNING_KEY_VARIABLE, "CLOUDFLARE_API_TOKEN"]);
 
 /** The environment without the signing key or a Cloudflare token. */
 export const withoutCredentials = (env: Env): Env =>
   Object.fromEntries(
     Object.entries(env).filter(([name]) => !WITHHELD.has(name))
+  );
+
+/**
+ * Variables that would change what an update is or which builds it reaches; like
+ * `release-ios.sh`, a publish refuses them rather than ship a build variant to every phone.
+ */
+const REFUSED: readonly (readonly [string, string])[] = [
+  [
+    "EXPO_PUBLIC_PCOB_RELEASE_SMOKE",
+    "builds the fixture smoke app; unset it to publish.",
+  ],
+  [
+    "EXPO_PUBLIC_DIAGNOSTICS_PROBES",
+    "belongs to a separate internal verification build; unset it to publish.",
+  ],
+  [
+    "PCOB_UPDATES_URL",
+    "points builds at a local update server and changes the runtime version; unset it to publish.",
+  ],
+];
+
+/** The inherited environment for an export: no `EXPO_PUBLIC_` value the source does not set. */
+const withoutPublicValues = (env: Env): Env =>
+  Object.fromEntries(
+    Object.entries(env).filter(([name]) => !name.startsWith("EXPO_PUBLIC_"))
   );
 
 export interface UpdateCheckout {
@@ -114,8 +136,13 @@ export interface PublishDependencies {
     env: Env,
     directory: StepDirectory
   ) => string;
-  /** The commit production's API serves (`/version`). */
-  readonly productionRevision: () => Promise<string>;
+  /** The commit production's API serves, or undefined when it does not answer. */
+  readonly productionApiRevision: () => Promise<string | undefined>;
+  /** What the update route tells a runtime version's phones now. */
+  readonly liveAnswer: (
+    origin: string,
+    runtimeVersion: string
+  ) => Promise<LiveAnswer>;
   /** The export's `metadata.json` and the files it names, from `apps/mobile/<directory>`. */
   readonly readExport: (directory: string) => {
     readonly metadata: string;
@@ -128,7 +155,7 @@ export interface PublishDependencies {
     origin: string,
     runtimeVersion: string,
     expected: ExpectedAnswer
-  ) => Promise<void>;
+  ) => Promise<LiveCheckReport>;
   readonly now: () => Date;
   readonly log: (line: string) => void;
 }
@@ -165,6 +192,11 @@ const assertLocalRun = (env: Env): void => {
     throw new Error(
       `${marker} marks this run as automation. Updates are published from a person's Mac.`
     );
+  }
+  for (const [name, why] of REFUSED) {
+    if ((env[name] ?? "") !== "") {
+      throw new Error(`${name} ${why}`);
+    }
   }
   releaseAnalyticsKey(env);
 };
@@ -318,10 +350,10 @@ export const runUpdatePublish = async (
   const before = deps.checkout();
   if (production && !options.rollback) {
     assertOnOriginMain(before, "before publishing");
-    const served = await deps.productionRevision();
+    const served = await deps.productionApiRevision();
     if (served !== before.head) {
       throw new Error(
-        `Production serves ${served}, not ${before.head}. Wait for main's deploy to finish so the update never runs ahead of its API.`
+        `Production's API serves ${served ?? "no version"}, not ${before.head}. Wait for main's deploy to finish so the update never runs ahead of its API.`
       );
     }
   }
@@ -336,7 +368,7 @@ export const runUpdatePublish = async (
   }
   const origin = production ? PRODUCTION_ORIGIN : options.localOrigin;
   const releaseEnv = {
-    ...plain,
+    ...withoutPublicValues(plain),
     NODE_ENV: "production",
     EXPO_NO_DOTENV: "1",
     EXPO_PUBLIC_POSTHOG_KEY: releaseAnalyticsKey(options.env),
@@ -381,6 +413,14 @@ export const runUpdatePublish = async (
   let summary: string;
   let code: string;
   if (options.rollback) {
+    // Rolling back a runtime version no phone has an update for would report success and change
+    // nothing for the builds actually running the update.
+    const live = await deps.liveAnswer(origin, runtimeVersion);
+    if (live.kind !== "update") {
+      throw new Error(
+        `${options.stage} has no update for runtime version ${runtimeVersion} to roll back. Pass the --runtime-version of the builds running it; \`bun run ios:update:status --runtime-version <fingerprint>\` shows what each is told.`
+      );
+    }
     published = verified(
       publishedRollBack(deps.now(), options.sign),
       options.verify
@@ -551,11 +591,9 @@ const main = async (): Promise<void> => {
       },
       output: (command, args, env, directory) =>
         spawnStep(command, args, env, directory, true),
-      productionRevision: async () => {
-        const response = await fetch(`${PRODUCTION_ORIGIN}/version`);
-        const served = await response.text();
-        return served.trim();
-      },
+      productionApiRevision: async () => await readVersion(PRODUCTION_ORIGIN),
+      liveAnswer: async (origin, runtimeVersion) =>
+        await readLiveAnswer({ origin, runtimeVersion, verify, fetch }),
       readExport: (directory) => {
         const root = path.join(mobile, directory);
         return {
@@ -591,6 +629,7 @@ const main = async (): Promise<void> => {
         console.error(
           `Verified: ${report.answers.join("; ")}; ${report.assets} assets match their hashes.`
         );
+        return report;
       },
       now: () => new Date(),
       log: (line) => {

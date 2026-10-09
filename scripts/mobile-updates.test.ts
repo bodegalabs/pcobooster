@@ -6,7 +6,11 @@ import { Effect, Result } from "effect";
 import { describe, expect, it } from "vitest";
 
 import { POSTHOG_PROJECT_KEY } from "../apps/mobile/scripts/release/release-rules";
-import { checkLiveUpdate } from "../apps/mobile/scripts/updates/live-check";
+import {
+  checkLiveUpdate,
+  readLiveAnswer,
+} from "../apps/mobile/scripts/updates/live-check";
+import type { LiveAnswer } from "../apps/mobile/scripts/updates/live-check";
 import { decodePreparedRelease } from "../apps/mobile/scripts/updates/prepared-release";
 import type { PreparedRelease } from "../apps/mobile/scripts/updates/prepared-release";
 import {
@@ -130,17 +134,23 @@ describe("update manifests", () => {
     ]);
   });
 
-  it("names unchanged JavaScript the same update whenever it is published, and changed JavaScript a new one", () => {
+  it("names every publish a new update, even of unchanged JavaScript, and the same inputs the same id", () => {
     const first = manifestFor("abc").manifest.id;
-    const again = manifestFor("abc", new Date("2026-10-09T08:00:00Z")).manifest
-      .id;
+    const sameInputs = manifestFor("abc").manifest.id;
+    const republished = manifestFor("abc", new Date("2026-10-09T08:00:00Z"))
+      .manifest.id;
     const changed = manifestFor("abd").manifest.id;
 
     expect(first).toMatch(UUID_V4);
     expect({
-      sameAsFirst: again === first,
+      sameInputs: sameInputs === first,
+      republishedDiffers: republished !== first,
       changedDiffers: changed !== first,
-    }).toStrictEqual({ sameAsFirst: true, changedDiffers: true });
+    }).toStrictEqual({
+      sameInputs: true,
+      republishedDiffers: true,
+      changedDiffers: true,
+    });
   });
 
   it("signs the exact bodies phones receive, so the certificate's key verifies them and no other does", () => {
@@ -246,6 +256,30 @@ describe(checkLiveUpdate, () => {
     });
   });
 
+  it("reads what a runtime version's phones are told: nothing, or the published update and its revision", async () => {
+    const { published, fetchThroughRouter } = serving("abc");
+    const ask = async (runtimeVersion: string) =>
+      await readLiveAnswer({
+        origin: "https://pcobooster.com",
+        runtimeVersion,
+        verify: KEY.verify,
+        fetch: fetchThroughRouter,
+      });
+
+    await expect(
+      Promise.all([ask(RUNTIME), ask("0".repeat(40))])
+    ).resolves.toStrictEqual([
+      {
+        kind: "update",
+        updateId: published._tag === "Update" ? published.updateId : "",
+        createdAt: "2026-10-08T20:00:00.000Z",
+        revision: SHA,
+        signatureVerifies: true,
+      },
+      { kind: "nothing" },
+    ]);
+  });
+
   it("rejects an answer signed by another key, and a manifest other than the one just published", async () => {
     const { published, fetchThroughRouter } = serving("abc");
     if (published._tag !== "Update") {
@@ -300,6 +334,7 @@ const ENV = {
 interface Fake {
   readonly checkouts?: readonly UpdateCheckout[];
   readonly served?: string;
+  readonly live?: LiveAnswer;
   readonly bundle?: Buffer;
   readonly confirmed?: boolean;
 }
@@ -332,7 +367,18 @@ const harness = (fake: Fake = {}) => {
         ? JSON.stringify({ runtimeVersion: RUNTIME, fingerprintSources: [] })
         : JSON.stringify({ name: "PCOBooster" });
     },
-    productionRevision: async () => await Promise.resolve(fake.served ?? SHA),
+    productionApiRevision: async () =>
+      await Promise.resolve(fake.served ?? SHA),
+    liveAnswer: async () =>
+      await Promise.resolve(
+        fake.live ?? {
+          kind: "update",
+          updateId: "4d0f201d-da64-477e-a4b3-4af11d32c91e",
+          createdAt: "2026-10-08T19:00:00.000Z",
+          revision: "2".repeat(40),
+          signatureVerifies: true,
+        }
+      ),
     readExport: () => ({
       metadata: JSON.stringify({
         version: 0,
@@ -359,7 +405,7 @@ const harness = (fake: Fake = {}) => {
     checkLive: async (origin, runtimeVersion, expected) => {
       steps.push("check live");
       live.push(`${origin} ${runtimeVersion} ${expected.kind}`);
-      await Promise.resolve();
+      return await Promise.resolve({ answers: [expected.kind], assets: 0 });
     },
     now: () => new Date("2026-10-08T20:00:00Z"),
     log: () => {},
@@ -427,10 +473,13 @@ describe(runUpdatePublish, () => {
     });
   });
 
-  it("keeps the signing key and Cloudflare token from every step, and exports with the committed analytics key and this revision", async () => {
+  it("keeps the signing key and Cloudflare token from every step, and exports with only the committed analytics key and this revision", async () => {
     const { deps, envs } = harness();
 
-    await runUpdatePublish(deps, OPTIONS);
+    await runUpdatePublish(deps, {
+      ...OPTIONS,
+      env: { ...ENV, EXPO_PUBLIC_EXPERIMENT: "on" },
+    });
     const leaked = Object.entries(envs).filter(
       ([, env]) =>
         "UPDATES_SIGNING_KEY_PEM_BASE64" in env || "CLOUDFLARE_API_TOKEN" in env
@@ -450,6 +499,9 @@ describe(runUpdatePublish, () => {
         exportEnv?.NODE_ENV,
         exportEnv?.EXPO_NO_DOTENV,
       ],
+      publicValues: Object.keys(exportEnv ?? {})
+        .filter((name) => name.startsWith("EXPO_PUBLIC_"))
+        .toSorted(),
       deployEnv: [
         deployEnv?.PCOB_MOBILE_UPDATE_RELEASE,
         deployEnv?.CLOUDFLARE_ACCOUNT_ID,
@@ -457,6 +509,7 @@ describe(runUpdatePublish, () => {
     }).toStrictEqual({
       leaked: [],
       exportEnv: [POSTHOG_PROJECT_KEY, SHA, "production", "1"],
+      publicValues: ["EXPO_PUBLIC_POSTHOG_KEY", "EXPO_PUBLIC_SOURCE_REVISION"],
       deployEnv: ["/tmp/release-prod.json", "984b82870acd18daf8bda97bad966b38"],
     });
     expect(withoutCredentials(ENV)).toStrictEqual({ PATH: "/usr/bin" });
@@ -478,7 +531,7 @@ describe(runUpdatePublish, () => {
       dirty:
         "The checkout has changes before publishing. Publish only committed source.",
       behind: `HEAD ${SHA} is not origin/main ${"2".repeat(40)}. Publish only what main deployed.`,
-      undeployed: `Production serves ${"3".repeat(40)}, not ${SHA}. Wait for main's deploy to finish so the update never runs ahead of its API.`,
+      undeployed: `Production's API serves ${"3".repeat(40)}, not ${SHA}. Wait for main's deploy to finish so the update never runs ahead of its API.`,
       ran: ["checkout", "checkout", "checkout"],
     });
   });
@@ -552,6 +605,52 @@ describe(runUpdatePublish, () => {
       live: [`https://pcobooster.com ${RUNTIME} rollBackToEmbedded`],
       record: [],
     });
+  });
+
+  it("refuses to roll back a runtime version that has no update published", async () => {
+    const nothing = harness({ live: { kind: "nothing" } });
+    const rolledBack = harness({
+      live: {
+        kind: "directive",
+        type: "rollBackToEmbedded",
+        commitTime: "2026-10-08T21:00:00.000Z",
+        signatureVerifies: true,
+      },
+    });
+    const rollback = { ...OPTIONS, rollback: true, runtimeVersion: RUNTIME };
+    const refusal = `prod has no update for runtime version ${RUNTIME} to roll back. Pass the --runtime-version of the builds running it; \`bun run ios:update:status --runtime-version <fingerprint>\` shows what each is told.`;
+
+    expect({
+      nothing: await failureOf(runUpdatePublish(nothing.deps, rollback)),
+      rolledBack: await failureOf(runUpdatePublish(rolledBack.deps, rollback)),
+      deployed: [nothing.steps, rolledBack.steps].map(deployed),
+    }).toStrictEqual({
+      nothing: refusal,
+      rolledBack: refusal,
+      deployed: [false, false],
+    });
+  });
+
+  it("refuses the variables release archives refuse, before running anything", async () => {
+    const refusals = await Promise.all(
+      [
+        { EXPO_PUBLIC_PCOB_RELEASE_SMOKE: "1" },
+        { EXPO_PUBLIC_DIAGNOSTICS_PROBES: "1" },
+        { PCOB_UPDATES_URL: "http://127.0.0.1:4271/api/updates/manifest" },
+      ].map(async (extra) => {
+        const { deps, steps } = harness();
+        const message = await failureOf(
+          runUpdatePublish(deps, { ...OPTIONS, env: { ...ENV, ...extra } })
+        );
+        return `${message} (${steps.length} steps)`;
+      })
+    );
+
+    expect(refusals).toStrictEqual([
+      "EXPO_PUBLIC_PCOB_RELEASE_SMOKE builds the fixture smoke app; unset it to publish. (0 steps)",
+      "EXPO_PUBLIC_DIAGNOSTICS_PROBES belongs to a separate internal verification build; unset it to publish. (0 steps)",
+      "PCOB_UPDATES_URL points builds at a local update server and changes the runtime version; unset it to publish. (0 steps)",
+    ]);
   });
 
   it("rehearses against the local stack from any checkout, pointing the build's runtime version at it", async () => {

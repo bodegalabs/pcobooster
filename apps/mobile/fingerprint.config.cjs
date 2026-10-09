@@ -7,8 +7,12 @@
  * - versions (`version`, `ios.buildNumber`) and package.json scripts never change native code;
  * - `ccacheEnabled` only says whether the building Mac has ccache, so the evaluated app config is
  *   hashed with one value for it on every Mac.
- * Two native inputs the default sources miss are added: the asset catalog the config plugin copies
- * into the app (`app.config.ts`), and the update signing certificate embedded in it.
+ * Native inputs the default sources miss are added: `app.config.ts` itself (Expo hashes only its
+ * evaluated output, not the config plugin code in it), the asset catalog that plugin copies into
+ * the app, the update signing certificate embedded in it, and dependency patches (`patches/`).
+ * Under bun's isolated install, Expo identifies third-party native modules by package name,
+ * version, and store path rather than file contents; a patch is the one way their code changes
+ * without those changing.
  */
 
 /** The ccache setting as it appears in the evaluated app config, either value. */
@@ -26,7 +30,19 @@ const withoutMachineSettings = (source, chunk) =>
 /** @type {import("@expo/fingerprint").Config} */
 module.exports = {
   sourceSkips: ["ExpoConfigVersions", "PackageJsonScriptsAll"],
+  // Expo ignores app config files by default; this one also holds a config plugin.
+  ignorePaths: ["!app.config.ts"],
   extraSources: [
+    {
+      type: "file",
+      filePath: "app.config.ts",
+      reasons: ["the config plugin that copies the asset catalog"],
+    },
+    {
+      type: "dir",
+      filePath: "../../patches",
+      reasons: ["patches can change a dependency's native code"],
+    },
     {
       type: "dir",
       filePath: "assets/catalog",

@@ -102,16 +102,20 @@ const md5Hex = (bytes: Uint8Array): string =>
   createHash("md5").update(bytes).digest("hex");
 
 /**
- * The update's id: a UUID from its content (runtime version, app config, and every file), so
- * publishing JavaScript that did not change names the same update and no phone downloads it again.
- * Version 4 and variant bits are set so it is a well-formed UUID.
+ * The update's id: a UUID from its publish time and content (runtime version, app config, and
+ * every file). Each publish is a new update even when the JavaScript did not change: a phone keeps
+ * the time it first stored an id, so republishing an update after a rollback under the same id
+ * would never reach the phones that had run it. Files are still stored and downloaded once, by
+ * hash. Version 4 and variant bits are set so it is a well-formed UUID.
  */
 export const updateIdFor = (
+  createdAt: Date,
   runtimeVersion: string,
   expoClient: PublicAppConfig,
   files: readonly ExportedFile[]
 ): string => {
   const digest = createHash("sha256");
+  digest.update(createdAt.toISOString());
   digest.update(runtimeVersion);
   digest.update(JSON.stringify(expoClient));
   for (const file of files) {
@@ -181,7 +185,7 @@ export const buildManifest = (input: ManifestInput): BuiltUpdate => {
   );
   return {
     manifest: {
-      id: updateIdFor(input.runtimeVersion, input.expoClient, [
+      id: updateIdFor(input.createdAt, input.runtimeVersion, input.expoClient, [
         input.launch,
         ...input.assets,
       ]),

@@ -61,6 +61,26 @@ export const parseMultipart = (
   return parts;
 };
 
+const decodeUpdateSummary = Schema.decodeUnknownSync(
+  Schema.fromJsonString(
+    Schema.Struct({
+      id: Schema.String,
+      createdAt: Schema.String,
+      extra: Schema.Struct({ revision: Schema.String }),
+    })
+  )
+);
+const decodeDirective = Schema.decodeUnknownSync(
+  Schema.fromJsonString(
+    Schema.Struct({
+      type: Schema.String,
+      parameters: Schema.optional(
+        Schema.Struct({ commitTime: Schema.optional(Schema.String) })
+      ),
+    })
+  )
+);
+
 const manifestAssetsSchema = Schema.Struct({
   launchAsset: Schema.Struct({ hash: Schema.String, url: Schema.String }),
   assets: Schema.Array(
@@ -97,11 +117,14 @@ export interface LiveCheckInput {
 const OTHER_UPDATE_ID = "00000000-0000-4000-8000-000000000000";
 const EMBEDDED_UPDATE_ID = "00000000-0000-4000-8000-000000000001";
 
-const askAsPhone = async (
-  input: LiveCheckInput,
+/** Where and how to ask: the origin, the runtime version, the certificate, and `fetch`. */
+export type PhoneRequest = Omit<LiveCheckInput, "expected">;
+
+const requestAsPhone = async (
+  input: PhoneRequest,
   currentUpdateId: string
-): Promise<AnswerPart> => {
-  const response = await input.fetch(`${input.origin}${UPDATE_CHECK_PATH}`, {
+): Promise<Response> =>
+  await input.fetch(`${input.origin}${UPDATE_CHECK_PATH}`, {
     headers: {
       accept: "multipart/mixed",
       "expo-protocol-version": "1",
@@ -112,6 +135,12 @@ const askAsPhone = async (
       "expo-embedded-update-id": EMBEDDED_UPDATE_ID,
     },
   });
+
+const askAsPhone = async (
+  input: PhoneRequest,
+  currentUpdateId: string
+): Promise<AnswerPart> => {
+  const response = await requestAsPhone(input, currentUpdateId);
   if (response.status !== 200) {
     throw new Error(
       `The update check answered ${response.status}, not the published update.`
@@ -215,5 +244,62 @@ export const checkLiveUpdate = async (
       "noUpdateAvailable to phones on their build's code",
     ],
     assets: 0,
+  };
+};
+
+/** What the route tells a phone of a runtime version that runs other code than what is published. */
+export type LiveAnswer =
+  | { readonly kind: "nothing" }
+  | {
+      readonly kind: "update";
+      readonly updateId: string;
+      readonly createdAt: string;
+      readonly revision: string;
+      readonly signatureVerifies: boolean;
+    }
+  | {
+      readonly kind: "directive";
+      readonly type: string;
+      readonly commitTime: string | null;
+      readonly signatureVerifies: boolean;
+    };
+
+/** Reads what a runtime version's phones are told now, without judging it. */
+export const readLiveAnswer = async (
+  input: PhoneRequest
+): Promise<LiveAnswer> => {
+  const response = await requestAsPhone(input, OTHER_UPDATE_ID);
+  if (response.status === 204) {
+    return { kind: "nothing" };
+  }
+  const body = await response.text();
+  if (response.status !== 200) {
+    throw new Error(`The update check answered ${response.status}: ${body}`);
+  }
+  const [part] = parseMultipart(
+    response.headers.get("content-type") ?? "",
+    body
+  );
+  if (part === undefined) {
+    throw new Error("The update check answered with no parts.");
+  }
+  const signatureVerifies =
+    part.signature !== undefined && input.verify(part.body, part.signature);
+  if (part.name === "manifest") {
+    const update = decodeUpdateSummary(part.body);
+    return {
+      kind: "update",
+      updateId: update.id,
+      createdAt: update.createdAt,
+      revision: update.extra.revision,
+      signatureVerifies,
+    };
+  }
+  const directive = decodeDirective(part.body);
+  return {
+    kind: "directive",
+    type: directive.type,
+    commitTime: directive.parameters?.commitTime ?? null,
+    signatureVerifies,
   };
 };
