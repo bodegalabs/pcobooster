@@ -1,4 +1,8 @@
 import { API_PREFIX } from "@pcobooster/contracts/http/route";
+import {
+  assetPath,
+  UPDATE_CHECK_PATH,
+} from "@pcobooster/contracts/mobile-updates";
 
 import {
   DEFAULT_SIGN_IN_RETURN_PATH,
@@ -48,16 +52,22 @@ const proceed = (
   responseHeaders,
 });
 
+/** Where iOS builds download update files; each file's path is its hash. */
+const UPDATE_ASSETS_PREFIX = assetPath("");
+
 /**
  * Sign-in and the product API stay reachable signed out. The signed-out browser calls the API
  * (session status, feature flags, starting a demo), and the API is the authorization boundary:
  * it answers its own 401 fault, which the client reads, where a redirect here would hand the
- * client a sign-in page it cannot decode.
+ * client a sign-in page it cannot decode. iOS builds check for over-the-air updates without any
+ * session, before sign-in.
  */
 const isSignedOutPath = (pathname: string): boolean =>
   pathname.startsWith("/api/auth") ||
   pathname === API_PREFIX ||
   pathname.startsWith(`${API_PREFIX}/`) ||
+  pathname === UPDATE_CHECK_PATH ||
+  pathname.startsWith(UPDATE_ASSETS_PREFIX) ||
   pathname === "/auth";
 
 /** Same-origin and relative. */
