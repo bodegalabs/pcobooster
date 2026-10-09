@@ -29,7 +29,7 @@ Previews deploy only on request. Add the `preview` label to a same-repository pu
 
 Deploys build from source: Alchemy runs each Vite app's build itself and skips an app whose inputs are unchanged, so `cloudflare-build` outputs are validation only. Feature flags are evaluated at runtime, so every stage builds the same product bundle. Fork PRs receive secretless checks only. A labeled revision gets preview app secrets and an account-scoped Cloudflare token, so review workflow/dependency changes before they land on a labeled PR.
 
-A preview job receives its environment's Cloudflare deployment token, checks the PR is still open at the expected head, and runs `bun alchemy deploy --stage pr-<number>`. Alchemy owns a separate D1 database, Planning Center cache KV namespace, API/web/admin Workers, and Cloudflare Access application for each PR, so opening a preview asks for the same one-time-code sign-in as staging (see [Staging](#staging)). The preview URL is exposed in GitHub's deployment environment. Production data is never copied into these databases.
+A preview job receives its environment's Cloudflare deployment token, checks the PR is still open at the expected head, and runs `bun alchemy deploy --stage pr-<number>`. Alchemy owns a separate D1 database, Planning Center cache KV namespace, iOS update bucket, API/web/admin Workers, and Cloudflare Access application for each PR, so opening a preview asks for the same one-time-code sign-in as staging (see [Staging](#staging)). The preview URL is exposed in GitHub's deployment environment. Production data is never copied into these databases.
 
 Every deploy then runs `scripts/cloudflare/verify-deployment.ts`. Both the web and API Workers carry the deployed `GITHUB_SHA` as a `PCOBOOSTER_VERSION` env prop, so every commit redeploys both even when only one app changed. The script polls the web Worker's `GET /version` and the API's `health` procedure (through the web Worker, with `makeProductClient` as the `deploy` client at `GET /api/v1/health`, so the whole API answers) until both report the commit, then checks that `/` returns 200. A deploy that finishes without the new code live in either Worker, or with a broken web → API binding, fails the job.
 
@@ -191,6 +191,74 @@ Run the smoke check before declaring a beta usable. The Release build takes seve
 
 An upload does not establish TestFlight availability. `ios:testflight` waits for `VALID`; `bun run --cwd apps/mobile ios:release:status <build>` (with the key in the environment) reads the build's processing state, version, TestFlight internal and external states, and beta groups at any time. Check that the processed build matches the uploaded number and revision, then confirm tester access in App Store Connect. There is no enabled upload job. The dispatched executor remains blocked until the enablement approvals above are granted and proven. `alchemy.ci.ts` retains the `testflight` environment, and the `TESTFLIGHT_RELEASES` variable for a future job.
 
+## iOS updates (over the air)
+
+Release builds check `https://pcobooster.com/api/updates/manifest` at every cold launch (Expo Updates protocol v1, `expo-updates`). A published update downloads in the background and runs from the next cold launch; the launch never waits for it. Only JavaScript and bundled assets travel this way. Anything native (a new native module, an Expo SDK or React Native upgrade, `app.config.ts` changes, the asset catalog, the signing certificate) needs a TestFlight build.
+
+### Which builds an update reaches
+
+Each build's runtime version is Expo's fingerprint of its native layer (`runtimeVersion: { policy: "fingerprint" }`), and an update reaches only builds with the runtime version it was published for. `apps/mobile/fingerprint.config.cjs` keeps the fingerprint identical on every Mac: it leaves out the version and build number, package.json scripts, and whether the Mac has ccache, and adds `app.config.ts` itself (its config plugin), the asset catalog that plugin copies, the update certificate, and `patches/`. Under bun's isolated install, Expo identifies third-party native modules by package name, version, and store path rather than their files, so their native code changes the runtime version through a version bump or a patch. Any patch counts, server-only ones included; that errs toward needing a new build. The publish warns when nothing is published yet for its runtime version, since a first update reaches only builds whose `build/release/runtime-version` matches. A native change therefore makes a new runtime version, and builds without that change keep the last update published for theirs. Every build's runtime version is in its `EXUpdates.bundle/fingerprint`; `release-ios.sh` refuses an archive without one and records it beside the archive (`build/release/runtime-version`).
+
+### How it is served
+
+- One R2 bucket per stage (`apps/server/src/mobile-update-bucket.ts`), kept for production and staging. Assets are stored under their SHA-256 and never change; each runtime version has one stored answer, `ios/<runtime>/current.json` (`@pcobooster/contracts/mobile-updates`).
+- The API Worker reads the bucket through a read-only binding and serves `GET /api/updates/manifest` and `GET /api/updates/assets/:hash` (`packages/api/src/http/mobile-updates.ts`). It answers 204 when nothing is published for a runtime version, "no update available" to a phone already running the update, and the stored manifest or rollback otherwise. Every check logs `update check` with the runtime version, the phone's current update id, and the outcome, so Workers Logs show which builds check in and what they are told.
+- Everything a phone receives is signed on the operator's Mac before upload, and builds embed the certificate (`apps/mobile/certs/updates-certificate.pem`, keyid `main`, `rsa-v1_5-sha256`). A phone refuses any manifest or directive the certificate does not verify, and checks every asset against the manifest's hash. The Worker holds no signing key, so neither it nor anyone who can write the bucket can make phones run code the key did not sign. Someone who can write the bucket (deploy tokens and the operator) could still re-serve an older signed answer: a superseded update to phones that have not moved past it, or a rollback to another runtime version, since directives do not name one.
+- `expo-updates` falls back to the previous update by itself when a new one crashes before it finishes launching.
+
+### Publishing
+
+```bash
+bun run ios:update
+```
+
+From a clean checkout at `origin/main`, after main's deploy finished, with the Keychain `mobile-updates` scope (`UPDATES_SIGNING_KEY_PEM_BASE64`) and an Alchemy login (`bun alchemy login`) that can write R2. `apps/mobile/scripts/updates/publish.ts`:
+
+1. Refuses automation markers, an analytics key other than the committed one, a signing key the committed certificate does not accept, and the variables `release-ios.sh` refuses (`EXPO_PUBLIC_PCOB_RELEASE_SMOKE`, `EXPO_PUBLIC_DIAGNOSTICS_PROBES`, `PCOB_UPDATES_URL`). The export inherits no other `EXPO_PUBLIC_` value.
+2. Requires `HEAD` to be `origin/main` with no changes and production's API (`health`, as `verify-deployment.ts` reads it) to serve that commit, so an update never runs ahead of the API it calls. Runs `bun install --frozen-lockfile`, `bun run ci`, and the [release smoke check](#release-smoke-check), none of which sees the signing key.
+3. Resolves the runtime version, then `expo export --platform ios --clear` with the committed analytics key and this revision (`EXPO_PUBLIC_SOURCE_REVISION`, which diagnostics report). The bundle must be Hermes bytecode that embeds both and passes the [release Hermes gate](#release-hermes-gate).
+4. Builds the manifest (every publish is a new update id, so republishing after a rollback reaches the phones that had run it; files are still stored and downloaded once, by hash), signs it and its "no update available" answer, verifies both against the certificate, writes `apps/mobile/build/updates/<revision>/release-prod.json`, and asks for the update id's first 8 characters (`--yes` skips this).
+5. Deploys `alchemy.mobile-updates.ts --stage prod` with the operator's Alchemy login, never a token in the environment. It rechecks every file's hash, stores the files not already stored, and writes the answer last; the Worker serves it from that moment.
+6. Asks the live route as a phone would and checks the manifest, the "no update available" answer, every signature, and every asset hash.
+
+Source maps from the export stay in `apps/mobile/build/updates/<revision>/export`; they are not uploaded.
+
+### Rolling back
+
+```bash
+bun run ios:update --rollback [--runtime-version <fingerprint>]
+```
+
+Signs a "roll back to embedded" answer for the runtime version (`--runtime-version`, or the checkout's when it has no changes), and refuses when that runtime version has no update published, so a rollback cannot report success for builds that are not running one. No preflight runs: phones of that runtime version go back to the JavaScript their build shipped with at their next cold launch, and phones already on it are told nothing changed. Publishing a fix later replaces the rollback. To move forward instead, revert on main and publish normally.
+
+### Status
+
+```bash
+bun run ios:update:status [--runtime-version <fingerprint>]
+```
+
+Asks production as a phone of this checkout's runtime version (or the one given) would, and prints nothing, the update (id, published time, revision), or the rollback, with whether the signature verifies. It needs no credentials.
+
+### Rehearsing locally
+
+With `bun run dev` running, build a Release simulator app that asks the local stack, then publish to it from any checkout (no preflight; files and answer go to the local bucket):
+
+```bash
+PCOB_UPDATES_URL=http://127.0.0.1:<web port>/api/updates/manifest EXPO_NO_DOTENV=1 NODE_ENV=production \
+  bun run --cwd apps/mobile ios:build --configuration Release --udid <simulator>
+bun run ios:update --stage local --yes
+```
+
+`PCOB_UPDATES_URL` changes the runtime version, so a rehearsal build only accepts rehearsal updates, and `release-ios.sh` refuses to archive with it set.
+
+### Signing key
+
+The key was generated with `npx expo-updates codesigning:generate` (RSA 2048, certificate valid to 2036-10-09) and lives only in the operator's Keychain; keep a backup (for example in a password manager). Losing it does not break installed builds, but no update can reach them until a TestFlight build ships a new certificate. To rotate: generate a new pair, commit the new certificate, save the key with `bun run secrets:set mobile-updates UPDATES_SIGNING_KEY_PEM_BASE64 --stdin`, and ship a TestFlight build. The certificate is part of the fingerprint, so the new build has a new runtime version and old builds keep the last update signed with the old key.
+
+### Not yet automated
+
+Publishing runs from a person's Mac, like TestFlight uploads. A CI executor would need the signing key in a protected GitHub environment with a required reviewer, and its own approval.
+
 ## Deployment credentials and token scope
 
 `alchemy.ci.ts` provisions scoped Cloudflare account API tokens and writes their values as encrypted `GitHub.Secret` resources. This follows [Alchemy's Cloudflare CI pattern](https://alchemy.run/cloudflare/tutorial/part-5/). Unlike the former Infisical flow, this stores the deployment token in GitHub rather than obtaining it through an OIDC exchange.
@@ -200,7 +268,7 @@ An upload does not establish TestFlight availability. `ios:testflight` waits for
 - Access check credentials: only preview and staging environments. Their service-token ID is a variable.
 - Optional PostHog annotation key: only production. Signing/release credentials are separate and the release executor stays blocked.
 
-The preview token permits account-level Workers Scripts, KV, D1, Secrets Store, Flagship, and Access writes. Production adds the existing zone-specific DNS, redirects, WAF, and bot permissions; neither can administer tokens. These grants can affect other resources in the same account. Namespaces and GitHub environments do not enforce per-secret Cloudflare isolation: a preview deployer with Workers and Secrets Store Edit can bind another account secret to code it controls. Keep preview approval strict. Separate Cloudflare accounts are required if previews must be unable to consume production secrets under the current account-level permission model.
+The preview token permits account-level Workers Scripts, KV, D1, R2, Secrets Store, Flagship, and Access writes. Production adds the existing zone-specific DNS, redirects, WAF, and bot permissions; neither can administer tokens. These grants can affect other resources in the same account. Namespaces and GitHub environments do not enforce per-secret Cloudflare isolation: a preview deployer with Workers and Secrets Store Edit can bind another account secret to code it controls. Keep preview approval strict. Separate Cloudflare accounts are required if previews must be unable to consume production secrets under the current account-level permission model.
 
 ## Control plane as code
 

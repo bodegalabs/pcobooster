@@ -227,11 +227,31 @@ describe("release-ios.sh before it builds", () => {
     );
   });
 
+  it("refuses an archive that embeds no update runtime version, before any export", () => {
+    const script = readFileSync(
+      path.join(mobile, "scripts/release-ios.sh"),
+      "utf-8"
+    );
+    expect(script).toContain('cat "$app/EXUpdates.bundle/fingerprint"');
+    expect(script.indexOf("embeds no update runtime version")).toBeLessThan(
+      script.indexOf("xcodebuild -exportArchive")
+    );
+  });
+
   it("refuses to release the fixture smoke build", () => {
     const { release } = releaseCheckout();
     const result = release({ EXPO_PUBLIC_PCOB_RELEASE_SMOKE: "1" });
     expect(result.status).toBe(64);
     expect(result.stderr).toContain("fixture smoke app");
+  });
+
+  it("refuses to release a build pointed at a local update server", () => {
+    const { release } = releaseCheckout();
+    const result = release({
+      PCOB_UPDATES_URL: "http://127.0.0.1:3001/api/updates/manifest",
+    });
+    expect(result.status).toBe(64);
+    expect(result.stderr).toContain("local update server");
   });
 
   it("needs an explicit build number without a key, instead of counting Git ancestry", () => {

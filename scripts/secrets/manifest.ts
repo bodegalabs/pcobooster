@@ -6,6 +6,7 @@ export const secretScopeSchema = Schema.Literals([
   "preview",
   "production",
   "apple",
+  "mobile-updates",
   "posthog",
   "recovery",
 ]);
@@ -73,6 +74,8 @@ export const scopeKeys: Record<SecretScope, readonly string[]> = {
     "POSTHOG_CLI_API_KEY",
     "POSTHOG_CLI_PROJECT_ID",
   ],
+  // Only the update signing key: publishing reaches Cloudflare with the operator's Alchemy login.
+  "mobile-updates": ["UPDATES_SIGNING_KEY_PEM_BASE64"],
   posthog: ["POSTHOG_PERSONAL_API_KEY"],
   recovery: ["DATABASE_URL", "BETTER_AUTH_SECRET"],
 };
@@ -83,6 +86,7 @@ export const requiredScopeKeys: Record<SecretScope, readonly string[]> = {
   preview: [],
   production: [],
   apple: ["ASC_KEY_ID", "ASC_ISSUER_ID", "ASC_KEY_P8_BASE64"],
+  "mobile-updates": ["UPDATES_SIGNING_KEY_PEM_BASE64"],
   posthog: ["POSTHOG_PERSONAL_API_KEY"],
   recovery: ["DATABASE_URL"],
 };

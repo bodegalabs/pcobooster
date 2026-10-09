@@ -39,13 +39,14 @@ fi
 
 # Prebuild rewrites the Xcode project from its template and drops what CocoaPods added to it,
 # which forces a full recompile, so it runs only when native inputs change. Expo's fingerprint
-# covers the evaluated app config (plugins, build properties, and whether ccache is installed),
-# the app icon, and the autolinked native modules, so a JavaScript-only dependency does not count.
-# The asset catalog files the config plugin copies are hashed beside it.
+# (`fingerprint.config.cjs`) covers the evaluated app config (plugins and build properties), the
+# app icon, the asset catalog the config plugin copies, and the autolinked native modules, so a
+# JavaScript-only dependency does not count. It leaves out whether ccache is installed, which
+# prebuild writes into the project, so that is stamped beside it.
 prebuild_stamp="$(
   {
     bunx fingerprint fingerprint:generate --platform ios
-    find assets/catalog -type f -print0 | sort -z | xargs -0 shasum
+    command -v ccache || true
   } | shasum | cut -d' ' -f1
 )"
 if [ ! -d ios ] || [ "$(cat build/prebuild.stamp 2>/dev/null)" != "$prebuild_stamp" ]; then

@@ -54,6 +54,25 @@ const hasCcache = (): boolean => {
   }
 };
 
+/**
+ * Release builds ask pcobooster.com for signed JavaScript updates at launch; see
+ * docs/ci-cd.md#ios-updates-over-the-air. A rehearsal build asks the local stack instead
+ * (`PCOB_UPDATES_URL`, which release archives refuse). The release smoke build answers every
+ * request from fixtures, so it never asks: it must test the JavaScript it was built with.
+ */
+const updates: ExpoConfig["updates"] = {
+  url: String(
+    process.env.PCOB_UPDATES_URL ??
+      "https://pcobooster.com/api/updates/manifest"
+  ),
+  enabled: (process.env.EXPO_PUBLIC_PCOB_RELEASE_SMOKE ?? "") === "",
+  checkAutomatically: "ON_LOAD",
+  // Launch at once with the code already on the phone; a downloaded update runs next launch.
+  fallbackToCacheTimeout: 0,
+  codeSigningCertificate: "./certs/updates-certificate.pem",
+  codeSigningMetadata: { keyid: "main", alg: "rsa-v1_5-sha256" },
+};
+
 const config: ExpoConfig = {
   name: "PCOBooster",
   slug: "pcobooster",
@@ -83,6 +102,9 @@ const config: ExpoConfig = {
     ],
   ],
   experiments: { typedRoutes: false },
+  // An update reaches only builds whose native layer it fits (`fingerprint.config.cjs`).
+  runtimeVersion: { policy: "fingerprint" },
+  updates,
 };
 
 const appConfig = (): ExpoConfig =>

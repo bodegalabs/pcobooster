@@ -28,6 +28,8 @@ package-lock.json
 # misc
 .DS_Store
 *.pem
+# The public certificate iOS builds check updates against; its private key lives only in Keychain.
+!apps/mobile/certs/updates-certificate.pem
 
 # debug
 npm-debug.log*

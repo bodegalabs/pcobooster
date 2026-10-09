@@ -44,6 +44,10 @@ if [[ -n "${EXPO_PUBLIC_PCOB_RELEASE_SMOKE:-}" ]]; then
   echo "EXPO_PUBLIC_PCOB_RELEASE_SMOKE builds the fixture smoke app; unset it to release." >&2
   exit 64
 fi
+if [[ -n "${PCOB_UPDATES_URL:-}" ]]; then
+  echo "PCOB_UPDATES_URL points a rehearsal build at a local update server; unset it to release." >&2
+  exit 64
+fi
 # Dotenv files are ignored by Git, so they could change the bundle without changing the revision.
 export EXPO_NO_DOTENV=1
 export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
@@ -193,6 +197,15 @@ if ! LC_ALL=C grep -qF "$analytics_key" "$app/main.jsbundle"; then
   echo "The archived JavaScript does not embed the PostHog project key; analytics and diagnostics would be off. Refusing this archive." >&2
   exit 1
 fi
+# Over-the-air updates reach a build only through the runtime version it embeds
+# (docs/ci-cd.md#ios-updates-over-the-air); an archive without one could never receive them.
+runtime_version="$(cat "$app/EXUpdates.bundle/fingerprint" 2>/dev/null || true)"
+if [[ ! "$runtime_version" =~ ^[0-9a-f]{40}$ ]]; then
+  echo "The archive embeds no update runtime version, so over-the-air updates could never reach it. Refusing this archive." >&2
+  exit 1
+fi
+printf '%s\n' "$runtime_version" > "$out/runtime-version"
+echo "==> Update runtime version $runtime_version"
 echo "==> Release Hermes gate (host engine, archived bytecode version)"
 bun run scripts/hermes-gate/gate.ts --bundle "$app/main.jsbundle"
 

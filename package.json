@@ -34,6 +34,8 @@
     "dev:marketing": "bun run --cwd apps/marketing dev",
     "build:marketing": "turbo run build --filter=@pcobooster/marketing",
     "ios:release": "bun run secrets:run apple -- bun run --cwd apps/mobile ios:release",
+    "ios:update": "bun run secrets:run mobile-updates -- bun apps/mobile/scripts/updates/publish.ts",
+    "ios:update:status": "bun apps/mobile/scripts/updates/status.ts",
     "cloud:run": "bun run secrets:run cloud --",
     "cloud:dev": "bun run secrets:run cloud -- bun run scripts/cloudflare/dev.ts --oauth",
     "cloud:build": "bun run secrets:run cloud -- bun run build",

@@ -11,6 +11,7 @@ Deployed application secrets live in Cloudflare Secrets Store. `alchemy.secrets.
 | Previews and staging | `pcobooster-secrets/preview` references; GitHub environment deployment credentials | Independent Workers and D1; Cloudflare Access |
 | Production | `pcobooster-secrets/prod` references; `cloudflare-production` deployment credentials | Retained production Workers and D1 |
 | Local Apple release tools | Keychain `apple` scope | macOS signing and App Store Connect tools |
+| iOS update publishing | Keychain `mobile-updates` scope | The update signing key `ios:update` signs with; Cloudflare access comes from the operator's Alchemy login |
 | Recovery | Keychain `recovery` scope | Read-only legacy database reconciliation |
 
 The existing Infisical values are imported without rotation by `bun run secrets:migrate --apply`. That one-time tool is the only remaining Infisical dependency. Infisical projects and identities are retained until external cutover and recovery acceptance; deleting them is a separate action. See [migration and cutover](secrets-migration.md).
