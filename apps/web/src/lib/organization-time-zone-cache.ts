@@ -1,12 +1,9 @@
-import { z } from "zod";
+import { Schema } from "effect";
+
+import { storedJson } from "@/lib/stored-json";
 
 const CACHE_VERSION = "v1";
 const CACHE_KEY = `pcobooster:organization-time-zone:${CACHE_VERSION}`;
-
-interface CachedPayload {
-  savedAt: number;
-  timeZone: string;
-}
 
 const isUsableTimeZone = (value: string): boolean => {
   const trimmed = value.trim();
@@ -22,10 +19,16 @@ const isUsableTimeZone = (value: string): boolean => {
   }
 };
 
-const cachedPayloadSchema = z.object({
-  savedAt: z.number(),
-  timeZone: z.string().refine(isUsableTimeZone),
-});
+const cachedPayload = storedJson(
+  Schema.Struct({
+    savedAt: Schema.Finite,
+    timeZone: Schema.String.check(
+      Schema.makeFilter(isUsableTimeZone, {
+        expected: "a time zone this browser knows",
+      })
+    ),
+  })
+);
 
 export interface OrganizationTimeZoneCacheEntry {
   savedAt: number;
@@ -41,19 +44,7 @@ export const readCachedOrganizationTimeZone = ():
   }
 
   try {
-    const raw = storage.getItem(CACHE_KEY);
-    if (raw === null) {
-      return undefined;
-    }
-    const parsed = cachedPayloadSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success) {
-      return undefined;
-    }
-
-    return {
-      savedAt: parsed.data.savedAt,
-      timeZone: parsed.data.timeZone,
-    };
+    return cachedPayload.parse(storage.getItem(CACHE_KEY));
   } catch {
     return undefined;
   }
@@ -69,13 +60,10 @@ export const writeCachedOrganizationTimeZone = (timeZone: string) => {
   }
 
   try {
-    storage.setItem(
-      CACHE_KEY,
-      JSON.stringify({
-        savedAt: Date.now(),
-        timeZone,
-      } satisfies CachedPayload)
-    );
+    const saved = cachedPayload.stringify({ savedAt: Date.now(), timeZone });
+    if (saved !== undefined) {
+      storage.setItem(CACHE_KEY, saved);
+    }
   } catch {
     // Ignore storage write failures (private mode/quota).
   }

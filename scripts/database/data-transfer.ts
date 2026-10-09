@@ -9,8 +9,7 @@ import {
   verification,
 } from "@pcobooster/api/db/schema";
 import { getTableConfig } from "drizzle-orm/sqlite-core";
-import { Effect } from "effect";
-import { z } from "zod";
+import { Effect, Schema } from "effect";
 
 export type SqlValue = string | number | null;
 export type SqlRow = Record<string, SqlValue>;
@@ -42,15 +41,15 @@ export const migrationTables = [
     columns: config.columns.map((column) => ({
       name: column.name,
       kind: columnKinds[
-        z
-          .enum([
+        Schema.decodeUnknownSync(
+          Schema.Literals([
             "object date",
             "boolean",
             "object json",
             "number int53",
             "string",
           ])
-          .parse(column.dataType)
+        )(column.dataType)
       ],
     })),
     primaryKey: config.columns.find((column) => column.primary)?.name ?? "id",
@@ -71,10 +70,11 @@ export const quoteIdentifier = (identifier: string): string => {
   return `"${identifier}"`;
 };
 
-export const sourceRowsSchema = z.array(
-  z.record(z.string(), z.union([z.date(), z.json()]))
+export const sourceRowsSchema = Schema.Array(
+  Schema.Record(Schema.String, Schema.Union([Schema.Date, Schema.MutableJson]))
 );
-type SourceValue = z.infer<typeof sourceRowsSchema>[number][string];
+type SourceRows = typeof sourceRowsSchema.Type;
+type SourceValue = SourceRows[number][string];
 
 const convertValue = (value: SourceValue, kind: string): SqlValue => {
   if (value === null) {
@@ -82,20 +82,21 @@ const convertValue = (value: SourceValue, kind: string): SqlValue => {
   }
   switch (kind) {
     case "date": {
-      const date = z.date().parse(value);
-      return date.getTime();
+      return Schema.decodeUnknownSync(Schema.Date)(value).getTime();
     }
     case "boolean": {
-      return z.boolean().parse(value) ? 1 : 0;
+      return Schema.decodeUnknownSync(Schema.Boolean)(value) ? 1 : 0;
     }
     case "json": {
-      return JSON.stringify(z.json().parse(value));
+      return JSON.stringify(
+        Schema.decodeUnknownSync(Schema.MutableJson)(value)
+      );
     }
     case "number": {
-      return z.coerce.number().int().parse(value);
+      return Schema.decodeUnknownSync(Schema.Int)(Number(value));
     }
     case "string": {
-      return z.string().parse(value);
+      return Schema.decodeUnknownSync(Schema.String)(value);
     }
     default: {
       throw new Error(`Unsupported migration column type: ${kind}`);
@@ -105,7 +106,7 @@ const convertValue = (value: SourceValue, kind: string): SqlValue => {
 
 export const normalizeSourceRows = (
   table: TableSpec,
-  rows: z.infer<typeof sourceRowsSchema>
+  rows: SourceRows
 ): SqlRow[] =>
   rows.map((row) =>
     Object.fromEntries(

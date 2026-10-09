@@ -1,40 +1,22 @@
-import { z } from "zod";
+import {
+  multiRelationshipSchema,
+  nullableText,
+  optionalText,
+  orFallback,
+  singleRelationshipSchema,
+  textOr,
+} from "@pcobooster/api/planning-center/attribute-schemas";
+import { Schema, SchemaGetter } from "effect";
 
-const resourceIdentifierSchema = z.object({
-  type: z.string(),
-  id: z.string(),
-});
-
-const optionalStringSchema = z
-  .string()
-  .nullish()
-  .transform((value): string | undefined => value ?? undefined);
-
-const stringWithDefault = (fallback: string) =>
-  z
-    .string()
-    .nullish()
-    .transform((value) => value ?? fallback);
-
-const singleRelationshipSchema = z.object({
-  data: resourceIdentifierSchema.nullish(),
-  links: z.object({ related: optionalStringSchema }).optional(),
-});
-
-const multiRelationshipSchema = z.object({
-  data: z.array(resourceIdentifierSchema).nullish(),
-  links: z.object({ related: optionalStringSchema }).optional(),
-});
-
-export const rosterPersonSchema = z.object({
-  type: z.literal("Person"),
-  id: z.string(),
-  attributes: z.object({
-    first_name: stringWithDefault(""),
-    last_name: stringWithDefault(""),
-    photo_url: z.string().nullable().default(null),
-    photo_thumbnail_url: z.string().nullable().default(null),
-    archived_at: z.string().nullable().default(null),
+export const rosterPersonSchema = Schema.Struct({
+  type: Schema.Literal("Person"),
+  id: Schema.String,
+  attributes: Schema.Struct({
+    first_name: textOr(""),
+    last_name: textOr(""),
+    photo_url: nullableText,
+    photo_thumbnail_url: nullableText,
+    archived_at: nullableText,
   }),
 });
 
@@ -42,116 +24,133 @@ const WEEKS_IN_MONTH = 5;
 
 // A preference Planning Center left out or sent malformed reads as "no preference", never as
 // a failed parse that would drop the candidate's other preferences.
-const positiveCountSchema = z.number().int().positive();
-const preferenceCountSchema = z
-  .unknown()
-  .optional()
-  .transform((value) => positiveCountSchema.safeParse(value).data ?? null);
+const preferenceCountSchema = orFallback(
+  Schema.NullOr(Schema.Int.check(Schema.isGreaterThan(0))),
+  null
+);
 
-const preferenceTextSchema = z
-  .unknown()
-  .optional()
-  .transform((value) => z.string().safeParse(value).data ?? null);
+const preferenceTextSchema = orFallback(Schema.NullOr(Schema.String), null);
 
-const preferredWeeksSchema = z
-  .unknown()
-  .optional()
-  .transform((weeks) =>
-    (Array.isArray(weeks) ? weeks : []).flatMap((week) => {
-      const value = Number(week);
-      return Number.isInteger(value) && value >= 1 && value <= WEEKS_IN_MONTH
-        ? [value]
-        : [];
+/** A week of the month, 1 to 5; Planning Center sends them as strings. */
+const preferredWeekSchema = Schema.Union([
+  Schema.Finite,
+  Schema.FiniteFromString,
+]).check(
+  Schema.isInt(),
+  Schema.isBetween({ minimum: 1, maximum: WEEKS_IN_MONTH })
+);
+
+/** The weeks that read as weeks of the month; any other entry is dropped. */
+const preferredWeeksSchema = orFallback(
+  Schema.Array(orFallback(Schema.NullOr(preferredWeekSchema), null)).pipe(
+    Schema.decodeTo(Schema.mutable(Schema.Array(Schema.Number)), {
+      decode: SchemaGetter.transform((weeks: readonly (number | null)[]) =>
+        weeks.filter((week) => week !== null)
+      ),
+      encode: SchemaGetter.transform((weeks: number[]) => weeks),
     })
-  );
-
-const relatedIdsSchema = z
-  .unknown()
-  .optional()
-  .transform(
-    (relationship) =>
-      multiRelationshipSchema
-        .safeParse(relationship)
-        .data?.data?.map(({ id }) => id) ?? []
-  );
+  ),
+  []
+);
 
 /**
  * A person's assignment to a team position, with their scheduling preferences for it.
  * Planning Center sends `preferred_weeks` as strings ("1" to "5").
  */
-export const personTeamPositionAssignmentSchema = z.object({
-  type: z.literal("PersonTeamPositionAssignment"),
-  id: z.string(),
-  attributes: z.object({
+export const personTeamPositionAssignmentSchema = Schema.Struct({
+  type: Schema.Literal("PersonTeamPositionAssignment"),
+  id: Schema.String,
+  attributes: Schema.Struct({
     schedule_preference: preferenceTextSchema,
     preferred_weeks: preferredWeeksSchema,
   }),
-  relationships: z.object({
+  relationships: Schema.Struct({
     person: singleRelationshipSchema,
-    time_preference_options: relatedIdsSchema,
+    time_preference_options: orFallback(
+      Schema.NullOr(multiRelationshipSchema),
+      null
+    ),
   }),
 });
 
 /** The Services person's own limits; `scheduler_or_current` permission, so often null. */
-export const personPlanLimitsSchema = z.object({
-  type: z.literal("Person"),
-  id: z.string(),
-  attributes: z.object({
+export const personPlanLimitsSchema = Schema.Struct({
+  type: Schema.Literal("Person"),
+  id: Schema.String,
+  attributes: Schema.Struct({
     preferred_max_plans_per_day: preferenceCountSchema,
     preferred_max_plans_per_month: preferenceCountSchema,
   }),
 });
 
-export const scheduleResourceSchema = z.object({
-  type: z.literal("Schedule"),
-  id: z.string(),
-  attributes: z.object({
-    status: stringWithDefault(""),
-    sort_date: optionalStringSchema,
-    team_name: optionalStringSchema,
-    team_position_name: optionalStringSchema,
-    service_type_name: optionalStringSchema,
-    decline_reason: optionalStringSchema,
+export const scheduleResourceSchema = Schema.Struct({
+  type: Schema.Literal("Schedule"),
+  id: Schema.String,
+  attributes: Schema.Struct({
+    status: textOr(""),
+    sort_date: optionalText,
+    team_name: optionalText,
+    team_position_name: optionalText,
+    service_type_name: optionalText,
+    decline_reason: optionalText,
   }),
-  relationships: z
-    .object({
-      plan: singleRelationshipSchema.optional(),
-      team: singleRelationshipSchema.optional(),
-      service_type: singleRelationshipSchema.optional(),
-      plan_person: singleRelationshipSchema.optional(),
-      plan_times: multiRelationshipSchema.optional(),
-      times: multiRelationshipSchema.optional(),
+  relationships: Schema.optional(
+    Schema.Struct({
+      plan: Schema.optional(singleRelationshipSchema),
+      team: Schema.optional(singleRelationshipSchema),
+      service_type: Schema.optional(singleRelationshipSchema),
+      plan_person: Schema.optional(singleRelationshipSchema),
+      plan_times: Schema.optional(multiRelationshipSchema),
+      times: Schema.optional(multiRelationshipSchema),
     })
-    .optional(),
+  ),
 });
 
-export const planPersonResourceSchema = z.object({
-  type: z.literal("PlanPerson"),
-  id: z.string(),
-  attributes: z.object({
-    status: stringWithDefault(""),
-    created_at: stringWithDefault(""),
-    team_position_name: stringWithDefault(""),
-    decline_reason: optionalStringSchema,
+export const planPersonResourceSchema = Schema.Struct({
+  type: Schema.Literal("PlanPerson"),
+  id: Schema.String,
+  attributes: Schema.Struct({
+    status: textOr(""),
+    created_at: textOr(""),
+    team_position_name: textOr(""),
+    decline_reason: optionalText,
   }),
-  relationships: z
-    .object({
-      plan: singleRelationshipSchema.optional(),
-      team: singleRelationshipSchema.optional(),
-      person: singleRelationshipSchema.optional(),
-      times: multiRelationshipSchema.optional(),
-      service_times: multiRelationshipSchema.optional(),
+  relationships: Schema.optional(
+    Schema.Struct({
+      plan: Schema.optional(singleRelationshipSchema),
+      team: Schema.optional(singleRelationshipSchema),
+      person: Schema.optional(singleRelationshipSchema),
+      times: Schema.optional(multiRelationshipSchema),
+      service_times: Schema.optional(multiRelationshipSchema),
     })
-    .optional(),
+  ),
 });
 
-export const planTimeResourceSchema = z.object({
-  type: z.literal("PlanTime"),
-  id: z.string(),
-  attributes: z.object({
-    name: optionalStringSchema,
-    starts_at: optionalStringSchema,
-    ends_at: optionalStringSchema,
-    time_type: optionalStringSchema,
+export const planTimeResourceSchema = Schema.Struct({
+  type: Schema.Literal("PlanTime"),
+  id: Schema.String,
+  attributes: Schema.Struct({
+    name: optionalText,
+    starts_at: optionalText,
+    ends_at: optionalText,
+    time_type: optionalText,
   }),
 });
+
+export const decodeRosterPerson =
+  Schema.decodeUnknownOption(rosterPersonSchema);
+export const decodePersonTeamPositionAssignment = Schema.decodeUnknownOption(
+  personTeamPositionAssignmentSchema
+);
+export const decodePersonPlanLimits = Schema.decodeUnknownOption(
+  personPlanLimitsSchema
+);
+export const decodeScheduleResource = Schema.decodeUnknownOption(
+  scheduleResourceSchema
+);
+export const decodePlanPersonResource = Schema.decodeUnknownOption(
+  planPersonResourceSchema
+);
+export const decodePlanTimeResource = Schema.decodeUnknownOption(
+  planTimeResourceSchema
+);

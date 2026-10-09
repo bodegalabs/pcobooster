@@ -1,4 +1,4 @@
-import type { PeopleDashboardPersonDetail } from "@pcobooster/contracts/people-schemas";
+import type { PeopleDashboardPersonDetail } from "@pcobooster/contracts/http/people-schemas";
 
 import type { PeopleDashboardData } from "@/lib/people-dashboard";
 

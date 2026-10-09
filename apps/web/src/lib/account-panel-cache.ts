@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { Option, Schema } from "effect";
 
 export const ACCOUNT_PANEL_CACHE_KEY = "pcobooster:account-panel";
 
@@ -50,6 +50,21 @@ export const summarizeAccountPanel = (
   };
 };
 
+const nonBlankString = Schema.String.check(
+  Schema.makeFilter((value: string) => value.trim().length > 0, {
+    expected: "text that is not blank",
+  })
+);
+
+const cachedAccountPanel = Schema.fromJsonString(
+  Schema.Struct({
+    organizationName: nonBlankString,
+    avatarName: Schema.optional(Schema.NullOr(nonBlankString)),
+    image: Schema.optional(Schema.NullOr(nonBlankString)),
+  })
+);
+const decodeCachedAccountPanel = Schema.decodeUnknownOption(cachedAccountPanel);
+
 export const parseCachedAccountPanel = (
   raw: string | null
 ): AccountPanelSummary | null => {
@@ -57,29 +72,16 @@ export const parseCachedAccountPanel = (
     return null;
   }
 
-  try {
-    const nonEmptyString = z
-      .string()
-      .refine((value) => value.trim().length > 0);
-    const parsed = z
-      .object({
-        organizationName: nonEmptyString,
-        avatarName: nonEmptyString.nullable().optional(),
-        image: nonEmptyString.nullable().optional(),
-      })
-      .safeParse(JSON.parse(raw));
-    if (!parsed.success || !parsed.data.organizationName.trim()) {
-      return null;
-    }
-
-    return {
-      organizationName: parsed.data.organizationName,
-      avatarName: parsed.data.avatarName ?? null,
-      image: parsed.data.image ?? null,
-    };
-  } catch {
+  const parsed = decodeCachedAccountPanel(raw);
+  if (Option.isNone(parsed)) {
     return null;
   }
+
+  return {
+    organizationName: parsed.value.organizationName,
+    avatarName: parsed.value.avatarName ?? null,
+    image: parsed.value.image ?? null,
+  };
 };
 
 export const serializeAccountPanel = (summary: AccountPanelSummary): string =>

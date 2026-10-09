@@ -2,11 +2,10 @@ import {
   buildServicePlanRows,
   formatPlanDate,
 } from "@pcobooster/planning-center-models/service-plans";
-import { useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -28,6 +27,7 @@ import {
 } from "../../app-shell/visible-queries";
 import { EmptyState } from "../../components/empty-state";
 import { PillButton } from "../../components/pill-button";
+import { SkeletonRow } from "../../components/skeleton";
 import { SurfaceCard } from "../../components/surface-card";
 import { AppText } from "../../design/app-text";
 import { colors } from "../../design/colors";
@@ -71,6 +71,13 @@ const styles = StyleSheet.create({
   row: { paddingVertical: Spacing.md, gap: Spacing.xs, minHeight: 44 },
 });
 
+/** Placeholder rows while a section has no results to show yet. */
+const SEARCH_SKELETON_WIDTHS = [
+  [170, 110],
+  [130, 90],
+  [190, 120],
+] as const;
+
 interface ResultRow {
   readonly key: string;
   readonly title: string;
@@ -98,8 +105,19 @@ const SearchSection = ({
     <AppText accessibilityRole="header" font="cardTitle">
       {title}
     </AppText>
-    {loading ? (
-      <ActivityIndicator accessibilityLabel={`Searching ${title}`} />
+    {loading && rows.length === 0 ? (
+      <SurfaceCard>
+        <View accessibilityLabel={`Searching ${title}`} accessible>
+          {SEARCH_SKELETON_WIDTHS.map(([titleWidth, detailWidth]) => (
+            <SkeletonRow
+              detailWidth={detailWidth}
+              key={`${titleWidth}-${detailWidth}`}
+              showsAvatar={false}
+              titleWidth={titleWidth}
+            />
+          ))}
+        </View>
+      </SurfaceCard>
     ) : null}
     {error === null ? null : (
       <View style={styles.section}>
@@ -233,15 +251,18 @@ const useSearch = () => {
       enabled: searching && showPlans && index < admittedPlans,
     })),
   });
+  // The last answers stay up while the next search loads, so results never blank between keys.
   const people = useQuery({
     ...searchReads.people(context, settled),
     subscribed: focused,
     enabled: searching && showPeople && settled.length >= 2,
+    placeholderData: keepPreviousData,
   });
   const songs = useQuery({
     ...searchReads.songs(context, settled),
     subscribed: focused,
     enabled: searching && showSongs,
+    placeholderData: keepPreviousData,
   });
   // These keys belong only to Search. Catalog reads are shared with Services and remain owned
   // by any other visible observer; disabling this observer never cancels their shared work.
@@ -307,7 +328,6 @@ const useSearch = () => {
     showPeople,
     showSongs,
     searching,
-    settled,
     waiting,
     planRows,
     query,
@@ -392,7 +412,6 @@ const ScopedSearch = () => {
     showPeople,
     showSongs,
     searching,
-    settled,
     waiting,
     planRows,
     query,
@@ -476,15 +495,12 @@ const ScopedSearch = () => {
           />
         ) : (
           <>
-            {waiting ? (
-              <ActivityIndicator accessibilityLabel="Waiting for search" />
-            ) : null}
             {showPlans ? (
               <SearchSection
                 title="Plans"
                 rows={planRows}
                 loading={
-                  searching &&
+                  (searching || waiting) &&
                   (serviceTypes.isPending ||
                     planQueries.some((read) => read.isPending))
                 }
@@ -503,23 +519,23 @@ const ScopedSearch = () => {
             {showPeople ? (
               <SearchSection
                 title="People"
-                rows={
-                  waiting
-                    ? []
-                    : (people.data ?? []).map((person) => ({
-                        key: person.id,
-                        title: person.fullName,
-                        detail: "Person",
-                        route: resultRoute("people", person.id),
-                        recent: {
-                          kind: "people" as const,
-                          id: person.id,
-                          title: person.fullName,
-                          detail: "Person",
-                        },
-                      }))
+                rows={(people.data ?? []).map((person) => ({
+                  key: person.id,
+                  title: person.fullName,
+                  detail: "Person",
+                  route: resultRoute("people", person.id),
+                  recent: {
+                    kind: "people" as const,
+                    id: person.id,
+                    title: person.fullName,
+                    detail: "Person",
+                  },
+                }))}
+                loading={
+                  (searching || waiting) &&
+                  query.length >= 2 &&
+                  people.isPending
                 }
-                loading={searching && settled.length >= 2 && people.isPending}
                 error={people.error}
                 onRetry={() => {
                   void people.refetch();
@@ -535,29 +551,25 @@ const ScopedSearch = () => {
             {showSongs ? (
               <SearchSection
                 title="Songs"
-                rows={
-                  waiting
+                rows={(songs.data ?? []).flatMap((song) =>
+                  song.hidden
                     ? []
-                    : (songs.data ?? []).flatMap((song) =>
-                        song.hidden
-                          ? []
-                          : [
-                              {
-                                key: song.id,
-                                title: song.title,
-                                detail: song.author,
-                                route: resultRoute("songs", song.id),
-                                recent: {
-                                  kind: "songs" as const,
-                                  id: song.id,
-                                  title: song.title,
-                                  detail: song.author ?? "Song",
-                                },
-                              },
-                            ]
-                      )
-                }
-                loading={searching && songs.isPending}
+                    : [
+                        {
+                          key: song.id,
+                          title: song.title,
+                          detail: song.author,
+                          route: resultRoute("songs", song.id),
+                          recent: {
+                            kind: "songs" as const,
+                            id: song.id,
+                            title: song.title,
+                            detail: song.author ?? "Song",
+                          },
+                        },
+                      ]
+                )}
+                loading={(searching || waiting) && songs.isPending}
                 error={songs.error}
                 onRetry={() => {
                   void songs.refetch();

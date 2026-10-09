@@ -9,8 +9,8 @@ import {
 import { testServerConfig } from "@pcobooster/api/testing/server";
 import { makeSignature } from "better-auth/crypto";
 import { eq } from "drizzle-orm";
+import { Schema } from "effect";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { z } from "zod";
 
 import { createLocalD1 } from "../../../../scripts/database/local-d1";
 
@@ -20,11 +20,16 @@ const secret = "pcobooster-unit-test-secret-with-no-production-access";
 const origin = testServerConfig().publicOrigin;
 const now = new Date();
 const inOneDay = new Date(Date.now() + 86_400_000);
-const listSchema = z.object({
-  accounts: z.array(
-    z.object({ userId: z.string(), organizationName: z.string().nullable() })
-  ),
-});
+const decodeList = Schema.decodeUnknownSync(
+  Schema.Struct({
+    accounts: Schema.Array(
+      Schema.Struct({
+        userId: Schema.String,
+        organizationName: Schema.NullOr(Schema.String),
+      })
+    ),
+  })
+);
 const SESSION_COOKIE = "better-auth.session_token";
 
 const signed = async (value: string): Promise<string> =>
@@ -101,7 +106,7 @@ describe("device accounts", () => {
     ].join("; ");
     const response = await call("/device-accounts/list", cookie);
     expect(response.status).toBe(200);
-    const { accounts } = listSchema.parse(await response.json());
+    const { accounts } = decodeList(await response.json());
     expect(accounts).toStrictEqual([
       expect.objectContaining({
         userId: "alice",

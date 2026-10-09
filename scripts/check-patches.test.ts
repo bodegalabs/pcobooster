@@ -1,8 +1,8 @@
 import { existsSync, readdirSync, readFileSync, realpathSync } from "node:fs";
 import path from "node:path";
 
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
 
 /**
  * A stale Bun cache can leave a patched dependency unpatched while everything still builds.
@@ -11,9 +11,13 @@ import { z } from "zod";
 const rootDir = path.resolve(import.meta.dirname, "..");
 const workspaceGroups = ["apps", "packages"];
 
-const manifest = z
-  .object({ patchedDependencies: z.record(z.string(), z.string()) })
-  .parse(JSON.parse(readFileSync(path.join(rootDir, "package.json"), "utf-8")));
+const manifest = Schema.decodeUnknownSync(
+  Schema.fromJsonString(
+    Schema.Struct({
+      patchedDependencies: Schema.Record(Schema.String, Schema.String),
+    })
+  )
+)(readFileSync(path.join(rootDir, "package.json"), "utf-8"));
 
 const addedLinesByFile = (patch: string): Map<string, string[]> => {
   const files = new Map<string, string[]>();

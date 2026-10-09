@@ -1,77 +1,74 @@
-import { serviceTypeSchema } from "@pcobooster/contracts/catalog";
+import {
+  planSchema,
+  serviceTypeSchema,
+} from "@pcobooster/contracts/http/catalog";
+import { mutableArray } from "@pcobooster/contracts/http/schema";
 import type {
   Plan,
   ServiceType,
 } from "@pcobooster/planning-center-models/types";
-import { z } from "zod";
 
-import { persistedPlanSchema } from "@/lib/persistence-schemas";
+import { savedAnswer } from "@/lib/stored-json";
+import type { StoredJson } from "@/lib/stored-json";
 
 const CACHE_VERSION = "v1";
 const CACHE_KEY_PREFIX = `pcobooster:schedule-catalog:${CACHE_VERSION}:`;
 const SERVICE_TYPES_KEY = `${CACHE_KEY_PREFIX}service-types`;
 const PLANS_KEY_PREFIX = `${CACHE_KEY_PREFIX}plans:`;
 
-interface CachedPayload<T> {
-  savedAt: number;
-  data: T;
-}
-
 export interface ScheduleCatalogCacheEntry<T> {
   savedAt: number;
   data: T;
 }
 
-const serviceTypesPayloadSchema = z.object({
-  savedAt: z.number(),
-  data: z.array(serviceTypeSchema),
-});
+const serviceTypesPayload = savedAnswer(mutableArray(serviceTypeSchema));
+const plansPayload = savedAnswer(mutableArray(planSchema));
 
-const plansPayloadSchema = z.object({
-  savedAt: z.number(),
-  data: z.array(persistedPlanSchema),
-});
+const readEntry = <T>(
+  key: string,
+  payload: StoredJson<ScheduleCatalogCacheEntry<T>>
+): ScheduleCatalogCacheEntry<T> | undefined => {
+  const storage = globalThis.window?.localStorage;
+  if (storage === undefined) {
+    return undefined;
+  }
+  try {
+    return payload.parse(storage.getItem(key));
+  } catch {
+    return undefined;
+  }
+};
+
+const writeEntry = <T>(
+  key: string,
+  payload: StoredJson<ScheduleCatalogCacheEntry<T>>,
+  data: T
+): void => {
+  const storage = globalThis.window?.localStorage;
+  if (storage === undefined) {
+    return;
+  }
+  try {
+    const saved = payload.stringify({ savedAt: Date.now(), data });
+    if (saved !== undefined) {
+      storage.setItem(key, saved);
+    }
+  } catch {
+    // Ignore storage write failures (private mode/quota).
+  }
+};
 
 const buildPlansKey = (serviceTypeId: string): string =>
   `${PLANS_KEY_PREFIX}${encodeURIComponent(serviceTypeId)}`;
 
 const readServiceTypesEntry = ():
   | ScheduleCatalogCacheEntry<ServiceType[]>
-  | undefined => {
-  const storage = globalThis.window?.localStorage;
-  if (storage === undefined) {
-    return undefined;
-  }
-  try {
-    const raw = storage.getItem(SERVICE_TYPES_KEY);
-    if (raw === null) {
-      return undefined;
-    }
-    const parsed = serviceTypesPayloadSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : undefined;
-  } catch {
-    return undefined;
-  }
-};
+  | undefined => readEntry(SERVICE_TYPES_KEY, serviceTypesPayload);
 
 const readPlansEntry = (
   serviceTypeId: string
-): ScheduleCatalogCacheEntry<Plan[]> | undefined => {
-  const storage = globalThis.window?.localStorage;
-  if (storage === undefined) {
-    return undefined;
-  }
-  try {
-    const raw = storage.getItem(buildPlansKey(serviceTypeId));
-    if (raw === null) {
-      return undefined;
-    }
-    const parsed = plansPayloadSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : undefined;
-  } catch {
-    return undefined;
-  }
-};
+): ScheduleCatalogCacheEntry<Plan[]> | undefined =>
+  readEntry(buildPlansKey(serviceTypeId), plansPayload);
 
 export const readCachedServiceTypes = (): ServiceType[] | undefined =>
   readServiceTypesEntry()?.data;
@@ -81,21 +78,7 @@ export const readCachedServiceTypesEntry = ():
   | undefined => readServiceTypesEntry();
 
 export const writeCachedServiceTypes = (serviceTypes: ServiceType[]): void => {
-  const storage = globalThis.window?.localStorage;
-  if (storage === undefined) {
-    return;
-  }
-  try {
-    storage.setItem(
-      SERVICE_TYPES_KEY,
-      JSON.stringify({
-        savedAt: Date.now(),
-        data: serviceTypes,
-      } satisfies CachedPayload<ServiceType[]>)
-    );
-  } catch {
-    // Ignore storage write failures (private mode/quota).
-  }
+  writeEntry(SERVICE_TYPES_KEY, serviceTypesPayload, serviceTypes);
 };
 
 export const readCachedPlans = (
@@ -116,25 +99,10 @@ export const writeCachedPlans = (
   serviceTypeId: string | null,
   plans: Plan[]
 ): void => {
-  const storage = globalThis.window?.localStorage;
-  if (
-    serviceTypeId === null ||
-    serviceTypeId.length === 0 ||
-    storage === undefined
-  ) {
+  if (serviceTypeId === null || serviceTypeId.length === 0) {
     return;
   }
-  try {
-    storage.setItem(
-      buildPlansKey(serviceTypeId),
-      JSON.stringify({
-        savedAt: Date.now(),
-        data: plans,
-      } satisfies CachedPayload<Plan[]>)
-    );
-  } catch {
-    // Ignore storage write failures (private mode/quota).
-  }
+  writeEntry(buildPlansKey(serviceTypeId), plansPayload, plans);
 };
 
 export const clearCachedScheduleCatalog = (): void => {

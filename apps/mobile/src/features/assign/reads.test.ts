@@ -11,6 +11,7 @@ import { describe, expect, it, vi } from "vitest";
 import detailsFixture from "../../harness/fixtures/people.candidateDetails.json";
 import windowFixture from "../../harness/fixtures/people.planWindowHistory.json";
 import { makeControlledFixture } from "../../harness/testing/controlled-fixture";
+import { planReads } from "../plan/reads";
 import { assignReads, candidateReadState, warmCandidates } from "./reads";
 
 const slot = {
@@ -76,6 +77,10 @@ describe("Assign reads through the product client", () => {
 
   it("follows deferred history and blockout page cursors without changing the plan date", async () => {
     const { transport, context, cache } = setup();
+    // One saved service type, so the window is one chain of calls.
+    cache.setQueryData(planReads.serviceTypes(context).queryKey, [
+      { id: "1101", name: "Sunday Gathering", sequence: 0 },
+    ]);
     const call = vi.spyOn(transport, "handle");
     call.mockResolvedValueOnce({
       ...windowFixture.default,
@@ -96,6 +101,7 @@ describe("Assign reads through the product client", () => {
     await cache.query(assignReads.history(context, slot.date));
     expect(call).toHaveBeenLastCalledWith("people.planWindowHistory", {
       date: slot.date,
+      serviceTypeId: "1101",
       continuation: {
         plans: [
           {

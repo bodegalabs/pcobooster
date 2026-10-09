@@ -11,7 +11,7 @@
 import { appendFile } from "node:fs/promises";
 
 import * as Alchemist from "alchemy/Alchemist";
-import { Effect } from "effect";
+import { Effect, Option, Schema } from "effect";
 
 import { comparableDriftFields } from "./drift-comparison";
 import { driftReport, driftValueSchema } from "./drift-report";
@@ -29,10 +29,11 @@ const snapshot = await Effect.runPromise(
   )
 );
 /** Attributes as JSON: values that do not survive a round trip read as null. */
-const asDriftValue = (json: string): DriftValue => {
-  const parsed = driftValueSchema.safeParse(JSON.parse(json));
-  return parsed.success ? parsed.data : null;
-};
+const decodeDriftValue = Schema.decodeUnknownOption(
+  Schema.fromJsonString(driftValueSchema)
+);
+const asDriftValue = (json: string): DriftValue =>
+  Option.getOrNull(decodeDriftValue(json));
 
 const jsonFieldsOf = (
   resourceType: string,

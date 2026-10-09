@@ -1,5 +1,5 @@
 import { failureMessage } from "@pcobooster/client/product-client";
-import type { ChordChartArrangement } from "@pcobooster/contracts/chord-charts";
+import type { ChordChartArrangement } from "@pcobooster/contracts/http/chord-charts";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 

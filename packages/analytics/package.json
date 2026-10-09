@@ -13,8 +13,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "posthog-js": "^1.434.11",
-    "zod": "^4.6.5"
+    "effect": "4.0.0-rc.117",
+    "posthog-js": "^1.434.11"
   },
   "devDependencies": {
     "@pcobooster/config": "workspace:*",

@@ -3,7 +3,7 @@ import type {
   PeopleDashboardPersonDetail,
   PeopleDashboardRoster,
   PeopleDashboardRosterPerson,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryClient, QueryFunctionContext } from "@tanstack/react-query";
 import { useCallback, useMemo, useSyncExternalStore } from "react";

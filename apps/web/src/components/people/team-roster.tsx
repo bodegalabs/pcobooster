@@ -1,7 +1,7 @@
 import type {
   PeopleDashboardPerson,
   PeopleDashboardRosterPerson,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import { Link } from "@tanstack/react-router";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo, useState } from "react";

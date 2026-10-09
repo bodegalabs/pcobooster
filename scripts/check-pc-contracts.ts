@@ -10,35 +10,42 @@ import {
   isString,
 } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { Effect } from "effect";
+import { Effect, Predicate, Schema } from "effect";
+import type { StandardSchemaV1 } from "effect/StandardSchema";
 import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
 import * as HttpClient from "effect/unstable/http/HttpClient";
-import type { z } from "zod";
 
-const summarizeIssues = (
-  issues: { path: PropertyKey[]; message: string }[]
-): string[] =>
-  issues
-    .slice(0, 6)
-    .map((issue) => `${issue.path.join(".") || "<root>"}: ${issue.message}`);
+const summarizeIssues = (issues: readonly StandardSchemaV1.Issue[]): string[] =>
+  issues.slice(0, 6).map((issue) => {
+    const path = (issue.path ?? [])
+      .map((segment) =>
+        String(Predicate.isObject(segment) ? segment.key : segment)
+      )
+      .join(".");
+    return `${path || "<root>"}: ${issue.message}`;
+  });
 
 const parseStats = (
   label: string,
   resources: PCResource[],
-  schema: z.ZodType
+  schema: Schema.Codec<unknown, unknown>
 ) => {
+  const { validate } = Schema.toStandardSchemaV1(schema)["~standard"];
   let ok = 0;
   const failures: { type: string; issues: string[] }[] = [];
   for (const resource of resources) {
-    const parsed = schema.safeParse(resource);
-    if (parsed.success) {
+    const parsed = validate(resource);
+    if (parsed instanceof Promise) {
+      throw new TypeError("Resource schemas decode synchronously");
+    }
+    if (parsed.issues === undefined) {
       ok += 1;
       continue;
     }
     if (failures.length < 4) {
       failures.push({
         type: resource.type,
-        issues: summarizeIssues(parsed.error.issues),
+        issues: summarizeIssues(parsed.issues),
       });
     }
   }

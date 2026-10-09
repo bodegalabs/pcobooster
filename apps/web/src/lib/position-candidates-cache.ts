@@ -1,14 +1,17 @@
 import {
   planWindowHistoryBatchSchema,
   positionCandidatesSchema,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import type {
   PlanWindowHistoryBatch,
   PositionCandidates,
-} from "@pcobooster/contracts/people-schemas";
-import { z } from "zod";
+} from "@pcobooster/contracts/http/people-schemas";
+import { mutableArray } from "@pcobooster/contracts/http/schema";
+import { Schema } from "effect";
 
 import { presentationCacheKey } from "@/lib/presentation-cache";
+import { savedAnswer, storedJson } from "@/lib/stored-json";
+import type { StoredJson } from "@/lib/stored-json";
 
 /**
  * Saved parts of the Assign view's candidate list, so a reload paints the last known list
@@ -35,50 +38,42 @@ export interface CacheEntry<Data> {
   data: Data;
 }
 
-const cachedCandidatesSchema = z.object({
-  savedAt: z.number(),
-  data: positionCandidatesSchema,
-});
+const cachedCandidates = savedAnswer(positionCandidatesSchema);
 
-const cachedWindowHistorySchema = z.record(
-  z.string(),
-  z.object({
-    savedAt: z.number(),
-    data: z.array(planWindowHistoryBatchSchema),
+const cachedWindowHistorySchema = Schema.Record(
+  Schema.String,
+  Schema.Struct({
+    savedAt: Schema.Finite,
+    data: mutableArray(planWindowHistoryBatchSchema),
   })
 );
-type CachedWindowHistory = z.output<typeof cachedWindowHistorySchema>;
+type CachedWindowHistory = typeof cachedWindowHistorySchema.Type;
+const cachedWindowHistory = storedJson(cachedWindowHistorySchema);
 
-const cachedAvailabilitySchema = z.record(
-  z.string(),
-  z.object({ savedAt: z.number(), isBlockedForDate: z.boolean() })
+const cachedAvailabilitySchema = Schema.Record(
+  Schema.String,
+  Schema.Struct({ savedAt: Schema.Finite, isBlockedForDate: Schema.Boolean })
 );
-type CachedAvailability = z.output<typeof cachedAvailabilitySchema>;
+type CachedAvailability = typeof cachedAvailabilitySchema.Type;
+const cachedAvailability = storedJson(cachedAvailabilitySchema);
 
 const readJson = <Value>(
   key: string,
-  schema: z.ZodType<Value>
-): Value | undefined => {
-  const raw = globalThis.window?.localStorage.getItem(
-    presentationCacheKey(key)
+  stored: StoredJson<Value>
+): Value | undefined =>
+  stored.parse(
+    globalThis.window?.localStorage.getItem(presentationCacheKey(key)) ?? null
   );
-  if (raw === null || raw === undefined) {
-    return undefined;
+
+const writeJson = <Value>(
+  key: string,
+  stored: StoredJson<Value>,
+  value: Value
+): void => {
+  const saved = stored.stringify(value);
+  if (saved !== undefined) {
+    globalThis.window?.localStorage.setItem(presentationCacheKey(key), saved);
   }
-  const parsed = schema.safeParse(JSON.parse(raw));
-  return parsed.success ? parsed.data : undefined;
-};
-
-type StoredPayload =
-  | CacheEntry<PositionCandidates>
-  | CachedWindowHistory
-  | CachedAvailability;
-
-const writeJson = (key: string, value: StoredPayload): void => {
-  globalThis.window?.localStorage.setItem(
-    presentationCacheKey(key),
-    JSON.stringify(value)
-  );
 };
 
 const candidatesKey = (
@@ -105,7 +100,7 @@ export const readCachedPositionCandidates = (
   try {
     return readJson(
       candidatesKey(serviceTypeId, teamId, positionId, planId),
-      cachedCandidatesSchema
+      cachedCandidates
     );
   } catch {
     return undefined;
@@ -120,17 +115,18 @@ export const writeCachedPositionCandidates = (
   data: PositionCandidates
 ): void => {
   try {
-    writeJson(candidatesKey(serviceTypeId, teamId, positionId, planId), {
-      savedAt: Date.now(),
-      data,
-    } satisfies CacheEntry<PositionCandidates>);
+    writeJson(
+      candidatesKey(serviceTypeId, teamId, positionId, planId),
+      cachedCandidates,
+      { savedAt: Date.now(), data }
+    );
   } catch {
     // Ignore storage failures (private mode, quota); live queries still load.
   }
 };
 
 const readWindowHistoryPayload = (): CachedWindowHistory =>
-  readJson(WINDOW_HISTORY_KEY, cachedWindowHistorySchema) ?? {};
+  readJson(WINDOW_HISTORY_KEY, cachedWindowHistory) ?? {};
 
 export const readCachedPlanWindowHistory = (
   dateKey: string
@@ -151,7 +147,7 @@ export const writeCachedPlanWindowHistory = (
       .filter(([key]) => key !== dateKey)
       .toSorted(([, a], [, b]) => b.savedAt - a.savedAt)
       .slice(0, WINDOW_HISTORY_DATES_KEPT - 1);
-    writeJson(WINDOW_HISTORY_KEY, {
+    writeJson(WINDOW_HISTORY_KEY, cachedWindowHistory, {
       ...Object.fromEntries(kept),
       [dateKey]: { savedAt: Date.now(), data },
     } satisfies CachedWindowHistory);
@@ -164,7 +160,7 @@ const availabilityKey = (dateKey: string, personId: string) =>
   `${dateKey}|${personId}`;
 
 const readAvailabilityPayload = (): CachedAvailability =>
-  readJson(AVAILABILITY_KEY, cachedAvailabilitySchema) ?? {};
+  readJson(AVAILABILITY_KEY, cachedAvailability) ?? {};
 
 /** Saved blocked flags for every one of `personIds` on the date, or nothing if any is missing. */
 export const readCachedCandidateAvailability = (
@@ -200,18 +196,19 @@ export const writeCachedCandidateAvailability = (
 ): void => {
   try {
     const savedAt = Date.now();
-    const payload: CachedAvailability = Object.fromEntries(
-      Object.entries(readAvailabilityPayload()).filter(
-        ([, entry]) => savedAt - entry.savedAt < AVAILABILITY_RETENTION_MS
-      )
-    );
+    const payload: Record<string, CachedAvailability[string]> =
+      Object.fromEntries(
+        Object.entries(readAvailabilityPayload()).filter(
+          ([, entry]) => savedAt - entry.savedAt < AVAILABILITY_RETENTION_MS
+        )
+      );
     for (const { personId, isBlockedForDate } of details) {
       payload[availabilityKey(dateKey, personId)] = {
         savedAt,
         isBlockedForDate,
       };
     }
-    writeJson(AVAILABILITY_KEY, payload);
+    writeJson(AVAILABILITY_KEY, cachedAvailability, payload);
   } catch {
     // Ignore storage failures (private mode, quota); live queries still load.
   }

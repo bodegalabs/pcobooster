@@ -1,13 +1,12 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, extname, join, relative, resolve } from "node:path";
 
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
 
 const sourceExtensions = new Set([".js", ".jsx", ".ts", ".tsx"]);
 /** Build outputs and dependencies; dot-directories (tool state, worktrees) are skipped too. */
 const ignoredDirectories = new Set(["dist", "node_modules"]);
-const routeExceptions = new Set(["auth", "health", "rpc"]);
 const replacedRouteNames = new Set([
   "blockouts",
   "catalog",
@@ -331,15 +330,19 @@ describe("monorepo architecture boundaries", () => {
       }
 
       const contents = readFileSync(tsconfigPath, "utf8");
-      const config = z
-        .object({
-          compilerOptions: z
-            .object({
-              paths: z.record(z.string(), z.array(z.string())).optional(),
-            })
-            .optional(),
-        })
-        .parse(JSON.parse(contents));
+      const config = Schema.decodeUnknownSync(
+        Schema.fromJsonString(
+          Schema.Struct({
+            compilerOptions: Schema.optional(
+              Schema.Struct({
+                paths: Schema.optional(
+                  Schema.Record(Schema.String, Schema.Array(Schema.String))
+                ),
+              })
+            ),
+          })
+        )
+      )(contents);
       const targets = Object.values(config.compilerOptions?.paths ?? {}).flat();
       if (targets.some((target) => target.includes("packages/api"))) {
         violations.push(
@@ -458,7 +461,7 @@ describe("monorepo architecture boundaries", () => {
         const replacedSegment = routeSegments.find((segment) =>
           replacedRouteNames.has(segment)
         );
-        if (replacedSegment && !routeExceptions.has(replacedSegment)) {
+        if (replacedSegment !== undefined) {
           violations.push(
             `${file.relativePath} is a replaced REST route (${replacedSegment}); use the product API client`
           );

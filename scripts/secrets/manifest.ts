@@ -1,6 +1,6 @@
-import { z } from "zod";
+import { Schema } from "effect";
 
-export const secretScopeSchema = z.enum([
+export const secretScopeSchema = Schema.Literals([
   "local",
   "cloud",
   "preview",
@@ -9,7 +9,15 @@ export const secretScopeSchema = z.enum([
   "posthog",
   "recovery",
 ]);
-export type SecretScope = z.infer<typeof secretScopeSchema>;
+export type SecretScope = typeof secretScopeSchema.Type;
+
+/** The scope named on the command line; anything else is a usage error. */
+export const parseSecretScope = Schema.decodeUnknownSync(secretScopeSchema);
+
+/** The exit code from a child process's `exit` or `close` event arguments. */
+export const processExit = Schema.decodeUnknownSync(
+  Schema.Tuple([Schema.NullOr(Schema.Number), Schema.NullOr(Schema.String)])
+);
 
 export const runtimeSecretKeys = [
   "BETTER_AUTH_SECRET",

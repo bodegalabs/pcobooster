@@ -1,22 +1,19 @@
-import { planItemSchema } from "@pcobooster/contracts/plan-item-schemas";
+import { planItemSchema } from "@pcobooster/contracts/http/plan-item-schemas";
 import {
   planItemsCreateInputSchema,
   planItemsReorderInputSchema,
   planItemsSuccessSchema,
   planItemsUpdateInputSchema,
-} from "@pcobooster/contracts/plan-items";
-import {
-  planPeopleUpdateTimesInputSchema,
-  planPeopleUpdateTimesOutputSchema,
-} from "@pcobooster/contracts/plan-people";
-import { planTimeSchema } from "@pcobooster/contracts/plan-time-schemas";
+} from "@pcobooster/contracts/http/plan-items";
+import { planPeopleUpdateTimesInputSchema } from "@pcobooster/contracts/http/plan-people";
+import { planTimeSchema } from "@pcobooster/contracts/http/plan-time-schemas";
 import {
   planTimesCreateInputSchema,
-  planTimesDeleteOutputSchema,
   planTimesUpdateInputSchema,
-} from "@pcobooster/contracts/plan-times";
-import { songOptionSetSchema } from "@pcobooster/contracts/song-schemas";
-import { songsSearchInputSchema } from "@pcobooster/contracts/songs";
+} from "@pcobooster/contracts/http/plan-times";
+import { songOptionSetSchema } from "@pcobooster/contracts/http/song-schemas";
+import { songsSearchInputSchema } from "@pcobooster/contracts/http/songs";
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
 
 const scope = { serviceTypeId: "service-1", planId: "plan-1" };
@@ -66,22 +63,22 @@ const planTime = {
 
 describe("run-sheet contracts", () => {
   it("retains every nested plan-item field and requires native dates", () => {
-    expect(planItemSchema.parse(item)).toStrictEqual(item);
-    expect(
-      planItemSchema.safeParse({
+    expect(Schema.decodeUnknownSync(planItemSchema)(item)).toStrictEqual(item);
+    expect(() =>
+      Schema.decodeUnknownSync(planItemSchema)({
         ...item,
         song: { ...song, lastScheduledAt: lastScheduledAt.toISOString() },
-      }).success
-    ).toBeFalsy();
-    expect(
-      planItemSchema.safeParse({
+      })
+    ).toThrow(Schema.SchemaError);
+    expect(() =>
+      Schema.decodeUnknownSync(planItemSchema)({
         ...item,
         arrangement: {
           ...item.arrangement,
           archivedAt: archivedAt.toISOString(),
         },
-      }).success
-    ).toBeFalsy();
+      })
+    ).toThrow(Schema.SchemaError);
     const header = {
       ...item,
       itemType: "header",
@@ -91,7 +88,9 @@ describe("run-sheet contracts", () => {
       key: null,
       layout: null,
     };
-    expect(planItemSchema.parse(header)).toStrictEqual(header);
+    expect(Schema.decodeUnknownSync(planItemSchema)(header)).toStrictEqual(
+      header
+    );
   });
 
   it("retains full song options with nullable dates and optional ranking", () => {
@@ -116,7 +115,9 @@ describe("run-sheet contracts", () => {
       suggestedLayoutId: "layout-1",
       layoutMode: "existing-only",
     };
-    expect(songOptionSetSchema.parse(options)).toStrictEqual(options);
+    expect(
+      Schema.decodeUnknownSync(songOptionSetSchema)(options)
+    ).toStrictEqual(options);
     const noHistory = {
       ...options,
       song: { ...song, hidden: false, lastScheduledAt: null },
@@ -126,14 +127,16 @@ describe("run-sheet contracts", () => {
       suggestedLayoutId: null,
       layoutMode: "unavailable",
     };
-    expect(songOptionSetSchema.parse(noHistory)).toStrictEqual(noHistory);
-    expect(songOptionSetSchema.parse(noHistory).song).not.toHaveProperty(
-      "matchScore"
-    );
+    expect(
+      Schema.decodeUnknownSync(songOptionSetSchema)(noHistory)
+    ).toStrictEqual(noHistory);
+    expect(
+      Schema.decodeUnknownSync(songOptionSetSchema)(noHistory).song
+    ).not.toHaveProperty("matchScore");
   });
 
   it("preserves null associations, omitted fields, and empty arrangement sequences", () => {
-    const omitted = planItemsCreateInputSchema.parse(scope);
+    const omitted = Schema.decodeUnknownSync(planItemsCreateInputSchema)(scope);
     expect(omitted).toStrictEqual(scope);
     const explicit = {
       ...scope,
@@ -145,33 +148,46 @@ describe("run-sheet contracts", () => {
       length: null,
       customArrangementSequence: [],
     };
-    expect(planItemsUpdateInputSchema.parse(explicit)).toStrictEqual(explicit);
     expect(
-      planItemsCreateInputSchema.safeParse({ ...scope, songId: " " }).success
-    ).toBeFalsy();
+      Schema.decodeUnknownSync(planItemsUpdateInputSchema)(explicit)
+    ).toStrictEqual(explicit);
+    expect(() =>
+      Schema.decodeUnknownSync(planItemsCreateInputSchema)({
+        ...scope,
+        songId: " ",
+      })
+    ).toThrow(Schema.SchemaError);
   });
 
   it("retains native plan-time dates, reminders, and every assignment relationship", () => {
-    expect(planTimeSchema.parse(planTime)).toStrictEqual(planTime);
-    expect(planTimeSchema.parse({ ...planTime, endsAt: null })).toStrictEqual({
+    expect(Schema.decodeUnknownSync(planTimeSchema)(planTime)).toStrictEqual(
+      planTime
+    );
+    expect(
+      Schema.decodeUnknownSync(planTimeSchema)({ ...planTime, endsAt: null })
+    ).toStrictEqual({
       ...planTime,
       endsAt: null,
     });
-    expect(
-      planTimeSchema.safeParse({
+    expect(() =>
+      Schema.decodeUnknownSync(planTimeSchema)({
         ...planTime,
         startsAt: planTime.startsAt.toISOString(),
-      }).success
-    ).toBeFalsy();
-    expect(
-      planTimeSchema.safeParse({ ...planTime, endsAt: new Date(Number.NaN) })
-        .success
-    ).toBeFalsy();
+      })
+    ).toThrow(Schema.SchemaError);
+    expect(() =>
+      Schema.decodeUnknownSync(planTimeSchema)({
+        ...planTime,
+        endsAt: new Date(Number.NaN),
+      })
+    ).toThrow(Schema.SchemaError);
   });
 
   it("distinguishes omitted time assignments from explicitly cleared arrays", () => {
     const input = { ...scope, planTimeId: "time-1" };
-    expect(planTimesUpdateInputSchema.parse(input)).toStrictEqual(input);
+    expect(
+      Schema.decodeUnknownSync(planTimesUpdateInputSchema)(input)
+    ).toStrictEqual(input);
     const cleared = {
       ...input,
       endsAt: null,
@@ -182,28 +198,30 @@ describe("run-sheet contracts", () => {
       assignedPlanPersonIds: [],
       clearedPlanPersonIds: [],
     };
-    expect(planTimesUpdateInputSchema.parse(cleared)).toStrictEqual(cleared);
+    expect(
+      Schema.decodeUnknownSync(planTimesUpdateInputSchema)(cleared)
+    ).toStrictEqual(cleared);
     const person = {
       ...scope,
       personId: "person-1",
       planPersonId: "plan-person-1",
       planTimeIds: [],
     };
-    expect(planPeopleUpdateTimesInputSchema.parse(person)).toStrictEqual(
-      person
-    );
     expect(
-      planPeopleUpdateTimesInputSchema.safeParse({
+      Schema.decodeUnknownSync(planPeopleUpdateTimesInputSchema)(person)
+    ).toStrictEqual(person);
+    expect(() =>
+      Schema.decodeUnknownSync(planPeopleUpdateTimesInputSchema)({
         ...scope,
         personId: "person-1",
         planPersonId: "plan-person-1",
-      }).success
-    ).toBeFalsy();
+      })
+    ).toThrow(Schema.SchemaError);
   });
 
   it("validates required time fields and supported item creation values", () => {
     expect(
-      planTimesCreateInputSchema.parse({
+      Schema.decodeUnknownSync(planTimesCreateInputSchema)({
         ...scope,
         startsAt: "2026-09-20T17:00:00Z",
         timeType: "service",
@@ -213,43 +231,49 @@ describe("run-sheet contracts", () => {
       startsAt: "2026-09-20T17:00:00Z",
       timeType: "service",
     });
-    expect(
-      planTimesCreateInputSchema.safeParse({
+    expect(() =>
+      Schema.decodeUnknownSync(planTimesCreateInputSchema)({
         ...scope,
         startsAt: "2026-09-20",
         timeType: "service",
-      }).success
-    ).toBeFalsy();
-    expect(
-      planItemsCreateInputSchema.safeParse({ ...scope, itemType: "song" })
-        .success
-    ).toBeFalsy();
-    expect(
-      planItemsCreateInputSchema.safeParse({ ...scope, length: -1 }).success
-    ).toBeFalsy();
+      })
+    ).toThrow(Schema.SchemaError);
+    expect(() =>
+      Schema.decodeUnknownSync(planItemsCreateInputSchema)({
+        ...scope,
+        itemType: "song",
+      })
+    ).toThrow(Schema.SchemaError);
+    expect(() =>
+      Schema.decodeUnknownSync(planItemsCreateInputSchema)({
+        ...scope,
+        length: -1,
+      })
+    ).toThrow(Schema.SchemaError);
   });
 
   it("requires an ordered sequence and a nonblank search query", () => {
-    expect(
-      planItemsReorderInputSchema.safeParse({ ...scope, sequence: [] }).success
-    ).toBeFalsy();
+    expect(() =>
+      Schema.decodeUnknownSync(planItemsReorderInputSchema)({
+        ...scope,
+        sequence: [],
+      })
+    ).toThrow(Schema.SchemaError);
     const ordering = { ...scope, sequence: ["second", "first"] };
-    expect(planItemsReorderInputSchema.parse(ordering)).toStrictEqual(ordering);
     expect(
-      songsSearchInputSchema.safeParse({
+      Schema.decodeUnknownSync(planItemsReorderInputSchema)(ordering)
+    ).toStrictEqual(ordering);
+    expect(() =>
+      Schema.decodeUnknownSync(songsSearchInputSchema)({
         serviceTypeId: "service-1",
         query: " ",
-      }).success
-    ).toBeFalsy();
+      })
+    ).toThrow(Schema.SchemaError);
   });
 
-  it("requires success literals and an empty time deletion result", () => {
-    expect(
-      planItemsSuccessSchema.safeParse({ success: false }).success
-    ).toBeFalsy();
-    expect(
-      planPeopleUpdateTimesOutputSchema.safeParse({ ok: false }).success
-    ).toBeFalsy();
-    expect(planTimesDeleteOutputSchema.safeParse(null).success).toBeFalsy();
+  it("requires a success literal", () => {
+    expect(() =>
+      Schema.decodeUnknownSync(planItemsSuccessSchema)({ success: false })
+    ).toThrow(Schema.SchemaError);
   });
 });

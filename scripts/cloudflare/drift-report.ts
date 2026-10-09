@@ -1,11 +1,11 @@
 import type * as Alchemist from "alchemy/Alchemist";
-import { z } from "zod";
+import { Schema } from "effect";
 
 type DriftedResource = Alchemist.Drift.DriftedResource;
 
 /** Deployed or live resource attributes, round-tripped through JSON. */
-export const driftValueSchema = z.json();
-export type DriftValue = z.infer<typeof driftValueSchema>;
+export const driftValueSchema = Schema.MutableJson;
+export type DriftValue = typeof driftValueSchema.Type;
 
 /** How many differing fields a row lists before summarizing the rest. */
 const MAX_LISTED_FIELDS = 6;

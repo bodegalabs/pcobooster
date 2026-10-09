@@ -2,7 +2,7 @@ import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import type {
   PlanWindowHistoryBatch,
   PositionCandidates,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   PositionCandidate,

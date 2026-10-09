@@ -8,9 +8,9 @@ import { getPresentationCacheScope } from "@pcobooster/presentation-mode";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
+import { Schema } from "effect";
 import { defineConfig } from "vite";
 import type { Plugin } from "vite";
-import { z } from "zod";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../..");
 
@@ -23,9 +23,9 @@ const marketingDevOrigin = devOrigin(ports.marketing);
 
 const runBunScript = async (args: readonly string[]): Promise<void> => {
   const child = spawn("bun", args, { cwd: repositoryRoot, stdio: "inherit" });
-  const [code] = z
-    .tuple([z.number().nullable(), z.string().nullable()])
-    .parse(await once(child, "exit"));
+  const [code] = Schema.decodeUnknownSync(
+    Schema.Tuple([Schema.NullOr(Schema.Number), Schema.NullOr(Schema.String)])
+  )(await once(child, "exit"));
   if (code !== 0) {
     throw new Error(`\`bun ${args.join(" ")}\` exited with ${String(code)}`);
   }

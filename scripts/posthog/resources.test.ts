@@ -4,10 +4,9 @@ import {
   productDashboard,
 } from "@pcobooster/analytics/reports";
 import type { DashboardDefinition } from "@pcobooster/analytics/reports";
-import { Effect, Redacted } from "effect";
+import { Effect, Redacted, Schema } from "effect";
 import { FetchHttpClient, HttpClient } from "effect/unstable/http";
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
 
 import { makePostHogApi } from "./api";
 import type { PostHogApiError, PostHogApiService } from "./api";
@@ -90,7 +89,9 @@ const tileProps = (dashboard: DashboardDefinition): DashboardTilesProps => ({
   insightIds: dashboard.insights.map((insight) => adoptedId(insight.id)),
 });
 
-const settingsRecord = z.record(z.string(), z.json()).parse(project.settings);
+const settingsRecord = Schema.decodeUnknownSync(
+  Schema.Record(Schema.String, Schema.Json)
+)(project.settings);
 
 describe("declared PostHog configuration", () => {
   it("gives every dashboard and insight a unique key and ID", () => {

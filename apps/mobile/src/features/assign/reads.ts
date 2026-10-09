@@ -3,8 +3,7 @@ import { callForQuery, speculativeQuery } from "@pcobooster/client/query";
 import {
   CANDIDATE_DETAILS_BATCH_CONCURRENCY,
   candidateDetailsAdvanced,
-  nextWindowContinuation,
-  windowHistoryAdvanced,
+  readPlanWindowHistory,
 } from "@pcobooster/planning-center-models/candidate-list";
 import { queryOptions } from "@tanstack/react-query";
 import type { QueryClient, QueryFunctionContext } from "@tanstack/react-query";
@@ -12,6 +11,7 @@ import type { Effect } from "effect";
 
 import type { AppClient } from "../../app-shell/app-client";
 import type { ProductClientContextValue } from "../../app-shell/queries";
+import { planReads } from "../plan/reads";
 import type { PlanReadContext } from "../plan/reads";
 
 export interface CandidateSlot {
@@ -25,37 +25,35 @@ export interface CandidateSlot {
 export type CandidateDetail = Effect.Success<
   ReturnType<ProductApi["people"]["candidateDetails"]>
 >["people"][number];
-type WindowContinuation = Parameters<
-  ProductApi["people"]["planWindowHistory"]
->[0]["payload"]["continuation"];
 type DetailRequest = Parameters<ProductApi["people"]["candidateDetails"]>[0];
 type DetailInput = DetailRequest["params"] & DetailRequest["payload"];
 const STALE_MS = 300_000;
 
+/**
+ * The window around a plan date, one service type per call, all at once (see
+ * `readPlanWindowHistory`). A saved service type list is used as is, even when stale, so the
+ * history never waits on it.
+ */
 export const fetchWindowHistory = async (
   read: PlanReadContext,
   date: string,
-  context: QueryFunctionContext,
-  continuation?: WindowContinuation
+  context: QueryFunctionContext
 ): Promise<
   Effect.Success<ReturnType<ProductApi["people"]["planWindowHistory"]>>[]
 > => {
-  const targetClientNative1 = read.client;
-  const inputNative1 = { date, continuation };
-  const batch = await callForQuery(context, targetClientNative1, (api) =>
-    api.people.planWindowHistory({ payload: inputNative1 })
+  const serviceTypesQuery = planReads.serviceTypes(read);
+  const serviceTypes =
+    context.client.getQueryData(serviceTypesQuery.queryKey) ??
+    (await context.client.query(serviceTypesQuery));
+  return await readPlanWindowHistory(
+    serviceTypes.map(({ id }) => id),
+    async (serviceTypeId, continuation) => {
+      const input = { date, serviceTypeId, continuation };
+      return await callForQuery(context, read.client, (api) =>
+        api.people.planWindowHistory({ payload: input })
+      );
+    }
   );
-  const next = nextWindowContinuation(batch);
-  if (next === null) {
-    return [batch];
-  }
-  if (
-    continuation !== undefined &&
-    !windowHistoryAdvanced(continuation, batch)
-  ) {
-    throw new Error("Plan window history made no progress.");
-  }
-  return [batch, ...(await fetchWindowHistory(read, date, context, next))];
 };
 
 export const fetchCandidateDetails = async (

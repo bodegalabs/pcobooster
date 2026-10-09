@@ -1,26 +1,19 @@
-import { teamPositionGroupSchema } from "@pcobooster/contracts/catalog";
+import { teamPositionGroupSchema } from "@pcobooster/contracts/http/catalog";
+import { mutableArray } from "@pcobooster/contracts/http/schema";
 import type { TeamPositionGroup } from "@pcobooster/planning-center-models/types";
-import { z } from "zod";
 
 import { presentationCacheKey } from "@/lib/presentation-cache";
+import { savedAnswer } from "@/lib/stored-json";
 
 const CACHE_VERSION = "v2";
 const CACHE_KEY_PREFIX = `pcobooster:team-positions:${CACHE_VERSION}:`;
-
-interface CachedPayload {
-  savedAt: number;
-  data: TeamPositionGroup[];
-}
 
 export interface TeamPositionsCacheEntry {
   savedAt: number;
   data: TeamPositionGroup[];
 }
 
-const cachedPayloadSchema = z.object({
-  savedAt: z.number(),
-  data: z.array(teamPositionGroupSchema),
-});
+const cachedPayload = savedAnswer(mutableArray(teamPositionGroupSchema));
 
 const buildCacheKey = (
   serviceTypeId: string,
@@ -55,15 +48,9 @@ export const readCachedTeamPositions = (
   }
 
   try {
-    const raw = storage.getItem(buildCacheKey(serviceTypeId, planId, seriesId));
-    if (raw === null) {
-      return undefined;
-    }
-    const parsed = cachedPayloadSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success) {
-      return undefined;
-    }
-    return parsed.data;
+    return cachedPayload.parse(
+      storage.getItem(buildCacheKey(serviceTypeId, planId, seriesId))
+    );
   } catch {
     return undefined;
   }
@@ -87,13 +74,13 @@ export const writeCachedTeamPositions = (
   }
 
   try {
-    storage.setItem(
-      buildCacheKey(serviceTypeId, planId, seriesId),
-      JSON.stringify({
-        savedAt: Date.now(),
-        data: groups,
-      } satisfies CachedPayload)
-    );
+    const saved = cachedPayload.stringify({
+      savedAt: Date.now(),
+      data: groups,
+    });
+    if (saved !== undefined) {
+      storage.setItem(buildCacheKey(serviceTypeId, planId, seriesId), saved);
+    }
   } catch {
     // Ignore storage write failures (private mode/quota).
   }

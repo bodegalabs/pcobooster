@@ -1,6 +1,7 @@
 import { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import {
+  explainMissingServicesPerson,
   PlanningCenterAccess,
   withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
@@ -187,7 +188,7 @@ export const getPeopleBlockouts = (input: {
       peopleService,
     });
     return presentBlockouts(blockouts, access.presentation);
-  }).pipe(withPlanningCenterFaults);
+  }).pipe(explainMissingServicesPerson, withPlanningCenterFaults);
 
 export const getPeopleDashboardRoster = (): Effect.Effect<
   PeopleDashboardRoster,
@@ -270,7 +271,7 @@ export const getPeopleDashboardPerson = (input: {
       detail,
       yield* requestPresentationDependencies
     );
-  }).pipe(withPlanningCenterFaults);
+  }).pipe(explainMissingServicesPerson, withPlanningCenterFaults);
 
 export const getMyScheduledPlans = (): Effect.Effect<
   { readonly planIds: string[] },

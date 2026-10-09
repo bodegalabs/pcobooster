@@ -1,68 +1,66 @@
-import { planningCenterIdentitySchema } from "@pcobooster/contracts/identity";
-import { z } from "zod";
+import { planningCenterIdentitySchema } from "@pcobooster/contracts/http/identity";
+import { mutableArray, requiredId } from "@pcobooster/contracts/http/schema";
+import { Schema } from "effect";
 
-export const adminAccountActivitySchema = z.object({
-  userId: z.string(),
-  name: z.string(),
-  email: z.string(),
-  image: z.string().nullable(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-  linkedAccounts: z.number(),
-  providers: z.array(z.string()),
-  activeSessions: z.number(),
-  loginEvents: z.number(),
-  loginEvents7d: z.number(),
-  loginEvents30d: z.number(),
-  signOutEvents: z.number(),
-  activityEvents: z.number(),
-  firstLoginAt: z.string().nullable(),
-  lastLoginAt: z.string().nullable(),
-  lastActivityAt: z.string().nullable(),
+export const adminAccountActivitySchema = Schema.Struct({
+  userId: Schema.String,
+  name: Schema.String,
+  email: Schema.String,
+  image: Schema.NullOr(Schema.String),
+  createdAt: Schema.String,
+  updatedAt: Schema.String,
+  linkedAccounts: Schema.Number,
+  providers: mutableArray(Schema.String),
+  activeSessions: Schema.Number,
+  loginEvents: Schema.Number,
+  loginEvents7d: Schema.Number,
+  loginEvents30d: Schema.Number,
+  signOutEvents: Schema.Number,
+  activityEvents: Schema.Number,
+  firstLoginAt: Schema.NullOr(Schema.String),
+  lastLoginAt: Schema.NullOr(Schema.String),
+  lastActivityAt: Schema.NullOr(Schema.String),
 });
 
-export type AdminAccountActivity = z.infer<typeof adminAccountActivitySchema>;
+export type AdminAccountActivity = typeof adminAccountActivitySchema.Type;
 
-export const adminLinkedAccountSchema = z.object({
-  id: z.string(),
-  providerAccountId: z.string(),
-  providerId: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-  scope: z.string().nullable(),
-  accessTokenExpiresAt: z.string().nullable(),
-  refreshTokenExpiresAt: z.string().nullable(),
-  activityEvents: z.number(),
-  linkedEvents: z.number(),
-  firstActivityAt: z.string().nullable(),
-  lastActivityAt: z.string().nullable(),
-  identity: planningCenterIdentitySchema.nullable(),
+export const adminLinkedAccountSchema = Schema.Struct({
+  id: Schema.String,
+  providerAccountId: Schema.String,
+  providerId: Schema.String,
+  createdAt: Schema.String,
+  updatedAt: Schema.String,
+  scope: Schema.NullOr(Schema.String),
+  accessTokenExpiresAt: Schema.NullOr(Schema.String),
+  refreshTokenExpiresAt: Schema.NullOr(Schema.String),
+  activityEvents: Schema.Number,
+  linkedEvents: Schema.Number,
+  firstActivityAt: Schema.NullOr(Schema.String),
+  lastActivityAt: Schema.NullOr(Schema.String),
+  identity: Schema.NullOr(planningCenterIdentitySchema),
 });
 
-export type AdminLinkedAccount = z.infer<typeof adminLinkedAccountSchema>;
+export type AdminLinkedAccount = typeof adminLinkedAccountSchema.Type;
 
-export const adminUserAccountDetailSchema = adminAccountActivitySchema.extend({
-  linkedAccountDetails: z.array(adminLinkedAccountSchema),
+export const adminUserAccountDetailSchema = Schema.Struct({
+  ...adminAccountActivitySchema.fields,
+  linkedAccountDetails: mutableArray(adminLinkedAccountSchema),
 });
 
-export type AdminUserAccountDetail = z.infer<
-  typeof adminUserAccountDetailSchema
->;
+export type AdminUserAccountDetail = typeof adminUserAccountDetailSchema.Type;
 
-export const adminAccountsResponseSchema = z.object({
+export const adminAccountsResponseSchema = Schema.Struct({
   /** Who Cloudflare Access signed in; null where no Access runs (local development). */
-  email: z.string().nullable(),
-  accounts: z.array(adminAccountActivitySchema),
+  email: Schema.NullOr(Schema.String),
+  accounts: mutableArray(adminAccountActivitySchema),
 });
 
-export const adminUserResponseSchema = z.object({
-  user: adminUserAccountDetailSchema.nullable(),
+export const adminUserResponseSchema = Schema.Struct({
+  user: Schema.NullOr(adminUserAccountDetailSchema),
 });
 
-export const adminUserInputSchema = z.object({
-  userId: z.string().trim().min(1),
-});
+export const adminUserInputSchema = Schema.Struct({ userId: requiredId });
 
-export type AdminUserInput = z.input<typeof adminUserInputSchema>;
-export type AdminAccountsResponse = z.infer<typeof adminAccountsResponseSchema>;
-export type AdminUserResponse = z.infer<typeof adminUserResponseSchema>;
+export type AdminUserInput = typeof adminUserInputSchema.Encoded;
+export type AdminAccountsResponse = typeof adminAccountsResponseSchema.Type;
+export type AdminUserResponse = typeof adminUserResponseSchema.Type;

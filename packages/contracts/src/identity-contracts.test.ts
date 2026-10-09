@@ -1,14 +1,15 @@
 import {
-  accountsSelectInputSchema,
-  accountSwitchSchema,
-  planningCenterAccountsSchema,
-} from "@pcobooster/contracts/accounts";
-import {
   adminAccountsResponseSchema,
   adminUserResponseSchema,
 } from "@pcobooster/contracts/admin";
-import { enabledFeaturesSchema } from "@pcobooster/contracts/features";
-import { sessionStatusSchema } from "@pcobooster/contracts/session";
+import {
+  accountsSelectInputSchema,
+  accountSwitchSchema,
+  planningCenterAccountsSchema,
+} from "@pcobooster/contracts/http/accounts";
+import { enabledFeaturesSchema } from "@pcobooster/contracts/http/features";
+import { sessionStatusSchema } from "@pcobooster/contracts/http/session";
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
 
 const identity = {
@@ -69,18 +70,18 @@ describe("identity contracts", () => {
       })),
     };
 
-    expect(planningCenterAccountsSchema.parse(withCredentials)).toStrictEqual(
-      panel
-    );
     expect(
-      planningCenterAccountsSchema.parse({
+      Schema.decodeUnknownSync(planningCenterAccountsSchema)(withCredentials)
+    ).toStrictEqual(panel);
+    expect(
+      Schema.decodeUnknownSync(planningCenterAccountsSchema)({
         ...panel,
         selectedAccountId: null,
         accounts: [],
       })
     ).toStrictEqual({ ...panel, selectedAccountId: null, accounts: [] });
     expect(
-      planningCenterAccountsSchema.parse({
+      Schema.decodeUnknownSync(planningCenterAccountsSchema)({
         ...panel,
         accounts: panel.accounts.map((account) => ({
           ...account,
@@ -116,47 +117,60 @@ describe("identity contracts", () => {
       ],
     };
 
-    expect(adminAccountsResponseSchema.parse(accounts)).toStrictEqual(accounts);
-    expect(adminUserResponseSchema.parse({ user })).toStrictEqual({ user });
-    expect(adminUserResponseSchema.parse({ user: null })).toStrictEqual({
+    expect(
+      Schema.decodeUnknownSync(adminAccountsResponseSchema)(accounts)
+    ).toStrictEqual(accounts);
+    expect(
+      Schema.decodeUnknownSync(adminUserResponseSchema)({ user })
+    ).toStrictEqual({ user });
+    expect(
+      Schema.decodeUnknownSync(adminUserResponseSchema)({ user: null })
+    ).toStrictEqual({
       user: null,
     });
   });
 
   it("accepts anonymous and disabled results without requiring authentication", () => {
-    expect(sessionStatusSchema.parse({ authenticated: false })).toStrictEqual({
+    expect(
+      Schema.decodeUnknownSync(sessionStatusSchema)({ authenticated: false })
+    ).toStrictEqual({
       authenticated: false,
     });
     expect(
-      enabledFeaturesSchema.parse({ people: false, chordCharts: false })
+      Schema.decodeUnknownSync(enabledFeaturesSchema)({
+        people: false,
+        chordCharts: false,
+      })
     ).toStrictEqual({ people: false, chordCharts: false });
   });
 
-  it("requires an answer for every feature flag", () => {
+  it("requires an answer for every feature flag and drops flags it does not know", () => {
+    expect(() =>
+      Schema.decodeUnknownSync(enabledFeaturesSchema)({ people: true })
+    ).toThrow(Schema.SchemaError);
     expect(
-      enabledFeaturesSchema.safeParse({ people: true }).success
-    ).toBeFalsy();
-    expect(
-      enabledFeaturesSchema.safeParse({
+      Schema.decodeUnknownSync(enabledFeaturesSchema)({
         people: true,
         chordCharts: true,
         cleanup: true,
-      }).success
-    ).toBeFalsy();
+      })
+    ).toStrictEqual({ people: true, chordCharts: true });
   });
 
   it("requires a selected local account identifier and successful selection output", () => {
+    expect(() =>
+      Schema.decodeUnknownSync(accountsSelectInputSchema)({ accountId: " " })
+    ).toThrow(Schema.SchemaError);
     expect(
-      accountsSelectInputSchema.safeParse({ accountId: " " }).success
-    ).toBeFalsy();
-    expect(
-      accountsSelectInputSchema.parse({ accountId: "local-account-1" })
+      Schema.decodeUnknownSync(accountsSelectInputSchema)({
+        accountId: "local-account-1",
+      })
     ).toStrictEqual({ accountId: "local-account-1" });
-    expect(
-      accountSwitchSchema.safeParse({
+    expect(() =>
+      Schema.decodeUnknownSync(accountSwitchSchema)({
         success: false,
         selectedAccountId: "local-account-1",
-      }).success
-    ).toBeFalsy();
+      })
+    ).toThrow(Schema.SchemaError);
   });
 });

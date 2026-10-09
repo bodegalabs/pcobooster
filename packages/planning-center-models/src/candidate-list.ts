@@ -155,6 +155,46 @@ export const windowHistoryAdvanced = (
 };
 
 /**
+ * Reads the window around a plan date one service type per call, all at once. Each call is its
+ * own Worker invocation with its own six Planning Center connections, so the window takes about
+ * as long as its busiest service type rather than every roster in turn. Each service type's
+ * calls follow their continuation until its rosters are read; the batches merge in any order.
+ */
+export const readPlanWindowHistory = async <
+  Batch extends PlanWindowHistoryBatch,
+>(
+  serviceTypeIds: readonly string[],
+  read: (
+    serviceTypeId: string,
+    continuation: PlanWindowContinuation | undefined
+  ) => Promise<Batch>
+): Promise<Batch[]> => {
+  const readServiceType = async (
+    serviceTypeId: string,
+    continuation?: PlanWindowContinuation
+  ): Promise<Batch[]> => {
+    const batch = await read(serviceTypeId, continuation);
+    const next = nextWindowContinuation(batch);
+    if (next === null) {
+      return [batch];
+    }
+    if (
+      continuation !== undefined &&
+      !windowHistoryAdvanced(continuation, batch)
+    ) {
+      throw new Error("Plan window history made no progress.");
+    }
+    return [batch, ...(await readServiceType(serviceTypeId, next))];
+  };
+  const calls = await Promise.all(
+    serviceTypeIds.map(
+      async (serviceTypeId) => await readServiceType(serviceTypeId)
+    )
+  );
+  return calls.flat();
+};
+
+/**
  * Whether a candidate details call finished someone or moved its continuation: read another
  * blockout, date, or plan-time page. A call that did neither would repeat forever.
  */

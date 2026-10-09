@@ -1,5 +1,5 @@
 import { speculativeQuery } from "@pcobooster/client/query";
-import type { SongLibraryEntry } from "@pcobooster/contracts/songs";
+import type { SongLibraryEntry } from "@pcobooster/contracts/http/songs";
 import { formatCalendarDateLabel } from "@pcobooster/planning-center-models/calendar";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";

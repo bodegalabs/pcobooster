@@ -1,7 +1,7 @@
 import {
-  personPlanLimitsSchema,
-  personTeamPositionAssignmentSchema,
-  rosterPersonSchema,
+  decodePersonPlanLimits,
+  decodePersonTeamPositionAssignment,
+  decodeRosterPerson,
 } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import { blockoutCoversPlanSortInstant } from "@pcobooster/planning-center-models/calendar-day";
@@ -16,6 +16,7 @@ import type {
   PCResource,
   RawPerson,
 } from "@pcobooster/planning-center-models/types";
+import { Option } from "effect";
 
 export const getAssignedPeopleFromAssignments = (
   assignmentsData: PCResource[],
@@ -34,13 +35,13 @@ export const getAssignedPeopleFromAssignments = (
     }
 
     const resource = findIncluded(assignmentsIncluded, "Person", personId);
-    const parsed = rosterPersonSchema.safeParse(resource);
-    if (!parsed.success) {
+    const parsed = decodeRosterPerson(resource);
+    if (Option.isNone(parsed)) {
       continue;
     }
 
     seenPersonIds.add(personId);
-    people.push(parsed.data);
+    people.push(parsed.value);
   }
 
   return people;
@@ -57,25 +58,30 @@ export const getSchedulingPreferencesByPerson = (
 ): Map<string, SchedulingPreferences> => {
   const preferences = new Map<string, SchedulingPreferences>();
   for (const resource of assignmentsData) {
-    const parsed = personTeamPositionAssignmentSchema.safeParse(resource);
-    const personId = parsed.data?.relationships.person.data?.id;
+    const parsed = Option.getOrUndefined(
+      decodePersonTeamPositionAssignment(resource)
+    );
+    const personId = parsed?.relationships.person.data?.id;
     if (
-      !parsed.success ||
+      parsed === undefined ||
       !isNonEmptyString(personId) ||
       preferences.has(personId)
     ) {
       continue;
     }
-    const { attributes, relationships } = parsed.data;
-    const limits = personPlanLimitsSchema.safeParse(
-      findIncluded(assignmentsIncluded, "Person", personId)
-    ).data?.attributes;
+    const { attributes, relationships } = parsed;
+    const limits = Option.getOrUndefined(
+      decodePersonPlanLimits(
+        findIncluded(assignmentsIncluded, "Person", personId)
+      )
+    )?.attributes;
     const schedulePreference = attributes.schedule_preference;
     preferences.set(personId, {
       schedulePreference,
       preferredWeeks:
         schedulePreference === "Choose Weeks" ? attributes.preferred_weeks : [],
-      timePreferenceOptionIds: relationships.time_preference_options,
+      timePreferenceOptionIds:
+        relationships.time_preference_options?.data?.map(({ id }) => id) ?? [],
       maxPlansPerDay: limits?.preferred_max_plans_per_day ?? null,
       maxPlansPerMonth: limits?.preferred_max_plans_per_month ?? null,
     });

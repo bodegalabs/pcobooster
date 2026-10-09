@@ -1,7 +1,7 @@
 import { moduleLog } from "@pcobooster/api/logging";
 import {
-  planPersonResourceSchema,
-  planTimeResourceSchema,
+  decodePlanPersonResource,
+  decodePlanTimeResource,
 } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import { PLANNING_CENTER_PAGE_SIZE } from "@pcobooster/api/planning-center/core-client";
 import type {
@@ -48,7 +48,7 @@ import type {
   RawPlanPerson,
   RawPlanTime,
 } from "@pcobooster/planning-center-models/types";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 
 const log = moduleLog("planning-center/plan-window-history");
 
@@ -99,6 +99,8 @@ export interface PlanWindowHistoryBatch extends PlanWindowRosters {
 export interface PlanWindowHistoryInput {
   /** The selected plan's sort instant; the window spans 28 days either side. */
   readonly date: string;
+  /** Reads only this service type's plans; omit to read every active service type. */
+  readonly serviceTypeId?: string;
   /** Where the previous call stopped; omit on the first call. */
   readonly continuation?: {
     readonly plans: readonly WindowPlanRef[];
@@ -157,13 +159,13 @@ const parseIncludedPlanTimes = (
   included: readonly PCResource[]
 ): IncludedPlanTime[] =>
   included.flatMap((resource) => {
-    const parsed = planTimeResourceSchema.safeParse(resource);
-    if (!parsed.success) {
+    const parsed = decodePlanTimeResource(resource);
+    if (Option.isNone(parsed)) {
       return [];
     }
     const planRel = resource.relationships?.plan?.data;
     const planId = Array.isArray(planRel) ? planRel[0]?.id : planRel?.id;
-    return [{ time: parsed.data, planId }];
+    return [{ time: parsed.value, planId }];
   });
 
 const getIncludedPlanTimesForPlan = (
@@ -289,8 +291,8 @@ const loadWindowRoster = (
         planTimes,
         included: merged,
         members: data.flatMap((resource) => {
-          const parsed = planPersonResourceSchema.safeParse(resource);
-          return parsed.success ? [parsed.data] : [];
+          const parsed = decodePlanPersonResource(resource);
+          return Option.isSome(parsed) ? [parsed.value] : [];
         }),
       };
     })
@@ -780,8 +782,9 @@ const toPlanRef = (entry: WindowPlan | WindowPlanRef): WindowPlanRef =>
 
 /**
  * History for the candidate list from the rosters of every plan within 28 days either side of
- * the selected plan, across active service types, plus plans up to a week after the window that
- * hold a rehearsal inside it. Each call plans against `PROGRESSIVE_REQUEST_BUDGET` Planning
+ * the selected plan, across active service types (or only `serviceTypeId`, which clients send
+ * so each service type's call runs in parallel with the others), plus plans up to a week after
+ * the window that hold a rehearsal inside it. Each call plans against `PROGRESSIVE_REQUEST_BUDGET` Planning
  * Center requests, counting what was really sent; the first roster may go past it, up to the
  * procedure cap, so every call reads one.
  *
@@ -802,7 +805,7 @@ const toPlanRef = (entry: WindowPlan | WindowPlanRef): WindowPlanRef =>
  * by `sort_date` only, saying nothing of ties). Failed reads fail the call.
  */
 export const getPlanWindowHistory = (
-  { date, continuation }: PlanWindowHistoryInput,
+  { date, serviceTypeId, continuation }: PlanWindowHistoryInput,
   { catalog, people, plans, resolveTimeZone }: PlanWindowHistoryDependencies
 ): Effect.Effect<PlanWindowHistoryBatch, PlanningCenterError> =>
   Effect.gen(function* readPlanWindowHistory() {
@@ -825,11 +828,13 @@ export const getPlanWindowHistory = (
       orgTimeZone,
     };
     const activeServiceTypes = (yield* catalog.getServiceTypesCached()).filter(
-      (resource) => !isNonEmptyString(resource.attributes.archived_at)
+      (resource) =>
+        !isNonEmptyString(resource.attributes.archived_at) &&
+        (serviceTypeId === undefined || resource.id === serviceTypeId)
     );
     const activeIds = new Set(activeServiceTypes.map(({ id }) => id));
-    const isActive = ({ serviceTypeId }: { serviceTypeId: string }) =>
-      activeIds.has(serviceTypeId);
+    const isActive = (ref: { serviceTypeId: string }) =>
+      activeIds.has(ref.serviceTypeId);
     const pages = new RangePages(plans, days);
     const beforeRanges = yield* planningCenterRequestsSpent;
 

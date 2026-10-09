@@ -1,8 +1,9 @@
-import { chordChartLayoutSchema } from "@pcobooster/contracts/chord-charts";
-import type { ChordChartLayout } from "@pcobooster/contracts/chord-charts";
-import { z } from "zod";
+import { chordChartLayoutSchema } from "@pcobooster/contracts/http/chord-charts";
+import type { ChordChartLayout } from "@pcobooster/contracts/http/chord-charts";
+import { Schema } from "effect";
 
 import { readBrowserStorage, writeBrowserStorage } from "@/lib/browser-storage";
+import { storedJson } from "@/lib/stored-json";
 
 /** What the editor changes; saving writes it to the arrangement. */
 export interface ChordChartDraft {
@@ -11,25 +12,27 @@ export interface ChordChartDraft {
   readonly layout: ChordChartLayout;
 }
 
-const draftSchema = z.object({
-  chart: z.string(),
-  key: z.string().nullable(),
+const draftSchema = Schema.Struct({
+  chart: Schema.String,
+  key: Schema.NullOr(Schema.String),
   layout: chordChartLayoutSchema,
 });
 
 /** What this browser keeps of one arrangement's editing between visits. */
-const storedSessionSchema = z.object({
+const storedSessionSchema = Schema.Struct({
   /** When this browser last wrote it, in epoch milliseconds. */
-  savedAt: z.number(),
+  savedAt: Schema.Finite,
   /** The Planning Center version (`updated_at`) the edits build on. */
-  baseUpdatedAt: z.string().nullable(),
+  baseUpdatedAt: Schema.NullOr(Schema.String),
   /** Edits not yet saved to Planning Center, or null when everything is saved. */
-  draft: draftSchema.nullable(),
+  draft: Schema.NullOr(draftSchema),
   /** The chart as it was when editing began, so Revert all changes survives a reload. */
   opening: draftSchema,
 });
 
-export type StoredChordChartSession = z.output<typeof storedSessionSchema>;
+export type StoredChordChartSession = typeof storedSessionSchema.Type;
+
+const storedSession = storedJson(storedSessionSchema);
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** A draft left alone this long is dropped rather than resurfacing over newer work. */
@@ -53,20 +56,11 @@ export const parseStoredChordChartSession = (
   raw: string | null,
   now: number
 ): StoredChordChartSession | null => {
-  if (raw === null) {
+  const parsed = storedSession.parse(raw);
+  if (parsed === undefined) {
     return null;
   }
-  try {
-    const parsed = storedSessionSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success) {
-      return null;
-    }
-    return now - parsed.data.savedAt > CHORD_CHART_DRAFT_LIFETIME_MS
-      ? null
-      : parsed.data;
-  } catch {
-    return null;
-  }
+  return now - parsed.savedAt > CHORD_CHART_DRAFT_LIFETIME_MS ? null : parsed;
 };
 
 /** Reads without writing, so it is safe while rendering. */
@@ -85,7 +79,7 @@ export const writeChordChartSession = (
 ): void => {
   writeBrowserStorage(
     storageKey(arrangementId),
-    session === null ? null : JSON.stringify(session)
+    session === null ? null : (storedSession.stringify(session) ?? null)
   );
 };
 

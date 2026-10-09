@@ -1,5 +1,5 @@
 import { callForQuery } from "@pcobooster/client/query";
-import type { SongsSuggestions } from "@pcobooster/contracts/songs";
+import type { SongsSuggestions } from "@pcobooster/contracts/http/songs";
 import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";

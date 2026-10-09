@@ -30,3 +30,6 @@ export const planPeople = planningCenterGroup(
     }
   )
 );
+
+export type PlanPeopleUpdateTimesInput =
+  typeof planPeopleUpdateTimesInputSchema.Type;

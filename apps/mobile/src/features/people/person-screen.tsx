@@ -3,7 +3,6 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import {
-  ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -281,14 +280,12 @@ const Month = ({
     <Card
       accessory={
         <View style={styles.monthButtons}>
-          {model.isLoadingMonth ? (
-            <ActivityIndicator accessibilityLabel="Loading month" />
-          ) : null}
           <PillButton
             kind="outline"
             onPress={() => {
               model.showPreviousMonth();
             }}
+            iconOnly
             size="small"
             symbol="chevronLeft"
             testID={peopleTestIds.monthPrevious}
@@ -299,6 +296,7 @@ const Month = ({
             onPress={() => {
               model.showNextMonth();
             }}
+            iconOnly
             size="small"
             symbol="chevronRight"
             testID={peopleTestIds.monthNext}
@@ -561,6 +559,17 @@ const Loaded = ({
 const Body = ({ model }: { model: PersonDetailModel }) => {
   if (model.detail !== undefined) {
     return <Loaded detail={model.detail} model={model} />;
+  }
+  if (model.isNotInServices) {
+    return (
+      <View style={styles.empty}>
+        <EmptyState
+          artwork="people"
+          description="They’re in Planning Center People but not on a Services team or schedule yet, so there’s no serving history to show."
+          title="Not in Services yet"
+        />
+      </View>
+    );
   }
   if (model.detailErrorMessage !== null) {
     return (

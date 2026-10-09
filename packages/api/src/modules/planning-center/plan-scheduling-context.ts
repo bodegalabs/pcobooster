@@ -1,4 +1,4 @@
-import { rosterPersonSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
+import { decodeRosterPerson } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
@@ -13,8 +13,7 @@ import type {
   RawPerson,
   RawPlanPerson,
 } from "@pcobooster/planning-center-models/types";
-import { Effect } from "effect";
-import { z } from "zod";
+import { Effect, Option, Schema, SchemaGetter } from "effect";
 
 export type PlanRosterStatus = "confirmed" | "pending" | "declined";
 
@@ -107,32 +106,38 @@ const normalizeDeclineReason = (raw: JsonValue | undefined): string | null => {
   return t.length > 0 ? t : null;
 };
 
-const optionalTrimmedString = z
-  .string()
-  .nullish()
-  .transform((value) => {
-    const trimmed = value?.trim() ?? "";
-    return trimmed === "" ? null : trimmed;
-  });
+/** Text, trimmed; missing, `null`, and blank all read as `null`. */
+const optionalTrimmedString = Schema.NullishOr(Schema.String).pipe(
+  Schema.decodeTo(Schema.NullOr(Schema.String), {
+    decode: SchemaGetter.transform((value: string | null | undefined) => {
+      const trimmed = value?.trim() ?? "";
+      return trimmed === "" ? null : trimmed;
+    }),
+    encode: SchemaGetter.transform((value: string | null) => value),
+  }),
+  Schema.withDecodingDefault(Effect.succeed(null))
+);
 
-const planPersonNotificationAttributesSchema = z.object({
-  prepare_notification: z.boolean(),
-  notification_sent_at: optionalTrimmedString,
-  notification_sender_name: optionalTrimmedString,
-});
+const decodePlanPersonNotificationAttributes = Schema.decodeUnknownOption(
+  Schema.Struct({
+    prepare_notification: Schema.Boolean,
+    notification_sent_at: optionalTrimmedString,
+    notification_sender_name: optionalTrimmedString,
+  })
+);
 
 /** Reads the scheduling email fields; a missing prepared flag is unknown, never "not prepared". */
 export const readPlanPersonNotification = (
   attributes: Record<string, JsonValue | undefined>
 ): PlanPersonNotification | null => {
-  const parsed = planPersonNotificationAttributesSchema.safeParse(attributes);
-  if (!parsed.success) {
+  const parsed = decodePlanPersonNotificationAttributes(attributes);
+  if (Option.isNone(parsed)) {
     return null;
   }
   return {
-    prepared: parsed.data.prepare_notification,
-    sentAt: parsed.data.notification_sent_at,
-    senderName: parsed.data.notification_sender_name,
+    prepared: parsed.value.prepare_notification,
+    sentAt: parsed.value.notification_sent_at,
+    senderName: parsed.value.notification_sender_name,
   };
 };
 
@@ -156,9 +161,9 @@ const classifyRosterStatus = (
 const buildRawPeopleMap = (included: PCResource[]): Map<string, RawPerson> => {
   const result = new Map<string, RawPerson>();
   for (const resource of included) {
-    const parsed = rosterPersonSchema.safeParse(resource);
-    if (parsed.success) {
-      result.set(parsed.data.id, parsed.data);
+    const parsed = decodeRosterPerson(resource);
+    if (Option.isSome(parsed)) {
+      result.set(parsed.value.id, parsed.value);
     }
   }
   return result;

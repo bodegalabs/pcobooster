@@ -149,6 +149,9 @@ describe("PlanningCenterPlansService.getPlanRangePage", () => {
           filter: "after",
           after: "2026-05-01",
           include: "plan_times",
+          "fields[Plan]":
+            "title,series_title,sort_date,created_at,planning_center_url,plan_people_count,series,service_type,plan_times",
+          "fields[PlanTime]": "name,starts_at,ends_at,time_type",
         },
         offset,
       ]),

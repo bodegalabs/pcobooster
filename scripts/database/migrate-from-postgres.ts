@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
 
+import { Option, Schema } from "effect";
 import { Client } from "pg";
-import { z } from "zod";
 
 import {
   migrationTables,
@@ -22,7 +22,9 @@ const { values } = parseArgs({
 });
 
 const readSnapshot = async (): Promise<TableSnapshot[]> => {
-  const connection = new URL(z.url().parse(process.env.DATABASE_URL));
+  const connection = new URL(
+    Schema.decodeUnknownSync(Schema.String)(process.env.DATABASE_URL)
+  );
   connection.searchParams.set("sslmode", "verify-full");
   const connectionString = connection.toString();
   const client = new Client({ connectionString });
@@ -50,7 +52,10 @@ const readSnapshot = async (): Promise<TableSnapshot[]> => {
         );
         return {
           table,
-          rows: normalizeSourceRows(table, sourceRowsSchema.parse(result.rows)),
+          rows: normalizeSourceRows(
+            table,
+            Schema.decodeUnknownSync(sourceRowsSchema)(result.rows)
+          ),
         };
       })
     );
@@ -61,25 +66,34 @@ const readSnapshot = async (): Promise<TableSnapshot[]> => {
   }
 };
 
-const resultSchema = z.object({
-  success: z.boolean(),
-  result: z.array(
-    z.object({
-      success: z.boolean(),
-      results: z.array(
-        z.record(z.string(), z.union([z.string(), z.number(), z.null()]))
-      ),
-    })
-  ),
-});
+const decodeResult = Schema.decodeUnknownOption(
+  Schema.Struct({
+    success: Schema.Boolean,
+    result: Schema.Array(
+      Schema.Struct({
+        success: Schema.Boolean,
+        results: Schema.Array(
+          Schema.Record(
+            Schema.String,
+            Schema.Union([Schema.String, Schema.Finite, Schema.Null])
+          )
+        ),
+      })
+    ),
+  })
+);
 
 const remoteTarget = (databaseId: string): MigrationTarget => {
-  const accountId = z
-    .string()
-    .regex(/^[a-f\d]{32}$/u)
-    .parse(process.env.CLOUDFLARE_ACCOUNT_ID);
-  const token = z.string().min(1).parse(process.env.CLOUDFLARE_API_TOKEN);
-  const endpoint = `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${z.uuid().parse(databaseId)}/query`;
+  const accountId = Schema.decodeUnknownSync(
+    Schema.String.check(Schema.isPattern(/^[a-f\d]{32}$/u))
+  )(process.env.CLOUDFLARE_ACCOUNT_ID);
+  const token = Schema.decodeUnknownSync(Schema.NonEmptyString)(
+    process.env.CLOUDFLARE_API_TOKEN
+  );
+  const id = Schema.decodeUnknownSync(Schema.String.check(Schema.isUUID()))(
+    databaseId
+  );
+  const endpoint = `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${id}/query`;
   return {
     query: async (sql, params = []) => {
       const response = await fetch(endpoint, {
@@ -96,15 +110,15 @@ const remoteTarget = (databaseId: string): MigrationTarget => {
           `D1 request failed with HTTP ${response.status}; source data was not changed`
         );
       }
-      const result = resultSchema.safeParse(await response.json());
+      const result = Option.getOrUndefined(decodeResult(await response.json()));
       if (
+        result === undefined ||
         !result.success ||
-        !result.data.success ||
-        result.data.result.some((item) => !item.success)
+        result.result.some((item) => !item.success)
       ) {
         throw new Error("D1 returned an unsuccessful query result");
       }
-      return result.data.result.flatMap((item) => item.results);
+      return result.result.flatMap((item) => item.results);
     },
   };
 };

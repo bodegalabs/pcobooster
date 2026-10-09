@@ -1,12 +1,12 @@
+import { createHash, randomBytes } from "node:crypto";
+
 /**
  * Test helpers for native sign-in: a stubbed Planning Center and an app plus browser that run
  * the flow against any handler (Better Auth's, or the API Worker's router). Shared by
  * `native-sign-in.test.ts` and `apps/server/src/native-sign-in.test.ts`; never imported by
  * runtime code.
  */
-import { createHash, randomBytes } from "node:crypto";
-
-import { z } from "zod";
+import { Schema } from "effect";
 
 export interface PlanningCenterProfile {
   readonly sub: string;
@@ -238,18 +238,22 @@ export const exchangeNativeCode = async (
     })
   );
 
-export const exchangeResultSchema = z.strictObject({
-  token: z.string(),
-  user: z.strictObject({
-    id: z.string(),
-    name: z.string(),
-    email: z.string(),
-    image: z.string().nullable(),
+const exchangeResultSchema = Schema.Struct({
+  token: Schema.String,
+  user: Schema.Struct({
+    id: Schema.String,
+    name: Schema.String,
+    email: Schema.String,
+    image: Schema.NullOr(Schema.String),
   }),
-  selectedAccountId: z.string().nullable(),
+  selectedAccountId: Schema.NullOr(Schema.String),
+});
+/** The exchange's exact body: a field it should not send fails the decode. */
+const decodeExchangeResult = Schema.decodeUnknownSync(exchangeResultSchema, {
+  onExcessProperty: "error",
 });
 
-export type NativeSignInExchange = z.infer<typeof exchangeResultSchema>;
+export type NativeSignInExchange = typeof exchangeResultSchema.Type;
 
 /** Exchanges a run's code with the run's own verifier, as the app would. */
 export const exchangeRun = async (
@@ -264,8 +268,7 @@ export const exchangeRun = async (
 
 export const parseExchange = async (
   response: Response
-): Promise<NativeSignInExchange> =>
-  exchangeResultSchema.parse(await response.json());
+): Promise<NativeSignInExchange> => decodeExchangeResult(await response.json());
 
 /** Runs the whole native flow and returns the exchange result. */
 export const signInNatively = async (

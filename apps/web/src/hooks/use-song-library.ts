@@ -1,5 +1,5 @@
 import { callForQuery } from "@pcobooster/client/query";
-import type { SongLibrary } from "@pcobooster/contracts/songs";
+import type { SongLibrary } from "@pcobooster/contracts/http/songs";
 import { useQuery } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
 

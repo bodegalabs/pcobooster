@@ -7,7 +7,7 @@ import {
   CHORD_CHART_ORIENTATIONS,
   CHORD_CHART_PAGE_SIZES,
 } from "@pcobooster/contracts/chord-charts";
-import type { ChordChartLayout } from "@pcobooster/contracts/chord-charts";
+import type { ChordChartLayout } from "@pcobooster/contracts/http/chord-charts";
 import { Settings2 } from "lucide-react";
 import { useId } from "react";
 

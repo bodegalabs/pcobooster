@@ -3,7 +3,7 @@ import { once } from "node:events";
 import path from "node:path";
 
 import { devOrigin, devPorts } from "@pcobooster/config/dev-ports";
-import { z } from "zod";
+import { Schema } from "effect";
 
 import {
   findBusyPorts,
@@ -58,9 +58,9 @@ const stop = () => {
 process.on("SIGINT", stop);
 process.on("SIGTERM", stop);
 const exits = processes.map(async (child) => {
-  const [code] = z
-    .tuple([z.number().nullable(), z.string().nullable()])
-    .parse(await once(child, "exit"));
+  const [code] = Schema.decodeUnknownSync(
+    Schema.Tuple([Schema.NullOr(Schema.Number), Schema.NullOr(Schema.String)])
+  )(await once(child, "exit"));
   return code ?? 0;
 });
 try {

@@ -1,5 +1,5 @@
+import { Option, Schema } from "effect";
 import type { CaptureResult } from "posthog-js";
-import { z } from "zod";
 
 const PLAN_PATH =
   /^\/services\/[^/]+\/plans\/[^/]+(?:\/(?<view>assign|lineup|plan|times))?\/?$/u;
@@ -122,36 +122,35 @@ export type AnalyticsProperty =
   | (typeof safeAnalyticsProperties)[number]
   | (typeof pathAnalyticsProperties)[number];
 
-const propertyBagSchema = z.record(z.string(), z.unknown());
-const stringPropertySchema = z.string();
-const scalarPropertySchema = z.union([z.string(), z.number(), z.boolean()]);
+const propertyBagSchema = Schema.Record(Schema.String, Schema.Unknown);
+const isPropertyBag = Schema.is(propertyBagSchema);
+const isStringProperty = Schema.is(Schema.String);
+const isScalarProperty = Schema.is(
+  Schema.Union([Schema.String, Schema.Finite, Schema.Boolean])
+);
 interface AnalyticsProperties {
   [key: string]: string | number | boolean | AnalyticsProperties;
 }
 
 /** A closed schema also covers SDK-generated person and session properties. */
 export const sanitizeAnalyticsProperties = (
-  properties: z.infer<typeof propertyBagSchema>
+  properties: typeof propertyBagSchema.Type
 ): AnalyticsProperties => {
-  const parsed = propertyBagSchema.safeParse(properties);
   const result: AnalyticsProperties = {};
-  if (!parsed.success) {
+  if (!isPropertyBag(properties)) {
     return result;
   }
-  for (const [key, value] of Object.entries(parsed.data)) {
-    const stringValue = stringPropertySchema.safeParse(value);
-    const scalarValue = scalarPropertySchema.safeParse(value);
-    if (URL_PROPERTIES.has(key) && stringValue.success) {
-      result[key] = analyticsUrl(stringValue.data);
-    } else if (PATH_PROPERTIES.has(key) && stringValue.success) {
-      result[key] = analyticsPath(stringValue.data);
+  for (const [key, value] of Object.entries(properties)) {
+    if (URL_PROPERTIES.has(key) && isStringProperty(value)) {
+      result[key] = analyticsUrl(value);
+    } else if (PATH_PROPERTIES.has(key) && isStringProperty(value)) {
+      result[key] = analyticsPath(value);
     } else if (key === "$set" || key === "$set_once") {
-      const nested = propertyBagSchema.safeParse(value);
-      if (nested.success) {
-        result[key] = sanitizeAnalyticsProperties(nested.data);
+      if (isPropertyBag(value)) {
+        result[key] = sanitizeAnalyticsProperties(value);
       }
-    } else if (SAFE_PROPERTIES.has(key) && scalarValue.success) {
-      result[key] = scalarValue.data;
+    } else if (SAFE_PROPERTIES.has(key) && isScalarProperty(value)) {
+      result[key] = value;
     }
   }
   return result;
@@ -206,30 +205,35 @@ export const canReportException = (
   authenticated && /^\/(?:services|people|songs)(?:\/|$)/u.test(pathname);
 
 const EXCEPTION_MESSAGE_MAX_LENGTH = 500;
-const exceptionFrameSchema = z.object({
-  platform: z.string().optional(),
-  filename: z.string().optional(),
-  function: z.string().optional(),
-  lineno: z.number().optional(),
-  colno: z.number().optional(),
-  in_app: z.boolean().optional(),
+const exceptionFrameSchema = Schema.Struct({
+  platform: Schema.optional(Schema.String),
+  filename: Schema.optional(Schema.String),
+  function: Schema.optional(Schema.String),
+  lineno: Schema.optional(Schema.Finite),
+  colno: Schema.optional(Schema.Finite),
+  in_app: Schema.optional(Schema.Boolean),
 });
-const exceptionListSchema = z.array(
-  z.object({
-    type: z.string().optional(),
-    value: z.string().optional(),
-    mechanism: z
-      .object({
-        handled: z.boolean().optional(),
-        synthetic: z.boolean().optional(),
-        type: z.string().optional(),
+const exceptionListSchema = Schema.Array(
+  Schema.Struct({
+    type: Schema.optional(Schema.String),
+    value: Schema.optional(Schema.String),
+    mechanism: Schema.optional(
+      Schema.Struct({
+        handled: Schema.optional(Schema.Boolean),
+        synthetic: Schema.optional(Schema.Boolean),
+        type: Schema.optional(Schema.String),
       })
-      .optional(),
-    stacktrace: z
-      .object({ type: z.string(), frames: z.array(exceptionFrameSchema) })
-      .optional(),
+    ),
+    stacktrace: Schema.optional(
+      Schema.Struct({
+        type: Schema.String,
+        frames: Schema.Array(exceptionFrameSchema),
+      })
+    ),
   })
 );
+const isFiniteNumber = Schema.is(Schema.Finite);
+const decodeExceptionList = Schema.decodeUnknownOption(exceptionListSchema);
 
 /** Bundled script URLs stay intact so stack frames resolve; other URLs are scrubbed. */
 const exceptionFrameFilename = (filename: string): string => {
@@ -250,12 +254,12 @@ const exceptionFrameFilename = (filename: string): string => {
  */
 export const sanitizeExceptionList = (
   properties: CaptureResult["properties"]
-): z.infer<typeof exceptionListSchema> => {
-  const parsed = exceptionListSchema.safeParse(properties.$exception_list);
-  if (!parsed.success) {
+): typeof exceptionListSchema.Type => {
+  const parsed = decodeExceptionList(properties.$exception_list);
+  if (Option.isNone(parsed)) {
     return [];
   }
-  return parsed.data.map((exception) => ({
+  return parsed.value.map((exception) => ({
     ...exception,
     value: exception.value?.slice(0, EXCEPTION_MESSAGE_MAX_LENGTH),
     stacktrace:
@@ -283,12 +287,11 @@ export const prepareAnalyticsEvent = (
     if (!canRecordSession(pathname, authenticated)) {
       return null;
     }
-    const snapshots = z
-      .array(z.unknown())
-      .safeParse(event.properties.$snapshot_data);
-    if (!snapshots.success) {
+    const snapshots: unknown = event.properties.$snapshot_data;
+    if (!Array.isArray(snapshots)) {
       return null;
     }
+    const bytes: unknown = event.properties.$snapshot_bytes;
     return {
       uuid: event.uuid,
       event: event.event,
@@ -296,9 +299,8 @@ export const prepareAnalyticsEvent = (
       properties: {
         ...sanitizeAnalyticsProperties(event.properties),
         // rrweb masks DOM content before producing these replay frames.
-        $snapshot_data: snapshots.data,
-        $snapshot_bytes: z.number().safeParse(event.properties.$snapshot_bytes)
-          .data,
+        $snapshot_data: snapshots,
+        $snapshot_bytes: isFiniteNumber(bytes) ? bytes : undefined,
       },
     };
   }

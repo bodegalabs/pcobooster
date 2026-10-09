@@ -3,7 +3,7 @@ import type {
   PeopleDashboardPerson,
   PeopleDashboardPersonDetail,
   PeopleDashboardRoster,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {

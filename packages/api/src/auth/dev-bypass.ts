@@ -9,10 +9,11 @@
  * It runs only in the API Worker; browser apps never import `packages/api`.
  */
 import { boundaryLog } from "@pcobooster/api/logging";
+import { orFallback } from "@pcobooster/api/planning-center/attribute-schemas";
 import type { PlanningCenterPersonalAccessToken } from "@pcobooster/api/planning-center/core-client";
 import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user-agent";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
-import { z } from "zod";
+import { Option, Schema } from "effect";
 
 const DEV_BYPASS_USER_ID = "dev-bypass-user";
 const DEV_BYPASS_ACCOUNT_ID = "dev-bypass-account";
@@ -70,13 +71,19 @@ const getBasicAuthHeader = (
   return `Basic ${credentials}`;
 };
 
-const optionalText = z.preprocess(
-  (value) =>
-    isNonEmptyString(value) && value.trim().length > 0 ? value : undefined,
-  z.string().optional()
+/** Text that is not blank; anything else reads as `null`. */
+const optionalText = orFallback(
+  Schema.NullOr(
+    Schema.String.check(
+      Schema.makeFilter((text: string) => text.trim().length > 0, {
+        expected: "text that is not blank",
+      })
+    )
+  ),
+  null
 );
 
-const personAttributesSchema = z.object({
+const personAttributesSchema = Schema.Struct({
   first_name: optionalText,
   given_name: optionalText,
   last_name: optionalText,
@@ -87,32 +94,35 @@ const personAttributesSchema = z.object({
   photo_thumbnail_url: optionalText,
 });
 
-const meResponseSchema = z.object({
-  data: z.object({ id: z.string(), attributes: personAttributesSchema }),
-  included: z
-    .array(
-      z.object({
-        type: z.string(),
-        attributes: z.object({ address: optionalText }),
+const meResponseSchema = Schema.Struct({
+  data: Schema.Struct({
+    id: Schema.String,
+    attributes: personAttributesSchema,
+  }),
+  included: Schema.optional(
+    Schema.Array(
+      Schema.Struct({
+        type: Schema.String,
+        attributes: Schema.Struct({ address: optionalText }),
       })
     )
-    .optional(),
+  ),
 });
-const organizationResourceSchema = z.object({
-  id: z.string(),
-  attributes: z.object({ name: optionalText }),
+const organizationResourceSchema = Schema.Struct({
+  id: Schema.String,
+  attributes: Schema.Struct({ name: optionalText }),
 });
-const organizationResponseSchema = z.object({
-  data: z.union([
+const organizationResponseSchema = Schema.Struct({
+  data: Schema.Union([
     organizationResourceSchema,
-    z.array(organizationResourceSchema),
+    Schema.mutable(Schema.Array(organizationResourceSchema)),
   ]),
 });
 
-const fetchPcResource = async <T>(
+const fetchPcResource = async <T, Encoded>(
   token: PlanningCenterPersonalAccessToken | null,
   path: string,
-  schema: z.ZodType<T>
+  schema: Schema.Codec<T, Encoded>
 ): Promise<T | null> => {
   const authorization = getBasicAuthHeader(token);
   if (authorization === null) {
@@ -130,8 +140,9 @@ const fetchPcResource = async <T>(
     if (!response.ok) {
       return null;
     }
-    const result = schema.safeParse(await response.json());
-    return result.success ? result.data : null;
+    return Option.getOrNull(
+      Schema.decodeUnknownOption(schema)(await response.json())
+    );
   } catch (error) {
     log.warn(
       "Failed to hydrate dev identity",
@@ -143,7 +154,7 @@ const fetchPcResource = async <T>(
 };
 
 const getPersonDisplayName = (
-  attributes: z.infer<typeof personAttributesSchema> | undefined
+  attributes: typeof personAttributesSchema.Type | undefined
 ): string => {
   const first = attributes?.first_name ?? attributes?.given_name;
   const last = attributes?.last_name ?? attributes?.family_name;
@@ -153,7 +164,7 @@ const getPersonDisplayName = (
     : composed || "Dev User";
 };
 
-const getPersonIdentity = (me: z.infer<typeof meResponseSchema> | null) => {
+const getPersonIdentity = (me: typeof meResponseSchema.Type | null) => {
   const attributes = me?.data.attributes;
   return {
     name: getPersonDisplayName(attributes),

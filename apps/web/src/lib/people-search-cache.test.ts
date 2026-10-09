@@ -1,4 +1,4 @@
-import type { PeopleSearchResult } from "@pcobooster/contracts/people-schemas";
+import type { PeopleSearchResult } from "@pcobooster/contracts/http/people-schemas";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {

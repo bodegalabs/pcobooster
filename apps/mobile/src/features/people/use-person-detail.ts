@@ -1,3 +1,4 @@
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
 import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
@@ -96,7 +97,8 @@ export const usePersonDetail = (
     detail,
     /** A stand-in (the list's copy, or the previous month) shows while this month loads. */
     isShowingPlaceholder: detailQuery.isPlaceholderData,
-    isLoadingMonth: detailQuery.isPlaceholderData || detailQuery.isFetching,
+    /** Planning Center Services has no record of them: they are in People only. */
+    isNotInServices: detailQuery.error instanceof NotFound,
     detailErrorMessage:
       detailQuery.error === null ? null : failureMessage(detailQuery.error),
     retryDetail: async () => {

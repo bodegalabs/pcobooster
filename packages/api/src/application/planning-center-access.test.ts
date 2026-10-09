@@ -3,6 +3,7 @@ import {
   RequestContext,
 } from "@pcobooster/api/application/context";
 import {
+  explainMissingServicesPerson,
   explainPlanningCenterDenial,
   planningCenterFault,
   resolvePlanningCenterAccess,
@@ -29,6 +30,7 @@ import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { DEMO_SESSION_COOKIE } from "@pcobooster/contracts/demo";
 import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { InvalidInput } from "@pcobooster/contracts/faults/invalid-input";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import { Cause, Effect, Exit } from "effect";
 import * as HttpClient from "effect/unstable/http/HttpClient";
@@ -73,6 +75,18 @@ const resolveFor = async (accountId: string) => {
     )
   );
 };
+
+/** The fault a Planning Center failure with `status` becomes when read for a Services person. */
+const missingPersonFault = async (status: number) =>
+  await Effect.runPromise(
+    Effect.flip(
+      withPlanningCenterFaults(
+        explainMissingServicesPerson(
+          Effect.fail(new PlanningCenterApiError({ message: "x", status }))
+        )
+      )
+    )
+  );
 
 describe("PlanningCenterAccess", () => {
   afterEach(() => {
@@ -349,6 +363,19 @@ describe("PlanningCenterAccess", () => {
       message: "You can't edit songs.",
     });
     expect(failed).toMatchObject({ _tag: "ExternalServiceFailure" });
+  });
+
+  it("reports a person Services has no record of as not found, and other failures as before", async () => {
+    const missing = await missingPersonFault(404);
+    const failed = await missingPersonFault(500);
+
+    expect({ missing, failed: failed._tag }).toStrictEqual({
+      missing: new NotFound({
+        resource: "services-person",
+        message: "This person isn't in Planning Center Services yet.",
+      }),
+      failed: "ExternalServiceFailure",
+    });
   });
 
   it("explains any Planning Center permission denial as forbidden", () => {

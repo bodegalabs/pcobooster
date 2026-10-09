@@ -1,34 +1,42 @@
+import { orFallback } from "@pcobooster/api/planning-center/attribute-schemas";
 import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user-agent";
-import { isString } from "@pcobooster/planning-center-models/json";
-import { z } from "zod";
+import { planningCenterIdentitySchema } from "@pcobooster/contracts/http/identity";
+import { Option, Schema, SchemaGetter } from "effect";
 
 const PLANNING_CENTER_USERINFO_URL =
   "https://api.planningcenteronline.com/oauth/userinfo";
 
-const identityText = z.preprocess(
-  (value) => (isString(value) ? value : null),
-  z.string().nullable()
-);
+/** A userinfo field; anything but text (missing included) reads as `null`. */
+const identityText = orFallback(Schema.NullOr(Schema.String), null);
 
-export const planningCenterIdentitySchema = z
-  .object({
-    sub: identityText,
-    name: identityText,
-    email: identityText,
-    organization_id: identityText,
-    organization_name: identityText,
+/** Planning Center's userinfo, read into the identity the app stores. */
+const identityFromUserInfo = Schema.Struct({
+  sub: identityText,
+  name: identityText,
+  email: identityText,
+  organization_id: identityText,
+  organization_name: identityText,
+}).pipe(
+  Schema.decodeTo(planningCenterIdentitySchema, {
+    decode: SchemaGetter.transform((user): PlanningCenterIdentity => ({
+      sub: user.sub,
+      name: user.name,
+      email: user.email,
+      organizationId: user.organization_id,
+      organizationName: user.organization_name,
+    })),
+    encode: SchemaGetter.transform((identity: PlanningCenterIdentity) => ({
+      sub: identity.sub,
+      name: identity.name,
+      email: identity.email,
+      organization_id: identity.organizationId,
+      organization_name: identity.organizationName,
+    })),
   })
-  .transform((user) => ({
-    sub: user.sub,
-    name: user.name,
-    email: user.email,
-    organizationId: user.organization_id,
-    organizationName: user.organization_name,
-  }));
+);
+const decodeUserInfo = Schema.decodeUnknownOption(identityFromUserInfo);
 
-export type PlanningCenterIdentity = z.infer<
-  typeof planningCenterIdentitySchema
->;
+export type PlanningCenterIdentity = typeof planningCenterIdentitySchema.Type;
 
 const fetchUserInfo = async (accessToken: string): Promise<Response> =>
   await fetch(PLANNING_CENTER_USERINFO_URL, {
@@ -50,16 +58,21 @@ export const getPlanningCenterIdentityFromAccessToken = async (
   if (!response.ok) {
     return null;
   }
-  const result = planningCenterIdentitySchema.safeParse(await response.json());
-  return result.success ? result.data : null;
+  return Option.getOrNull(decodeUserInfo(await response.json()));
 };
 
-const rawUserInfoSchema = z.looseObject({
-  email: z.string().nullish(),
-  email_verified: z.boolean().nullish(),
-  picture: z.string().nullish(),
-  name: z.string().nullish(),
-});
+/** The profile fields Better Auth reads; every other field passes through. */
+const decodeRawUserInfo = Schema.decodeUnknownOption(
+  Schema.StructWithRest(
+    Schema.Struct({
+      email: Schema.optional(Schema.NullishOr(Schema.String)),
+      email_verified: Schema.optional(Schema.NullishOr(Schema.Boolean)),
+      picture: Schema.optional(Schema.NullishOr(Schema.String)),
+      name: Schema.optional(Schema.NullishOr(Schema.String)),
+    }),
+    [Schema.Record(Schema.String, Schema.Unknown)]
+  )
+);
 
 /**
  * Better Auth's own userinfo request cannot carry a `User-Agent`, so its
@@ -75,11 +88,11 @@ export const getPlanningCenterRawUserInfo = async (
   if (!response.ok) {
     return null;
   }
-  const result = rawUserInfoSchema.safeParse(await response.json());
-  if (!result.success) {
+  const result = decodeRawUserInfo(await response.json());
+  if (Option.isNone(result)) {
     return null;
   }
-  const { data } = result;
+  const data = result.value;
   return {
     ...data,
     email: data.email ?? undefined,

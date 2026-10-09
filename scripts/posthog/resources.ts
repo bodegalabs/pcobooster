@@ -11,8 +11,7 @@ import type { ProjectSettings } from "@pcobooster/analytics/reports";
 import { Resource } from "alchemy";
 import { isResolved } from "alchemy/Diff";
 import * as Provider from "alchemy/Provider";
-import { Effect, Layer } from "effect";
-import { z } from "zod";
+import { Effect, Layer, Schema } from "effect";
 
 import { PostHogApi, postHogApiLayer } from "./api";
 import type {
@@ -115,11 +114,14 @@ export const PostHogDashboardTiles = Resource<PostHogDashboardTilesResource>(
 
 type Lifecycle<A> = Effect.Effect<A, PostHogApiError>;
 
-const jsonRecord = z.record(z.string(), z.json());
+const decodeJsonRecord = Schema.decodeUnknownSync(
+  Schema.Record(Schema.String, Schema.Json)
+);
+const decodeJson = Schema.decodeUnknownSync(Schema.Json);
 
 /** Settings as the JSON record the API compares and patches. */
 const settingsRecord = (settings: ProjectSettings): JsonRecord =>
-  jsonRecord.parse(settings);
+  decodeJsonRecord(settings);
 
 const pickSettings = (
   declared: ProjectSettings,
@@ -266,7 +268,7 @@ const declaredInsight = (news: InsightProps): InsightFields => ({
   description: news.description,
   favorited: news.favorited,
   tags: news.tags,
-  query: z.json().parse(news.query),
+  query: decodeJson(news.query),
   dashboardIds: news.dashboardIds,
 });
 

@@ -1,8 +1,9 @@
 import {
   planSchema,
+  teamPositionGroupSchema,
   teamPositionsInputSchema,
-  teamPositionsOutputSchema,
-} from "@pcobooster/contracts/catalog";
+} from "@pcobooster/contracts/http/catalog";
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
 
 describe("catalog contracts", () => {
@@ -19,14 +20,19 @@ describe("catalog contracts", () => {
       sortDate,
     };
 
-    expect(planSchema.parse(plan)).toStrictEqual(plan);
-    expect(
-      planSchema.safeParse({ ...plan, sortDate: sortDate.toISOString() })
-        .success
-    ).toBeFalsy();
-    expect(
-      planSchema.safeParse({ ...plan, createdAt: new Date(Number.NaN) }).success
-    ).toBeFalsy();
+    expect(Schema.decodeUnknownSync(planSchema)(plan)).toStrictEqual(plan);
+    expect(() =>
+      Schema.decodeUnknownSync(planSchema)({
+        ...plan,
+        sortDate: sortDate.toISOString(),
+      })
+    ).toThrow(Schema.SchemaError);
+    expect(() =>
+      Schema.decodeUnknownSync(planSchema)({
+        ...plan,
+        createdAt: new Date(Number.NaN),
+      })
+    ).toThrow(Schema.SchemaError);
   });
 
   it("preserves filled people and scheduling relationships through output validation", () => {
@@ -70,27 +76,29 @@ describe("catalog contracts", () => {
       },
     ];
 
-    expect(teamPositionsOutputSchema.parse(groups)).toStrictEqual(groups);
+    expect(
+      Schema.decodeUnknownSync(Schema.Array(teamPositionGroupSchema))(groups)
+    ).toStrictEqual(groups);
   });
 
   it("requires plan-scoped camelCase identifiers and leaves absent series IDs absent", () => {
     expect(
-      teamPositionsInputSchema.parse({
+      Schema.decodeUnknownSync(teamPositionsInputSchema)({
         serviceTypeId: "service-1",
         planId: "plan-1",
       })
     ).toStrictEqual({ serviceTypeId: "service-1", planId: "plan-1" });
-    expect(
-      teamPositionsInputSchema.safeParse({
+    expect(() =>
+      Schema.decodeUnknownSync(teamPositionsInputSchema)({
         service_type_id: "service-1",
         plan_id: "plan-1",
-      }).success
-    ).toBeFalsy();
-    expect(
-      teamPositionsInputSchema.safeParse({
+      })
+    ).toThrow(Schema.SchemaError);
+    expect(() =>
+      Schema.decodeUnknownSync(teamPositionsInputSchema)({
         serviceTypeId: "service-1",
         planId: " ",
-      }).success
-    ).toBeFalsy();
+      })
+    ).toThrow(Schema.SchemaError);
   });
 });

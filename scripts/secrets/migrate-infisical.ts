@@ -2,18 +2,19 @@
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 
-import { z } from "zod";
+import { Option, Schema } from "effect";
 
 import { productionPostHogKey } from "../../packages/config/src/public-environment";
 import { readKeychain, writeKeychain } from "./keychain";
-import { selectScopeValues } from "./manifest";
+import { processExit, selectScopeValues } from "./manifest";
 import type { SecretScope } from "./manifest";
 
 const originalProject = "26e76e87-eac2-4e4b-bee3-8398474f669c";
 const previewProject = "586fd830-7861-4b84-a8a6-d05c9bf7a14a";
 const productionProject = "2eca20e1-20ac-4f06-a086-99ea5c590483";
-const exportedSecrets = z.array(
-  z.object({ key: z.string(), value: z.string() })
+// Decoded without throwing: a failure message would echo the exported secret values.
+const decodeExport = Schema.decodeUnknownOption(
+  Schema.Array(Schema.Struct({ key: Schema.String, value: Schema.String }))
 );
 const exportValues = async (
   project: string,
@@ -38,9 +39,7 @@ const exportValues = async (
     chunks.push(chunk);
   });
   child.stderr.resume();
-  const [code] = z
-    .tuple([z.number().nullable(), z.string().nullable()])
-    .parse(await once(child, "close"));
+  const [code] = processExit(await once(child, "close"));
   if (code !== 0) {
     throw new Error(
       `Infisical export failed for ${environment} ${secretPath}; check your Infisical login.`
@@ -52,11 +51,13 @@ const exportValues = async (
   } catch {
     throw new Error("Infisical returned invalid JSON");
   }
-  const result = exportedSecrets.safeParse(parsed);
-  if (!result.success) {
+  const exported = decodeExport(parsed);
+  if (Option.isNone(exported)) {
     throw new Error("Infisical returned an unexpected export format");
   }
-  return Object.fromEntries(result.data.map(({ key, value }) => [key, value]));
+  return Object.fromEntries(
+    exported.value.map(({ key, value }) => [key, value])
+  );
 };
 
 const imports: readonly {

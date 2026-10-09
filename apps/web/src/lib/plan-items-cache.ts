@@ -1,27 +1,18 @@
+import { planItemSchema } from "@pcobooster/contracts/http/plan-item-schemas";
+import { mutableArray } from "@pcobooster/contracts/http/schema";
 import type { PlanItem } from "@pcobooster/planning-center-models/types";
-import { z } from "zod";
 
-import { serializedPlanItemSchema } from "@/lib/persistence-schemas";
-import { hydratePlanItems, serializePlanItems } from "@/lib/plan-item-client";
-import type { SerializedPlanItem } from "@/lib/plan-item-client";
+import { savedAnswer } from "@/lib/stored-json";
 
 const CACHE_VERSION = "v1";
 const CACHE_KEY_PREFIX = `pcobooster:plan-items:${CACHE_VERSION}:`;
-
-interface CachedPayload {
-  savedAt: number;
-  data: SerializedPlanItem[];
-}
 
 export interface PlanItemsCacheEntry {
   savedAt: number;
   data: PlanItem[];
 }
 
-const cachedPayloadSchema = z.object({
-  savedAt: z.number(),
-  data: z.array(serializedPlanItemSchema),
-});
+const cachedPayload = savedAnswer(mutableArray(planItemSchema));
 
 const buildCacheKey = (serviceTypeId: string, planId: string): string =>
   `${CACHE_KEY_PREFIX}${encodeURIComponent(serviceTypeId)}:${encodeURIComponent(planId)}`;
@@ -42,18 +33,9 @@ export const readCachedPlanItems = (
   }
 
   try {
-    const raw = storage.getItem(buildCacheKey(serviceTypeId, planId));
-    if (raw === null) {
-      return undefined;
-    }
-    const parsed = cachedPayloadSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success) {
-      return undefined;
-    }
-    return {
-      savedAt: parsed.data.savedAt,
-      data: hydratePlanItems(parsed.data.data),
-    };
+    return cachedPayload.parse(
+      storage.getItem(buildCacheKey(serviceTypeId, planId))
+    );
   } catch {
     return undefined;
   }
@@ -76,13 +58,10 @@ export const writeCachedPlanItems = (
   }
 
   try {
-    storage.setItem(
-      buildCacheKey(serviceTypeId, planId),
-      JSON.stringify({
-        savedAt: Date.now(),
-        data: serializePlanItems(items),
-      } satisfies CachedPayload)
-    );
+    const saved = cachedPayload.stringify({ savedAt: Date.now(), data: items });
+    if (saved !== undefined) {
+      storage.setItem(buildCacheKey(serviceTypeId, planId), saved);
+    }
   } catch {
     // Ignore storage write failures (private mode/quota).
   }

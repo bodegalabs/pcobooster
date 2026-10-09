@@ -1,7 +1,7 @@
 import type {
   PlanWindowHistoryBatch,
   PositionCandidates,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import type { PositionCandidate } from "@pcobooster/planning-center-models/position-candidates";
 import type { TeamPositionGroup } from "@pcobooster/planning-center-models/types";
 import { QueryClient } from "@tanstack/react-query";

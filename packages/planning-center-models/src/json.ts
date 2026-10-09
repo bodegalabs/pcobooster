@@ -1,7 +1,11 @@
-import { z } from "zod";
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
 
-export const jsonValueSchema = z.json();
-export type JsonValue = z.infer<typeof jsonValueSchema>;
 export interface JsonObject {
   [key: string]: JsonValue;
 }

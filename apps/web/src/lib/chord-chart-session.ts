@@ -1,7 +1,7 @@
 import type {
   ChordChartArrangement,
   ChordChartLayout,
-} from "@pcobooster/contracts/chord-charts";
+} from "@pcobooster/contracts/http/chord-charts";
 import { transposeChordChartText } from "@pcobooster/planning-center-models/chord-chart";
 import { parseKey } from "@pcobooster/planning-center-models/chord-chart-chords";
 

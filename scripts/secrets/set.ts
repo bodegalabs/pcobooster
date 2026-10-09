@@ -3,13 +3,16 @@ import { once } from "node:events";
 import { readFileSync } from "node:fs";
 import { createInterface } from "node:readline";
 
-import { z } from "zod";
+import { Option, Schema } from "effect";
 
 import { writeKeychain } from "./keychain";
-import { scopeKeys, secretScopeSchema } from "./manifest";
+import { parseSecretScope, scopeKeys } from "./manifest";
+
+// Never decoded with a throwing decoder: its failure message would echo the typed secret.
+const lineEvent = Schema.decodeUnknownOption(Schema.Tuple([Schema.String]));
 
 const [scopeInput, key, mode] = process.argv.slice(2);
-const scope = secretScopeSchema.parse(scopeInput);
+const scope = parseSecretScope(scopeInput);
 if (key === undefined || !scopeKeys[scope].includes(key)) {
   throw new Error(
     "Choose a key listed for this scope in scripts/secrets/manifest.ts"
@@ -31,8 +34,11 @@ if (mode === "--stdin") {
   process.stderr.write(`Enter ${key} (hidden): `);
   const input = createInterface({ input: process.stdin, terminal: false });
   try {
-    const [line] = z.tuple([z.string()]).parse(await once(input, "line"));
-    value = line;
+    const line = lineEvent(await once(input, "line"));
+    if (Option.isNone(line)) {
+      throw new Error("Unable to read the entered value");
+    }
+    [value] = line.value;
   } finally {
     input.close();
     spawnSync("/bin/stty", ["echo"], { stdio: "inherit" });

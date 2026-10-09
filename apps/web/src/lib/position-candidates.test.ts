@@ -1,7 +1,7 @@
 import type {
   PlanWindowHistoryBatch,
   PositionCandidates,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import {
   assembleCandidateList,
   CANDIDATE_DETAILS_BATCH_CONCURRENCY,

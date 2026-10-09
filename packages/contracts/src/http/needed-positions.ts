@@ -35,3 +35,6 @@ export const neededPositions = planningCenterGroup(
     }
   )
 );
+
+export type NeededPositionsAdjustInput =
+  typeof neededPositionsAdjustInputSchema.Type;

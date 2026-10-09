@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
 import { getSessionCookie } from "better-auth/cookies";
 import { env } from "cloudflare:workers";
-import { z } from "zod";
+import { Option, Schema } from "effect";
 
 import { serverCall } from "@/server/server-api";
 
@@ -28,22 +28,19 @@ export const getSessionStatus = createServerFn({ method: "GET" }).handler(
   }
 );
 
-const deviceAccountsSchema = z.object({
-  accounts: z.array(
-    z.object({
-      userId: z.string(),
-      name: z.string(),
-      email: z.string(),
-      image: z.string().nullable(),
-      organizationName: z.string().nullable(),
-      lastActiveAt: z.string(),
-    })
-  ),
+const deviceAccountSchema = Schema.Struct({
+  userId: Schema.String,
+  name: Schema.String,
+  email: Schema.String,
+  image: Schema.NullOr(Schema.String),
+  organizationName: Schema.NullOr(Schema.String),
+  lastActiveAt: Schema.String,
 });
+const decodeDeviceAccounts = Schema.decodeUnknownOption(
+  Schema.Struct({ accounts: Schema.mutable(Schema.Array(deviceAccountSchema)) })
+);
 
-export type DeviceAccount = z.infer<
-  typeof deviceAccountsSchema
->["accounts"][number];
+export type DeviceAccount = typeof deviceAccountSchema.Type;
 
 /** Marks the signed cookies the API sets for accounts resumable from this browser. */
 const DEVICE_ACCOUNT_COOKIE_MARKER = "_device-";
@@ -69,8 +66,14 @@ export const getDeviceAccounts = createServerFn({ method: "GET" }).handler(
       if (!response.ok) {
         return { accounts: [], now };
       }
-      const parsed = deviceAccountsSchema.safeParse(await response.json());
-      return { accounts: parsed.success ? parsed.data.accounts : [], now };
+      const parsed = decodeDeviceAccounts(await response.json());
+      return {
+        accounts: Option.match(parsed, {
+          onNone: () => [],
+          onSome: ({ accounts }) => accounts,
+        }),
+        now,
+      };
     } catch {
       // The sign-in button still works; quick access is a convenience.
       return { accounts: [], now };

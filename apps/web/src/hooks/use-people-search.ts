@@ -1,4 +1,4 @@
-import type { PeopleSearchResult } from "@pcobooster/contracts/people-schemas";
+import type { PeopleSearchResult } from "@pcobooster/contracts/http/people-schemas";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 
@@ -11,7 +11,7 @@ import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
 import { productClient } from "@/product-client";
 
-export type { PeopleSearchResult } from "@pcobooster/contracts/people-schemas";
+export type { PeopleSearchResult } from "@pcobooster/contracts/http/people-schemas";
 
 export const usePeopleSearch = (query: string) => {
   const normalizedQuery = normalizePeopleSearchQuery(query);

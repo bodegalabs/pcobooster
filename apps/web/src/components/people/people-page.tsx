@@ -3,7 +3,7 @@ import type {
   PeopleDashboardPerson,
   PeopleDashboardRosterPerson,
   PeopleDashboardTeam,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";

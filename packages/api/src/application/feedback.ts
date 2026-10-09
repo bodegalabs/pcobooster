@@ -13,7 +13,7 @@ import type { ServerDependencies } from "@pcobooster/api/server";
 import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { PersistenceFailure } from "@pcobooster/contracts/faults/persistence-failure";
 import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
-import type { FeedbackSubmitInput } from "@pcobooster/contracts/feedback";
+import type { FeedbackSubmitInput } from "@pcobooster/contracts/http/feedback";
 import { Effect } from "effect";
 
 const feedbackLog = boundaryLog("feedback");

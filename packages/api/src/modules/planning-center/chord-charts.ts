@@ -13,6 +13,9 @@ import {
   CHORD_CHART_ORIENTATIONS,
   CHORD_CHART_PAGE_SIZES,
 } from "@pcobooster/contracts/chord-charts";
+import { Conflict } from "@pcobooster/contracts/faults/conflict";
+import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import type {
   ChordChartArrangement,
   ChordChartCreateInput,
@@ -23,10 +26,7 @@ import type {
   ChordChartSongCreateInput,
   ChordChartSongOutput,
   ChordChartUpdateInput,
-} from "@pcobooster/contracts/chord-charts";
-import { Conflict } from "@pcobooster/contracts/faults/conflict";
-import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
-import { NotFound } from "@pcobooster/contracts/faults/not-found";
+} from "@pcobooster/contracts/http/chord-charts";
 import {
   isNonEmptyString,
   isNumber,

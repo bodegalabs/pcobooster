@@ -2,7 +2,7 @@ import { failureMessage } from "@pcobooster/client/product-client";
 import type {
   ChordChartArrangement,
   ChordChartLayout,
-} from "@pcobooster/contracts/chord-charts";
+} from "@pcobooster/contracts/http/chord-charts";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";

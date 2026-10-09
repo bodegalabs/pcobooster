@@ -4,7 +4,7 @@ import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import { withPlanningCenterFaults } from "@pcobooster/api/application/planning-center-access";
 import { PlanningCenterCatalog } from "@pcobooster/api/application/planning-center/catalog";
 import { adjustNeededPositions } from "@pcobooster/api/modules/planning-center/adjust-needed-positions";
-import type { NeededPositionsAdjustInput } from "@pcobooster/contracts/needed-positions";
+import type { NeededPositionsAdjustInput } from "@pcobooster/contracts/http/needed-positions";
 import { Effect } from "effect";
 
 export const adjustPlanNeededPositions = (

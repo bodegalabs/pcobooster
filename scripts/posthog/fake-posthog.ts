@@ -4,44 +4,64 @@
  * Tests use it to prove adoption is a no-op; it can also back a local dry run when no
  * personal API key is available.
  */
-import { z } from "zod";
+import { Schema, Struct } from "effect";
+import type { Types } from "effect";
 
 import liveDashboards from "./fixtures/live-dashboards.json" with { type: "json" };
 import liveProject from "./fixtures/live-project.json" with { type: "json" };
 
-const jsonRecord = z.record(z.string(), z.json());
-const insightSchema = z.object({
-  id: z.number(),
-  short_id: z.string(),
-  name: z.string(),
-  description: z.string(),
-  favorited: z.boolean(),
-  tags: z.array(z.string()),
-  query: z.json(),
+const jsonRecord = Schema.Record(Schema.String, Schema.MutableJson);
+type JsonRecord = typeof jsonRecord.Type;
+const mutableArray = <Item extends Schema.Top>(item: Item) =>
+  Schema.mutable(Schema.Array(item));
+const insightFields = {
+  name: Schema.String,
+  description: Schema.String,
+  favorited: Schema.Boolean,
+  tags: mutableArray(Schema.String),
+  query: Schema.MutableJson,
+};
+const insightSchema = Schema.Struct({
+  id: Schema.Finite,
+  short_id: Schema.String,
+  ...insightFields,
 });
-const dashboardSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  description: z.string(),
-  pinned: z.boolean(),
-  deleted: z.boolean(),
-  tags: z.array(z.string()),
-  tiles: z.array(
-    z.object({
-      id: z.number(),
-      order: z.number(),
+const dashboardFields = {
+  name: Schema.String,
+  description: Schema.String,
+  pinned: Schema.Boolean,
+  deleted: Schema.Boolean,
+  tags: mutableArray(Schema.String),
+};
+const dashboardSchema = Schema.Struct({
+  id: Schema.Finite,
+  ...dashboardFields,
+  tiles: mutableArray(
+    Schema.Struct({
+      id: Schema.Finite,
+      order: Schema.Finite,
       layouts: jsonRecord,
       insight: insightSchema,
     })
   ),
 });
-const tileOrderSchema = z.object({ tile_order: z.array(z.number()) });
-const insightPatchSchema = insightSchema
-  .omit({ id: true, short_id: true })
-  .extend({ deleted: z.boolean(), dashboards: z.array(z.number()) })
-  .partial();
+type Dashboard = Types.DeepMutable<typeof dashboardSchema.Type>;
+const decodeTileOrder = Schema.decodeUnknownSync(
+  Schema.Struct({ tile_order: Schema.Array(Schema.Finite) })
+);
+const decodeDashboardPatch = Schema.decodeUnknownSync(
+  Schema.Struct(dashboardFields).mapFields(Struct.map(Schema.optional))
+);
+const decodeInsightPatch = Schema.decodeUnknownSync(
+  Schema.Struct({
+    ...insightFields,
+    deleted: Schema.Boolean,
+    dashboards: mutableArray(Schema.Finite),
+  }).mapFields(Struct.map(Schema.optional))
+);
+const decodeJsonRecord = Schema.decodeUnknownSync(jsonRecord);
 
-type StoredInsight = z.infer<typeof insightSchema> & {
+type StoredInsight = typeof insightSchema.Type & {
   deleted: boolean;
   dashboardIds: number[];
 };
@@ -49,7 +69,7 @@ type StoredInsight = z.infer<typeof insightSchema> & {
 export interface RecordedRequest {
   readonly method: string;
   readonly path: string;
-  readonly body: z.infer<typeof jsonRecord> | undefined;
+  readonly body: JsonRecord | undefined;
 }
 
 const ROUTE =
@@ -67,8 +87,10 @@ const insightResponse = ({ dashboardIds, ...insight }: StoredInsight) => ({
 });
 
 export const livePostHog = () => {
-  const project = jsonRecord.parse(liveProject);
-  const dashboards = z.array(dashboardSchema).parse(liveDashboards);
+  const project = decodeJsonRecord(liveProject);
+  const dashboards: Dashboard[] = Schema.decodeUnknownSync(
+    mutableArray(dashboardSchema)
+  )(liveDashboards);
   const insights = new Map<number, StoredInsight>(
     dashboards.flatMap((dashboard) =>
       dashboard.tiles.map((tile) => [
@@ -83,14 +105,14 @@ export const livePostHog = () => {
     method: string,
     id: number,
     reorder: boolean,
-    body: z.infer<typeof jsonRecord>
+    body: JsonRecord
   ): Response => {
     const dashboard = dashboards.find((item) => item.id === id);
     if (dashboard === undefined) {
       return notFound();
     }
     if (reorder && method === "POST") {
-      const { tile_order: order } = tileOrderSchema.parse(body);
+      const { tile_order: order } = decodeTileOrder(body);
       dashboard.tiles.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
       for (const [index, tile] of dashboard.tiles.entries()) {
         tile.order = index;
@@ -98,10 +120,7 @@ export const livePostHog = () => {
       return Response.json({ ok: true });
     }
     if (method === "PATCH") {
-      Object.assign(
-        dashboard,
-        dashboardSchema.omit({ id: true, tiles: true }).partial().parse(body)
-      );
+      Object.assign(dashboard, decodeDashboardPatch(body));
     }
     return Response.json(dashboard);
   };
@@ -109,15 +128,14 @@ export const livePostHog = () => {
   const insightRoute = (
     method: string,
     id: number,
-    body: z.infer<typeof jsonRecord>
+    body: JsonRecord
   ): Response => {
     const insight = insights.get(id);
     if (insight === undefined) {
       return notFound();
     }
     if (method === "PATCH") {
-      const { dashboards: dashboardIds, ...fields } =
-        insightPatchSchema.parse(body);
+      const { dashboards: dashboardIds, ...fields } = decodeInsightPatch(body);
       Object.assign(insight, fields);
       if (dashboardIds !== undefined) {
         insight.dashboardIds = dashboardIds;
@@ -129,7 +147,10 @@ export const livePostHog = () => {
   const handle = async (request: Request): Promise<Response> => {
     const { pathname } = new URL(request.url);
     const text = await request.text();
-    const body = text === "" ? undefined : jsonRecord.parse(JSON.parse(text));
+    const body =
+      text === ""
+        ? undefined
+        : Schema.decodeUnknownSync(Schema.fromJsonString(jsonRecord))(text);
     requests.push({ method: request.method, path: pathname, body });
     const groups = ROUTE.exec(pathname)?.groups;
     if (groups === undefined || Number(groups.project) !== project.id) {

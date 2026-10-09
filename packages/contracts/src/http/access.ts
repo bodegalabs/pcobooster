@@ -47,3 +47,5 @@ export const access = planningCenterGroup(
     success: accessSnapshotSchema,
   })
 );
+
+export type AccessSnapshot = typeof accessSnapshotSchema.Type;

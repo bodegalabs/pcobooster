@@ -1,4 +1,4 @@
-import type { SongLibraryEntry } from "@pcobooster/contracts/songs";
+import type { SongLibraryEntry } from "@pcobooster/contracts/http/songs";
 import { describe, expect, it } from "vitest";
 
 import {

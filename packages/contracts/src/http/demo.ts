@@ -21,3 +21,5 @@ export const demo = plainGroup(
     success: demoSessionSchema,
   })
 );
+
+export type DemoStartInput = typeof demoStartInputSchema.Type;

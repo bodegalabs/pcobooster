@@ -3,7 +3,7 @@ import type {
   PeopleDashboardMonthDay,
   PeopleDashboardPerson,
   PeopleDashboardRosterPerson,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";

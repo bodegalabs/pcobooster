@@ -1,7 +1,7 @@
 import type {
   PeopleDashboardMonthDay,
   PeopleDashboardRosterPerson,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import { Link } from "@tanstack/react-router";
 import type { CSSProperties, ReactNode } from "react";
 

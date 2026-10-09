@@ -2,7 +2,7 @@ import type {
   PeopleDashboardPerson,
   PeopleDashboardTeam,
   ServingRhythm,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import {
   formatCalendarDateLabel,
   orgCalendarDaysRefMinusItem,

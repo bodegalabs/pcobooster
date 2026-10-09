@@ -13,7 +13,7 @@
 import { appendFile } from "node:fs/promises";
 import { setTimeout as sleep } from "node:timers/promises";
 
-import { z } from "zod";
+import { Schema } from "effect";
 
 const attemptIntervalMs = 5000;
 /** Another run's preview job appears seconds after its checks pass; this is a generous cap. */
@@ -57,22 +57,24 @@ export const decidePreview = (
   return undecided ? "wait" : "deploy";
 };
 
-const runSchema = z.object({
-  workflow_id: z.number(),
-  run_started_at: z.string(),
+const runSchema = Schema.Struct({
+  workflow_id: Schema.Number,
+  run_started_at: Schema.String,
 });
 
-const runsSchema = z.object({
-  workflow_runs: z.array(z.object({ id: z.number(), status: z.string() })),
+const runsSchema = Schema.Struct({
+  workflow_runs: Schema.Array(
+    Schema.Struct({ id: Schema.Number, status: Schema.String })
+  ),
 });
 
-const jobsSchema = z.object({
-  jobs: z.array(
-    z.object({
-      name: z.string(),
-      status: z.string(),
-      conclusion: z.string().nullable(),
-      created_at: z.string(),
+const jobsSchema = Schema.Struct({
+  jobs: Schema.Array(
+    Schema.Struct({
+      name: Schema.String,
+      status: Schema.String,
+      conclusion: Schema.NullOr(Schema.String),
+      created_at: Schema.String,
     })
   ),
 });
@@ -91,7 +93,7 @@ interface GateContext {
 const getJson = async <T>(
   { apiUrl, repository, token, fetchImpl = fetch }: GateContext,
   path: string,
-  schema: z.ZodType<T>
+  schema: Schema.Codec<T, unknown>
 ): Promise<T> => {
   const response = await fetchImpl(`${apiUrl}/repos/${repository}${path}`, {
     headers: {
@@ -103,7 +105,7 @@ const getJson = async <T>(
   if (!response.ok) {
     throw new Error(`GitHub ${path} answered ${response.status}`);
   }
-  return schema.parse(await response.json());
+  return Schema.decodeUnknownSync(schema)(await response.json());
 };
 
 const readSiblings = async (

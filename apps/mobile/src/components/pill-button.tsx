@@ -110,6 +110,11 @@ interface PillButtonProps {
   readonly disabled?: boolean;
   /** Full width (bottom actions). */
   readonly wide?: boolean;
+  /**
+   * Only `symbol`, in a round button as wide as the pill is tall; `title` stays the accessibility
+   * label. For compact paired controls such as previous and next.
+   */
+  readonly iconOnly?: boolean;
   readonly accessibilityHint?: string;
   readonly testID?: string;
 }
@@ -128,12 +133,17 @@ export const PillButton = ({
   symbol,
   disabled = false,
   wide = false,
+  iconOnly = false,
   accessibilityHint,
   testID,
 }: PillButtonProps) => {
   const [pressed, setPressed] = useState(false);
   const reduceMotion = useReducedMotion();
   const metrics = sizes[size];
+  // A round icon button is smaller than a tap target; the slop makes up the difference.
+  const slop = iconOnly
+    ? Math.max(0, (Metrics.minimumTapTarget - metrics.minHeight) / 2)
+    : 0;
   const ink = foreground[kind];
   const isPressed = pressed && !disabled;
   return (
@@ -143,6 +153,7 @@ export const PillButton = ({
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       disabled={disabled}
+      hitSlop={slop}
       onPress={onPress}
       onPressIn={() => {
         setPressed(true);
@@ -163,7 +174,8 @@ export const PillButton = ({
             borderWidth: kind === "outline" ? StyleSheet.hairlineWidth : 0,
             minHeight: metrics.minHeight,
             opacity: disabled ? DISABLED_OPACITY : 1,
-            paddingHorizontal: metrics.paddingHorizontal,
+            paddingHorizontal: iconOnly ? 0 : metrics.paddingHorizontal,
+            width: iconOnly ? metrics.minHeight : undefined,
             transform: [
               { translateY: isPressed ? 1 : 0 },
               { scale: isPressed && !reduceMotion ? PRESSED_SCALE : 1 },
@@ -182,14 +194,16 @@ export const PillButton = ({
             weight="medium"
           />
         )}
-        <AppText
-          color={ink}
-          font={metrics.font}
-          numberOfLines={1}
-          weight={metrics.weight}
-        >
-          {title}
-        </AppText>
+        {iconOnly ? null : (
+          <AppText
+            color={ink}
+            font={metrics.font}
+            numberOfLines={1}
+            weight={metrics.weight}
+          >
+            {title}
+          </AppText>
+        )}
       </Animated.View>
     </Pressable>
   );

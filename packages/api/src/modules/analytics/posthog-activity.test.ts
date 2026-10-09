@@ -3,8 +3,8 @@ import {
   createPostHogActivityForwarder,
   toPostHogCapture,
 } from "@pcobooster/api/modules/analytics/posthog-activity";
+import { Schema } from "effect";
 import { vi, describe, expect, it } from "vitest";
-import { z } from "zod";
 
 const NOW = new Date("2026-09-23T17:00:00.000Z");
 
@@ -108,7 +108,9 @@ describe(createPostHogActivityForwarder, () => {
     const [url, init] = send.mock.calls[0] ?? [];
     expect(url).toBe("https://us.i.posthog.com/i/v0/e/");
     expect(init?.method).toBe("POST");
-    expect(JSON.parse(z.string().parse(init?.body))).toStrictEqual({
+    expect(
+      JSON.parse(Schema.decodeUnknownSync(Schema.String)(init?.body))
+    ).toStrictEqual({
       api_key: "key",
       event: "schedule assign attempted",
       distinct_id: "user-1",

@@ -20,7 +20,7 @@ import {
   setSessionCookie,
 } from "better-auth/cookies";
 import { desc, eq, inArray } from "drizzle-orm";
-import { z } from "zod";
+import { Schema } from "effect";
 
 export const MAX_DEVICE_ACCOUNTS = 4;
 
@@ -38,11 +38,13 @@ export interface DeviceAccount {
   lastActiveAt: string;
 }
 
-const sessionTokenSchema = z.string().min(1);
+const isSessionToken = Schema.is(Schema.NonEmptyString);
 
-const userBodySchema = z.object({
-  userId: z.string().regex(COOKIE_SAFE_USER_ID),
-});
+const userBodySchema = Schema.toStandardSchemaV1(
+  Schema.Struct({
+    userId: Schema.String.check(Schema.isPattern(COOKIE_SAFE_USER_ID)),
+  })
+);
 
 type EndpointContext = Parameters<
   Parameters<typeof createAuthMiddleware>[0]
@@ -73,9 +75,8 @@ const readDeviceTokens = async (
   );
   for (const { userId, token } of verified) {
     // A tampered or unsigned cookie verifies to null (or false).
-    const parsed = sessionTokenSchema.safeParse(token);
-    if (parsed.success) {
-      tokens.set(userId, parsed.data);
+    if (isSessionToken(token)) {
+      tokens.set(userId, token);
     }
   }
   return tokens;

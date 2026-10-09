@@ -2,11 +2,12 @@ import {
   planPersonResourceSchema,
   scheduleResourceSchema,
 } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
 
 describe("people resource schemas", () => {
   it("accepts Planning Center PlanPerson payloads with null decline_reason", () => {
-    const parsed = planPersonResourceSchema.parse({
+    const parsed = Schema.decodeUnknownSync(planPersonResourceSchema)({
       type: "PlanPerson",
       id: "pp-1",
       attributes: {
@@ -35,7 +36,7 @@ describe("people resource schemas", () => {
   });
 
   it("accepts Planning Center Schedule payloads with null decline_reason", () => {
-    const parsed = scheduleResourceSchema.parse({
+    const parsed = Schema.decodeUnknownSync(scheduleResourceSchema)({
       type: "Schedule",
       id: "sched-1",
       attributes: {
@@ -58,7 +59,7 @@ describe("people resource schemas", () => {
   });
 
   it("accepts PlanPerson relationship data that Planning Center omits or nulls", () => {
-    const parsed = planPersonResourceSchema.parse({
+    const parsed = Schema.decodeUnknownSync(planPersonResourceSchema)({
       type: "PlanPerson",
       id: "pp-2",
       attributes: {
@@ -86,7 +87,7 @@ describe("people resource schemas", () => {
   });
 
   it("accepts Schedule to-many relationships with null data", () => {
-    const parsed = scheduleResourceSchema.parse({
+    const parsed = Schema.decodeUnknownSync(scheduleResourceSchema)({
       type: "Schedule",
       id: "sched-2",
       attributes: {

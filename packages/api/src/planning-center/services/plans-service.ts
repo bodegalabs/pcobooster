@@ -12,6 +12,7 @@ import {
   PlanningCenterReadCache,
   stableParams,
 } from "@pcobooster/api/planning-center/services/read-cache";
+import { planFieldsParams } from "@pcobooster/api/planning-center/sparse-fields";
 import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
@@ -158,7 +159,7 @@ export class PlanningCenterPlansService {
       this.core.fetchCollection(
         buildPlanningCenterUrl(
           `/services/v2/service_types/${serviceTypeId}/plans`,
-          { ...params, order, per_page: String(perPage) }
+          { ...params, ...planFieldsParams, order, per_page: String(perPage) }
         )
       ),
       (response) => response.data
@@ -212,6 +213,7 @@ export class PlanningCenterPlansService {
       filter: "after",
       after: afterDayKey,
       ...(include ? { include } : undefined),
+      ...planFieldsParams,
     };
     return cachedRead(
       this.caches.rangePages,

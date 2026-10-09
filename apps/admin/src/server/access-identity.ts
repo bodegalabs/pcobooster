@@ -1,6 +1,6 @@
+import { Option, Schema } from "effect";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import type { JWTVerifyGetKey } from "jose";
-import { z } from "zod";
 
 /** Where Access puts its signed token on requests it admits: a header, and a cookie. */
 export interface AccessCredentials {
@@ -9,7 +9,9 @@ export interface AccessCredentials {
 }
 
 const accessCookiePattern = /(?:^|;\s*)CF_Authorization=(?<token>[^;]+)/u;
-const identityClaims = z.object({ email: z.string().min(1) });
+const decodeIdentityClaims = Schema.decodeUnknownOption(
+  Schema.Struct({ email: Schema.NonEmptyString })
+);
 
 const tokenFrom = ({ assertion, cookie }: AccessCredentials) => {
   if (assertion !== undefined && assertion !== "") {
@@ -55,8 +57,7 @@ export const verifiedAccessEmail = async (
       issuer: `https://${teamDomain}`,
       algorithms: ["RS256"],
     });
-    const claims = identityClaims.safeParse(payload);
-    return claims.success ? claims.data.email : null;
+    return Option.getOrNull(decodeIdentityClaims(payload))?.email ?? null;
   } catch {
     return null;
   }

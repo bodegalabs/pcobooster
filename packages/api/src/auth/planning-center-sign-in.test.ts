@@ -5,8 +5,8 @@ import { account, activityEvents, user } from "@pcobooster/api/db/schema";
 import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user-agent";
 import { testServerConfig } from "@pcobooster/api/testing/server";
 import { eq } from "drizzle-orm";
+import { Schema } from "effect";
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
 
 import { createLocalD1 } from "../../../../scripts/database/local-d1";
 import { LOCAL_WORKER_TEST_TIMEOUT_MS } from "../../../../scripts/testing/miniflare";
@@ -22,7 +22,9 @@ interface PlanningCenterProfile {
   organizationName: string;
 }
 
-const signInResponseSchema = z.object({ url: z.string() });
+const decodeSignInResponse = Schema.decodeUnknownSync(
+  Schema.Struct({ url: Schema.String })
+);
 
 /** The `User-Agent` each Planning Center request carried, keyed by path. */
 const userAgentsByPath = new Map<string, string | null>();
@@ -103,7 +105,7 @@ const completePlanningCenterSignIn = async (
       }),
     })
   );
-  const { url } = signInResponseSchema.parse(await start.json());
+  const { url } = decodeSignInResponse(await start.json());
   const state = new URL(url).searchParams.get("state") ?? "";
   return await auth.handler(
     new Request(

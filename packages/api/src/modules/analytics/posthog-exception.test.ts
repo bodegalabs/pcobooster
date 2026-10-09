@@ -3,8 +3,8 @@ import {
   toPostHogExceptionCapture,
 } from "@pcobooster/api/modules/analytics/posthog-exception";
 import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
+import { Schema } from "effect";
 import { describe, expect, it, vi } from "vitest";
-import { z } from "zod";
 
 const NOW = new Date("2026-09-28T17:00:00.000Z");
 const request = {
@@ -121,9 +121,9 @@ describe(createPostHogExceptionReporter, () => {
     await report?.({ ...request, error: planningCenterFailure() });
 
     expect(send).toHaveBeenCalledOnce();
-    const body = z
-      .object({ event: z.string() })
-      .parse(JSON.parse(z.string().parse(send.mock.calls[0]?.[1]?.body)));
+    const body = Schema.decodeUnknownSync(
+      Schema.fromJsonString(Schema.Struct({ event: Schema.String }))
+    )(send.mock.calls[0]?.[1]?.body);
     expect(body.event).toBe("$exception");
   });
 

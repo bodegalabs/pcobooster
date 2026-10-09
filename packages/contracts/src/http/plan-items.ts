@@ -12,7 +12,7 @@ import {
 } from "@pcobooster/contracts/http/schema";
 import { Struct, Schema } from "effect";
 
-/** `z.string().trim().optional()`. */
+/** Optional text, trimmed. */
 const optionalText = Schema.optional(Schema.Trim);
 /** `requiredId.nullish()`. */
 const optionalNullableId = Schema.optional(Schema.NullOr(requiredId));
@@ -94,3 +94,9 @@ export const planItems = planningCenterGroup(
     success: planItemsSuccessSchema,
   })
 );
+
+export type PlanItemsListInput = typeof planItemsListInputSchema.Type;
+export type PlanItemsCreateInput = typeof planItemsCreateInputSchema.Type;
+export type PlanItemsUpdateInput = typeof planItemsUpdateInputSchema.Type;
+export type PlanItemsDeleteInput = typeof planItemsDeleteInputSchema.Type;
+export type PlanItemsReorderInput = typeof planItemsReorderInputSchema.Type;

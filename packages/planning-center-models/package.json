@@ -44,7 +44,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "zod": "^4.6.5"
+    "effect": "4.0.0-rc.117"
   },
   "devDependencies": {
     "@pcobooster/config": "workspace:*",

@@ -1,43 +1,20 @@
+import { songOptionSetSchema } from "@pcobooster/contracts/http/song-schemas";
 import type { SongOptionSet } from "@pcobooster/planning-center-models/types";
-import { z } from "zod";
 
-import { serializedSongOptionSetSchema } from "@/lib/persistence-schemas";
-import { hydrateSongOptionSet } from "@/lib/song-catalog-client";
-import type { SerializedSongOptionSet } from "@/lib/song-catalog-client";
+import { savedAnswer } from "@/lib/stored-json";
 
 const CACHE_VERSION = "v1";
 const CACHE_KEY_PREFIX = `pcobooster:song-options:${CACHE_VERSION}:`;
-
-interface CachedPayload {
-  savedAt: number;
-  data: SerializedSongOptionSet;
-}
 
 export interface SongOptionsCacheEntry {
   savedAt: number;
   data: SongOptionSet;
 }
 
-const cachedPayloadSchema = z.object({
-  savedAt: z.number(),
-  data: serializedSongOptionSetSchema,
-});
+const cachedPayload = savedAnswer(songOptionSetSchema);
 
 const buildCacheKey = (songId: string, serviceTypeId: string): string =>
   `${CACHE_KEY_PREFIX}${encodeURIComponent(serviceTypeId)}:${encodeURIComponent(songId)}`;
-
-const serializeSongOptionSet = (
-  optionSet: SongOptionSet
-): SerializedSongOptionSet => ({
-  ...optionSet,
-  song: {
-    ...optionSet.song,
-    lastScheduledAt:
-      optionSet.song.lastScheduledAt === null
-        ? null
-        : optionSet.song.lastScheduledAt.toISOString(),
-  },
-});
 
 export const readCachedSongOptions = (
   songId: string | null,
@@ -55,18 +32,9 @@ export const readCachedSongOptions = (
   }
 
   try {
-    const raw = storage.getItem(buildCacheKey(songId, serviceTypeId));
-    if (raw === null) {
-      return undefined;
-    }
-    const parsed = cachedPayloadSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success) {
-      return undefined;
-    }
-    return {
-      savedAt: parsed.data.savedAt,
-      data: hydrateSongOptionSet(parsed.data.data),
-    };
+    return cachedPayload.parse(
+      storage.getItem(buildCacheKey(songId, serviceTypeId))
+    );
   } catch {
     return undefined;
   }
@@ -89,13 +57,13 @@ export const writeCachedSongOptions = (
   }
 
   try {
-    storage.setItem(
-      buildCacheKey(songId, serviceTypeId),
-      JSON.stringify({
-        savedAt: Date.now(),
-        data: serializeSongOptionSet(optionSet),
-      } satisfies CachedPayload)
-    );
+    const saved = cachedPayload.stringify({
+      savedAt: Date.now(),
+      data: optionSet,
+    });
+    if (saved !== undefined) {
+      storage.setItem(buildCacheKey(songId, serviceTypeId), saved);
+    }
   } catch {
     // Ignore storage write failures (private mode/quota).
   }

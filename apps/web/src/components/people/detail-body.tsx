@@ -3,7 +3,7 @@ import type {
   PeopleDashboardMonthDay,
   PeopleDashboardPersonDetail,
   ServingRhythm,
-} from "@pcobooster/contracts/people-schemas";
+} from "@pcobooster/contracts/http/people-schemas";
 import { orgCalendarDaysRefMinusItem } from "@pcobooster/planning-center-models/calendar";
 import { Link } from "@tanstack/react-router";
 import {

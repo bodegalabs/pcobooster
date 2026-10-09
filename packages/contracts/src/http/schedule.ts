@@ -12,7 +12,7 @@ export const scheduleAssignInputSchema = Schema.Struct({
   positionId: requiredId,
   teamName: Schema.optional(requiredId),
   positionName: Schema.optional(requiredId),
-  /** `z.boolean().default(false)`: optional on the wire and when a client builds the input. */
+  /** Defaults to `false`: optional on the wire and when a client builds the input. */
   oneOff: Schema.Boolean.pipe(
     Schema.withDecodingDefault(Effect.succeed(false)),
     Schema.withConstructorDefault(Effect.succeed(false))

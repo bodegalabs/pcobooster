@@ -1,23 +1,14 @@
+import { mutableArray } from "@pcobooster/contracts/http/schema";
+import { songCatalogEntrySchema } from "@pcobooster/contracts/http/song-schemas";
 import type { SongCatalogEntry } from "@pcobooster/planning-center-models/types";
-import { z } from "zod";
 
-import { serializedSongCatalogEntrySchema } from "@/lib/persistence-schemas";
-import { hydrateSongCatalogEntry } from "@/lib/song-catalog-client";
-import type { SerializedSongCatalogEntry } from "@/lib/song-catalog-client";
+import { savedAnswer } from "@/lib/stored-json";
 
 // v2: keyed by query only, since the catalog no longer depends on the service type.
 const CACHE_VERSION = "v2";
 const CACHE_KEY_PREFIX = `pcobooster:song-search:${CACHE_VERSION}:`;
 
-interface CachedPayload {
-  savedAt: number;
-  data: SerializedSongCatalogEntry[];
-}
-
-const cachedPayloadSchema = z.object({
-  savedAt: z.number(),
-  data: z.array(serializedSongCatalogEntrySchema),
-});
+const cachedPayload = savedAnswer(mutableArray(songCatalogEntrySchema));
 
 export interface SongSearchCacheEntry {
   savedAt: number;
@@ -30,14 +21,6 @@ const normalizeSongSearchQuery = (query: string): string =>
 const buildCacheKey = (query: string): string =>
   `${CACHE_KEY_PREFIX}${encodeURIComponent(query)}`;
 
-const serializeSongCatalogEntry = (
-  entry: SongCatalogEntry
-): SerializedSongCatalogEntry => ({
-  ...entry,
-  lastScheduledAt:
-    entry.lastScheduledAt === null ? null : entry.lastScheduledAt.toISOString(),
-});
-
 export const readCachedSongSearch = (
   query: string
 ): SongSearchCacheEntry | undefined => {
@@ -48,18 +31,7 @@ export const readCachedSongSearch = (
   }
 
   try {
-    const raw = storage.getItem(buildCacheKey(normalizedQuery));
-    if (raw === null) {
-      return undefined;
-    }
-    const parsed = cachedPayloadSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success) {
-      return undefined;
-    }
-    return {
-      savedAt: parsed.data.savedAt,
-      data: parsed.data.data.map(hydrateSongCatalogEntry),
-    };
+    return cachedPayload.parse(storage.getItem(buildCacheKey(normalizedQuery)));
   } catch {
     return undefined;
   }
@@ -76,13 +48,10 @@ export const writeCachedSongSearch = (
   }
 
   try {
-    storage.setItem(
-      buildCacheKey(normalizedQuery),
-      JSON.stringify({
-        savedAt: Date.now(),
-        data: songs.map(serializeSongCatalogEntry),
-      } satisfies CachedPayload)
-    );
+    const saved = cachedPayload.stringify({ savedAt: Date.now(), data: songs });
+    if (saved !== undefined) {
+      storage.setItem(buildCacheKey(normalizedQuery), saved);
+    }
   } catch {
     // Ignore storage write failures (private mode/quota).
   }

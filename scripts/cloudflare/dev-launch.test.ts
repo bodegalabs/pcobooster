@@ -1,8 +1,8 @@
 import { once } from "node:events";
 import { createServer } from "node:net";
 
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
 
 import { findBusyPorts, resolveDevLaunch } from "./dev-launch";
 import type { DevLaunchInput } from "./dev-launch";
@@ -104,7 +104,9 @@ describe(findBusyPorts, () => {
     const server = createServer();
     server.listen({ host: "127.0.0.1", port: 0 });
     await once(server, "listening");
-    const { port } = z.object({ port: z.number() }).parse(server.address());
+    const { port } = Schema.decodeUnknownSync(
+      Schema.Struct({ port: Schema.Number })
+    )(server.address());
     try {
       await expect(findBusyPorts([port])).resolves.toStrictEqual([port]);
     } finally {

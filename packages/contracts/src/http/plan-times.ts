@@ -74,3 +74,8 @@ export const planTimes = planningCenterGroup(
     success: Schema.Void,
   })
 );
+
+export type PlanTimesListInput = typeof planTimesListInputSchema.Type;
+export type PlanTimesCreateInput = typeof planTimesCreateInputSchema.Type;
+export type PlanTimesUpdateInput = typeof planTimesUpdateInputSchema.Type;
+export type PlanTimesDeleteInput = typeof planTimesDeleteInputSchema.Type;

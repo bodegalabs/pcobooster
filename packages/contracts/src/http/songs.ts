@@ -165,3 +165,11 @@ export const songs = planningCenterGroup(
     }
   )
 );
+
+export type SongsSearchInput = typeof songsSearchInputSchema.Type;
+export type SongsOptionsInput = typeof songsOptionsInputSchema.Type;
+export type SongsSuggestions = typeof songsSuggestionsOutputSchema.Type;
+export type SongLibraryEntry = typeof songLibraryEntrySchema.Type;
+export type SongLibrary = typeof songLibrarySchema.Type;
+export type SongsHistoryInput = typeof songsHistoryInputSchema.Type;
+export type SongHistoryEntry = typeof songHistoryEntrySchema.Type;

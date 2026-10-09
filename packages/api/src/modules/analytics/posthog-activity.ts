@@ -7,7 +7,7 @@ import type {
   PostHogPersonProperties,
   PostHogPersonSet,
 } from "@pcobooster/api/modules/analytics/posthog-capture";
-import { z } from "zod";
+import { Schema } from "effect";
 
 const EVENT_NAMES = {
   auth_session_created: "signed in",
@@ -42,8 +42,8 @@ export interface PostHogCapture {
   readonly properties: PostHogActivityProperties;
 }
 
-const metadataStringSchema = z.string();
-const metadataBooleanSchema = z.boolean();
+const isMetadataString = Schema.is(Schema.String);
+const isMetadataBoolean = Schema.is(Schema.Boolean);
 
 /**
  * Forwards audit rows without request fingerprints (IP, user agent) or
@@ -58,7 +58,7 @@ export const toPostHogCapture = (
   if (input.actorUserId === null || input.actorUserId === undefined) {
     return null;
   }
-  const oneOff = metadataBooleanSchema.safeParse(input.metadata?.oneOff);
+  const oneOff = input.metadata?.oneOff;
   const activity: PostHogActivityProperties = {
     source: "server",
     success: input.success ?? null,
@@ -68,12 +68,13 @@ export const toPostHogCapture = (
     plan_id: input.planId ?? null,
     team_id: input.teamId ?? null,
     position_id: input.positionId ?? null,
-    schedule_status:
-      metadataStringSchema.safeParse(input.metadata?.status).data ?? null,
-    organization_id:
-      metadataStringSchema.safeParse(input.metadata?.organizationId).data ??
-      null,
-    one_off: oneOff.success ? oneOff.data : null,
+    schedule_status: isMetadataString(input.metadata?.status)
+      ? input.metadata.status
+      : null,
+    organization_id: isMetadataString(input.metadata?.organizationId)
+      ? input.metadata.organizationId
+      : null,
+    one_off: isMetadataBoolean(oneOff) ? oneOff : null,
   };
   const properties: PostHogActivityProperties =
     person === null

@@ -1,8 +1,8 @@
 import { betterAuth } from "better-auth";
 import { memoryAdapter } from "better-auth/adapters/memory";
 import { symmetricDecrypt, symmetricEncrypt } from "better-auth/crypto";
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
 
 import { createPreviewProxy } from "./preview-proxy";
 
@@ -10,39 +10,63 @@ const productionOrigin = "https://production.example.com";
 const previewOrigin = "https://preview.example.net";
 const proxySecret =
   "synthetic-proxy-secret-0123456789abcdefghijklmnopqrstuvwxyz";
-const statePackageSchema = z.looseObject({ stateCookie: z.string() });
-const stateSchema = z.looseObject({
-  idTokenNonce: z.string().optional(),
-  callbackURL: z.string(),
-});
-const payloadSchema = z.looseObject({ callbackURL: z.string() });
+/** Every field a decoded JSON object has beyond the ones a test reads. */
+const otherFields = [Schema.Record(Schema.String, Schema.Unknown)] as const;
+const decodeStatePackage = Schema.decodeUnknownSync(
+  Schema.fromJsonString(
+    Schema.StructWithRest(
+      Schema.Struct({ stateCookie: Schema.String }),
+      otherFields
+    )
+  )
+);
+const decodeState = Schema.decodeUnknownSync(
+  Schema.fromJsonString(
+    Schema.StructWithRest(
+      Schema.Struct({
+        idTokenNonce: Schema.optional(Schema.String),
+        callbackURL: Schema.String,
+      }),
+      otherFields
+    )
+  )
+);
+const decodePayload = Schema.decodeUnknownSync(
+  Schema.fromJsonString(
+    Schema.StructWithRest(
+      Schema.Struct({ callbackURL: Schema.String }),
+      otherFields
+    )
+  )
+);
+const decodeText = Schema.decodeUnknownSync(Schema.String);
 
 const alterState = async (state: string, scenario: string): Promise<string> => {
-  const envelope = statePackageSchema.parse(
-    JSON.parse(await symmetricDecrypt({ key: proxySecret, data: state }))
+  const envelope = decodeStatePackage(
+    await symmetricDecrypt({ key: proxySecret, data: state })
   );
-  const contents = stateSchema.parse(
-    JSON.parse(
-      await symmetricDecrypt({ key: proxySecret, data: envelope.stateCookie })
-    )
+  const { idTokenNonce, ...contents } = decodeState(
+    await symmetricDecrypt({ key: proxySecret, data: envelope.stateCookie })
   );
-  if (scenario === "missing-nonce") {
-    delete contents.idTokenNonce;
-  }
-  if (scenario === "mismatched-nonce") {
-    contents.idTokenNonce = "different-nonce";
-  }
-  if (scenario === "untrusted-receiver") {
-    contents.callbackURL =
-      "https://untrusted.example.org/api/auth/callback/planning-center/oauth-proxy?callbackURL=%2F";
-  }
-  envelope.stateCookie = await symmetricEncrypt({
-    key: proxySecret,
-    data: JSON.stringify(contents),
-  });
+  const nonce =
+    scenario === "mismatched-nonce" ? "different-nonce" : idTokenNonce;
+  const callbackURL =
+    scenario === "untrusted-receiver"
+      ? "https://untrusted.example.org/api/auth/callback/planning-center/oauth-proxy?callbackURL=%2F"
+      : contents.callbackURL;
+  const altered =
+    scenario === "missing-nonce" || nonce === undefined
+      ? { ...contents, callbackURL }
+      : { ...contents, callbackURL, idTokenNonce: nonce };
   return await symmetricEncrypt({
     key: proxySecret,
-    data: JSON.stringify(envelope),
+    data: JSON.stringify({
+      ...envelope,
+      stateCookie: await symmetricEncrypt({
+        key: proxySecret,
+        data: JSON.stringify(altered),
+      }),
+    }),
   });
 };
 
@@ -134,10 +158,12 @@ const runScenario = async (scenario: string) => {
       }),
     })
   );
-  const authorization = z.object({ url: z.url() }).parse(await signIn.json());
+  const authorization = Schema.decodeUnknownSync(
+    Schema.Struct({ url: Schema.String })
+  )(await signIn.json());
   const providerUrl = new URL(authorization.url);
   const state = await alterState(
-    z.string().parse(providerUrl.searchParams.get("state")),
+    decodeText(providerUrl.searchParams.get("state")),
     scenario
   );
   const cookie = signIn.headers
@@ -155,7 +181,7 @@ const runScenario = async (scenario: string) => {
   );
   const brokerResponse = await production.handler(new Request(callback));
   const location = new URL(
-    z.string().parse(brokerResponse.headers.get("location")),
+    decodeText(brokerResponse.headers.get("location")),
     productionOrigin
   );
   let error = location.searchParams.get("error");
@@ -164,18 +190,18 @@ const runScenario = async (scenario: string) => {
   let replayError: string | null = null;
   if (location.searchParams.has("profile")) {
     if (scenario === "cross-origin-completion") {
-      const encrypted = z.string().parse(location.searchParams.get("profile"));
-      const payload = payloadSchema.parse(
-        JSON.parse(
-          await symmetricDecrypt({ key: proxySecret, data: encrypted })
-        )
+      const encrypted = decodeText(location.searchParams.get("profile"));
+      const payload = decodePayload(
+        await symmetricDecrypt({ key: proxySecret, data: encrypted })
       );
-      payload.callbackURL = `${productionOrigin}/admin`;
       location.searchParams.set(
         "profile",
         await symmetricEncrypt({
           key: proxySecret,
-          data: JSON.stringify(payload),
+          data: JSON.stringify({
+            ...payload,
+            callbackURL: `${productionOrigin}/admin`,
+          }),
         })
       );
     }
@@ -189,10 +215,9 @@ const runScenario = async (scenario: string) => {
       new Request(location, { headers: { cookie: cookieHeader } })
     );
     destination = completion.headers.get("location");
-    error = new URL(
-      z.string().parse(destination),
-      previewOrigin
-    ).searchParams.get("error");
+    error = new URL(decodeText(destination), previewOrigin).searchParams.get(
+      "error"
+    );
     hostOnly = completion.headers
       .getSetCookie()
       .every((value) => !value.toLowerCase().includes("domain="));
@@ -201,7 +226,7 @@ const runScenario = async (scenario: string) => {
         new Request(location, { headers: { cookie } })
       );
       replayError = new URL(
-        z.string().parse(replay.headers.get("location")),
+        decodeText(replay.headers.get("location")),
         previewOrigin
       ).searchParams.get("error");
     }

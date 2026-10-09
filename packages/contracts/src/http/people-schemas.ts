@@ -1,4 +1,4 @@
-/** People answers. Ported from the zod schemas in `../people-schemas.ts`. */
+/** People answers. */
 import {
   finiteNumber,
   integer,
@@ -421,3 +421,24 @@ export const peopleSearchResultSchema = Schema.Struct({
 export const myScheduledPlansDataSchema = Schema.Struct({
   planIds: mutableArray(Schema.String),
 });
+
+export type Blockout = typeof blockoutSchema.Type;
+export type PositionCandidates = typeof positionCandidatesSchema.Type;
+export type PlanWindowHistoryBatch = typeof planWindowHistoryBatchSchema.Type;
+export type CandidateDetailsBatch = typeof candidateDetailsBatchSchema.Type;
+export type PeopleDashboardDayKind = typeof peopleDashboardDayKindSchema.Type;
+export type PeopleDashboardMonth = typeof peopleDashboardMonthSchema.Type;
+export type PeopleDashboardMonthDay = typeof peopleDashboardMonthDaySchema.Type;
+export type PeopleDashboardRosterPerson =
+  typeof peopleDashboardRosterPersonSchema.Type;
+export type ServingRhythm = typeof servingRhythmSchema.Type;
+export type PeopleDashboardTeam = typeof peopleDashboardTeamSchema.Type;
+export type PeopleDashboardActivity = typeof peopleDashboardActivitySchema.Type;
+export type PeopleDashboardPerson = typeof peopleDashboardPersonSchema.Type;
+export type PeopleDashboardRoster = typeof peopleDashboardRosterSchema.Type;
+export type PeopleDashboardActivityBatch =
+  typeof peopleDashboardActivityBatchSchema.Type;
+export type PeopleDashboardPersonDetail =
+  typeof peopleDashboardPersonDetailSchema.Type;
+export type PeopleSearchResult = typeof peopleSearchResultSchema.Type;
+export type MyScheduledPlansData = typeof myScheduledPlansDataSchema.Type;

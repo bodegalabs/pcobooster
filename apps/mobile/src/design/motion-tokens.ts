@@ -94,7 +94,7 @@ export const Motion = {
   /** Skeleton fade-in once the delay passes. */
   skeletonFade: 240,
   /** One shimmer sweep across a skeleton. */
-  skeletonSweepPeriod: 1600,
+  skeletonSweepPeriod: 1000,
   /** Indeterminate progress waits this long before showing. */
   progressDelay: 200,
   /** One indeterminate progress sweep. */
