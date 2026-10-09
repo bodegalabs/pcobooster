@@ -177,6 +177,9 @@ export const readPlanWindowHistory = async <
     continuation: PlanWindowContinuation | undefined
   ) => Promise<Batch>
 ): Promise<Batch[]> => {
+  const batches: Batch[][] = [];
+  let nextIndex = 0;
+  let failed = false;
   const readServiceType = async (
     serviceTypeId: string,
     continuation?: PlanWindowContinuation
@@ -192,11 +195,12 @@ export const readPlanWindowHistory = async <
     ) {
       throw new Error("Plan window history made no progress.");
     }
+    // Another service type failed, so the whole read fails; spend nothing more on this one.
+    if (failed) {
+      return [batch];
+    }
     return [batch, ...(await readServiceType(serviceTypeId, next))];
   };
-  const batches: Batch[][] = [];
-  let nextIndex = 0;
-  let failed = false;
   /** Reads service types one after another until none are left or one has failed. */
   const readRemaining = async (): Promise<void> => {
     const index = nextIndex;

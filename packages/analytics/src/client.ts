@@ -66,15 +66,24 @@ export const createAnalyticsClient = (
   /** Captures sent after analytics started but before the SDK finished loading, in order. */
   const heldCaptures: (() => void)[] = [];
 
-  /** Holds a capture while the SDK loads; outside analytics there is nothing to hold it for. */
-  const holdUntilLoaded = (capture: () => void): void => {
-    if (loadingSdk !== undefined && heldCaptures.length < MAX_HELD_CAPTURES) {
-      heldCaptures.push(capture);
-    }
-  };
   let currentUserId: string | undefined;
   /** Raised by `resetAnalytics`, so an initialization still loading the SDK identifies nobody. */
   let generation = 0;
+  /** The generation whose initialization is waiting for the SDK, if any. */
+  let initializingGeneration: number | undefined;
+
+  /**
+   * Holds a capture while this session's initialization loads the SDK. Outside analytics, or
+   * after a sign-out abandoned that load, there is no session to send it for.
+   */
+  const holdUntilLoaded = (capture: () => void): void => {
+    if (
+      initializingGeneration === generation &&
+      heldCaptures.length < MAX_HELD_CAPTURES
+    ) {
+      heldCaptures.push(capture);
+    }
+  };
 
   const loadSdk = async (): Promise<AnalyticsSdk> => {
     loadingSdk ??= loadSdkModule();
@@ -229,6 +238,7 @@ export const createAnalyticsClient = (
       canReportException(window.location.pathname, true);
     currentUserId = userId;
     const startedIn = generation;
+    initializingGeneration = generation;
     void (async () => {
       try {
         const sdk = await loadSdk();

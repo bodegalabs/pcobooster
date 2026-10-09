@@ -72,6 +72,8 @@ describe(createAnalyticsClient, () => {
     client.initializeAnalytics("phc_key", true);
     client.captureAnalytics("sign in failed");
     client.resetAnalytics();
+    // After sign-out abandoned the load, nothing is held for whoever signs in next.
+    client.captureAnalytics("workflow failed");
     client.initializeAnalytics("phc_key", true);
     client.captureAnalytics("workflow completed");
     await vi.waitFor(() => {
