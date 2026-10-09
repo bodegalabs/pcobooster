@@ -62,6 +62,51 @@ describe(readPlanWindowHistory, () => {
     });
   });
 
+  it("reads at most three service types at once", async () => {
+    const counts = { active: 0, peak: 0 };
+    const read = async (
+      serviceTypeId: string
+    ): Promise<PlanWindowHistoryBatch> => {
+      counts.active += 1;
+      counts.peak = Math.max(counts.peak, counts.active);
+      await Promise.resolve();
+      counts.active -= 1;
+      return windowBatch(serviceTypeId, [`${serviceTypeId}-1`]);
+    };
+
+    const batches = await readPlanWindowHistory(
+      ["a", "b", "c", "d", "e"],
+      read
+    );
+
+    expect({
+      plans: batches.flatMap(({ plans }) => plans.map(({ id }) => id)),
+      peak: counts.peak,
+    }).toStrictEqual({
+      plans: ["a-1", "b-1", "c-1", "d-1", "e-1"],
+      peak: 3,
+    });
+  });
+
+  it("starts no further service type once one fails", async () => {
+    const started: string[] = [];
+    const read = async (
+      serviceTypeId: string
+    ): Promise<PlanWindowHistoryBatch> => {
+      started.push(serviceTypeId);
+      if (serviceTypeId === "b") {
+        throw new Error("b failed");
+      }
+      await Promise.resolve();
+      return windowBatch(serviceTypeId, [`${serviceTypeId}-1`]);
+    };
+
+    await expect(
+      readPlanWindowHistory(["a", "b", "c", "d", "e"], read)
+    ).rejects.toThrow("b failed");
+    expect(started).toStrictEqual(["a", "b", "c"]);
+  });
+
   it("fails a service type whose follow-up call read nothing new", async () => {
     const stuck = windowBatch("sunday", [], ["sun-2"]);
 

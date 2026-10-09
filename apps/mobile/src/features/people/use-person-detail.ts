@@ -98,7 +98,9 @@ export const usePersonDetail = (
     /** A stand-in (the list's copy, or the previous month) shows while this month loads. */
     isShowingPlaceholder: detailQuery.isPlaceholderData,
     /** Planning Center Services has no record of them: they are in People only. */
-    isNotInServices: detailQuery.error instanceof NotFound,
+    isNotInServices:
+      detailQuery.error instanceof NotFound &&
+      detailQuery.error.resource === "services-person",
     detailErrorMessage:
       detailQuery.error === null ? null : failureMessage(detailQuery.error),
     retryDetail: async () => {

@@ -125,7 +125,7 @@ const PersonDetailFailure = ({
   onRetry: () => void;
 }) =>
   // Planning Center Services has no record of them: they are in People only.
-  error instanceof NotFound ? (
+  error instanceof NotFound && error.resource === "services-person" ? (
     <NotInServices />
   ) : (
     <div

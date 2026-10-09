@@ -256,7 +256,8 @@ const useSearch = () => {
     ...searchReads.people(context, settled),
     subscribed: focused,
     enabled: searching && showPeople && settled.length >= 2,
-    placeholderData: keepPreviousData,
+    // Below two characters there is no people search, so earlier answers no longer apply.
+    placeholderData: query.length >= 2 ? keepPreviousData : undefined,
   });
   const songs = useQuery({
     ...searchReads.songs(context, settled),

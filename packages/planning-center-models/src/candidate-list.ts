@@ -155,10 +155,18 @@ export const windowHistoryAdvanced = (
 };
 
 /**
- * Reads the window around a plan date one service type per call, all at once. Each call is its
- * own Worker invocation with its own six Planning Center connections, so the window takes about
- * as long as its busiest service type rather than every roster in turn. Each service type's
+ * Service types whose window history is read at once. Each call is its own Worker invocation,
+ * with its own six connections and its own pacer, so more at once would let one person's window
+ * outrun Planning Center's 100 requests per 20 seconds where no pacer can see it.
+ */
+export const WINDOW_HISTORY_CONCURRENCY = 3;
+
+/**
+ * Reads the window around a plan date one service type per call, `WINDOW_HISTORY_CONCURRENCY`
+ * at a time. Each call is its own Worker invocation with its own six Planning Center
+ * connections, so the window takes far less than every roster read in turn. Each service type's
  * calls follow their continuation until its rosters are read; the batches merge in any order.
+ * After a failure no further service type starts, and the failure is the result.
  */
 export const readPlanWindowHistory = async <
   Batch extends PlanWindowHistoryBatch,
@@ -186,12 +194,32 @@ export const readPlanWindowHistory = async <
     }
     return [batch, ...(await readServiceType(serviceTypeId, next))];
   };
-  const calls = await Promise.all(
-    serviceTypeIds.map(
-      async (serviceTypeId) => await readServiceType(serviceTypeId)
+  const batches: Batch[][] = [];
+  let nextIndex = 0;
+  let failed = false;
+  /** Reads service types one after another until none are left or one has failed. */
+  const readRemaining = async (): Promise<void> => {
+    const index = nextIndex;
+    const serviceTypeId = serviceTypeIds[index];
+    if (failed || serviceTypeId === undefined) {
+      return;
+    }
+    nextIndex += 1;
+    try {
+      batches[index] = await readServiceType(serviceTypeId);
+    } catch (error) {
+      failed = true;
+      throw error;
+    }
+    await readRemaining();
+  };
+  await Promise.all(
+    Array.from(
+      { length: Math.min(WINDOW_HISTORY_CONCURRENCY, serviceTypeIds.length) },
+      readRemaining
     )
   );
-  return calls.flat();
+  return batches.flat();
 };
 
 /**

@@ -22,19 +22,33 @@ const serviceTypesQueryOptions = {
   staleTime: 10 * 60 * 1000,
 };
 
+/** Refreshes a stale list behind the read; the list's own query reports its failures. */
+const refreshQuietly = async (refresh: () => Promise<void>): Promise<void> => {
+  try {
+    await refresh();
+  } catch {
+    // The service types query surfaces its own failure where the list is shown.
+  }
+};
+
 /**
- * The active service types for reads that need their IDs. A saved list is used as is, even
- * when stale, so those reads never wait on it; only a browser with no list loads one.
+ * The active service types for reads that need their IDs. A saved list is used at once, even
+ * when stale, so those reads never wait on it (a stale one refreshes behind them for next time);
+ * only a browser with no list loads one first.
  */
 export const loadServiceTypes = async (
   queryClient: QueryClient
 ): Promise<ServiceType[]> => {
   const { queryKey } = serviceTypesQueryOptions;
   hydrateQueryFromCache(queryClient, queryKey, readCachedServiceTypesEntry);
-  return (
-    queryClient.getQueryData<ServiceType[]>(queryKey) ??
-    (await queryClient.query(serviceTypesQueryOptions))
-  );
+  const saved = queryClient.getQueryData<ServiceType[]>(queryKey);
+  if (saved === undefined) {
+    return await queryClient.query(serviceTypesQueryOptions);
+  }
+  void refreshQuietly(async () => {
+    await queryClient.query(serviceTypesQueryOptions);
+  });
+  return saved;
 };
 
 export const useServiceTypes = () => {

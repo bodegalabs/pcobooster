@@ -30,9 +30,9 @@ type DetailInput = DetailRequest["params"] & DetailRequest["payload"];
 const STALE_MS = 300_000;
 
 /**
- * The window around a plan date, one service type per call, all at once (see
- * `readPlanWindowHistory`). A saved service type list is used as is, even when stale, so the
- * history never waits on it.
+ * The window around a plan date, one service type per call (see `readPlanWindowHistory`). A
+ * saved service type list is used at once, even when stale, so the history never waits on it; a
+ * stale one refreshes behind it for next time.
  */
 export const fetchWindowHistory = async (
   read: PlanReadContext,
@@ -42,9 +42,17 @@ export const fetchWindowHistory = async (
   Effect.Success<ReturnType<ProductApi["people"]["planWindowHistory"]>>[]
 > => {
   const serviceTypesQuery = planReads.serviceTypes(read);
-  const serviceTypes =
-    context.client.getQueryData(serviceTypesQuery.queryKey) ??
-    (await context.client.query(serviceTypesQuery));
+  const saved = context.client.getQueryData(serviceTypesQuery.queryKey);
+  if (saved !== undefined) {
+    void (async () => {
+      try {
+        await context.client.query(serviceTypesQuery);
+      } catch {
+        // The service types query surfaces its own failure where the list is shown.
+      }
+    })();
+  }
+  const serviceTypes = saved ?? (await context.client.query(serviceTypesQuery));
   return await readPlanWindowHistory(
     serviceTypes.map(({ id }) => id),
     async (serviceTypeId, continuation) => {
