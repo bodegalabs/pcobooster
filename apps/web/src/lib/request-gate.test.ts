@@ -82,6 +82,8 @@ describe(decideRequestGate, () => {
     "/api/v1/demo/session",
     "/api/v1/accounts",
     "/api/v1/service-types/1/plans/2/items/order",
+    "/api/updates/manifest",
+    "/api/updates/assets/47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU",
     "/auth",
     "/auth?next=%2Fpeople",
     "/robots.txt",
@@ -123,6 +125,8 @@ describe(decideRequestGate, () => {
     ["/admin/users/7", "/auth?next=%2Fadmin%2Fusers%2F7"],
     // Other API paths are gated, and API paths are never a return destination.
     ["/api/health", "/auth"],
+    ["/api/updates", "/auth"],
+    ["/api/updates/history", "/auth"],
     ["/authors", "/auth?next=%2Fauthors"],
     ["/demo", "/auth?next=%2Fdemo"],
   ])("sends signed-out visitors from %s to sign-in", (path, location) => {
