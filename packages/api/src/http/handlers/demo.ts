@@ -5,7 +5,7 @@ import {
 } from "@pcobooster/api/http/response-cookies";
 import { ProductApi } from "@pcobooster/contracts/http/api";
 import { Effect } from "effect";
-import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { HttpApiBuilder } from "effect/http-api";
 
 export const DemoHandlers = HttpApiBuilder.group(
   ProductApi,

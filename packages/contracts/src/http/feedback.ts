@@ -15,7 +15,7 @@ export const feedbackSubmitInputSchema = Schema.Struct({
   ),
   /** The app route the user was on, used to reproduce the report. */
   path: Schema.String.check(
-    Schema.isStartsWith("/"),
+    Schema.isStartingWith("/"),
     Schema.isMaxLength(FEEDBACK_PATH_MAX_LENGTH)
   ),
   /** The browser's PostHog session, which links the report to its replay. */

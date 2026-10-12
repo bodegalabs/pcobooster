@@ -9,8 +9,8 @@ import {
   SERVER_VERSION_HEADER,
 } from "@pcobooster/contracts/http/client-version";
 import { Function, Schema } from "effect";
+import { HttpApi } from "effect/http-api";
 import type { Json } from "effect/Schema";
-import { HttpApi } from "effect/unstable/httpapi";
 import { describe, expect, it } from "vitest";
 
 import {

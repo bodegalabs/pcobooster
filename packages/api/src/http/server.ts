@@ -22,7 +22,7 @@ import type { ProcedureScopeOptions } from "@pcobooster/api/http/procedure-scope
 import type { ScheduleAuditDependencies } from "@pcobooster/api/http/schedule-audit";
 import { ProductApi } from "@pcobooster/contracts/http/api";
 import { Layer } from "effect";
-import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { HttpApiBuilder } from "effect/http-api";
 
 export type ProductApiOptions = ProcedureScopeOptions & {
   /** How endpoints resolve Planning Center access; the Worker passes none. */

@@ -23,6 +23,16 @@ Concurrency is set per job. A new push to a pull request cancels that PR's older
 
 `scripts/check-patches.test.ts` runs in `bun run test`. It fails if any installed copy of a patched dependency is missing a line the patch adds, for example after a stale Bun cache.
 
+## Alchemy beta.82 rollout
+
+The root and API Worker pin `alchemy@2.0.0-beta.82`; all workspace Effect dependencies and the platform/test peers use `4.0.3`, satisfying Alchemy's `^4.0.0` peers. The lockfile aligns Alchemy's runtime, node utilities, and floci at beta.82 (the optional frontend-frameworks peer is unused by Cloudflare Vite). The CLI script runs the published `bin/cli.js` launcher with Bun. CI and developers use Bun 1.4.2; Node users need at least 24.11.1, also pinned in `.node-version`.
+
+[Beta.82's release notes](https://alchemy.run/blog/2026-10-12-beta-82/) describe a one-way Durable Object migration from `migrations` to declarative `exports`. Upgrade every developer and CI deploy, cleanup, drift, and control-plane path together before the first cloud-backed operation: these stacks share `Cloudflare.state()`, whose state Worker and Durable Object are part of this boundary. Even a plan/dry-run or state read can bootstrap or update the shared state backend. Use secretless CI, standalone Vite builds, and the in-memory/local workerd test harness for upgrade validation; do not run cloud-backed Alchemy commands as an offline check.
+
+The first deployment of each affected Worker must use 100% traffic (omit `version.traffic`, as these stacks currently do). Once exports are deployed, do not deploy an older Alchemy release, including from an older checkout or CI run. Application rollback must retain beta.82 or later and compatible Effect peers. Bundles now default to `.alchemy/bundles`; changed sourcemap paths cause a one-time Worker redeploy. No state migration or deployment is performed by the dependency PR itself.
+
+Workers Issues is enabled for API, product, and admin through the shared observability helpers. Invocation logs remain enabled, and existing trace sampling and API telemetry remain in place. Cloudflare Access, classic KV, and the custom PostHog and Infisical providers keep their existing declarations.
+
 ## Preview lifecycle
 
 Previews deploy only on request. Add the `preview` label to a same-repository pull request; adding the label, and every later push while it is present, requests a deployment once validation passes. The label is the approval: while it is present, every push to the PR deploys without further review, so only label a PR whose incoming commits you trust. Pull requests without the label get checks only, with no waiting deployment. Adding the label reruns nothing: the `labeled` run skips `ci` and `cloudflare-build` and its `preview-gate` job waits for those checks to pass on the current head. Opening a PR with the label already on it (`gh pr create --label preview`) sends `opened` and `labeled` together, and both runs would deploy the same head. So the gate (`scripts/cloudflare/preview-gate.ts`) leaves the deploy to another run whose `preview` job for this head appeared after the `labeled` run started. Earlier preview jobs don't count, so labeling again still recreates a preview the nightly sweep removed, and re-running a skipped `preview` job always deploys.
