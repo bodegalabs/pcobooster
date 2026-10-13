@@ -67,6 +67,21 @@
   );
 }
 
+/* The guided tour's cut-out: everything outside it is dimmed by its shadow. */
+@utility tour-spotlight {
+  width: var(--tour-width);
+  height: var(--tour-height);
+  transform: translate(var(--tour-x), var(--tour-y));
+  box-shadow: 0 0 0 9999px rgb(0 0 0 / 0.45);
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      transform 200ms var(--ease-snappy, ease-out),
+      width 200ms var(--ease-snappy, ease-out),
+      height 200ms var(--ease-snappy, ease-out);
+  }
+}
+
 /*
  * Side padding that centers page content in the inset. Scroll containers span
  * the whole inset (scrollbar on its edge) and pad their content by this much.

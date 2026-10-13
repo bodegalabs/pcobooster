@@ -302,7 +302,10 @@ const MyScheduledServiceCards = ({
 
   const now = new Date();
   return (
-    <section className="flex shrink-0 flex-col gap-2.5">
+    <section
+      data-tour="your-services"
+      className="flex shrink-0 flex-col gap-2.5"
+    >
       <h2 className={selectionPickerSectionTitleClass}>Your services</h2>
       <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-2 overflow-x-auto px-4 md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 lg:grid-cols-3">
         {isLoading
@@ -404,7 +407,10 @@ export const ServicePlanTableSelector = ({
       />
 
       <div className="flex flex-col [--plan-list-sticky-offset:6.25rem] md:min-h-0 md:flex-1">
-        <div className="bg-background sticky top-0 z-10 -mx-4 grid shrink-0 grid-cols-2 gap-2 px-4 py-2 md:static md:mx-0 md:grid-cols-[minmax(0,1fr)_180px_160px] md:bg-transparent md:px-0 md:pt-0 md:pb-1">
+        <div
+          data-tour="plan-search"
+          className="bg-background sticky top-0 z-10 -mx-4 grid shrink-0 grid-cols-2 gap-2 px-4 py-2 md:static md:mx-0 md:grid-cols-[minmax(0,1fr)_180px_160px] md:bg-transparent md:px-0 md:pt-0 md:pb-1"
+        >
           <InputGroup className="col-span-2 md:col-span-1">
             <InputGroupAddon>
               <Search />
