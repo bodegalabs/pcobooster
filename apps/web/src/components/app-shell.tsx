@@ -1,6 +1,7 @@
 import {
   ArrowDown01Icon,
   Calendar04Icon,
+  HelpCircleIcon,
   KeyboardIcon,
   LaptopIcon,
   Logout01Icon,
@@ -30,6 +31,10 @@ import {
 } from "@/components/access/access-review";
 import { HotkeyChord } from "@/components/hotkey-chord";
 import { MobileHeader } from "@/components/mobile-menu";
+import {
+  OnboardingProvider,
+  useOnboarding,
+} from "@/components/onboarding/onboarding-provider";
 import { planViewIcons } from "@/components/plan-view-icons";
 import { SidebarBrandMark } from "@/components/sidebar-brand-mark";
 import { SidebarChromeTrigger } from "@/components/sidebar-chrome-trigger";
@@ -254,6 +259,7 @@ const SidebarAccountPanel = ({
   const { setTheme, theme } = useTheme();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const { openReview, restricted } = useAccessReview();
+  const { openWelcome } = useOnboarding();
   const {
     data,
     demo,
@@ -378,6 +384,18 @@ const SidebarAccountPanel = ({
                 ) : null}
               </DropdownMenuItem>
             )}
+
+            <DropdownMenuItem
+              onSelect={() => {
+                openWelcome();
+              }}
+            >
+              <SidebarNavIcon
+                icon={HelpCircleIcon}
+                className="text-muted-foreground"
+              />
+              <span className="flex-1">Getting started</span>
+            </DropdownMenuItem>
 
             <DropdownMenuItem
               onSelect={() => {
@@ -696,28 +714,30 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
 
   return (
     <AccessReviewProvider>
-      <SidebarProvider
-        defaultOpen={sidebarDefaultOpen}
-        className="min-h-dvh md:h-dvh md:min-h-0 md:overflow-hidden"
-      >
-        <SidebarToggleHotkey />
-        <AppSidebar
-          peopleNavEnabled={peopleNavEnabled}
-          songsNavEnabled={songsNavEnabled}
-        />
-        <SidebarInset className="@container md:min-h-0 md:overflow-hidden">
-          <AppInsetChromeHeader>
-            <SidebarChromeTrigger when="inset" />
-            <AppTopBar />
-            <DemoBadge />
-            {presentationMode ? <PresentationModeBadge /> : null}
-          </AppInsetChromeHeader>
-          <MobileChromeHeader />
-          <div className="page-gutters flex flex-1 flex-col md:min-h-0">
-            <AppShellContent>{children}</AppShellContent>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
+      <OnboardingProvider>
+        <SidebarProvider
+          defaultOpen={sidebarDefaultOpen}
+          className="min-h-dvh md:h-dvh md:min-h-0 md:overflow-hidden"
+        >
+          <SidebarToggleHotkey />
+          <AppSidebar
+            peopleNavEnabled={peopleNavEnabled}
+            songsNavEnabled={songsNavEnabled}
+          />
+          <SidebarInset className="@container md:min-h-0 md:overflow-hidden">
+            <AppInsetChromeHeader>
+              <SidebarChromeTrigger when="inset" />
+              <AppTopBar />
+              <DemoBadge />
+              {presentationMode ? <PresentationModeBadge /> : null}
+            </AppInsetChromeHeader>
+            <MobileChromeHeader />
+            <div className="page-gutters flex flex-1 flex-col md:min-h-0">
+              <AppShellContent>{children}</AppShellContent>
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
+      </OnboardingProvider>
     </AccessReviewProvider>
   );
 };
