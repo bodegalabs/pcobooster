@@ -8,7 +8,9 @@ import {
 import type { ProductClient } from "@pcobooster/client/product-client";
 import { ClientOutdated } from "@pcobooster/contracts/faults/client-outdated";
 import { Conflict } from "@pcobooster/contracts/faults/conflict";
+import { InternalError } from "@pcobooster/contracts/faults/internal-error";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
+import { PersistenceFailure } from "@pcobooster/contracts/faults/persistence-failure";
 import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
 import { describe, expect, it } from "vitest";
 
@@ -278,6 +280,17 @@ describe(failureMessage, () => {
         cause: null,
       }),
       "Couldn't reach pcobooster. Check your connection and try again.",
+    ],
+    [
+      new PersistenceFailure({
+        detail: "D1 DB is overloaded",
+        operation: "session",
+      }),
+      "Something went wrong on our side. Try again in a moment.",
+    ],
+    [
+      new InternalError({}),
+      "Something went wrong on our side. Try again in a moment.",
     ],
     [new TypeError("private diagnostic"), "Fallback"],
   ])("reads %o as %s", (failure, message) => {
