@@ -1,5 +1,6 @@
 import { isPlanningCenterPathId } from "@pcobooster/api/modules/planning-center/path-ids";
 import { normalizeKeyOption } from "@pcobooster/api/modules/planning-center/plan-items-shared";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type {
   ArrangementResponse,
@@ -380,6 +381,8 @@ const readPdfBytes = (
     return bytes;
   });
 
+const PLANNING_CENTER_NOT_FOUND = 404;
+
 /**
  * The PDF Services itself renders from the saved chart: a key's chord chart, or the lyrics
  * sheet. Two requests: Planning Center's `open` action, then the file it points to.
@@ -407,7 +410,18 @@ export const getChordChartPdf = (
       input.keyId === undefined
         ? `${arrangementPath}/attachments/lyric_chart-${input.arrangementId}`
         : `${arrangementPath}/keys/${input.keyId}/attachments/chord_chart-${input.keyId}--`;
-    const url = yield* songs.openChartAttachment(attachmentPath);
+    const url = yield* songs.openChartAttachment(attachmentPath).pipe(
+      // Services has not rendered this chart (or the song, arrangement, or key is gone).
+      Effect.mapError((error) =>
+        error instanceof PlanningCenterApiError &&
+        error.status === PLANNING_CENTER_NOT_FOUND
+          ? new NotFound({
+              message: "Planning Center has no chart at this link.",
+              resource: "chart",
+            })
+          : error
+      )
+    );
     if (!url.startsWith("https://")) {
       return yield* pdfFailure(
         "Planning Center did not return a secure link to the chart's PDF."
