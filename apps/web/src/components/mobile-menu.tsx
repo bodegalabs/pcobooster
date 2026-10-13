@@ -1,5 +1,6 @@
 import { useRender } from "@base-ui/react/use-render";
 import {
+  BubbleChatEditIcon,
   HelpCircleIcon,
   LaptopIcon,
   Logout01Icon,
@@ -18,9 +19,10 @@ import {
 } from "@pcobooster/ui/mobile-menu";
 import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import type { ComponentProps, ReactElement, ReactNode } from "react";
-import { useEffect, useId } from "react";
+import { useEffect, useId, useState } from "react";
 
 import { useAccessReview } from "@/components/access/access-review";
+import { MobileFeedbackDialog } from "@/components/mobile-feedback-dialog";
 import { useOnboarding } from "@/components/onboarding/onboarding-provider";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
 import { useTheme } from "@/components/theme-provider";
@@ -143,20 +145,22 @@ const AccountRow = ({
     },
   });
 
-/** Theme, getting started, sign out, and the profile row; access and switch account unless demo. */
-const accountItemCount = (demo: boolean): number => (demo ? 4 : 6);
+/** Theme, getting started, sign out, and the profile row; feedback, access, and switch account unless demo. */
+const accountItemCount = (demo: boolean): number => (demo ? 4 : 7);
 
 const MenuAccount = ({
   panel,
   startIndex,
   itemCount,
   onClose,
+  onOpenFeedback,
 }: {
   panel: ReturnType<typeof useAccountPanel>;
   /** The menu position of the first account row, after the nav links. */
   startIndex: number;
   itemCount: number;
   onClose: () => void;
+  onOpenFeedback: () => void;
 }) => {
   const { setTheme, theme } = useTheme();
   const {
@@ -175,8 +179,9 @@ const MenuAccount = ({
   const themeSelectId = useId();
   // Rows roll in order after the nav links; hidden rows take no slot.
   const guideIndex = startIndex + 1;
-  const accessIndex = startIndex + 2;
-  const signOutIndex = startIndex + (demo ? 2 : 4);
+  const feedbackIndex = startIndex + 2;
+  const accessIndex = startIndex + 3;
+  const signOutIndex = startIndex + (demo ? 2 : 5);
   const row = (index: number, children: ReactNode) => (
     <MobileMenuItem as="div" index={index} count={itemCount}>
       {children}
@@ -225,6 +230,21 @@ const MenuAccount = ({
           Getting started
         </AccountRow>
       )}
+      {demo
+        ? null
+        : row(
+            feedbackIndex,
+            <AccountRow
+              render={<button type="button" aria-label="Feedback" />}
+              onClick={() => {
+                onClose();
+                onOpenFeedback();
+              }}
+            >
+              <SidebarNavIcon icon={BubbleChatEditIcon} />
+              Feedback
+            </AccountRow>
+          )}
       {demo
         ? null
         : row(
@@ -347,6 +367,7 @@ export const MobileHeader = ({
   const itemCount = entries.length + accountItemCount(accountPanel.demo);
   const router = useRouter();
   const { handleClose } = menu;
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   useEffect(
     () => router.subscribe("onBeforeNavigate", handleClose),
@@ -419,9 +440,16 @@ export const MobileHeader = ({
             startIndex={entries.length}
             itemCount={itemCount}
             onClose={menu.handleClose}
+            onOpenFeedback={() => {
+              setFeedbackOpen(true);
+            }}
           />
         </nav>
       </MobileMenuOverlay>
+      <MobileFeedbackDialog
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+      />
     </header>
   );
 };

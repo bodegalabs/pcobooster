@@ -22,6 +22,7 @@ import {
 import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
 import { SHORTCUTS_PALETTE_HOTKEY } from "@/lib/app-hotkeys";
 import { getPlanViewLabel } from "@/lib/app-routes";
+import { cn } from "@/lib/utils";
 
 interface Area {
   readonly key: string;
@@ -146,15 +147,24 @@ export const WelcomeDialog = ({
               ))}
             </ul>
           )}
-          <p className="text-muted-foreground border-border/60 border-t pt-4 text-xs max-md:hidden">
-            Press{" "}
-            <HotkeyChord
-              id="welcome-shortcuts"
-              binding={SHORTCUTS_PALETTE_HOTKEY}
-              className="inline-flex align-middle"
-            />{" "}
-            for keyboard shortcuts. Something missing or confusing? Tell us
-            through Feedback in the sidebar.
+          <p
+            className={cn(
+              "text-muted-foreground border-border/60 border-t pt-4 text-xs",
+              demo && "max-md:hidden"
+            )}
+          >
+            <span className="max-md:hidden">
+              Press{" "}
+              <HotkeyChord
+                id="welcome-shortcuts"
+                binding={SHORTCUTS_PALETTE_HOTKEY}
+                className="inline-flex align-middle"
+              />{" "}
+              for keyboard shortcuts.{" "}
+            </span>
+            {demo
+              ? null
+              : "Something missing or confusing? Send it through Feedback; we read every note."}
           </p>
         </div>
         <ResponsiveDialogFooter>

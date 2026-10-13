@@ -1,10 +1,7 @@
 import { BubbleChatEditIcon } from "@hugeicons/core-free-icons";
-import { getAnalyticsSessionId } from "@pcobooster/analytics/client";
-import { failureMessage } from "@pcobooster/client/product-client";
 import { FEEDBACK_MESSAGE_MAX_LENGTH } from "@pcobooster/contracts/feedback";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import { HotkeyChord } from "@/components/hotkey-chord";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
@@ -20,50 +17,19 @@ import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useAccountsQuery } from "@/hooks/use-account-panel";
-import { productClient } from "@/product-client";
+import { useFeedbackDraft } from "@/hooks/use-feedback-draft";
 
 const SEND_FEEDBACK_HOTKEY = "Mod+Enter";
-const SEND_FAILED_MESSAGE = "Couldn't send feedback. Try again.";
 
 /** Desktop sidebar entry point; the draft survives closing the popover. */
 export const SidebarFeedback = () => {
   const { data } = useAccountsQuery();
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState("");
-  const message = draft.trim();
-
-  const [sending, setSending] = useState(false);
-  const canSend = message.length > 0 && !sending;
-
-  // Feedback touches no cached data, so a plain request replaces a mutation.
-  const send = async () => {
-    if (!canSend) {
-      return;
-    }
-    setSending(true);
-    try {
-      await productClient.run((api) =>
-        api.feedback.submit({
-          payload: {
-            message,
-            path: window.location.pathname,
-            sessionId: getAnalyticsSessionId(),
-          },
-        })
-      );
-      setSending(false);
-      setDraft("");
+  const { draft, setDraft, sending, canSend, send } = useFeedbackDraft({
+    onSent: () => {
       setOpen(false);
-      toast.success("Thanks! Your feedback was sent.");
-    } catch (error) {
-      setSending(false);
-      toast.error(
-        error instanceof Error
-          ? failureMessage(error, SEND_FAILED_MESSAGE)
-          : SEND_FAILED_MESSAGE
-      );
-    }
-  };
+    },
+  });
 
   useHotkey(
     SEND_FEEDBACK_HOTKEY,

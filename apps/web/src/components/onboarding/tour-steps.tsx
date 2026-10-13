@@ -32,7 +32,7 @@ export const appTourSteps: readonly TourStep[] = [
   {
     target: "mobile-menu",
     title: "Menu",
-    body: "Services, People, Songs, and your account all live behind this menu.",
+    body: "Services, People, Songs, Feedback, and your account all live behind this menu.",
     side: "bottom",
   },
   {
