@@ -1,4 +1,5 @@
 import { captureAnalytics } from "@pcobooster/analytics/client";
+import { getInitials } from "@pcobooster/planning-center-models/initials";
 import { ChevronRight, X } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { preconnect } from "react-dom";
@@ -70,13 +71,8 @@ const requestAuthorizationUrl = async (returnPath: string): Promise<string> => {
 
 const WHITESPACE = /\s+/u;
 
-const accountInitials = (account: DeviceAccount): string => {
-  const source = account.name.trim() || account.email.trim();
-  const [first = "", second = ""] = source.split(WHITESPACE);
-  const initials =
-    second === "" ? first.slice(0, 2) : `${first[0]}${second[0]}`;
-  return initials.toUpperCase() || "?";
-};
+const accountInitials = (account: DeviceAccount): string =>
+  getInitials(account.name.trim() || account.email.trim());
 
 const RELATIVE_TIME_UNITS = [
   { unit: "year", ms: 365 * 24 * 60 * 60 * 1000 },

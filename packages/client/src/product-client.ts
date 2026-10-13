@@ -126,15 +126,34 @@ export const failureStatus = (error: Error): number | undefined =>
 export const failureCode = (error: Error): string | undefined =>
   callFailureOutcome(error)?.code;
 
+const SERVER_ERROR_STATUS = 500;
+
+/**
+ * What a person reads for a 500. Its wire message ("Internal server error") is for logs; the
+ * failure itself is usually brief (an overloaded database), so it invites a retry.
+ */
+export const SERVER_FAILURE_MESSAGE =
+  "Something went wrong on our side. Try again in a moment.";
+
+/** Whether a failed call is the API's own 500 (`InternalError`, `PersistenceFailure`). */
+export const isServerFailure = (error: Error): boolean =>
+  isProductFault(error) &&
+  faultOutcome[error._tag].status === SERVER_ERROR_STATUS;
+
 /**
  * What to tell a person about a failed call: a fault's or transport failure's own message, which
- * is written for people, or `fallback` for anything else (a bug's message is never shown).
+ * is written for people, `SERVER_FAILURE_MESSAGE` for a 500, or `fallback` for anything else (a
+ * bug's message is never shown).
  */
-export const failureMessage = (error: Error, fallback: string): string =>
-  (isProductFault(error) || error instanceof TransportFailure) &&
-  error.message !== ""
+export const failureMessage = (error: Error, fallback: string): string => {
+  if (isServerFailure(error)) {
+    return SERVER_FAILURE_MESSAGE;
+  }
+  return (isProductFault(error) || error instanceof TransportFailure) &&
+    error.message !== ""
     ? error.message
     : fallback;
+};
 
 export interface ProductClient {
   readonly api: ProductApi;

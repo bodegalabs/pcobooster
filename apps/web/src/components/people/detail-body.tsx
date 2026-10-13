@@ -103,7 +103,7 @@ export const PersonDetailBodySkeleton = () => (
                 <Skeleton
                   key={index}
                   variant="control"
-                  className="aspect-square min-h-7"
+                  className="aspect-square min-h-7 w-full"
                 />
               ))}
             </div>

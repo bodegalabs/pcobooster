@@ -15,6 +15,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { getInitials } from "@pcobooster/planning-center-models/initials";
 import { getSchedulingNotificationState } from "@pcobooster/planning-center-models/scheduling-notifications";
 import type { SlotRef } from "@pcobooster/planning-center-models/scheduling-notifications";
 import type {
@@ -78,7 +79,6 @@ import { useLineupColumnOrder } from "@/hooks/use-lineup-column-order";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { isSavedPlanPersonId } from "@/hooks/use-schedule-cache-optimism";
-import { getInitials } from "@/lib/format/initials";
 import {
   applyLineupColumnOrder,
   reorderLineupColumnIds,

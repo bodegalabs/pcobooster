@@ -2,6 +2,7 @@
 import { read } from "@pcobooster/contracts/http/endpoint";
 import { planningCenterGroup } from "@pcobooster/contracts/http/group";
 import {
+  calendarDate,
   mutableArray,
   finiteNumber,
   requiredId,
@@ -101,6 +102,15 @@ export const catalog = planningCenterGroup(
   }),
   read("plans", "/service-types/:serviceTypeId/plans", {
     params: plansInputSchema.fields,
+    success: mutableArray(planSchema),
+  }),
+  /** A bounded org-calendar window for the web Services agenda. */
+  read("planWindow", "/service-types/:serviceTypeId/plan-window", {
+    params: plansInputSchema.fields,
+    query: {
+      startDay: calendarDate,
+      days: Schema.optional(Schema.Literals(["14", "30"])),
+    },
     success: mutableArray(planSchema),
   }),
   /** Null when the plan doesn't exist. */

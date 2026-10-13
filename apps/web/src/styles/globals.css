@@ -4,8 +4,26 @@
 @import "@pcobooster/design-tokens/tokens.css";
 
 @import "@pcobooster/ui/mobile-menu.css";
+@import "@pcobooster/ui/star-field.css";
 
 @source "../../../../packages/ui/src";
+
+/*
+ * Names and titles from Planning Center can be right-to-left. Each truncated
+ * line takes its direction from its own text, so an Arabic or Hebrew name keeps
+ * its first word and ellipsizes at its own end instead of losing its start.
+ */
+@layer utilities {
+  .truncate {
+    unicode-bidi: plaintext;
+  }
+
+  /* Plaintext would also right-align a short RTL name; keep the parent's alignment. */
+  :where(.truncate) {
+    text-align: -webkit-match-parent;
+    text-align: match-parent;
+  }
+}
 
 @utility font-inherit {
   font: inherit;
@@ -48,6 +66,21 @@
     --sortable-transition,
     transform 180ms cubic-bezier(0.2, 0, 0, 1)
   );
+}
+
+/* The guided tour's cut-out: everything outside it is dimmed by its shadow. */
+@utility tour-spotlight {
+  width: var(--tour-width);
+  height: var(--tour-height);
+  transform: translate(var(--tour-x), var(--tour-y));
+  box-shadow: 0 0 0 9999px rgb(0 0 0 / 0.45);
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      transform 200ms var(--ease-snappy, ease-out),
+      width 200ms var(--ease-snappy, ease-out),
+      height 200ms var(--ease-snappy, ease-out);
+  }
 }
 
 /*
@@ -521,6 +554,60 @@
     var(--background);
 }
 
+/* The welcome guide's night sky, the same sage stage as marketing's closing band. */
+@utility welcome-sky {
+  background: oklch(0.925 0.018 142);
+
+  .dark & {
+    background: oklch(0.27 0.02 142);
+  }
+}
+
+/* The rocket drifts gently while the guide is open. */
+@utility welcome-float {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: welcome-float 3.2s cubic-bezier(0.77, 0, 0.175, 1) infinite
+      alternate;
+  }
+}
+
+@keyframes welcome-float {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(5px, -5px);
+  }
+}
+
+/* Each step slides in from the side it came from; with reduced motion it only fades. */
+@utility welcome-step-forward {
+  animation: welcome-step-forward 360ms var(--ease-snappy) both;
+}
+
+@utility welcome-step-back {
+  animation: welcome-step-back 360ms var(--ease-snappy) both;
+}
+
+@keyframes welcome-step-forward {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+@keyframes welcome-step-back {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+/* The step dots stretch into the current step's pill. */
+@utility welcome-dot {
+  transition: width 300ms var(--ease-snappy);
+}
+
 @utility auth-stagger {
   & > * {
     animation: auth-enter 360ms cubic-bezier(0.23, 1, 0.32, 1) both;
@@ -562,7 +649,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .auth-stagger > * {
+  .auth-stagger > *,
+  .welcome-step-forward,
+  .welcome-step-back {
     animation-name: fade-in-only;
   }
 

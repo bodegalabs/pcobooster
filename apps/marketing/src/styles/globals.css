@@ -3,6 +3,7 @@
 @import "@pcobooster/design-tokens/tokens.css";
 
 @import "@pcobooster/ui/mobile-menu.css";
+@import "@pcobooster/ui/star-field.css";
 
 @source "../../../../packages/ui/src";
 

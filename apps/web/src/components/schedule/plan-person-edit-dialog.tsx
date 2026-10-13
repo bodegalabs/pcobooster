@@ -1,4 +1,5 @@
 import { formatWallTimeInTimeZone } from "@pcobooster/planning-center-models/calendar";
+import { getInitials } from "@pcobooster/planning-center-models/initials";
 import type {
   FilledPositionPerson,
   PlanTime,
@@ -39,7 +40,6 @@ import { invalidateCandidateHistoryQueries } from "@/hooks/use-schedule-cache-op
 import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cache-optimism";
 import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
 import { useUpdatePlanPersonStatus } from "@/hooks/use-update-plan-person-status";
-import { getInitials } from "@/lib/format/initials";
 import { queryKeys } from "@/lib/query-keys";
 import { productClient } from "@/product-client";
 

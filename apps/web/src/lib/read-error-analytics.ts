@@ -54,12 +54,17 @@ const decodeErrorCode = Schema.decodeUnknownOption(
   ])
 );
 
-/** One report for every terminal read failure, after retries, including background work. */
+/**
+ * One report for every terminal read failure, after retries, including background work. Each
+ * failure also goes to `onFailure` (the session-expiry handler).
+ */
 export const createReadErrorCache = (
-  capture: typeof captureAnalyticsException
+  capture: typeof captureAnalyticsException,
+  onFailure?: (error: Error) => void
 ): QueryCache =>
   new QueryCache({
     onError: (error, query) => {
+      onFailure?.(error);
       const operationName = Option.getOrElse(
         decodeReadOperation(query.queryKey[0]),
         () => "unknown-read"

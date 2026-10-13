@@ -1,3 +1,4 @@
+import { getInitials } from "@pcobooster/planning-center-models/initials";
 import { CalendarPlus, Loader2, UserPlus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -73,8 +74,7 @@ const SomeoneElseResultRow = ({
     onScheduleError,
     oneOff: true,
   });
-  const initials =
-    `${person.firstName[0] ?? ""}${person.lastName[0] ?? ""}` || "?";
+  const initials = getInitials(person.fullName);
 
   return (
     <CommandItem

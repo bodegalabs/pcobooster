@@ -1,5 +1,7 @@
 import { useRender } from "@base-ui/react/use-render";
 import {
+  BubbleChatEditIcon,
+  HelpCircleIcon,
   LaptopIcon,
   Logout01Icon,
   UserSwitchIcon,
@@ -7,6 +9,7 @@ import {
   ShieldUserIcon,
   Sun01Icon,
 } from "@hugeicons/core-free-icons";
+import { getInitials } from "@pcobooster/planning-center-models/initials";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import {
   MobileMenuIcon,
@@ -16,9 +19,11 @@ import {
 } from "@pcobooster/ui/mobile-menu";
 import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import type { ComponentProps, ReactElement, ReactNode } from "react";
-import { useEffect, useId } from "react";
+import { useEffect, useId, useState } from "react";
 
 import { useAccessReview } from "@/components/access/access-review";
+import { MobileFeedbackDialog } from "@/components/mobile-feedback-dialog";
+import { useOnboarding } from "@/components/onboarding/onboarding-provider";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
 import { useTheme } from "@/components/theme-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,7 +37,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { signOutLabel, useAccountPanel } from "@/hooks/use-account-panel";
 import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
 import { getAppSection } from "@/lib/app-routes";
-import { getInitials } from "@/lib/format/initials";
 import { cn } from "@/lib/utils";
 
 const MOBILE_MENU_ID = "mobile-menu";
@@ -141,20 +145,22 @@ const AccountRow = ({
     },
   });
 
-/** Theme, sign out, and the profile row; access and switch account unless demo. */
-const accountItemCount = (demo: boolean): number => (demo ? 3 : 5);
+/** Theme, getting started, sign out, and the profile row; feedback, access, and switch account unless demo. */
+const accountItemCount = (demo: boolean): number => (demo ? 4 : 7);
 
 const MenuAccount = ({
   panel,
   startIndex,
   itemCount,
   onClose,
+  onOpenFeedback,
 }: {
   panel: ReturnType<typeof useAccountPanel>;
   /** The menu position of the first account row, after the nav links. */
   startIndex: number;
   itemCount: number;
   onClose: () => void;
+  onOpenFeedback: () => void;
 }) => {
   const { setTheme, theme } = useTheme();
   const {
@@ -167,12 +173,15 @@ const MenuAccount = ({
     switchAccount,
   } = panel;
   const { openReview, restricted } = useAccessReview();
+  const { openWelcome } = useOnboarding();
   const themeOption =
     themeOptions.find((option) => option.value === theme) ?? themeOptions[2];
   const themeSelectId = useId();
   // Rows roll in order after the nav links; hidden rows take no slot.
-  const accessIndex = startIndex + 1;
-  const signOutIndex = startIndex + (demo ? 1 : 3);
+  const guideIndex = startIndex + 1;
+  const feedbackIndex = startIndex + 2;
+  const accessIndex = startIndex + 3;
+  const signOutIndex = startIndex + (demo ? 2 : 5);
   const row = (index: number, children: ReactNode) => (
     <MobileMenuItem as="div" index={index} count={itemCount}>
       {children}
@@ -208,6 +217,34 @@ const MenuAccount = ({
           </NativeSelect>
         </div>
       )}
+      {row(
+        guideIndex,
+        <AccountRow
+          render={<button type="button" aria-label="Getting started" />}
+          onClick={() => {
+            onClose();
+            openWelcome();
+          }}
+        >
+          <SidebarNavIcon icon={HelpCircleIcon} />
+          Getting started
+        </AccountRow>
+      )}
+      {demo
+        ? null
+        : row(
+            feedbackIndex,
+            <AccountRow
+              render={<button type="button" aria-label="Feedback" />}
+              onClick={() => {
+                onClose();
+                onOpenFeedback();
+              }}
+            >
+              <SidebarNavIcon icon={BubbleChatEditIcon} />
+              Feedback
+            </AccountRow>
+          )}
       {demo
         ? null
         : row(
@@ -330,6 +367,7 @@ export const MobileHeader = ({
   const itemCount = entries.length + accountItemCount(accountPanel.demo);
   const router = useRouter();
   const { handleClose } = menu;
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   useEffect(
     () => router.subscribe("onBeforeNavigate", handleClose),
@@ -372,6 +410,7 @@ export const MobileHeader = ({
           aria-label={menu.open ? "Close menu" : "Open menu"}
           aria-expanded={menu.open}
           aria-controls={MOBILE_MENU_ID}
+          data-tour="mobile-menu"
           className="-mr-2 shrink-0"
           onClick={menu.handleToggle}
         >
@@ -401,9 +440,16 @@ export const MobileHeader = ({
             startIndex={entries.length}
             itemCount={itemCount}
             onClose={menu.handleClose}
+            onOpenFeedback={() => {
+              setFeedbackOpen(true);
+            }}
           />
         </nav>
       </MobileMenuOverlay>
+      <MobileFeedbackDialog
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+      />
     </header>
   );
 };

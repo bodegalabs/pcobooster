@@ -20,6 +20,9 @@ export const CatalogHandlers = Layer.mergeAll(
       .handle("serviceTypes", () => getCatalogServiceTypes)
       .handle("organization", () => getCatalogOrganization)
       .handle("plans", ({ params }) => getCatalogPlans(params))
+      .handle("planWindow", ({ params, query }) =>
+        getCatalogPlans({ ...params, ...query })
+      )
       .handle("plan", ({ params }) => getCatalogPlan(params))
       .handle("adjacentPlans", ({ params, query }) =>
         getCatalogAdjacentPlans({ ...params, ...query })

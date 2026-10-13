@@ -167,6 +167,7 @@ if [[ "$skip_build" == 0 ]]; then
     -destination 'generic/platform=iOS' -derivedDataPath build/derived-release \
     -archivePath "$archive" \
     ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CURRENT_PROJECT_VERSION="$build" \
+    MODULE_CACHE_DIR="$HOME/Library/Developer/Xcode/DerivedData/ModuleCache.noindex" \
     CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO
   assert_clean
   if [[ "$(git -C "$repo" rev-parse HEAD)" != "$revision" ]]; then

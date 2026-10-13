@@ -70,3 +70,12 @@ export const describeSignInError = (code: string | null): string | null => {
   }
   return SIGN_IN_ERROR_MESSAGES.get(code) ?? GENERIC_SIGN_IN_ERROR;
 };
+
+/** The sign-in page, returning to `url` afterwards. Same-origin and relative. */
+export const signInPath = (url: URL): string => {
+  const returnPath = sanitizeReturnPath(`${url.pathname}${url.search}`);
+  if (returnPath === DEFAULT_SIGN_IN_RETURN_PATH) {
+    return "/auth";
+  }
+  return `/auth?${new URLSearchParams({ [SIGN_IN_RETURN_PARAM]: returnPath }).toString()}`;
+};

@@ -31,6 +31,7 @@ export const MobilePlanViewTabs = () => {
             search
             replace
             aria-current={active ? "page" : undefined}
+            data-tour={`plan-view-${view}`}
             className={cn(
               "focus-visible:ring-ring/50 relative flex h-12 flex-col items-center justify-center gap-0.5 rounded-md text-xs font-medium outline-none select-none focus-visible:ring-2",
               active ? "text-foreground" : "text-muted-foreground"
