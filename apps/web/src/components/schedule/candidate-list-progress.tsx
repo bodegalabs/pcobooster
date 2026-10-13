@@ -18,7 +18,8 @@ const describeProgress = ({
   historyLoaded,
 }: Progress): string => {
   const history = historyLoaded ? "Serving history loaded" : "Loading history";
-  return `${history}; availability for ${detailedCount} of ${candidateCount} people.`;
+  const people = candidateCount === 1 ? "person" : "people";
+  return `${history}; availability for ${detailedCount} of ${candidateCount} ${people}.`;
 };
 
 /**

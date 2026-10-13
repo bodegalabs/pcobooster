@@ -3,7 +3,6 @@ import {
   buildRhythmFromSchedules,
   getMonthInfo,
   getMostCommonRoles,
-  initialsFromName,
   itemsInMonth,
   PLAN_TIME_WINDOW_DAYS,
   scheduleItemsUnlessDeclined,
@@ -46,6 +45,7 @@ import {
   zonedWallTimeToUtcIso,
 } from "@pcobooster/planning-center-models/calendar";
 import { isDeclinedAssignmentStatus } from "@pcobooster/planning-center-models/candidate-frequency";
+import { getInitials } from "@pcobooster/planning-center-models/initials";
 import {
   isNonEmptyString,
   isString,
@@ -615,7 +615,7 @@ const buildDashboardPersonDetail = (
   return {
     id: personResource.id,
     name: name || "Unknown person",
-    initials: initialsFromName(name),
+    initials: getInitials(name),
     photoThumbnailUrl: isString(personResource.attributes.photo_thumbnail_url)
       ? personResource.attributes.photo_thumbnail_url
       : null,

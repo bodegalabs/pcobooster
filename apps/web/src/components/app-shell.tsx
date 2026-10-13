@@ -13,6 +13,7 @@ import {
   Tick02Icon,
   UsersIcon,
 } from "@hugeicons/core-free-icons";
+import { getInitials } from "@pcobooster/planning-center-models/initials";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { PlanView } from "@pcobooster/planning-center-models/plan-overview";
 import { useHotkey } from "@tanstack/react-hotkeys";
@@ -104,7 +105,6 @@ import {
   planViews,
 } from "@/lib/app-routes";
 import { presentationMode } from "@/lib/build-settings";
-import { getInitials } from "@/lib/format/initials";
 import { cn } from "@/lib/utils";
 
 const APP_CHROME_ROW = "flex h-12 shrink-0 items-center gap-2";

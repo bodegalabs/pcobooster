@@ -8,6 +8,7 @@ import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import type { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
+import { getInitials } from "@pcobooster/planning-center-models/initials";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { CandidateHistory } from "@pcobooster/planning-center-models/position-candidates";
 import type {
@@ -67,7 +68,7 @@ export const presentationIdentity = (
     firstName,
     lastName,
     fullName: `${firstName} ${lastName}`,
-    initials: `${firstName[0]}${lastName[0]}`,
+    initials: getInitials(`${firstName} ${lastName}`),
     photoUrl: null,
     photoThumbnailUrl: null,
   };

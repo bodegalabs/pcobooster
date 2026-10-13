@@ -4,7 +4,7 @@ import { cn } from "cn";
 import type * as React from "react";
 
 const monthGridDayVariants = cva(
-  "hover:bg-muted/60 focus-visible:ring-ring/50 data-[selected=true]:ring-ring/40 flex aspect-square flex-col items-start justify-between border text-left text-xs tabular-nums outline-none focus-visible:ring-2 data-[selected=true]:ring-2",
+  "hover:bg-muted/60 focus-visible:ring-ring/50 data-[selected=true]:ring-ring/40 flex aspect-square w-full flex-col items-start justify-between border text-left text-xs tabular-nums outline-none focus-visible:ring-2 data-[selected=true]:ring-2",
   {
     variants: {
       size: {

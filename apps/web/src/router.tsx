@@ -8,6 +8,7 @@ import { discardApiCachesFromOlderBuilds } from "@/lib/account-scoped-caches";
 import { INTENT_PREFETCH_DWELL_MS } from "@/lib/intent-prefetch";
 import { createReadErrorCache } from "@/lib/read-error-analytics";
 import { parseSearch, stringifySearch } from "@/lib/search-params";
+import { applyDataModeFromUrl } from "@/lib/worst-case-data";
 import { routeTree } from "@/routeTree.gen";
 
 const QUERY_GC_TIME_MS = 30 * 60 * 1000;
@@ -33,6 +34,9 @@ const createQueryClient = (presentationScope: string): QueryClient =>
 export const getRouter = () => {
   // Before any query reads browser storage.
   discardApiCachesFromOlderBuilds();
+  if (import.meta.env.DEV) {
+    applyDataModeFromUrl();
+  }
   const queryClient = createQueryClient(
     import.meta.env.VITE_PRESENTATION_SCOPE
   );

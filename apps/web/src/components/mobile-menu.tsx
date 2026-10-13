@@ -7,6 +7,7 @@ import {
   ShieldUserIcon,
   Sun01Icon,
 } from "@hugeicons/core-free-icons";
+import { getInitials } from "@pcobooster/planning-center-models/initials";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import {
   MobileMenuIcon,
@@ -32,7 +33,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { signOutLabel, useAccountPanel } from "@/hooks/use-account-panel";
 import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
 import { getAppSection } from "@/lib/app-routes";
-import { getInitials } from "@/lib/format/initials";
 import { cn } from "@/lib/utils";
 
 const MOBILE_MENU_ID = "mobile-menu";

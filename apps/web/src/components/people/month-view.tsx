@@ -215,7 +215,7 @@ const HeatmapCell = ({
   // Phones cannot hover, so a tap opens the day's people as a sheet instead.
   const isMobile = useIsMobile();
   if (cell.day === null) {
-    return <div className="aspect-square min-h-10 sm:min-h-16" />;
+    return <div className="aspect-square min-h-10 w-full sm:min-h-16" />;
   }
   const { day } = cell;
   const label = `${formatWeekdayMonthDay(month, day)}: ${describeDay(monthDay)}`;
@@ -583,7 +583,7 @@ export const MonthViewSkeleton = () => (
               <Skeleton
                 key={index}
                 variant="control"
-                className="aspect-square min-h-10 sm:min-h-16"
+                className="aspect-square min-h-10 w-full sm:min-h-16"
               />
             ))}
           </div>
