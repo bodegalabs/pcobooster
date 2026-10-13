@@ -40,6 +40,10 @@ interface AccessReviewContextValue {
   /** Whether the person's account can't open Services at all. */
   readonly noServicesAccess: boolean;
   readonly demo: boolean;
+  /** Whether the review is open, so other first-run prompts wait their turn. */
+  readonly reviewOpen: boolean;
+  /** Whether Planning Center answered (or failed), so the review won't still pop up. */
+  readonly accessSettled: boolean;
 }
 
 const AccessReviewContext = createContext<AccessReviewContextValue>({
@@ -49,6 +53,8 @@ const AccessReviewContext = createContext<AccessReviewContextValue>({
   restricted: false,
   noServicesAccess: false,
   demo: false,
+  reviewOpen: false,
+  accessSettled: false,
 });
 
 /** Opens the access review and reports whether the person's access is limited. */
@@ -204,8 +210,10 @@ export const AccessReviewProvider = ({ children }: { children: ReactNode }) => {
       restricted: hasRestrictedAccess(features),
       noServicesAccess,
       demo,
+      reviewOpen: open,
+      accessSettled: status !== "loading",
     }),
-    [demo, features, noServicesAccess, openReview]
+    [demo, features, noServicesAccess, open, openReview, status]
   );
 
   return (

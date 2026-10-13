@@ -1,5 +1,6 @@
 import { useRender } from "@base-ui/react/use-render";
 import {
+  HelpCircleIcon,
   LaptopIcon,
   Logout01Icon,
   UserSwitchIcon,
@@ -19,6 +20,7 @@ import type { ComponentProps, ReactElement, ReactNode } from "react";
 import { useEffect, useId } from "react";
 
 import { useAccessReview } from "@/components/access/access-review";
+import { useOnboarding } from "@/components/onboarding/onboarding-provider";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
 import { useTheme } from "@/components/theme-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -141,8 +143,8 @@ const AccountRow = ({
     },
   });
 
-/** Theme, sign out, and the profile row; access and switch account unless demo. */
-const accountItemCount = (demo: boolean): number => (demo ? 3 : 5);
+/** Theme, getting started, sign out, and the profile row; access and switch account unless demo. */
+const accountItemCount = (demo: boolean): number => (demo ? 4 : 6);
 
 const MenuAccount = ({
   panel,
@@ -167,12 +169,14 @@ const MenuAccount = ({
     switchAccount,
   } = panel;
   const { openReview, restricted } = useAccessReview();
+  const { openWelcome } = useOnboarding();
   const themeOption =
     themeOptions.find((option) => option.value === theme) ?? themeOptions[2];
   const themeSelectId = useId();
   // Rows roll in order after the nav links; hidden rows take no slot.
-  const accessIndex = startIndex + 1;
-  const signOutIndex = startIndex + (demo ? 1 : 3);
+  const guideIndex = startIndex + 1;
+  const accessIndex = startIndex + 2;
+  const signOutIndex = startIndex + (demo ? 2 : 4);
   const row = (index: number, children: ReactNode) => (
     <MobileMenuItem as="div" index={index} count={itemCount}>
       {children}
@@ -207,6 +211,19 @@ const MenuAccount = ({
             ))}
           </NativeSelect>
         </div>
+      )}
+      {row(
+        guideIndex,
+        <AccountRow
+          render={<button type="button" aria-label="Getting started" />}
+          onClick={() => {
+            onClose();
+            openWelcome();
+          }}
+        >
+          <SidebarNavIcon icon={HelpCircleIcon} />
+          Getting started
+        </AccountRow>
       )}
       {demo
         ? null
