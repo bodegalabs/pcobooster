@@ -9,9 +9,9 @@
       },
       "devDependencies": {
         "@cloudflare/workers-types": "5.20260923.1",
-        "@effect/platform-bun": "4.0.3",
-        "@effect/platform-node": "4.0.3",
-        "@effect/vitest": "4.0.3",
+        "@effect/platform-bun": "4.0.4",
+        "@effect/platform-node": "4.0.4",
+        "@effect/vitest": "4.0.4",
         "@pcobooster/analytics": "workspace:*",
         "@pcobooster/api": "workspace:*",
         "@pcobooster/client": "workspace:*",
@@ -23,7 +23,7 @@
         "@types/pg": "^8.23.1",
         "alchemy": "2.0.0-beta.82",
         "drizzle-kit": "1.0.0-rc.5-ab785fc",
-        "effect": "4.0.3",
+        "effect": "4.0.4",
         "lefthook": "^2.1.14",
         "miniflare": "5.20260921.0-alpha",
         "oxc-parser": "0.148.0",
@@ -50,7 +50,7 @@
         "@tanstack/react-start": "1.168.58",
         "class-variance-authority": "^0.7.1",
         "cn": "^0.3.0",
-        "effect": "4.0.3",
+        "effect": "4.0.4",
         "jose": "^6.2.12",
         "lucide-react": "^1.47.0",
         "react": "19.3.0",
@@ -121,7 +121,7 @@
         "@tanstack/react-query": "^5.103.1",
         "@tanstack/react-query-persist-client": "5.103.1",
         "core-js": "3.50.0",
-        "effect": "4.0.3",
+        "effect": "4.0.4",
         "expo": "57.0.26",
         "expo-application": "57.0.3",
         "expo-build-properties": "57.0.22",
@@ -173,7 +173,7 @@
         "@pcobooster/contracts": "workspace:*",
         "alchemy": "2.0.0-beta.82",
         "better-auth": "1.7.5",
-        "effect": "4.0.3",
+        "effect": "4.0.4",
       },
       "devDependencies": {
         "@pcobooster/client": "workspace:*",
@@ -213,7 +213,7 @@
         "cmdk": "^1.1.1",
         "cn": "^0.3.0",
         "date-fns": "^4.4.0",
-        "effect": "4.0.3",
+        "effect": "4.0.4",
         "lucide-react": "^1.47.0",
         "pdfjs-dist": "^6.3.289",
         "react": "19.3.0",
@@ -243,7 +243,7 @@
       "name": "@pcobooster/analytics",
       "version": "0.1.0",
       "dependencies": {
-        "effect": "4.0.3",
+        "effect": "4.0.4",
         "posthog-js": "^1.434.11",
       },
       "devDependencies": {
@@ -262,7 +262,7 @@
         "@pcobooster/presentation-mode": "workspace:*",
         "better-auth": "1.7.5",
         "drizzle-orm": "1.0.0-rc.5-ab785fc",
-        "effect": "4.0.3",
+        "effect": "4.0.4",
       },
       "devDependencies": {
         "@cloudflare/workers-types": "5.20260923.1",
@@ -280,7 +280,7 @@
       "dependencies": {
         "@pcobooster/contracts": "workspace:*",
         "@tanstack/query-core": "^5.103.1",
-        "effect": "4.0.3",
+        "effect": "4.0.4",
       },
       "devDependencies": {
         "@pcobooster/config": "workspace:*",
@@ -302,7 +302,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@pcobooster/planning-center-models": "workspace:*",
-        "effect": "4.0.3",
+        "effect": "4.0.4",
       },
       "devDependencies": {
         "@pcobooster/config": "workspace:*",
@@ -318,7 +318,7 @@
       "name": "@pcobooster/planning-center-models",
       "version": "0.1.0",
       "dependencies": {
-        "effect": "4.0.3",
+        "effect": "4.0.4",
       },
       "devDependencies": {
         "@pcobooster/config": "workspace:*",
@@ -622,17 +622,17 @@
 
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.12.1", "", {}, "sha512-yHwomvolVafvUXhy5TdiJVkuNCxXn+bKOs2aWiWEQh/5YaV97Oa/abJz3dmx7lxgIUsUlS1Jl4mEfvJPo3YsVw=="],
 
-    "@effect/platform-bun": ["@effect/platform-bun@4.0.3", "", { "dependencies": { "@effect/platform-node-shared": "^4.0.3" }, "peerDependencies": { "effect": "^4.0.3" } }, "sha512-Pl2TXjRTRRvGxtGfYWW8L+B1qkZo8mEx7Itvo2lUd15OQPZGDE111S6JDm9EgGfDK3BUz3sbyNeQD687GQm2iQ=="],
+    "@effect/platform-bun": ["@effect/platform-bun@4.0.4", "", { "dependencies": { "@effect/platform-node-shared": "^4.0.4" }, "peerDependencies": { "effect": "^4.0.4" } }, "sha512-L5xA9sF2RET7rqi18Q8yUcWq301o+jBMm9GWJixmJWGwzeipzMqjjPk+10vE8vUiHPbtdtJaBSIgs0AJ2jEF1g=="],
 
-    "@effect/platform-node": ["@effect/platform-node@4.0.3", "", { "dependencies": { "@effect/platform-node-shared": "^4.0.3", "undici": "^8.11.2" }, "peerDependencies": { "effect": "^4.0.3", "redis": ">=5.0.0 <7.0.0" } }, "sha512-ctvREpC1EzRVsOm0JyIzYHajAQScFaec6Gl+M7TEIpEqdmmx6Ju11Um92EA/CE2KBfY5Fp1QWlqTkK6lOL7tqg=="],
+    "@effect/platform-node": ["@effect/platform-node@4.0.4", "", { "dependencies": { "@effect/platform-node-shared": "^4.0.4", "undici": "^8.11.2" }, "peerDependencies": { "effect": "^4.0.4", "redis": ">=5.0.0 <7.0.0" } }, "sha512-SdoyQMrO5zmqBebb2fxDk0sHYyJjBiw4QmLdV2ZcWf3ATpQPge3B5sTLijZg49PadekOwNeO83o5TfdtiiFEig=="],
 
-    "@effect/platform-node-shared": ["@effect/platform-node-shared@4.0.3", "", { "dependencies": { "@types/ws": "^8.18.2", "ws": "^8.22.0" }, "peerDependencies": { "effect": "^4.0.3" } }, "sha512-5srkJfmWklWSgwZwlkMeTXobfNtxuwuTCvY9JWdPXRv/PBXAe5kKSptzRxT778oFFsaE9IMI8X61pvkifT9Eug=="],
+    "@effect/platform-node-shared": ["@effect/platform-node-shared@4.0.4", "", { "dependencies": { "@types/ws": "^8.18.2", "ws": "^8.22.0" }, "peerDependencies": { "effect": "^4.0.4" } }, "sha512-gh2KRmqGWrJ0FVL8GqnI1GpB+fCfCUI7sGiUZkxxBHyHj1t94rm6VDJffCfuVZWe6GpvYXtizifVczUrgOce8A=="],
 
     "@effect/sql-d1": ["@effect/sql-d1@4.0.3", "", { "dependencies": { "@cloudflare/workers-types": "^5.20261003.1" }, "peerDependencies": { "effect": "^4.0.3" } }, "sha512-PPItxp9aAmJTRIfZtyJMuQCB7d1ExFvIRkGWnfQuWZlPxjtYfQT+V2kS9AUqf0OC1/nZnAFwLlFKCDgumLmy6A=="],
 
     "@effect/sql-sqlite-do": ["@effect/sql-sqlite-do@4.0.3", "", { "peerDependencies": { "effect": "^4.0.3" } }, "sha512-q3DeEnsmAbD2jQX9g3+U0iij7VFVgzPtSLoOwbB9oegeBkzzBXVDrblAvw2NgEfs0OctkaIkJhiYJROqSafQKA=="],
 
-    "@effect/vitest": ["@effect/vitest@4.0.3", "", { "peerDependencies": { "effect": "^4.0.3", "vitest": ">=5.0.0 <6.0.0" } }, "sha512-jsIkpssf0CFuOeycW2sQZkWx0qzlsRv+JIkzd9qQpoFDcHC9JZFSdIjEBAhsdp20pDy4Y/b2vT/ew7wXZxvEig=="],
+    "@effect/vitest": ["@effect/vitest@4.0.4", "", { "peerDependencies": { "effect": "^4.0.4", "vitest": ">=5.0.0 <6.0.0" } }, "sha512-l5KN46RbDVpqZxWzwXZtX6FVQiyzd+/hTYqL543uSDRo7hC0m19IeICh6O9U/nqCtfersqsNZnBjgHFfkuHsBw=="],
 
     "@egjs/hammerjs": ["@egjs/hammerjs@2.0.17", "", { "dependencies": { "@types/hammerjs": "^2.0.36" } }, "sha512-XQsZgjm2EcVUiZQf11UBJQfmZeEmOW8DpI1gsFeln6w0ae0ii4dMQEQ0kjl6DspdWX1aGY1/loyXnP0JS06e/A=="],
 
@@ -1778,7 +1778,7 @@
 
     "ee-first": ["ee-first@1.1.1", "", {}, "sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow=="],
 
-    "effect": ["effect@4.0.3", "", {}, "sha512-LoWn/Uwwx0JjHSDmBAAahx8sB+klzM6vsZovnbYowBNw6B4QScJLRLBByO61plvNiycx7HPN8FnsWUCu0eXW5w=="],
+    "effect": ["effect@4.0.4", "", {}, "sha512-Sr50OeVSC3M5UkoUYUhFf3EULryhGaZZUf6OzDHTvaznOw7HRlxOKdF3/4nvQXHL22StOyMG3Cvo8Bt7xUp+Ng=="],
 
     "electron-to-chromium": ["electron-to-chromium@1.5.430", "", {}, "sha512-e1QEj72Y4zd8RlNZVmoTg+iCOSVwpk05IOiiQwdrkwCSVlZfPthevErhE+nckGd2YbsXfp1SkisznhGVIXP2NQ=="],
 

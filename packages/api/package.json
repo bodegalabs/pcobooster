@@ -18,7 +18,7 @@
     "@pcobooster/presentation-mode": "workspace:*",
     "better-auth": "1.7.5",
     "drizzle-orm": "1.0.0-rc.5-ab785fc",
-    "effect": "4.0.3"
+    "effect": "4.0.4"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20260923.1",
