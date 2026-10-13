@@ -3,7 +3,7 @@ import { Schema } from "effect";
 import { storedJson } from "@/lib/stored-json";
 
 /** The first-run guides, each shown once per account until someone replays it. */
-export type OnboardingGuide = "welcome";
+export type OnboardingGuide = "welcome" | "plan-tour";
 
 export const ONBOARDING_PROGRESS_KEY = "pcobooster:onboarding:v1";
 

@@ -47,3 +47,49 @@ export const appTourSteps: readonly TourStep[] = [
     side: "top",
   },
 ];
+
+/** The plan tour, the first time someone opens a plan: what each view is for. */
+export const planTourSteps: readonly TourStep[] = [
+  {
+    target: "plan-view-plan",
+    title: "Plan",
+    body: "The run sheet. Add songs, headers, and items, drag to reorder, and set keys and lengths inline. Press / to add a song.",
+    side: "bottom",
+  },
+  {
+    target: "plan-view-assign",
+    title: "Assign",
+    body: "Pick an open position to see who’s available, rested, and a good fit, then schedule them in one click.",
+    side: "bottom",
+  },
+  {
+    target: "plan-view-lineup",
+    title: "Lineup",
+    body: "Every team’s filled and open roles. Mark responses, remove someone, or swap in someone else.",
+    side: "bottom",
+  },
+  {
+    target: "plan-view-times",
+    title: "Times",
+    body: "Service and rehearsal times, and who each one involves.",
+    side: "bottom",
+  },
+  {
+    target: "plan-view-overview",
+    title: "Overview",
+    body: "A readiness checklist: open positions, unanswered requests, songs without a key, and missing times.",
+    side: "bottom",
+  },
+  {
+    target: "plan-stepper",
+    title: "Next and previous plans",
+    body: "Step through this service’s plans without going back to the list. [ and ] do the same from the keyboard.",
+    side: "bottom",
+  },
+  {
+    target: "open-in-planning-center",
+    title: "Open in Planning Center",
+    body: "Everything here saves to Planning Center. For anything we don’t cover yet, open this plan there.",
+    side: "bottom",
+  },
+];

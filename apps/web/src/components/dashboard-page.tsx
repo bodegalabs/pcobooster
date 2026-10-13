@@ -138,6 +138,7 @@ const PlanningCenterLink = ({ href }: { href: string }) => (
         target="_blank"
         rel="noreferrer"
         aria-label="Open in Planning Center"
+        data-tour="open-in-planning-center"
         className={buttonVariants({
           variant: "outline",
           size: "icon-sm",
@@ -501,7 +502,10 @@ const DashboardPlanHeader = ({
                 / {planDate}
               </span>
             </h1>
-            <div className="flex shrink-0 items-center">
+            <div
+              data-tour="plan-stepper"
+              className="flex shrink-0 items-center"
+            >
               <PlanStepButton
                 direction="previous"
                 neighbors={neighbors}

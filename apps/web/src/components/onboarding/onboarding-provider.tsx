@@ -4,11 +4,15 @@ import { createContext, use, useCallback, useMemo, useState } from "react";
 
 import { useAccessReview } from "@/components/access/access-review";
 import { GuidedTour } from "@/components/onboarding/guided-tour";
-import { appTourSteps } from "@/components/onboarding/tour-steps";
+import {
+  appTourSteps,
+  planTourSteps,
+} from "@/components/onboarding/tour-steps";
 import { WelcomeDialog } from "@/components/onboarding/welcome-dialog";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAccountsQuery } from "@/hooks/use-account-panel";
 import { useBrowserStorage } from "@/hooks/use-browser-storage";
+import { usePlanRoute } from "@/hooks/use-plan-route";
 import { presentationMode } from "@/lib/build-settings";
 import {
   DEMO_ONBOARDING_ACCOUNT,
@@ -22,6 +26,8 @@ interface OnboardingContextValue {
   readonly openWelcome: () => void;
   /** Walks through the app on Services, pointing at each part in turn. */
   readonly startAppTour: () => void;
+  /** Walks through the open plan's views again; it runs on its own the first time. */
+  readonly startPlanTour: () => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextValue>({
@@ -31,10 +37,35 @@ const OnboardingContext = createContext<OnboardingContextValue>({
   startAppTour: () => {
     // Outside the app shell there is no tour to start.
   },
+  startPlanTour: () => {
+    // Outside the app shell there is no tour to start.
+  },
 });
 
 export const useOnboarding = (): OnboardingContextValue =>
   use(OnboardingContext);
+
+/**
+ * Whose progress the guides record, and whether one may open now: never before the page
+ * hydrates, during presentation mode (screenshots and projector demos), or while the access
+ * review is still deciding whether to open. `null` until a guide may open.
+ */
+const useGuideAccount = (): { account: string; demo: boolean } | null => {
+  const hydrated = useHydrated();
+  const { data: accounts } = useAccountsQuery();
+  const { reviewOpen, accessSettled, noServicesAccess } = useAccessReview();
+  const demo = accounts?.demo === true;
+  const account = demo
+    ? DEMO_ONBOARDING_ACCOUNT
+    : (accounts?.selectedAccountId ?? null);
+  const ready =
+    hydrated &&
+    !presentationMode &&
+    accessSettled &&
+    !reviewOpen &&
+    !noServicesAccess;
+  return ready && account !== null ? { account, demo } : null;
+};
 
 /**
  * First-run guides for the signed-in app. The welcome opens once per account, after the
@@ -42,32 +73,30 @@ export const useOnboarding = (): OnboardingContextValue =>
  * sits inside the sidebar provider so the tour can open the sidebar it points at.
  */
 export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
-  const hydrated = useHydrated();
-  const { data: accounts } = useAccountsQuery();
-  const { reviewOpen, accessSettled, noServicesAccess } = useAccessReview();
+  const guide = useGuideAccount();
   const [progressRaw, setProgressRaw] = useBrowserStorage(
     ONBOARDING_PROGRESS_KEY
   );
   const [welcomeRequested, setWelcomeRequested] = useState(false);
   const [appTourActive, setAppTourActive] = useState(false);
+  const [planTourRequested, setPlanTourRequested] = useState(false);
+  const planRoute = usePlanRoute();
   const pathname = useLocation({ select: (location) => location.pathname });
   const navigate = useNavigate();
   const { isMobile, setOpen: setSidebarOpen } = useSidebar();
 
-  const demo = accounts?.demo === true;
-  const account = demo
-    ? DEMO_ONBOARDING_ACCOUNT
-    : (accounts?.selectedAccountId ?? null);
-  // Presentation mode is for screenshots and demos on a projector; guides would cover them.
+  const account = guide?.account ?? null;
   const prompted =
-    hydrated &&
-    !presentationMode &&
-    account !== null &&
-    accessSettled &&
-    !reviewOpen &&
-    !noServicesAccess &&
-    !hasSeenGuide(progressRaw, account, "welcome");
+    account !== null && !hasSeenGuide(progressRaw, account, "welcome");
   const welcomeOpen = welcomeRequested || prompted;
+  // The first plan someone opens walks them through its views, once the welcome is done.
+  const planTourPrompted =
+    account !== null &&
+    !welcomeOpen &&
+    !appTourActive &&
+    !hasSeenGuide(progressRaw, account, "plan-tour");
+  const planTourActive =
+    planRoute !== null && (planTourRequested || planTourPrompted);
 
   const handleWelcomeOpenChange = useCallback(
     (open: boolean) => {
@@ -96,9 +125,20 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
     setAppTourActive(false);
   }, []);
 
+  const startPlanTour = useCallback(() => {
+    setPlanTourRequested(true);
+  }, []);
+
+  const finishPlanTour = useCallback(() => {
+    setPlanTourRequested(false);
+    if (account !== null) {
+      setProgressRaw(recordGuideSeen(progressRaw, account, "plan-tour"));
+    }
+  }, [account, progressRaw, setProgressRaw]);
+
   const value = useMemo(
-    () => ({ openWelcome, startAppTour }),
-    [openWelcome, startAppTour]
+    () => ({ openWelcome, startAppTour, startPlanTour }),
+    [openWelcome, startAppTour, startPlanTour]
   );
 
   return (
@@ -108,11 +148,19 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
         open={welcomeOpen}
         onOpenChange={handleWelcomeOpenChange}
         onStartTour={startAppTour}
-        demo={demo}
+        demo={guide?.demo === true}
       />
       {/* The tour starts once Services is on screen; its steps point at that page. */}
       {appTourActive && pathname === "/services" ? (
         <GuidedTour steps={appTourSteps} onFinish={finishAppTour} />
+      ) : null}
+      {planTourActive && !appTourActive ? (
+        // Keyed by plan so stepping to another plan mid-tour starts it fresh there.
+        <GuidedTour
+          key={planRoute.planId}
+          steps={planTourSteps}
+          onFinish={finishPlanTour}
+        />
       ) : null}
     </OnboardingContext>
   );
