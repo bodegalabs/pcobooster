@@ -54,11 +54,21 @@ import { makeHttpApp } from "./http-app";
 import { cachedAcrossRequests } from "./shared-initialization";
 
 export const FIXTURE_STATE_PATH = "/__fixture/state";
+/** The throwaway stage `alchemy.load.ts` deploys the fixture to on Cloudflare. */
+export const LOAD_STAGE = "load";
 export const FIXTURE_ABORT_AFTER_HEADER = "x-fixture-abort-after-ms";
 /** Where the stack test serves this Worker, beside the API Worker's 3010. */
 const FIXTURE_PORT = 3011;
 export const FIXTURE_RELEASE_VERSION = "transport-stack-fixture";
 export const FIXTURE_SESSION_PATH = "/__fixture/session";
+/**
+ * Load mode: Planning Center answers after this many milliseconds and limits each credential to
+ * `FIXTURE_RATE_LIMIT` requests per `FIXTURE_RATE_PERIOD_MS`, reporting it in the same rate
+ * headers Planning Center sends. Requests without it keep the instant, unlimited fake.
+ */
+export const FIXTURE_LATENCY_HEADER = "x-fixture-pc-latency-ms";
+const FIXTURE_RATE_LIMIT = 100;
+const FIXTURE_RATE_PERIOD_MS = 20_000;
 /** The demo the HttpApi side serves; the stack test derives the demo token from it. */
 export const FIXTURE_DEMO_SETTINGS = {
   DEMO_ACCESS_KEY: "transport-fixture-demo-access-key",
@@ -77,7 +87,12 @@ const TOO_MANY_REQUESTS = 429;
 const PROVIDER_ERROR = 500;
 const FORBIDDEN = 403;
 const NOT_FOUND = 404;
-const SESSION_LIFETIME_MS = 3_600_000;
+/**
+ * Better Auth's default session lifetime, which `auth.ts` keeps. A shorter one would make Better
+ * Auth extend (write) every seeded session on its first read, which signed-in users only do
+ * once a day.
+ */
+const SESSION_LIFETIME_MS = 7 * 24 * 3_600_000;
 
 const planningCenterCallSchema = Schema.Struct({
   method: Schema.String,
@@ -128,6 +143,9 @@ const auditRowSchema = Schema.Struct({
 /** What `GET /__fixture/state` answers; the stack test decodes it with this schema. */
 export const fixtureStateSchema = Schema.Struct({
   serverBuilds: Schema.Number,
+  d1Statements: Schema.Number,
+  planningCenterRequests: Schema.Number,
+  planningCenterRateLimited: Schema.Number,
   planningCenterCalls: Schema.Array(planningCenterCallSchema),
   disconnects: Schema.Array(disconnectSchema),
   logs: Schema.Array(fixtureLogLineSchema),
@@ -137,6 +155,9 @@ export type FixtureState = typeof fixtureStateSchema.Type;
 
 interface Seen {
   serverBuilds: number;
+  d1Statements: number;
+  planningCenterRequests: number;
+  planningCenterRateLimited: number;
   readonly disconnects: Disconnect[];
   readonly planningCenterCalls: PlanningCenterCall[];
   readonly logs: FixtureLogLine[];
@@ -145,6 +166,9 @@ interface Seen {
 /** What the isolate has seen; module scope lives as long as the isolate. */
 const seen: Seen = {
   serverBuilds: 0,
+  d1Statements: 0,
+  planningCenterRequests: 0,
+  planningCenterRateLimited: 0,
   disconnects: [],
   planningCenterCalls: [],
   logs: [],
@@ -216,6 +240,9 @@ const SONG_ARRANGEMENTS_PATH = /^\/services\/v2\/songs\/[^/]+\/arrangements$/u;
 const PLANS_PATH = /^\/services\/v2\/service_types\/[^/]+\/plans$/u;
 const TEAM_MEMBERS_PATH =
   /^\/services\/v2\/service_types\/(?<serviceTypeId>[^/]+)\/plans\/[^/]+\/team_members$/u;
+
+const NEEDED_POSITIONS_PATH =
+  /^\/services\/v2\/service_types\/[^/]+\/plans\/[^/]+\/needed_positions$/u;
 
 type Scripted = Effect.Effect<{
   readonly status: number;
@@ -322,7 +349,12 @@ const scriptHttpApiRead = (method: string, path: string): Scripted => {
   if (path === "/services/v2/service_types") {
     return answer(serviceTypes);
   }
-  if (PLANS_PATH.test(path) || SONG_ARRANGEMENTS_PATH.test(path)) {
+  if (
+    PLANS_PATH.test(path) ||
+    SONG_ARRANGEMENTS_PATH.test(path) ||
+    NEEDED_POSITIONS_PATH.test(path) ||
+    TEAM_MEMBERS_PATH.test(path)
+  ) {
     return answer(emptyCollection);
   }
   const songMatch = SONG_PATH.exec(path)?.groups;
@@ -380,9 +412,65 @@ const script = (method: string, path: string): Scripted => {
 
 const decodeAuditRows = Schema.decodeUnknownSync(Schema.Array(auditRowSchema));
 
-/** A Planning Center that answers from fixtures and records each request. */
-const fakePlanningCenter: HttpClient.HttpClient = HttpClient.make(
-  (request: HttpClientRequest.HttpClientRequest, url: URL) => {
+/** Each credential's current load-mode rate window. */
+const rateWindows = new Map<string, { startedAt: number; count: number }>();
+
+/** Counts one load-mode request against its credential, as Planning Center's headers report it. */
+const countRate = (credential: string, now: number) => {
+  let window = rateWindows.get(credential);
+  if (
+    window === undefined ||
+    now - window.startedAt >= FIXTURE_RATE_PERIOD_MS
+  ) {
+    window = { startedAt: now, count: 0 };
+    rateWindows.set(credential, window);
+  }
+  window.count += 1;
+  const retryAfterSeconds = Math.ceil(
+    (window.startedAt + FIXTURE_RATE_PERIOD_MS - now) / 1000
+  );
+  return {
+    limited: window.count > FIXTURE_RATE_LIMIT,
+    headers: {
+      "x-pco-api-request-rate-limit": String(FIXTURE_RATE_LIMIT),
+      "x-pco-api-request-rate-count": String(
+        Math.min(window.count, FIXTURE_RATE_LIMIT)
+      ),
+      "x-pco-api-request-rate-period": `${FIXTURE_RATE_PERIOD_MS / 1000} seconds`,
+      "retry-after": String(retryAfterSeconds),
+    },
+  };
+};
+
+/**
+ * A Planning Center that answers from fixtures and records each request. In load mode
+ * (`latencyMs` set) it takes that long to answer and rate limits each credential; load mode
+ * keeps counts only, so the call list stays small however many requests run.
+ */
+const fakePlanningCenter = (latencyMs: number | null): HttpClient.HttpClient =>
+  HttpClient.make((request: HttpClientRequest.HttpClientRequest, url: URL) => {
+    if (latencyMs !== null) {
+      seen.planningCenterRequests += 1;
+      const rate = countRate(request.headers.authorization ?? "", Date.now());
+      const scripted: Scripted = rate.limited
+        ? failure(TOO_MANY_REQUESTS)
+        : script(request.method, url.pathname);
+      return Effect.sleep(Duration.millis(latencyMs)).pipe(
+        Effect.andThen(scripted),
+        Effect.map(({ status, body, headers }) => {
+          if (status === TOO_MANY_REQUESTS) {
+            seen.planningCenterRateLimited += 1;
+          }
+          return HttpClientResponse.fromWeb(
+            request,
+            Response.json(body, {
+              status,
+              headers: { ...rate.headers, ...headers },
+            })
+          );
+        })
+      );
+    }
     const call: PlanningCenterCall = {
       method: request.method,
       path: url.pathname,
@@ -399,8 +487,23 @@ const fakePlanningCenter: HttpClient.HttpClient = HttpClient.make(
         );
       })
     );
-  }
-);
+  });
+
+type D1Database = Parameters<typeof createDatabase>[0];
+
+/** The D1 binding, counting each statement it prepares. */
+const countingStatements = (binding: D1Database): D1Database => ({
+  prepare: (query) => {
+    seen.d1Statements += 1;
+    return binding.prepare(query);
+  },
+  batch: async (statements) => await binding.batch(statements),
+  exec: async (query) => await binding.exec(query),
+  withSession: (constraint) => binding.withSession(constraint),
+  // Drizzle never dumps; the binding still declares it.
+  // oxlint-disable-next-line typescript/no-deprecated -- D1Database still requires dump()
+  dump: async () => await binding.dump(),
+});
 
 /** The request, with its signal set to abort when `x-fixture-abort-after-ms` says. */
 const withScriptedDisconnect = (
@@ -452,7 +555,8 @@ export default class TransportStackFixture extends Cloudflare.Worker<TransportSt
     return {
       name: `pcobooster-${stage}-transport-fixture`,
       main: import.meta.url,
-      workersDev: false,
+      // `alchemy.load.ts` serves it on workers.dev so a load run can reach it from outside.
+      workersDev: stage === LOAD_STAGE,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
       dev: { host: "127.0.0.1", port: FIXTURE_PORT, strictPort: true },
     };
@@ -472,7 +576,7 @@ export default class TransportStackFixture extends Cloudflare.Worker<TransportSt
     const http = yield* cachedAcrossRequests(
       Effect.gen(function* buildServer() {
         seen.serverBuilds += 1;
-        const db = createDatabase(yield* database.raw);
+        const db = createDatabase(countingStatements(yield* database.raw));
         const auth = createAuth(config, db);
         const authContext = yield* Effect.promise(
           async () => await auth.$context
@@ -550,6 +654,9 @@ export default class TransportStackFixture extends Cloudflare.Worker<TransportSt
               );
         return HttpServerResponse.jsonUnsafe({
           serverBuilds: seen.serverBuilds,
+          d1Statements: seen.d1Statements,
+          planningCenterRequests: seen.planningCenterRequests,
+          planningCenterRateLimited: seen.planningCenterRateLimited,
           planningCenterCalls: seen.planningCenterCalls,
           disconnects: seen.disconnects.filter(
             (disconnect) =>
@@ -572,6 +679,9 @@ export default class TransportStackFixture extends Cloudflare.Worker<TransportSt
           return yield* seedSession;
         }
         const { server } = yield* http;
+        const latencyHeader = httpRequest.headers[FIXTURE_LATENCY_HEADER];
+        const latency =
+          latencyHeader === undefined ? Number.NaN : Number(latencyHeader);
         return yield* app.pipe(
           Effect.provideService(
             HttpServerRequest.HttpServerRequest,
@@ -579,7 +689,10 @@ export default class TransportStackFixture extends Cloudflare.Worker<TransportSt
           ),
           Effect.provideService(IsolateServer, { server, report: null }),
           Effect.provideService(MobileUpdates, emptyUpdateStore),
-          Effect.provideService(HttpClient.HttpClient, fakePlanningCenter)
+          Effect.provideService(
+            HttpClient.HttpClient,
+            fakePlanningCenter(Number.isFinite(latency) ? latency : null)
+          )
         );
       }).pipe(Effect.provide(fixtureLogging)),
     };

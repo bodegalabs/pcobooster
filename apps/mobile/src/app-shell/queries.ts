@@ -1,4 +1,8 @@
-import { TransportFailure } from "@pcobooster/client/product-client";
+import {
+  isServerFailure,
+  SERVER_FAILURE_MESSAGE,
+  TransportFailure,
+} from "@pcobooster/client/product-client";
 import { callForQuery } from "@pcobooster/client/query";
 import type { RequestScheduler } from "@pcobooster/client/request-scheduler";
 import { isProductFault } from "@pcobooster/contracts/faults";
@@ -66,6 +70,9 @@ export const sharedReads = {
 
 /** What a failure shows: a message written for people, or a calm generic line. */
 export const failureMessage = (error: Error): string => {
+  if (isServerFailure(error)) {
+    return SERVER_FAILURE_MESSAGE;
+  }
   if (
     isProductFault(error) ||
     error instanceof SignInFailure ||

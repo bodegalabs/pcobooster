@@ -9,6 +9,8 @@ import {
   prepareChordChartUpdate,
 } from "@pcobooster/api/modules/planning-center/chord-charts";
 import type { ChordChartSongsService } from "@pcobooster/api/modules/planning-center/chord-charts";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect, Exit } from "effect";
 import { describe, expect, it, vi } from "vitest";
@@ -321,6 +323,34 @@ describe(getChordChartPdf, () => {
       "/services/v2/songs/song-1/arrangements/arr-1/attachments/lyric_chart-arr-1"
     );
     expect(JSON.stringify(exit)).toContain("ExternalServiceFailure");
+  });
+
+  it("reports a chart Planning Center has no attachment for as not found", async () => {
+    const songs = createSongs();
+    songs.openChartAttachment.mockReturnValue(
+      Effect.fail(
+        new PlanningCenterApiError({
+          message:
+            "Planning Center API error: 404 - The resource you requested could not be found",
+          status: 404,
+        })
+      )
+    );
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    const exit = await Effect.runPromiseExit(
+      getChordChartPdf(
+        { songId: "song-1", arrangementId: "arr-1", keyId: "key-1" },
+        { songs, fetch }
+      )
+    );
+    expect(exit).toStrictEqual(
+      Exit.fail(
+        new NotFound({
+          message: "Planning Center has no chart at this link.",
+          resource: "chart",
+        })
+      )
+    );
   });
 
   it("never opens a crafted id: open is a POST the read-only demo allows", async () => {
