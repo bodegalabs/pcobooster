@@ -1,6 +1,6 @@
 import { captureAnalyticsException } from "@pcobooster/analytics/client";
 import { retryTransientReadFailure } from "@pcobooster/client/query";
-import { QueryClient, hashKey } from "@tanstack/react-query";
+import { MutationCache, QueryClient, hashKey } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 
@@ -8,6 +8,7 @@ import { discardApiCachesFromOlderBuilds } from "@/lib/account-scoped-caches";
 import { INTENT_PREFETCH_DWELL_MS } from "@/lib/intent-prefetch";
 import { createReadErrorCache } from "@/lib/read-error-analytics";
 import { parseSearch, stringifySearch } from "@/lib/search-params";
+import { browserSessionExpiry } from "@/lib/session-expiry";
 import { routeTree } from "@/routeTree.gen";
 
 const QUERY_GC_TIME_MS = 30 * 60 * 1000;
@@ -16,9 +17,12 @@ const QUERY_GC_TIME_MS = 30 * 60 * 1000;
  * Presentation mode renders fictional data, so its queries live in their own namespace and
  * never mix with live data from the same browser.
  */
-const createQueryClient = (presentationScope: string): QueryClient =>
-  new QueryClient({
-    queryCache: createReadErrorCache(captureAnalyticsException),
+const createQueryClient = (presentationScope: string): QueryClient => {
+  // A 401 on any read or write means the session or Planning Center connection ended.
+  const expireSession = browserSessionExpiry();
+  return new QueryClient({
+    queryCache: createReadErrorCache(captureAnalyticsException, expireSession),
+    mutationCache: new MutationCache({ onError: expireSession }),
     defaultOptions: {
       queries: {
         gcTime: QUERY_GC_TIME_MS,
@@ -28,6 +32,7 @@ const createQueryClient = (presentationScope: string): QueryClient =>
       },
     },
   });
+};
 
 /** Start creates a router, and so a query client, for each server request. */
 export const getRouter = () => {

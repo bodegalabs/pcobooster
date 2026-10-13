@@ -4,11 +4,7 @@ import {
   UPDATE_CHECK_PATH,
 } from "@pcobooster/contracts/mobile-updates";
 
-import {
-  DEFAULT_SIGN_IN_RETURN_PATH,
-  SIGN_IN_RETURN_PARAM,
-  sanitizeReturnPath,
-} from "@/lib/auth-redirect";
+import { signInPath } from "@/lib/auth-redirect";
 import { isPublicPath } from "@/lib/public-paths";
 
 const WWW_HOSTNAME = "www.pcobooster.com";
@@ -69,15 +65,6 @@ const isSignedOutPath = (pathname: string): boolean =>
   pathname === UPDATE_CHECK_PATH ||
   pathname.startsWith(UPDATE_ASSETS_PREFIX) ||
   pathname === "/auth";
-
-/** Same-origin and relative. */
-const signInPath = (url: URL): string => {
-  const returnPath = sanitizeReturnPath(`${url.pathname}${url.search}`);
-  if (returnPath === DEFAULT_SIGN_IN_RETURN_PATH) {
-    return "/auth";
-  }
-  return `/auth?${new URLSearchParams({ [SIGN_IN_RETURN_PARAM]: returnPath }).toString()}`;
-};
 
 /**
  * Decides what the product Worker does with a request before any HTML is rendered: send
