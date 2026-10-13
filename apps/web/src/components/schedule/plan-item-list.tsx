@@ -92,7 +92,7 @@ const OFF_CLOCK_LABELS = {
 
 const RecentPlayHint = ({ days }: { days: number }) => (
   <HoverLabel
-    label={`Played ${days} days before this plan`}
+    label={`Played ${days === 1 ? "the day" : `${days} days`} before this plan`}
     render={
       <span className="text-status-scheduled pointer-events-auto inline-flex shrink-0 items-center gap-1 text-xs" />
     }

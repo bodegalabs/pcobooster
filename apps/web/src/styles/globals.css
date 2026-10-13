@@ -7,6 +7,23 @@
 
 @source "../../../../packages/ui/src";
 
+/*
+ * Names and titles from Planning Center can be right-to-left. Each truncated
+ * line takes its direction from its own text, so an Arabic or Hebrew name keeps
+ * its first word and ellipsizes at its own end instead of losing its start.
+ */
+@layer utilities {
+  .truncate {
+    unicode-bidi: plaintext;
+  }
+
+  /* Plaintext would also right-align a short RTL name; keep the parent's alignment. */
+  :where(.truncate) {
+    text-align: -webkit-match-parent;
+    text-align: match-parent;
+  }
+}
+
 @utility font-inherit {
   font: inherit;
 }

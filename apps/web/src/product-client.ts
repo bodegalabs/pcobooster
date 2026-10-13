@@ -4,6 +4,7 @@ import type { ProductClient } from "@pcobooster/client/product-client";
 
 import { requestScheduler } from "@/lib/request-priority";
 import { measureWorkflow } from "@/lib/workflow-analytics";
+import { readDataMode, worstCaseFetch } from "@/lib/worst-case-data";
 
 let tabClient: ProductClient | undefined;
 
@@ -17,6 +18,10 @@ const sharedClient = (): ProductClient => {
     url: window.location.origin,
     client: "web",
     credentials: "include",
+    // Checked here so production builds drop the dev fixture entirely.
+    ...(import.meta.env.DEV && readDataMode() === "worst"
+      ? { fetch: worstCaseFetch(globalThis.fetch) }
+      : undefined),
   });
   return tabClient;
 };

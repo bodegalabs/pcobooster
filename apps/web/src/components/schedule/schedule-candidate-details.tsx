@@ -1,3 +1,4 @@
+import { getInitials } from "@pcobooster/planning-center-models/initials";
 import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
 
 import { AvatarStatus } from "@/components/schedule/avatar-status";
@@ -38,8 +39,7 @@ export const ScheduleCandidateAvatar = ({
   isScheduledElsewhereOnPlan: boolean;
   selectedPlanAssignments: string[];
 }) => {
-  const initials =
-    `${person.firstName?.[0] ?? ""}${person.lastName?.[0] ?? ""}` || "?";
+  const initials = getInitials(person.fullName);
   const avatarInner = (
     <>
       <AvatarImage

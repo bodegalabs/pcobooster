@@ -66,7 +66,7 @@ export const PageScrollArea = ({
   besidePane = false,
 }: {
   children: ReactNode;
-  /** `both` also scrolls sideways, for boards wider than the page. */
+  /** `both` also scrolls sideways from `md` up, for boards wider than the page. */
   axis?: "y" | "both";
   /** Sits right of a side pane on wide screens, so it reaches only the right edge there. */
   besidePane?: boolean;
@@ -74,16 +74,17 @@ export const PageScrollArea = ({
   <div
     className={cn(
       "-mx-(--page-gutter) flex flex-col md:min-h-0 md:flex-1 md:overscroll-contain",
-      axis === "both"
-        ? "overflow-x-auto md:overflow-y-auto"
-        : "md:overflow-y-auto",
+      axis === "both" ? "md:overflow-auto" : "md:overflow-y-auto",
       besidePane && "lg:ml-0"
     )}
   >
     <div
       className={cn(
         "px-(--page-gutter)",
-        axis === "both" ? "w-fit min-w-full" : "w-full min-w-0",
+        // Phones stack boards into one column, so only wider screens size to the content.
+        axis === "both"
+          ? "w-full min-w-0 md:w-fit md:min-w-full"
+          : "w-full min-w-0",
         besidePane && "lg:pl-0"
       )}
     >

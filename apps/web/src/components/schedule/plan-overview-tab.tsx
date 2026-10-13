@@ -162,12 +162,7 @@ const ReadinessCheckIcon = ({ state }: { state: ReadinessCheck["state"] }) =>
 const ReadinessCheckTitle = ({ check }: { check: ReadinessCheck }) => (
   <ItemContent className="min-w-0">
     <ItemTitle className="min-w-0">
-      <span
-        className={cn(
-          "truncate",
-          check.state === "done" && "text-muted-foreground"
-        )}
-      >
+      <span className={cn(check.state === "done" && "text-muted-foreground")}>
         {check.label}
       </span>
     </ItemTitle>
@@ -363,7 +358,7 @@ const PeopleCard = ({
         {staffing === null ? (
           <Skeleton variant="text" className="mt-0.5 h-3.5 w-40" />
         ) : (
-          `${staffing.confirmed + staffing.pending} of ${staffing.total} slots filled`
+          `${staffing.confirmed + staffing.pending} of ${staffing.total} ${staffing.total === 1 ? "slot" : "slots"} filled`
         )}
       </CardDescription>
       <CardAction>
@@ -590,13 +585,16 @@ const TimesCard = ({
                   </span>
                 </span>
                 <Badge
+                  className="max-w-1/2"
                   variant={
                     time.timeType === "service" ? "secondary" : "outline"
                   }
                 >
-                  {time.name.trim() === ""
-                    ? timeTypeLabel[time.timeType]
-                    : time.name}
+                  <span className="truncate">
+                    {time.name.trim() === ""
+                      ? timeTypeLabel[time.timeType]
+                      : time.name}
+                  </span>
                 </Badge>
               </li>
             ))}
