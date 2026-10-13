@@ -54,6 +54,8 @@ import { makeHttpApp } from "./http-app";
 import { cachedAcrossRequests } from "./shared-initialization";
 
 export const FIXTURE_STATE_PATH = "/__fixture/state";
+/** The throwaway stage `alchemy.load.ts` deploys the fixture to on Cloudflare. */
+export const LOAD_STAGE = "load";
 export const FIXTURE_ABORT_AFTER_HEADER = "x-fixture-abort-after-ms";
 /** Where the stack test serves this Worker, beside the API Worker's 3010. */
 const FIXTURE_PORT = 3011;
@@ -85,7 +87,12 @@ const TOO_MANY_REQUESTS = 429;
 const PROVIDER_ERROR = 500;
 const FORBIDDEN = 403;
 const NOT_FOUND = 404;
-const SESSION_LIFETIME_MS = 3_600_000;
+/**
+ * Better Auth's default session lifetime, which `auth.ts` keeps. A shorter one would make Better
+ * Auth extend (write) every seeded session on its first read, which signed-in users only do
+ * once a day.
+ */
+const SESSION_LIFETIME_MS = 7 * 24 * 3_600_000;
 
 const planningCenterCallSchema = Schema.Struct({
   method: Schema.String,
@@ -548,7 +555,8 @@ export default class TransportStackFixture extends Cloudflare.Worker<TransportSt
     return {
       name: `pcobooster-${stage}-transport-fixture`,
       main: import.meta.url,
-      workersDev: false,
+      // `alchemy.load.ts` serves it on workers.dev so a load run can reach it from outside.
+      workersDev: stage === LOAD_STAGE,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
       dev: { host: "127.0.0.1", port: FIXTURE_PORT, strictPort: true },
     };

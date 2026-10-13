@@ -20,6 +20,7 @@
   "devDependencies": {
     "@pcobooster/client": "workspace:*",
     "@types/bun": "^1.4.2",
+    "@types/k6": "^2.3.0",
     "rolldown": "1.2.5",
     "typescript": "^7.0.2"
   }
