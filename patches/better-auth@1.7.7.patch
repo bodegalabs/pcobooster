@@ -1,11 +1,8 @@
-diff --git a/node_modules/better-auth/.bun-tag-a640e7574d13e386 b/.bun-tag-a640e7574d13e386
-new file mode 100644
-index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
 diff --git a/dist/plugins/oauth-proxy/index.mjs b/dist/plugins/oauth-proxy/index.mjs
-index 57def56d2d766dd576db927cc29ee7bf880b68cc..3049697b17545399d7381d2d392ae5478e36096b 100644
+index fdff0b8f37e1b0c5531b93113705d02a9774ac2c..6fdec58502eb6da575193adfd1df766c0cba3903 100644
 --- a/dist/plugins/oauth-proxy/index.mjs
 +++ b/dist/plugins/oauth-proxy/index.mjs
-@@ -46,7 +46,7 @@ const passthroughPayloadSchema = z.looseObject({
+@@ -48,7 +48,7 @@ const passthroughPayloadSchema = z.looseObject({
  });
  const restoreOAuthProxyState = async (ctx, state) => {
  	try {
@@ -14,7 +11,7 @@ index 57def56d2d766dd576db927cc29ee7bf880b68cc..3049697b17545399d7381d2d392ae547
  		await setOAuthState(stateData);
  		return stateData;
  	} catch (e) {
-@@ -58,7 +58,16 @@ const oauthProxyQuerySchema = z.object({
+@@ -60,7 +60,16 @@ const oauthProxyQuerySchema = z.object({
  	callbackURL: z.string().meta({ description: "The URL to redirect to after the proxy" }),
  	profile: z.string().optional().meta({ description: "Encrypted OAuth profile data" })
  });
@@ -31,7 +28,7 @@ index 57def56d2d766dd576db927cc29ee7bf880b68cc..3049697b17545399d7381d2d392ae547
  	code: z.string().optional(),
  	error: z.string().optional(),
  	user: z.string().optional()
-@@ -97,6 +106,10 @@ const oAuthProxy = (opts) => {
+@@ -99,6 +108,10 @@ const oAuthProxy = (opts) => {
  			ctx.context.logger.error("Failed to parse OAuth proxy payload", e);
  			throw redirectOnError(ctx, defaultErrorURL, "invalid_payload");
  		}
@@ -42,7 +39,7 @@ index 57def56d2d766dd576db927cc29ee7bf880b68cc..3049697b17545399d7381d2d392ae547
  		const errorURL = payload.errorURL || defaultErrorURL;
  		if (ctx.path?.startsWith("/callback/") && ctx.params.id !== payload.account.providerId) {
  			ctx.context.logger.warn("OAuth proxy callback provider mismatch");
-@@ -228,7 +241,7 @@ const oAuthProxy = (opts) => {
+@@ -242,7 +255,7 @@ const oAuthProxy = (opts) => {
  						ctx.context.logger.warn("Invalid OAuth callback query", query.error);
  						return;
  					}
@@ -51,7 +48,7 @@ index 57def56d2d766dd576db927cc29ee7bf880b68cc..3049697b17545399d7381d2d392ae547
  					let stateData;
  					try {
  						stateData = parseJSON(await symmetricDecrypt({
-@@ -239,7 +252,15 @@ const oAuthProxy = (opts) => {
+@@ -253,7 +266,15 @@ const oAuthProxy = (opts) => {
  						ctx.context.logger.error("Failed to decrypt OAuth proxy state cookie:", e);
  						return;
  					}
@@ -68,7 +65,7 @@ index 57def56d2d766dd576db927cc29ee7bf880b68cc..3049697b17545399d7381d2d392ae547
  					if (stateData.oauthState !== void 0 && stateData.oauthState !== statePackage.state) {
  						ctx.context.logger.error("OAuth proxy state binding mismatch");
  						throw redirectOnError(ctx, errorURL, "state_mismatch");
-@@ -255,6 +276,12 @@ const oAuthProxy = (opts) => {
+@@ -269,6 +290,12 @@ const oAuthProxy = (opts) => {
  						ctx.context.logger.warn("OAuth provider not found", { providerId });
  						throw redirectOnError(ctx, errorURL, "oauth_provider_not_found");
  					}
@@ -81,7 +78,7 @@ index 57def56d2d766dd576db927cc29ee7bf880b68cc..3049697b17545399d7381d2d392ae547
  					let tokens;
  					try {
  						tokens = await provider.validateAuthorizationCode({
-@@ -270,6 +297,7 @@ const oAuthProxy = (opts) => {
+@@ -284,6 +311,7 @@ const oAuthProxy = (opts) => {
  					const parsedUserData = userData ? safeJSONParse(userData) : null;
  					const userInfoResult = await provider.getUserInfo({
  						...tokens,
@@ -89,7 +86,7 @@ index 57def56d2d766dd576db927cc29ee7bf880b68cc..3049697b17545399d7381d2d392ae547
  						/**
  						* The user object from the provider
  						* This is only available for some providers like Apple
-@@ -296,7 +324,6 @@ const oAuthProxy = (opts) => {
+@@ -310,7 +338,6 @@ const oAuthProxy = (opts) => {
  						throw redirectOnError(ctx, errorURL, "unable_to_get_user_info");
  					}
  					const providerProfile = toOAuthProfileRecord(userInfoResult.data);

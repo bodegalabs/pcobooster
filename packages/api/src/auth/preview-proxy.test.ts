@@ -1,3 +1,5 @@
+import { hkdfSync } from "node:crypto";
+
 import { betterAuth } from "better-auth";
 import { memoryAdapter } from "better-auth/adapters/memory";
 import { symmetricDecrypt, symmetricEncrypt } from "better-auth/crypto";
@@ -10,6 +12,17 @@ const productionOrigin = "https://production.example.com";
 const previewOrigin = "https://preview.example.net";
 const proxySecret =
   "synthetic-proxy-secret-0123456789abcdefghijklmnopqrstuvwxyz";
+/** Better Auth 1.7.7 isolates each OAuth proxy ciphertext by purpose. */
+const proxyEncryptionKey = (purpose: string): string =>
+  Buffer.from(
+    hkdfSync(
+      "sha256",
+      proxySecret,
+      "better-auth:oauth-encryption:v1",
+      `better-auth:${purpose}:v1`,
+      32
+    )
+  ).toString("hex");
 /** Every field a decoded JSON object has beyond the ones a test reads. */
 const otherFields = [Schema.Record(Schema.String, Schema.Unknown)] as const;
 const decodeStatePackage = Schema.decodeUnknownSync(
@@ -43,10 +56,16 @@ const decodeText = Schema.decodeUnknownSync(Schema.String);
 
 const alterState = async (state: string, scenario: string): Promise<string> => {
   const envelope = decodeStatePackage(
-    await symmetricDecrypt({ key: proxySecret, data: state })
+    await symmetricDecrypt({
+      key: proxyEncryptionKey("oauth-proxy-package"),
+      data: state,
+    })
   );
   const { idTokenNonce, ...contents } = decodeState(
-    await symmetricDecrypt({ key: proxySecret, data: envelope.stateCookie })
+    await symmetricDecrypt({
+      key: proxyEncryptionKey("oauth-proxy-state"),
+      data: envelope.stateCookie,
+    })
   );
   const nonce =
     scenario === "mismatched-nonce" ? "different-nonce" : idTokenNonce;
@@ -59,11 +78,11 @@ const alterState = async (state: string, scenario: string): Promise<string> => {
       ? { ...contents, callbackURL }
       : { ...contents, callbackURL, idTokenNonce: nonce };
   return await symmetricEncrypt({
-    key: proxySecret,
+    key: proxyEncryptionKey("oauth-proxy-package"),
     data: JSON.stringify({
       ...envelope,
       stateCookie: await symmetricEncrypt({
-        key: proxySecret,
+        key: proxyEncryptionKey("oauth-proxy-state"),
         data: JSON.stringify(altered),
       }),
     }),
@@ -192,12 +211,15 @@ const runScenario = async (scenario: string) => {
     if (scenario === "cross-origin-completion") {
       const encrypted = decodeText(location.searchParams.get("profile"));
       const payload = decodePayload(
-        await symmetricDecrypt({ key: proxySecret, data: encrypted })
+        await symmetricDecrypt({
+          key: proxyEncryptionKey("oauth-proxy-profile"),
+          data: encrypted,
+        })
       );
       location.searchParams.set(
         "profile",
         await symmetricEncrypt({
-          key: proxySecret,
+          key: proxyEncryptionKey("oauth-proxy-profile"),
           data: JSON.stringify({
             ...payload,
             callbackURL: `${productionOrigin}/admin`,

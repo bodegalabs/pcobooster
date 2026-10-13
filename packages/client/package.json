@@ -15,12 +15,12 @@
   },
   "dependencies": {
     "@pcobooster/contracts": "workspace:*",
-    "@tanstack/query-core": "^5.103.1",
+    "@tanstack/query-core": "5.104.2",
     "effect": "4.0.4"
   },
   "devDependencies": {
     "@pcobooster/config": "workspace:*",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.3"
   }
 }
