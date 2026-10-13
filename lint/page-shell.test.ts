@@ -63,6 +63,10 @@ const panelScrollers = new Map([
     "apps/web/src/components/songs/planning-center-pdf-preview.tsx",
     "the boxed PDF preview pane",
   ],
+  [
+    "apps/web/src/components/onboarding/welcome-dialog.tsx",
+    "the welcome guide's body on short screens",
+  ],
 ]);
 
 const mainElementPattern = /<main\b/u;
