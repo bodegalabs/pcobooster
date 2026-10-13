@@ -47,7 +47,7 @@
     "posthog:plan": "bun run secrets:run posthog -- env -u CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID=984b82870acd18daf8bda97bad966b38 bun alchemy deploy alchemy.posthog.ts --stage prod --dry-run",
     "posthog:deploy": "bun run secrets:run posthog -- env -u CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID=984b82870acd18daf8bda97bad966b38 bun alchemy deploy alchemy.posthog.ts --stage prod",
     "db:rehearse": "bun run secrets:run recovery -- bun run scripts/database/migrate-from-postgres.ts --local",
-    "alchemy": "node --import ./node_modules/alchemy/bin/register-oxc.js ./node_modules/alchemy/bin/alchemy.js",
+    "alchemy": "bun ./node_modules/alchemy/bin/cli.js",
     "build:cloudflare": "turbo run build --filter=@pcobooster/web --filter=@pcobooster/admin",
     "secrets:run": "bun scripts/secrets/run.ts",
     "secrets:set": "bun scripts/secrets/set.ts",
@@ -62,9 +62,9 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20260923.1",
-    "@effect/platform-bun": "4.0.0-rc.117",
-    "@effect/platform-node": "4.0.0-rc.117",
-    "@effect/vitest": "4.0.0-rc.117",
+    "@effect/platform-bun": "4.0.4",
+    "@effect/platform-node": "4.0.4",
+    "@effect/vitest": "4.0.4",
     "@pcobooster/analytics": "workspace:*",
     "@pcobooster/api": "workspace:*",
     "@pcobooster/client": "workspace:*",
@@ -74,9 +74,9 @@
     "@shadcn/lint": "^0.1.2",
     "@types/node": "^26.6.3",
     "@types/pg": "^8.23.1",
-    "alchemy": "2.0.0-beta.79",
+    "alchemy": "2.0.0-beta.82",
     "drizzle-kit": "1.0.0-rc.5-ab785fc",
-    "effect": "4.0.0-rc.117",
+    "effect": "4.0.4",
     "lefthook": "^2.1.14",
     "miniflare": "5.20260921.0-alpha",
     "oxc-parser": "0.148.0",
@@ -92,7 +92,7 @@
   },
   "engines": {
     "bun": ">=1.4.2",
-    "node": ">=24.0.0 <25"
+    "node": ">=24.11.1 <25"
   },
   "packageManager": "bun@1.4.2",
   "patchedDependencies": {

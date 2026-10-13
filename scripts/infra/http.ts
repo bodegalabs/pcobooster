@@ -4,8 +4,8 @@
  * secret endpoints can echo secret values.
  */
 import { Data, Effect, Option, Redacted, Schema } from "effect";
-import { HttpClient, HttpClientRequest } from "effect/unstable/http";
-import type { HttpClientResponse } from "effect/unstable/http";
+import { HttpClient, HttpClientRequest } from "effect/http";
+import type { HttpClientResponse } from "effect/http";
 
 export class InfraApiError extends Data.TaggedError("InfraApiError")<{
   readonly service: string;

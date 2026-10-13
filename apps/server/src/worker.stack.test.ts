@@ -34,8 +34,8 @@ import * as State from "alchemy/State";
 import * as Test from "alchemy/Test/Vitest";
 import { Effect, Layer, Result, Schedule, Schema } from "effect";
 import type { Cause } from "effect";
-import * as HttpClient from "effect/unstable/http/HttpClient";
-import * as HttpClientRequest from "effect/unstable/http/HttpClientRequest";
+import * as HttpClient from "effect/http/HttpClient";
+import * as HttpClientRequest from "effect/http/HttpClientRequest";
 
 import TransportStackFixture, {
   FIXTURE_ABORT_AFTER_HEADER,

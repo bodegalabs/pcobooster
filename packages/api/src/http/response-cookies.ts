@@ -7,7 +7,7 @@ import { PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE } from "@pcobooster/api/auth/pl
 import { Server } from "@pcobooster/api/server";
 import { DEMO_SESSION_COOKIE } from "@pcobooster/contracts/demo";
 import { Context, Duration, Effect } from "effect";
-import * as Cookies from "effect/unstable/http/Cookies";
+import * as Cookies from "effect/http/Cookies";
 
 export class ResponseCookies extends Context.Service<
   ResponseCookies,

@@ -16,7 +16,7 @@ const traceSamplingRate = (production: boolean): number =>
 const workerLogs = { enabled: true, invocationLogs: true };
 
 /**
- * Workers Logs as Alchemy enables them by default, plus Workers Traces. Traces show each
+ * Workers Logs as Alchemy enables them by default, plus Workers Issues and Traces. Traces show each
  * invocation's subrequests, which is how to inspect overhead beside the provider
  * request count (AGENTS.md, Request Budget). For the product and admin Workers.
  */
@@ -25,6 +25,7 @@ export const workerObservability = (
 ): Cloudflare.Workers.WorkerObservability => ({
   enabled: true,
   logs: workerLogs,
+  issues: { enabled: true },
   traces: { enabled: true, headSamplingRate: traceSamplingRate(production) },
 });
 
@@ -33,6 +34,7 @@ export const apiWorkerObservability =
   (): Cloudflare.Workers.WorkerObservability => ({
     enabled: true,
     logs: workerLogs,
+    issues: { enabled: true },
   });
 
 /**

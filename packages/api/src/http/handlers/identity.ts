@@ -11,7 +11,7 @@ import {
 import { Server } from "@pcobooster/api/server";
 import { ProductApi } from "@pcobooster/contracts/http/api";
 import { Effect, Layer } from "effect";
-import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { HttpApiBuilder } from "effect/http-api";
 
 export const IdentityHandlers = Layer.mergeAll(
   HttpApiBuilder.group(ProductApi, "session", (handlers) =>

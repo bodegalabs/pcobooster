@@ -33,7 +33,7 @@ import { InvalidInput } from "@pcobooster/contracts/faults/invalid-input";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 import { Cause, Effect, Exit } from "effect";
-import * as HttpClient from "effect/unstable/http/HttpClient";
+import * as HttpClient from "effect/http/HttpClient";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const requestFor = (accountId: string): Request =>

@@ -13,8 +13,8 @@ import { procedureKindOf } from "@pcobooster/contracts/http/procedure-kind";
 import { requiredFeatureOf } from "@pcobooster/contracts/http/required-feature";
 import { matchRoute } from "@pcobooster/contracts/http/route";
 import { Function, Schema } from "effect";
-import { HttpApi } from "effect/unstable/httpapi";
-import type { HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi";
+import { HttpApi } from "effect/http-api";
+import type { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
 import { describe, expect, it } from "vitest";
 
 import mainProcedures from "./main-procedures.fixture.json" with { type: "json" };

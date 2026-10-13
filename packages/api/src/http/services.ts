@@ -10,7 +10,7 @@ import type { PlanningCenterRequest } from "@pcobooster/api/application/planning
 import type { ResponseCookies } from "@pcobooster/api/http/response-cookies";
 import type { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import type { Server } from "@pcobooster/api/server";
-import type { HttpClient } from "effect/unstable/http/HttpClient";
+import type { HttpClient } from "effect/http/HttpClient";
 
 declare module "@pcobooster/contracts/http/server-services" {
   interface ServerServices {

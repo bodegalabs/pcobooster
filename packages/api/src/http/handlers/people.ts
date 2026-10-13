@@ -10,7 +10,7 @@ import {
   getPeopleSearch,
 } from "@pcobooster/api/application/people";
 import { ProductApi } from "@pcobooster/contracts/http/api";
-import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { HttpApiBuilder } from "effect/http-api";
 
 export const PeopleHandlers = HttpApiBuilder.group(
   ProductApi,

@@ -18,7 +18,7 @@ import * as Drizzle from "alchemy/Drizzle";
 import * as State from "alchemy/State";
 import * as Test from "alchemy/Test/Vitest";
 import { Effect, Layer } from "effect";
-import * as HttpClientRequest from "effect/unstable/http/HttpClientRequest";
+import * as HttpClientRequest from "effect/http/HttpClientRequest";
 
 import { loadSettingsFromEnvironment, runLoad } from "./load-scenario";
 import TransportStackFixture, {

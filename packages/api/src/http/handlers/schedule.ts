@@ -8,7 +8,7 @@ import { auditSchedule } from "@pcobooster/api/http/schedule-audit";
 import type { ScheduleAuditDependencies } from "@pcobooster/api/http/schedule-audit";
 import { preparedWrite } from "@pcobooster/api/http/write";
 import { ProductApi } from "@pcobooster/contracts/http/api";
-import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { HttpApiBuilder } from "effect/http-api";
 
 /** Every schedule write is audited in D1 with its real outcome, method, and path. */
 export const scheduleHandlers = (audit: ScheduleAuditDependencies = {}) =>

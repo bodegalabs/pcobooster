@@ -22,7 +22,7 @@ import type {
   ProcedureRoute,
 } from "@pcobooster/contracts/http/route";
 import { Context, Schema } from "effect";
-import { HttpApiEndpoint } from "effect/unstable/httpapi";
+import { HttpApiEndpoint } from "effect/http-api";
 
 type Path = `/${string}`;
 

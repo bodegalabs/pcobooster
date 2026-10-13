@@ -9,7 +9,7 @@ import {
 } from "@pcobooster/api/application/catalog";
 import { ProductApi } from "@pcobooster/contracts/http/api";
 import { Layer } from "effect";
-import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { HttpApiBuilder } from "effect/http-api";
 
 export const CatalogHandlers = Layer.mergeAll(
   HttpApiBuilder.group(ProductApi, "access", (handlers) =>

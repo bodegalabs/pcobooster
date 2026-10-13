@@ -16,8 +16,8 @@ import type {
 } from "@pcobooster/client/product-client";
 import { Effect, Scope } from "effect";
 import type { Tracer } from "effect";
-import * as HttpClient from "effect/unstable/http/HttpClient";
-import * as HttpEffect from "effect/unstable/http/HttpEffect";
+import * as HttpClient from "effect/http/HttpClient";
+import * as HttpEffect from "effect/http/HttpEffect";
 
 import { AuthWriteLimit, makeHttpApp } from "./http-app";
 import type { AuthWriteLimiter } from "./http-app";

@@ -1,7 +1,7 @@
 import { Server } from "@pcobooster/api/server";
 import { ProductApi } from "@pcobooster/contracts/http/api";
 import { Effect } from "effect";
-import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { HttpApiBuilder } from "effect/http-api";
 
 export const HealthHandlers = HttpApiBuilder.group(
   ProductApi,

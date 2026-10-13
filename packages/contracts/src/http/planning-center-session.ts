@@ -6,7 +6,7 @@
  */
 import { productFaults } from "@pcobooster/contracts/http/procedure-scope";
 import type { ProvidedBy } from "@pcobooster/contracts/http/server-services";
-import { HttpApiMiddleware } from "effect/unstable/httpapi";
+import { HttpApiMiddleware } from "effect/http-api";
 
 export class PlanningCenterSession extends HttpApiMiddleware.Service<
   PlanningCenterSession,
