@@ -128,11 +128,11 @@ const WelcomeHero = ({ demo }: { demo: boolean }) => {
 };
 
 const AreaTile = ({ area }: { area: Area }) => (
-  <li className="bg-card/70 border-border/60 flex flex-col gap-2 rounded-2xl border p-3.5">
-    <span className="bg-muted text-foreground flex size-8 items-center justify-center rounded-lg">
+  <li className="bg-card/70 border-border/60 flex items-center gap-3 rounded-2xl border p-3 sm:flex-col sm:items-start sm:gap-2 sm:p-3.5">
+    <span className="bg-muted text-foreground flex size-8 shrink-0 items-center justify-center rounded-lg">
       <SidebarNavIcon icon={area.icon} className="size-4" />
     </span>
-    <div className="flex flex-col gap-0.5">
+    <div className="flex min-w-0 flex-col gap-0.5">
       <p className="text-sm font-medium">{area.title}</p>
       <p className="text-muted-foreground text-xs text-pretty">
         {area.description}
@@ -190,7 +190,10 @@ const PlanViewShowcase = () => {
           {planViewGuide.map((entry) => (
             <TabsTrigger key={entry.view} value={entry.view}>
               <SidebarNavIcon icon={planViewIcons[entry.view]} />
-              {getPlanViewLabel(entry.view)}
+              {/* Phones show icons only; the line below names the view. */}
+              <span className="max-sm:sr-only">
+                {getPlanViewLabel(entry.view)}
+              </span>
             </TabsTrigger>
           ))}
         </TabsList>
