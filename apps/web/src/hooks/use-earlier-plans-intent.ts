@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent } from "react";
 import type { RefObject } from "react";
+
+const EARLIER_PLANS_TRIGGER_DISTANCE_PX = 160;
 
 const observeEarlierPlansIntent = (
   scroller: HTMLDivElement,
@@ -12,7 +14,7 @@ const observeEarlierPlansIntent = (
   let previousPosition = position();
   let touchY: number | null = null;
   const reveal = () => {
-    if (position() <= 48) {
+    if (position() <= EARLIER_PLANS_TRIGGER_DISTANCE_PX) {
       onEarlierIntent();
     }
   };
@@ -79,20 +81,27 @@ const observeEarlierPlansIntent = (
   };
 };
 
-/** Reveal history only when someone scrolls upward near the start of the agenda. */
-export const useEarlierPlansIntent = (
-  scrollRef: RefObject<HTMLDivElement | null>
-): boolean => {
-  const [showEarlier, setShowEarlier] = useState(false);
+/** Load history only on upward intent near the beginning, never on initial intersection. */
+export const useEarlierPlansIntent = ({
+  scrollRef,
+  enabled,
+  onEarlier,
+}: {
+  scrollRef: RefObject<HTMLDivElement | null>;
+  enabled: boolean;
+  onEarlier: () => void;
+}): void => {
+  const requestEarlier = useEffectEvent(() => {
+    if (enabled) {
+      onEarlier();
+    }
+  });
   useEffect(() => {
     const scroller = scrollRef.current;
     const cleanup =
       scroller === null
         ? null
-        : observeEarlierPlansIntent(scroller, () => {
-            setShowEarlier(true);
-          });
+        : observeEarlierPlansIntent(scroller, requestEarlier);
     return () => cleanup?.();
-  }, [scrollRef, setShowEarlier]);
-  return showEarlier;
+  }, [scrollRef]);
 };

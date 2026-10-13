@@ -394,7 +394,7 @@ export const ServicePlanTableSelector = ({
   });
   const scrollRef = useRef<HTMLDivElement>(null);
   const laterRef = useRef<HTMLDivElement>(null);
-  const showEarlier = useEarlierPlansIntent(scrollRef);
+  const earlierRequestPending = useRef(false);
   const earlierAnchor = useRef<{
     element: Element;
     top: number;
@@ -436,12 +436,17 @@ export const ServicePlanTableSelector = ({
   useLayoutEffect(() => {
     const anchor = earlierAnchor.current;
     const scroller = scrollRef.current;
+    if (isRefreshing) {
+      return;
+    }
+    earlierRequestPending.current = false;
     if (
       visibleRows.length === 0 ||
-      isRefreshing ||
       anchor === null ||
-      scroller === null
+      scroller === null ||
+      !anchor.element.isConnected
     ) {
+      earlierAnchor.current = null;
       return;
     }
     const scrollsHere = getComputedStyle(scroller).overflowY === "auto";
@@ -460,6 +465,10 @@ export const ServicePlanTableSelector = ({
   }, [isRefreshing, visibleRows]);
 
   const showEarlierWeeks = () => {
+    if (earlierRequestPending.current) {
+      return;
+    }
+    earlierRequestPending.current = true;
     const scroller = scrollRef.current;
     if (scroller !== null) {
       const top = Math.max(0, scroller.getBoundingClientRect().top);
@@ -479,6 +488,16 @@ export const ServicePlanTableSelector = ({
     }
     loadEarlierWeeks();
   };
+  useEarlierPlansIntent({
+    scrollRef,
+    enabled:
+      !isInitialLoading &&
+      !isRefreshing &&
+      !errorMessage &&
+      effectiveSelectedServiceTypeIds.length > 0 &&
+      searchValue.trim() === "",
+    onEarlier: showEarlierWeeks,
+  });
   return (
     <div className="flex flex-col gap-4 md:h-full md:min-h-0">
       {failedQueries.map(({ title, query }) => (
@@ -529,21 +548,6 @@ export const ServicePlanTableSelector = ({
 
         <PageScrollArea ref={scrollRef}>
           <div className="[overflow-anchor:none]">
-            {isInitialLoading || !showEarlier ? null : (
-              <div className="flex justify-center py-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  disabled={
-                    isRefreshing || effectiveSelectedServiceTypeIds.length === 0
-                  }
-                  onClick={showEarlierWeeks}
-                >
-                  Load earlier weeks
-                </Button>
-              </div>
-            )}
             <PlanAgenda
               isInitialLoading={isInitialLoading}
               errorMessage={errorMessage}
