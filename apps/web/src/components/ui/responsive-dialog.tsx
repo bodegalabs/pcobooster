@@ -36,6 +36,10 @@ interface ResponsiveDialogRootProps {
 
 interface ResponsiveDialogContentProps {
   children: React.ReactNode;
+  /** `flush` drops the dialog's padding so a header can run edge to edge. */
+  layout?: "default" | "flush";
+  /** The element to focus on open, such as the primary action. */
+  initialFocus?: React.RefObject<HTMLElement | null>;
   className?: string;
   desktopClassName?: string;
   mobileClassName?: string;
@@ -80,6 +84,8 @@ const ResponsiveDialogContent = ({
   desktopClassName,
   mobileClassName,
   showCloseButton = true,
+  layout = "default",
+  initialFocus,
   children,
 }: ResponsiveDialogContentProps) => {
   const { isMobile } = React.useContext(ResponsiveDialogContext);
@@ -88,6 +94,7 @@ const ResponsiveDialogContent = ({
     return (
       <DrawerContent
         className={cn("border-b-0 px-0", className, mobileClassName)}
+        {...(initialFocus === undefined ? {} : { initialFocus })}
       >
         {children}
       </DrawerContent>
@@ -96,8 +103,13 @@ const ResponsiveDialogContent = ({
 
   return (
     <DialogContent
-      className={cn(className, desktopClassName)}
+      className={cn(
+        layout === "flush" && "gap-0 overflow-hidden p-0",
+        className,
+        desktopClassName
+      )}
       showCloseButton={showCloseButton}
+      initialFocus={initialFocus}
     >
       {children}
     </DialogContent>
@@ -124,13 +136,28 @@ const ResponsiveDialogFooter = ({
   return <Footer className={className} {...props} />;
 };
 
+/** `hero` is the large display title for welcome and announcement dialogs. */
+const responsiveDialogTitleVariants = {
+  default: undefined,
+  hero: "text-2xl leading-tight font-semibold tracking-tight text-balance md:text-3xl",
+} as const;
+
 const ResponsiveDialogTitle = ({
+  className,
+  variant = "default",
   ...props
-}: React.ComponentProps<typeof DialogTitle>) => {
+}: React.ComponentProps<typeof DialogTitle> & {
+  variant?: keyof typeof responsiveDialogTitleVariants;
+}) => {
   const { isMobile } = React.useContext(ResponsiveDialogContext);
   const Title = isMobile ? DrawerTitle : DialogTitle;
 
-  return <Title {...props} />;
+  return (
+    <Title
+      className={cn(responsiveDialogTitleVariants[variant], className)}
+      {...props}
+    />
+  );
 };
 
 const ResponsiveDialogDescription = ({
