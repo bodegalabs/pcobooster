@@ -1,3 +1,4 @@
+import { StarField } from "@pcobooster/ui/star-field";
 import { createFileRoute } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import type { ReactNode } from "react";
@@ -5,7 +6,6 @@ import type { ReactNode } from "react";
 import { DemoFrame } from "../components/demo-frame";
 import { FeatureTiles } from "../components/feature-tiles";
 import {
-  StarField,
   ChooseGraphic,
   ConnectGraphic,
   FitGraphic,
