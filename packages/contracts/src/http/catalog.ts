@@ -104,10 +104,13 @@ export const catalog = planningCenterGroup(
     params: plansInputSchema.fields,
     success: mutableArray(planSchema),
   }),
-  /** A two-week org-calendar window for the web Services agenda. */
+  /** A bounded org-calendar window for the web Services agenda. */
   read("planWindow", "/service-types/:serviceTypeId/plan-window", {
     params: plansInputSchema.fields,
-    query: { startDay: calendarDate },
+    query: {
+      startDay: calendarDate,
+      days: Schema.optional(Schema.Literals(["14", "30"])),
+    },
     success: mutableArray(planSchema),
   }),
   /** Null when the plan doesn't exist. */

@@ -36,6 +36,7 @@ export const getCatalogServiceTypes: Effect.Effect<
 export const getCatalogPlans = (input: {
   readonly serviceTypeId: string;
   readonly startDay?: string;
+  readonly days?: "14" | "30";
 }): Effect.Effect<
   Plan[],
   ApplicationFault,
@@ -51,7 +52,8 @@ export const getCatalogPlans = (input: {
           plansService,
           resolveTimeZone: organizationTimeZone,
         },
-        input.startDay
+        input.startDay,
+        input.days === "30" ? 30 : 14
       )
     );
   });

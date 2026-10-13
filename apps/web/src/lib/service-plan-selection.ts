@@ -1,3 +1,4 @@
+import { addCalendarDaysToDayKey } from "@pcobooster/planning-center-models/calendar";
 import { Option, Schema } from "effect";
 
 export interface ServicePlanTableSelectorProps {
@@ -22,3 +23,19 @@ export const readStoredServiceTypeIds = (
   }
   return Option.getOrNull(decodeServiceTypeIds(raw));
 };
+
+/** Start with 30 days, then extend either side in disjoint two-week windows. */
+export const servicePlanWindows = (
+  todayKey: string,
+  history: number,
+  future: number
+): { startDay: string; days: "14" | "30" }[] =>
+  Array.from({ length: history + future }, (_, index) => {
+    const windowIndex = index - history;
+    const offset =
+      windowIndex <= 0 ? windowIndex * 14 : 30 + (windowIndex - 1) * 14;
+    return {
+      startDay: addCalendarDaysToDayKey(todayKey, offset),
+      days: windowIndex === 0 ? "30" : "14",
+    };
+  });

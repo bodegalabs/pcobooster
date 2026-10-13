@@ -87,13 +87,14 @@ describe(getPlansForServiceType, () => {
   });
 
   it.each([
-    ["2026-10-13", "2026-10-26"],
-    ["2026-10-27", "2026-11-09"],
-    ["2026-09-29", "2026-10-12"],
-    ["2028-02-23", "2028-03-07"],
-  ])(
-    "loads exactly two calendar weeks starting %s, ending %s",
-    async (startDay, endDay) => {
+    ["2026-10-13", "2026-10-26", 14],
+    ["2026-10-13", "2026-11-11", 30],
+    ["2026-11-12", "2026-11-25", 14],
+    ["2026-09-29", "2026-10-12", 14],
+    ["2028-02-23", "2028-03-07", 14],
+  ] as const)(
+    "loads the requested window starting %s, ending %s (%s days)",
+    async (startDay, endDay, days) => {
       vi.useFakeTimers({ now: new Date("2026-10-13T01:00:00Z") });
       const getPlansInDateRange = vi.fn<
         PlanningCenterPlansService["getPlansInDateRange"]
@@ -121,7 +122,8 @@ describe(getPlansForServiceType, () => {
             plansService: { getPlansInDateRange },
             resolveTimeZone: Effect.succeed("America/Los_Angeles"),
           },
-          startDay
+          startDay,
+          days
         )
       );
       expect(

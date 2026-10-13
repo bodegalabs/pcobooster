@@ -1,8 +1,5 @@
 import { callForQuery, speculativeQuery } from "@pcobooster/client/query";
-import {
-  addCalendarDaysToDayKey,
-  formatCalendarDayInTimeZone,
-} from "@pcobooster/planning-center-models/calendar";
+import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { ServicePlanRow } from "@pcobooster/planning-center-models/service-plans";
 import {
@@ -30,6 +27,7 @@ import type { ServicePlanTableSelectorProps } from "@/lib/service-plan-selection
 import {
   readStoredServiceTypeIds,
   SERVICE_TYPE_FILTER_STORAGE_KEY,
+  servicePlanWindows,
 } from "@/lib/service-plan-selection";
 import { productClient } from "@/product-client";
 
@@ -81,11 +79,12 @@ export const useServicePlanSelection = ({
   }));
   const { anchor, future: futureWindows, history: historyWindows } = windows;
   const todayKey = formatCalendarDayInTimeZone(anchor, orgTimeZone);
-  const startDays = Array.from(
-    { length: historyWindows + futureWindows },
-    (_, index) =>
-      addCalendarDaysToDayKey(todayKey, (index - historyWindows) * 14)
+  const requestedWindows = servicePlanWindows(
+    todayKey,
+    historyWindows,
+    futureWindows
   );
+  const startDays = requestedWindows.map((window) => window.startDay);
 
   const allServiceTypeIds = useMemo(
     () => (serviceTypes ?? []).map((serviceType) => serviceType.id),
@@ -122,14 +121,14 @@ export const useServicePlanSelection = ({
   const selectedTypes = (serviceTypes ?? []).filter((type) =>
     selectedServiceTypeIdSet.has(type.id)
   );
-  const planQueryOptions = startDays.flatMap((startDay) =>
+  const planQueryOptions = requestedWindows.flatMap(({ startDay, days }) =>
     selectedTypes.map((serviceType) => ({
-      queryKey: queryKeys.planWindow(serviceType.id, startDay),
+      queryKey: queryKeys.planWindow(serviceType.id, startDay, days),
       queryFn: async (context: QueryFunctionContext) =>
         await callForQuery(context, productClient, (api) =>
           api.catalog.planWindow({
             params: { serviceTypeId: serviceType.id },
-            query: { startDay },
+            query: { startDay, days },
           })
         ),
       staleTime: 5 * 60 * 1000,
@@ -202,45 +201,28 @@ export const useServicePlanSelection = ({
   const isRefreshing = hasLoaded && plansLoading;
 
   // Keep the shortcuts one row tall as later agenda windows arrive.
-  const myScheduledRows = useMemo(
-    () =>
-      rows
-        .filter(
-          (row) =>
-            myScheduledPlanIdSet.has(row.planId) &&
-            isInDateWindow(row.sortDate, "60", orgTimeZone)
-        )
-        .slice(0, 3),
-    [myScheduledPlanIdSet, orgTimeZone, rows]
-  );
-
-  const visibleRows = useMemo(() => {
-    const normalizedSearch = deferredSearchValue.trim().toLowerCase();
-
-    return rows.filter((row) => {
-      if (selectedServiceTypeIdSet.size === 0) {
-        return false;
-      }
-      if (!selectedServiceTypeIdSet.has(row.serviceTypeId)) {
-        return false;
-      }
-
-      if (!normalizedSearch) {
-        return true;
-      }
-
-      const haystack = [
-        row.serviceTypeName,
-        row.planTitle,
-        row.seriesTitle ?? "",
-        formatPlanDate(row.sortDate, orgTimeZone),
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      return haystack.includes(normalizedSearch);
-    });
-  }, [deferredSearchValue, orgTimeZone, rows, selectedServiceTypeIdSet]);
+  const myScheduledRows = rows
+    .filter(
+      (row) =>
+        myScheduledPlanIdSet.has(row.planId) &&
+        isInDateWindow(row.sortDate, "60", orgTimeZone)
+    )
+    .slice(0, 3);
+  const normalizedSearch = deferredSearchValue.trim().toLowerCase();
+  const visibleRows = rows.filter((row) => {
+    if (!normalizedSearch) {
+      return true;
+    }
+    const haystack = [
+      row.serviceTypeName,
+      row.planTitle,
+      row.seriesTitle ?? "",
+      formatPlanDate(row.sortDate, orgTimeZone),
+    ]
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(normalizedSearch);
+  });
 
   /** On hover: the positions, items, and times a plan opens with. */
   const prefetchPlanData = useCallback(

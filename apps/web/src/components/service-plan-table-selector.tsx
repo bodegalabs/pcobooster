@@ -35,6 +35,7 @@ import { LoadingBar } from "@/components/ui/loading-bar";
 import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import { selectionPickerSectionTitleClass } from "@/components/ui/selection-picker-styles";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useEarlierPlansIntent } from "@/hooks/use-earlier-plans-intent";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useServicePlanSelection } from "@/hooks/use-service-plan-selection";
 import type { ServicePlanTableSelectorProps } from "@/lib/service-plan-selection";
@@ -393,6 +394,7 @@ export const ServicePlanTableSelector = ({
   });
   const scrollRef = useRef<HTMLDivElement>(null);
   const laterRef = useRef<HTMLDivElement>(null);
+  const showEarlier = useEarlierPlansIntent(scrollRef);
   const earlierAnchor = useRef<{
     element: Element;
     top: number;
@@ -527,7 +529,7 @@ export const ServicePlanTableSelector = ({
 
         <PageScrollArea ref={scrollRef}>
           <div className="[overflow-anchor:none]">
-            {isInitialLoading ? null : (
+            {isInitialLoading || !showEarlier ? null : (
               <div className="flex justify-center py-2">
                 <Button
                   type="button"
