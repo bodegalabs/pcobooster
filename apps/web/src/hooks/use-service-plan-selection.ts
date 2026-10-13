@@ -259,7 +259,7 @@ export const useServicePlanSelection = ({
     }
   }, [planQueries, serviceTypes]);
 
-  /** On hover: what the plan's Overview shows, the view a plan opens on. */
+  /** On hover: the positions, items, and times a plan opens with. */
   const prefetchPlanData = useCallback(
     async (row: ServicePlanRow) => {
       // Warm the route too, so its code is ready before the click.
@@ -289,7 +289,7 @@ export const useServicePlanSelection = ({
       prefetch: prefetchPlanData,
     });
   /**
-   * Opening a plan lands on its Overview, so its data starts loading at the click, ahead of
+   * Opening a plan lands on its Plan items, so its data starts loading at the click, ahead of
    * the route's code. The workspace warms the other views in the speculative lane once it has
    * loaded.
    */
