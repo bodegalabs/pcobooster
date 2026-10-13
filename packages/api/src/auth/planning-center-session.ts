@@ -89,11 +89,12 @@ export const requirePlanningCenterAccessToken = async (
     });
   }
 
-  const linkedAccounts = await auth.api.listUserAccounts({
-    headers: request.headers,
-  });
-
-  const planningCenterAccounts = linkedPlanningCenterAccounts(linkedAccounts);
+  // One account read serves selection and the token; Better Auth's own endpoints would each
+  // look the session up again.
+  const tokenApi = createAuthTokenApi(auth);
+  const planningCenterAccounts = linkedPlanningCenterAccounts(
+    await tokenApi.findAccounts(session.user.id)
+  );
 
   const selectedAccountId = getSelectedPlanningCenterAccountId(request);
   const selectedAccount =
@@ -109,15 +110,11 @@ export const requirePlanningCenterAccessToken = async (
     });
   }
 
-  const token = await getPlanningCenterToken(
-    request.headers,
-    selectedAccount,
-    createAuthTokenApi(auth)
-  );
+  const token = await getPlanningCenterToken(selectedAccount, tokenApi);
   return {
     session,
     ...token,
     accountId: selectedAccount.id,
-    account: selectedAccount,
+    account: { id: selectedAccount.id, accountId: selectedAccount.accountId },
   };
 };
