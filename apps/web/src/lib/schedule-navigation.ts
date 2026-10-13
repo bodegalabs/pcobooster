@@ -13,11 +13,11 @@ export interface PlanSlotSelection {
   positionId: string | null;
 }
 
-/** Opens a plan on its Overview. */
+/** Opens a plan on its Plan items. */
 export const planWorkspaceLink = (serviceTypeId: string, planId: string) =>
   linkOptions({
     to: "/services/$serviceTypeId/plans/$planId/$view",
-    params: { serviceTypeId, planId, view: "overview" },
+    params: { serviceTypeId, planId, view: "plan" },
   });
 
 /**
