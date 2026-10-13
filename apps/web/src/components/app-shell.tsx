@@ -272,7 +272,7 @@ const SidebarAccountPanel = ({
 
   return (
     <SidebarMenu>
-      <SidebarMenuItem>
+      <SidebarMenuItem data-tour="account-menu">
         <DropdownMenu
           open={accountMenuOpen}
           onOpenChange={(open) => {
@@ -561,11 +561,11 @@ const AppSidebar = ({
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem>
+                <SidebarMenuItem data-tour="nav-services">
                   <ServicesSidebarMenuItem />
                 </SidebarMenuItem>
                 {peopleNavEnabled ? (
-                  <SidebarMenuItem>
+                  <SidebarMenuItem data-tour="nav-people">
                     <SidebarMenuButton
                       render={<Link to="/people" />}
                       isActive={pathname.startsWith("/people")}
@@ -577,7 +577,7 @@ const AppSidebar = ({
                   </SidebarMenuItem>
                 ) : null}
                 {songsNavEnabled ? (
-                  <SidebarMenuItem>
+                  <SidebarMenuItem data-tour="nav-songs">
                     <SidebarMenuButton
                       render={<Link to="/songs" />}
                       isActive={pathname.startsWith("/songs")}
@@ -714,11 +714,11 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
 
   return (
     <AccessReviewProvider>
-      <OnboardingProvider>
-        <SidebarProvider
-          defaultOpen={sidebarDefaultOpen}
-          className="min-h-dvh md:h-dvh md:min-h-0 md:overflow-hidden"
-        >
+      <SidebarProvider
+        defaultOpen={sidebarDefaultOpen}
+        className="min-h-dvh md:h-dvh md:min-h-0 md:overflow-hidden"
+      >
+        <OnboardingProvider>
           <SidebarToggleHotkey />
           <AppSidebar
             peopleNavEnabled={peopleNavEnabled}
@@ -736,8 +736,8 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
               <AppShellContent>{children}</AppShellContent>
             </div>
           </SidebarInset>
-        </SidebarProvider>
-      </OnboardingProvider>
+        </OnboardingProvider>
+      </SidebarProvider>
     </AccessReviewProvider>
   );
 };

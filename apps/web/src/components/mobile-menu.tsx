@@ -389,6 +389,7 @@ export const MobileHeader = ({
           aria-label={menu.open ? "Close menu" : "Open menu"}
           aria-expanded={menu.open}
           aria-controls={MOBILE_MENU_ID}
+          data-tour="mobile-menu"
           className="-mr-2 shrink-0"
           onClick={menu.handleToggle}
         >

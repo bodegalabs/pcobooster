@@ -80,7 +80,7 @@ export const SidebarFeedback = () => {
   }
 
   return (
-    <SidebarMenuItem>
+    <SidebarMenuItem data-tour="feedback">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger render={<SidebarMenuButton tooltip="Feedback" />}>
           <SidebarNavIcon icon={BubbleChatEditIcon} />

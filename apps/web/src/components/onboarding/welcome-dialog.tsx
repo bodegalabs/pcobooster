@@ -92,10 +92,12 @@ const PlanViewList = () => (
 export const WelcomeDialog = ({
   open,
   onOpenChange,
+  onStartTour,
   demo,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onStartTour: () => void;
   demo: boolean;
 }) => {
   const peopleEnabled = useFeatureEnabled("people");
@@ -156,9 +158,10 @@ export const WelcomeDialog = ({
           </p>
         </div>
         <ResponsiveDialogFooter>
-          <ResponsiveDialogClose render={<Button />}>
-            Get started
+          <ResponsiveDialogClose render={<Button variant="outline" />}>
+            Explore on my own
           </ResponsiveDialogClose>
+          <Button onClick={onStartTour}>Show me around</Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
