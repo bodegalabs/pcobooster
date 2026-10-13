@@ -183,8 +183,8 @@ export const Metric = ({
   tone?: MeterTone;
 }) => (
   <div className="border-border/40 rounded-lg border px-3 py-2">
-    <p className="text-muted-foreground truncate text-xs">{label}</p>
-    <p className="mt-1 truncate text-sm font-semibold tabular-nums">{value}</p>
+    <p className="text-muted-foreground text-xs text-pretty">{label}</p>
+    <p className="mt-1 text-sm font-semibold tabular-nums">{value}</p>
     {meter === undefined ? null : (
       <Meter value={meter} tone={tone} className="mt-2" />
     )}

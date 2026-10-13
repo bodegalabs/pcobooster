@@ -9,6 +9,7 @@
     "./calendar-day": "./src/calendar-day.ts",
     "./candidate-frequency": "./src/candidate-frequency.ts",
     "./candidate-scoring": "./src/candidate-scoring.ts",
+    "./initials": "./src/initials.ts",
     "./chord-chart": "./src/chord-chart.ts",
     "./chord-chart-chords": "./src/chord-chart-chords.ts",
     "./chord-chart-import": "./src/chord-chart-import.ts",

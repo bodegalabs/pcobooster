@@ -485,15 +485,18 @@ const DashboardPlanHeader = ({
       <header className="mb-3 shrink-0 max-md:hidden sm:mb-5">
         <div className="flex min-w-0 items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-1.5">
-            <h1 className="truncate text-xl leading-tight font-semibold tracking-tight md:text-2xl">
-              {serviceTypeName}
-              {isNonEmptyString(planSubtitle) ? (
-                <span className="text-muted-foreground font-normal">
-                  {" "}
-                  / {planSubtitle}
-                </span>
-              ) : null}
-              <span className="text-muted-foreground font-light tabular-nums">
+            {/* Long service types and titles truncate; the date always shows. */}
+            <h1 className="flex min-w-0 text-xl leading-tight font-semibold tracking-tight md:text-2xl">
+              <span className="truncate">
+                {serviceTypeName}
+                {isNonEmptyString(planSubtitle) ? (
+                  <span className="text-muted-foreground font-normal">
+                    {" "}
+                    / {planSubtitle}
+                  </span>
+                ) : null}
+              </span>
+              <span className="text-muted-foreground shrink-0 font-light whitespace-pre tabular-nums">
                 {" "}
                 / {planDate}
               </span>

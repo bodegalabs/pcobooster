@@ -55,7 +55,9 @@ export const PersonMonthCalendar = ({
       <div className="grid grid-cols-7 gap-0.5">
         {calendarCells.map((cell) => {
           if (cell.day === null) {
-            return <div key={cell.key} className="aspect-square min-h-7" />;
+            return (
+              <div key={cell.key} className="aspect-square min-h-7 w-full" />
+            );
           }
           const { day } = cell;
           const entries = monthDays.filter((entry) => entry.day === day);

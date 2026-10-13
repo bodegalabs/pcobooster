@@ -39,6 +39,7 @@ import {
   formatCalendarDateLabel,
   formatCalendarDayInTimeZone,
 } from "@pcobooster/planning-center-models/calendar";
+import { getInitials } from "@pcobooster/planning-center-models/initials";
 import {
   isNonEmptyString,
   isString,
@@ -415,17 +416,6 @@ const buildPersonActivity = (
   };
 };
 
-export const initialsFromName = (name: string) => {
-  const parts = name.trim().split(/\s+/u).filter(Boolean);
-  if (parts.length === 0) {
-    return "WA";
-  }
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
-};
-
 const teamNamesByPersonId = (teams: readonly TeamRoster[]) => {
   const names = new Map<string, Set<string>>();
   for (const team of teams) {
@@ -468,7 +458,7 @@ const buildRosterPeople = (
       person: {
         id: resource.id,
         name: name || "Unknown person",
-        initials: initialsFromName(name),
+        initials: getInitials(name),
         photoThumbnailUrl: isString(photo) ? photo : null,
         teams: personTeams,
       },

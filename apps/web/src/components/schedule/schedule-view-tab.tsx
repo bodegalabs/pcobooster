@@ -1,3 +1,4 @@
+import { getInitials } from "@pcobooster/planning-center-models/initials";
 import { partitionPeopleForRecommendationStrip } from "@pcobooster/planning-center-models/recommendation-strip-order";
 import {
   getPositionNotificationStates,
@@ -42,7 +43,6 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import type { PositionCandidateList } from "@/hooks/use-position-candidates";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { useShowScheduleHistory } from "@/hooks/use-show-schedule-history";
-import { getInitials } from "@/lib/format/initials";
 import { openSlotCount } from "@/lib/schedule/open-positions";
 import { cn } from "@/lib/utils";
 

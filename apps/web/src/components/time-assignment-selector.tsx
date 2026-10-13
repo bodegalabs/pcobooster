@@ -1,5 +1,6 @@
 import { UnfoldMoreIcon, UsersIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { getInitials } from "@pcobooster/planning-center-models/initials";
 import type {
   FilledPositionPerson,
   TeamPositionGroup,
@@ -31,7 +32,6 @@ import {
   SelectionPickerShell,
 } from "@/components/ui/selection-picker";
 import { selectionPickerSectionTitleClass } from "@/components/ui/selection-picker-styles";
-import { getInitials } from "@/lib/format/initials";
 
 export interface TimeAssignmentValue {
   teamIds: string[];
