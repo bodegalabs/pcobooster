@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/responsive-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { SHORTCUTS_PALETTE_HOTKEY } from "@/lib/app-hotkeys";
 import { getPlanViewLabel } from "@/lib/app-routes";
 import { ROCKET_ANIMATION } from "@/lib/brand-rocket-animation";
@@ -209,6 +210,8 @@ const planViewMocks: Record<
  * reduced motion it waits for a click.
  */
 const PlanViewShowcase = () => {
+  // Phones get a row of icon tabs; wider screens list the views beside their preview.
+  const vertical = !useIsMobile();
   const [view, setView] = useState<PlanView>("plan");
   const [held, setHeld] = useState(false);
 
@@ -227,6 +230,7 @@ const PlanViewShowcase = () => {
 
   return (
     <Tabs
+      orientation={vertical ? "vertical" : "horizontal"}
       value={view}
       onValueChange={(next: PlanView) => {
         setView(next);
@@ -244,12 +248,12 @@ const PlanViewShowcase = () => {
         setHeld(false);
       }}
     >
-      <TabsList className="w-full">
+      <TabsList className={vertical ? "w-40 shrink-0" : "w-full"}>
         {planViewGuide.map((entry) => (
           <TabsTrigger key={entry.view} value={entry.view}>
             <SidebarNavIcon icon={planViewIcons[entry.view]} />
             {/* Phones show icons only; the line below names the view. */}
-            <span className="max-sm:sr-only">
+            <span className={vertical ? undefined : "sr-only"}>
               {getPlanViewLabel(entry.view)}
             </span>
           </TabsTrigger>
@@ -257,8 +261,8 @@ const PlanViewShowcase = () => {
       </TabsList>
       {planViewGuide.map((entry) => (
         <TabsContent key={entry.view} value={entry.view}>
-          <div className="animate-in fade-in-0 slide-in-from-bottom-1 flex flex-col gap-3 pt-1 duration-300 motion-reduce:animate-none">
-            <p className="text-center">
+          <div className="animate-in fade-in-0 slide-in-from-bottom-1 flex flex-col gap-3 duration-300 motion-reduce:animate-none">
+            <p className={cn("text-pretty", vertical ? "pt-1" : "text-center")}>
               <span className="font-medium">
                 {getPlanViewLabel(entry.view)}.
               </span>{" "}
@@ -449,7 +453,7 @@ export const WelcomeDialog = ({
       <ResponsiveDialogContent
         layout="flush"
         initialFocus={nextButtonRef}
-        desktopClassName="sm:max-w-lg"
+        desktopClassName="sm:max-w-xl"
       >
         <div className="flex min-h-0 flex-col overflow-y-auto">
           <WelcomeSky step={step} />
