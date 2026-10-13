@@ -12,10 +12,12 @@ import {
   groupPlansByMonthAndDay,
 } from "@pcobooster/planning-center-models/service-plans";
 import { ChevronRight, Search } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { PageScrollArea } from "@/components/page-shell";
 import { QueryDataBoundary } from "@/components/query-data-boundary";
 import { ServiceTypeMultiSelect } from "@/components/service-type-multi-select";
+import { Button } from "@/components/ui/button";
 import {
   Empty,
   EmptyDescription,
@@ -31,16 +33,12 @@ import {
 import { Item } from "@/components/ui/item";
 import { LoadingBar } from "@/components/ui/loading-bar";
 import { MiddleTruncate } from "@/components/ui/middle-truncate";
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select";
 import { selectionPickerSectionTitleClass } from "@/components/ui/selection-picker-styles";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useEarlierPlansIntent } from "@/hooks/use-earlier-plans-intent";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useServicePlanSelection } from "@/hooks/use-service-plan-selection";
 import type { ServicePlanTableSelectorProps } from "@/lib/service-plan-selection";
-import { parseDateRange } from "@/lib/service-plan-selection";
 import { cn } from "@/lib/utils";
 
 interface PlanListProps {
@@ -122,6 +120,7 @@ const PlanAgendaRow = ({
       render={
         <button
           type="button"
+          data-plan-key={`${row.serviceTypeId}:${row.planId}`}
           aria-current={isActive ? "page" : undefined}
           aria-label={
             isScheduledForCurrentUser ? `${label}: you are scheduled` : label
@@ -249,7 +248,7 @@ const PlanAgenda = ({
     return (
       <PlanListEmpty
         title="No matching plans"
-        description="Adjust the search, service type, or date window."
+        description="Adjust the search or service types, or load more weeks."
       />
     );
   }
@@ -374,8 +373,10 @@ export const ServicePlanTableSelector = ({
     serviceTypes,
     effectiveSelectedServiceTypeIds,
     setSelectedServiceTypeIds,
-    dateRangeFilter,
-    setDateRangeFilter,
+    loadLaterWeeks,
+    loadEarlierWeeks,
+    canAutoLoadMore,
+    latestStartDay,
     isInitialLoading,
     isRefreshing,
     errorMessage,
@@ -390,6 +391,112 @@ export const ServicePlanTableSelector = ({
     selectedServiceTypeId,
     selectedPlanId,
     onSelect,
+  });
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const laterRef = useRef<HTMLDivElement>(null);
+  const earlierRequestPending = useRef(false);
+  const earlierAnchor = useRef<{
+    element: Element;
+    top: number;
+    scrollPosition: number;
+  } | null>(null);
+  useEffect(() => {
+    const target = laterRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          observer.disconnect();
+          loadLaterWeeks();
+        }
+      },
+      { rootMargin: "0px 0px 160px 0px" }
+    );
+    if (
+      target !== null &&
+      !isInitialLoading &&
+      !isRefreshing &&
+      canAutoLoadMore &&
+      !errorMessage &&
+      latestStartDay !== undefined
+    ) {
+      observer.observe(target);
+    }
+    return () => {
+      observer.disconnect();
+    };
+  }, [
+    canAutoLoadMore,
+    errorMessage,
+    isInitialLoading,
+    isRefreshing,
+    loadLaterWeeks,
+    latestStartDay,
+  ]);
+
+  useLayoutEffect(() => {
+    const anchor = earlierAnchor.current;
+    const scroller = scrollRef.current;
+    if (isRefreshing) {
+      return;
+    }
+    earlierRequestPending.current = false;
+    if (
+      visibleRows.length === 0 ||
+      anchor === null ||
+      scroller === null ||
+      !anchor.element.isConnected
+    ) {
+      earlierAnchor.current = null;
+      return;
+    }
+    const scrollsHere = getComputedStyle(scroller).overflowY === "auto";
+    const scrollPosition = scrollsHere ? scroller.scrollTop : window.scrollY;
+    const delta =
+      anchor.element.getBoundingClientRect().top -
+      anchor.top +
+      scrollPosition -
+      anchor.scrollPosition;
+    if (scrollsHere) {
+      scroller.scrollTop += delta;
+    } else {
+      window.scrollBy(0, delta);
+    }
+    earlierAnchor.current = null;
+  }, [isRefreshing, visibleRows]);
+
+  const showEarlierWeeks = () => {
+    if (earlierRequestPending.current) {
+      return;
+    }
+    earlierRequestPending.current = true;
+    const scroller = scrollRef.current;
+    if (scroller !== null) {
+      const top = Math.max(0, scroller.getBoundingClientRect().top);
+      const element = [...scroller.querySelectorAll("[data-plan-key]")].find(
+        (row) => row.getBoundingClientRect().bottom > top
+      );
+      if (element !== undefined) {
+        earlierAnchor.current = {
+          element,
+          top: element.getBoundingClientRect().top,
+          scrollPosition:
+            getComputedStyle(scroller).overflowY === "auto"
+              ? scroller.scrollTop
+              : window.scrollY,
+        };
+      }
+    }
+    loadEarlierWeeks();
+  };
+  useEarlierPlansIntent({
+    scrollRef,
+    enabled:
+      !isInitialLoading &&
+      !isRefreshing &&
+      !errorMessage &&
+      effectiveSelectedServiceTypeIds.length > 0 &&
+      searchValue.trim() === "",
+    onEarlier: showEarlierWeeks,
   });
   return (
     <div className="flex flex-col gap-4 md:h-full md:min-h-0">
@@ -409,7 +516,7 @@ export const ServicePlanTableSelector = ({
       <div className="flex flex-col [--plan-list-sticky-offset:6.25rem] md:min-h-0 md:flex-1">
         <div
           data-tour="plan-search"
-          className="bg-background sticky top-0 z-10 -mx-4 grid shrink-0 grid-cols-2 gap-2 px-4 py-2 md:static md:mx-0 md:grid-cols-[minmax(0,1fr)_180px_160px] md:bg-transparent md:px-0 md:pt-0 md:pb-1"
+          className="bg-background sticky top-0 z-10 -mx-4 grid shrink-0 grid-cols-2 gap-2 px-4 py-2 md:static md:mx-0 md:grid-cols-[minmax(0,1fr)_180px] md:bg-transparent md:px-0 md:pt-0 md:pb-1"
         >
           <InputGroup className="col-span-2 md:col-span-1">
             <InputGroupAddon>
@@ -425,25 +532,13 @@ export const ServicePlanTableSelector = ({
             />
           </InputGroup>
 
-          <ServiceTypeMultiSelect
-            options={serviceTypes ?? []}
-            selectedIds={effectiveSelectedServiceTypeIds}
-            onChange={setSelectedServiceTypeIds}
-          />
-
-          <NativeSelect
-            className="w-full"
-            value={dateRangeFilter}
-            onChange={(event) => {
-              setDateRangeFilter(parseDateRange(event.target.value));
-            }}
-            aria-label="Filter date range"
-          >
-            <NativeSelectOption value="all">All dates</NativeSelectOption>
-            <NativeSelectOption value="14">Next 14 days</NativeSelectOption>
-            <NativeSelectOption value="30">Next 30 days</NativeSelectOption>
-            <NativeSelectOption value="60">Next 60 days</NativeSelectOption>
-          </NativeSelect>
+          <div className="col-span-2 md:col-span-1">
+            <ServiceTypeMultiSelect
+              options={serviceTypes ?? []}
+              selectedIds={effectiveSelectedServiceTypeIds}
+              onChange={setSelectedServiceTypeIds}
+            />
+          </div>
         </div>
 
         <LoadingBar
@@ -451,17 +546,36 @@ export const ServicePlanTableSelector = ({
           className="shrink-0"
         />
 
-        <PageScrollArea>
-          <PlanAgenda
-            isInitialLoading={isInitialLoading}
-            errorMessage={errorMessage}
-            visibleRows={visibleRows}
-            selectedPlanId={selectedPlanId}
-            myScheduledPlanIdSet={myScheduledPlanIdSet}
-            handleSelectRow={handleSelectRow}
-            getPlanIntentProps={getPlanIntentProps}
-            orgTimeZone={orgTimeZone}
-          />
+        <PageScrollArea ref={scrollRef}>
+          <div className="[overflow-anchor:none]">
+            <PlanAgenda
+              isInitialLoading={isInitialLoading}
+              errorMessage={errorMessage}
+              visibleRows={visibleRows}
+              selectedPlanId={selectedPlanId}
+              myScheduledPlanIdSet={myScheduledPlanIdSet}
+              handleSelectRow={handleSelectRow}
+              getPlanIntentProps={getPlanIntentProps}
+              orgTimeZone={orgTimeZone}
+            />
+            {isInitialLoading ? null : (
+              <div ref={laterRef} className="flex justify-center py-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={
+                    isRefreshing ||
+                    effectiveSelectedServiceTypeIds.length === 0 ||
+                    !!errorMessage
+                  }
+                  onClick={loadLaterWeeks}
+                >
+                  {isRefreshing ? "Loading services…" : "Load next 2 weeks"}
+                </Button>
+              </div>
+            )}
+          </div>
         </PageScrollArea>
       </div>
     </div>

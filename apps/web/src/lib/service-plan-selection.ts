@@ -1,4 +1,4 @@
-import type { DateRangeFilter } from "@pcobooster/planning-center-models/service-plans";
+import { addCalendarDaysToDayKey } from "@pcobooster/planning-center-models/calendar";
 import { Option, Schema } from "effect";
 
 export interface ServicePlanTableSelectorProps {
@@ -15,15 +15,6 @@ export const SERVICE_TYPE_FILTER_STORAGE_KEY =
 const decodeServiceTypeIds = Schema.decodeUnknownOption(
   Schema.fromJsonString(Schema.mutable(Schema.Array(Schema.String)))
 );
-/** The date range a filter control chose; anything else is a programming error and throws. */
-export const parseDateRange = Schema.decodeUnknownSync(
-  Schema.Literals([
-    "all",
-    "14",
-    "30",
-    "60",
-  ] as const satisfies readonly DateRangeFilter[])
-);
 export const readStoredServiceTypeIds = (
   raw: string | null
 ): string[] | null => {
@@ -32,3 +23,19 @@ export const readStoredServiceTypeIds = (
   }
   return Option.getOrNull(decodeServiceTypeIds(raw));
 };
+
+/** Start with 30 days, then extend either side in disjoint two-week windows. */
+export const servicePlanWindows = (
+  todayKey: string,
+  history: number,
+  future: number
+): { startDay: string; days: "14" | "30" }[] =>
+  Array.from({ length: history + future }, (_, index) => {
+    const windowIndex = index - history;
+    const offset =
+      windowIndex <= 0 ? windowIndex * 14 : 30 + (windowIndex - 1) * 14;
+    return {
+      startDay: addCalendarDaysToDayKey(todayKey, offset),
+      days: windowIndex === 0 ? "30" : "14",
+    };
+  });

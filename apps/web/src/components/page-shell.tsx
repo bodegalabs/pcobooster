@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -64,14 +64,17 @@ export const PageScrollArea = ({
   children,
   axis = "y",
   besidePane = false,
+  ref,
 }: {
   children: ReactNode;
   /** `both` also scrolls sideways from `md` up, for boards wider than the page. */
   axis?: "y" | "both";
   /** Sits right of a side pane on wide screens, so it reaches only the right edge there. */
   besidePane?: boolean;
+  ref?: Ref<HTMLDivElement>;
 }) => (
   <div
+    ref={ref}
     className={cn(
       "-mx-(--page-gutter) flex flex-col md:min-h-0 md:flex-1 md:overscroll-contain",
       axis === "both" ? "md:overflow-auto" : "md:overflow-y-auto",

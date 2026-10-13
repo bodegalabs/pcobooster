@@ -15,8 +15,8 @@ export const appTourSteps: readonly TourStep[] = [
   },
   {
     target: "plan-search",
-    title: "Find any plan",
-    body: "Search by name, series, or date, and narrow by service type or date range. Open a plan to build its run sheet and schedule its teams.",
+    title: "Find a plan",
+    body: "Scroll down for later plans or up for earlier ones. Search loaded plans by name, series, or date, or narrow by service type. Open a plan to build its run sheet and schedule its teams.",
     side: "bottom",
   },
   {
