@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -138,6 +138,7 @@ export const GuidedTour = ({
 }) => {
   const [available, setAvailable] = useState<readonly TourStep[] | null>(null);
   const [index, setIndex] = useState(0);
+  const nextButtonRef = useRef<HTMLButtonElement>(null);
   const [measured, setMeasured] = useState<{
     element: HTMLElement;
     rect: DOMRect;
@@ -196,7 +197,7 @@ export const GuidedTour = ({
           align="start"
           sideOffset={SPOTLIGHT_PADDING_PX + 10}
           className="w-80"
-          initialFocus
+          initialFocus={nextButtonRef}
         >
           <div className="flex flex-col gap-3 p-4">
             <p className="text-muted-foreground text-xs tabular-nums">
@@ -230,6 +231,7 @@ export const GuidedTour = ({
                 </Button>
               ) : null}
               <Button
+                ref={nextButtonRef}
                 size="sm"
                 onClick={() => {
                   if (isLast) {

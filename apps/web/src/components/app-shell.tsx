@@ -2,6 +2,7 @@ import {
   ArrowDown01Icon,
   Calendar04Icon,
   HelpCircleIcon,
+  ListMusicIcon,
   KeyboardIcon,
   LaptopIcon,
   Logout01Icon,
@@ -171,6 +172,7 @@ const PlanViewTabs = () => {
             search
             replace
             aria-current={active ? "page" : undefined}
+            data-tour={`plan-view-${view}`}
             className={headerTabClass(active)}
           >
             <SidebarNavIcon icon={planViewIcons[view]} className="size-4" />
@@ -259,7 +261,8 @@ const SidebarAccountPanel = ({
   const { setTheme, theme } = useTheme();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const { openReview, restricted } = useAccessReview();
-  const { openWelcome } = useOnboarding();
+  const { openWelcome, startPlanTour } = useOnboarding();
+  const planRoute = usePlanRoute();
   const {
     data,
     demo,
@@ -396,6 +399,20 @@ const SidebarAccountPanel = ({
               />
               <span className="flex-1">Getting started</span>
             </DropdownMenuItem>
+
+            {planRoute === null ? null : (
+              <DropdownMenuItem
+                onSelect={() => {
+                  startPlanTour();
+                }}
+              >
+                <SidebarNavIcon
+                  icon={ListMusicIcon}
+                  className="text-muted-foreground"
+                />
+                <span className="flex-1">Tour this plan</span>
+              </DropdownMenuItem>
+            )}
 
             <DropdownMenuItem
               onSelect={() => {
