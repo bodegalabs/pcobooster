@@ -30,5 +30,5 @@ export const getInitials = (name: string): string => {
     last === undefined
       ? leadingGraphemes(first, 2)
       : `${leadingGraphemes(first, 1)}${leadingGraphemes(last, 1)}`;
-  return initials.toLocaleUpperCase();
+  return initials.toUpperCase();
 };
