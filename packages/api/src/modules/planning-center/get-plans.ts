@@ -62,12 +62,17 @@ export const toPlans = (rawPlans: PCResource[]): Plan[] => {
 
 export const getPlansForServiceType = (
   serviceTypeId: string,
-  dependencies: GetPlansDependencies
+  dependencies: GetPlansDependencies,
+  startDay?: string
 ): Effect.Effect<Plan[], PlanningCenterError> =>
   Effect.gen(function* getPlans() {
     const orgTz = yield* dependencies.resolveTimeZone;
-    const afterKey = formatCalendarDayInTimeZone(new Date(), orgTz);
-    const beforeKey = addCalendarDaysToDayKey(afterKey, 60);
+    const afterKey = startDay ?? formatCalendarDayInTimeZone(new Date(), orgTz);
+    // The web agenda asks for disjoint two-week windows; other clients keep their catalog.
+    const beforeKey = addCalendarDaysToDayKey(
+      afterKey,
+      startDay === undefined ? 60 : 13
+    );
 
     const rawPlans = yield* dependencies.plansService.getPlansInDateRange(
       serviceTypeId,

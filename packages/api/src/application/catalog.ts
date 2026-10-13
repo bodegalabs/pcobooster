@@ -35,6 +35,7 @@ export const getCatalogServiceTypes: Effect.Effect<
 
 export const getCatalogPlans = (input: {
   readonly serviceTypeId: string;
+  readonly startDay?: string;
 }): Effect.Effect<
   Plan[],
   ApplicationFault,
@@ -44,10 +45,14 @@ export const getCatalogPlans = (input: {
     const plansService = yield* PlanningCenterPlans;
     const organizationTimeZone = yield* OrganizationTimeZone;
     return yield* withPlanningCenterFaults(
-      getPlansForServiceType(input.serviceTypeId, {
-        plansService,
-        resolveTimeZone: organizationTimeZone,
-      })
+      getPlansForServiceType(
+        input.serviceTypeId,
+        {
+          plansService,
+          resolveTimeZone: organizationTimeZone,
+        },
+        input.startDay
+      )
     );
   });
 

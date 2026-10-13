@@ -8,6 +8,8 @@ export const queryKeys = {
     ["planning-center-organization-time-zone"] as const,
   serviceTypes: () => ["service-types"] as const,
   plans: (serviceTypeId: string | null) => ["plans", serviceTypeId] as const,
+  planWindow: (serviceTypeId: string, startDay: string) =>
+    ["plans", serviceTypeId, "window", startDay] as const,
   planDetails: (serviceTypeId: string, planId: string) =>
     ["plan-details", serviceTypeId, planId] as const,
   adjacentPlans: (

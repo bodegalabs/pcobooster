@@ -85,4 +85,55 @@ describe(getPlansForServiceType, () => {
       { id: "untitled", title: "", seriesTitle: undefined },
     ]);
   });
+
+  it.each([
+    ["2026-10-13", "2026-10-26"],
+    ["2026-10-27", "2026-11-09"],
+    ["2026-09-29", "2026-10-12"],
+    ["2028-02-23", "2028-03-07"],
+  ])(
+    "loads exactly two calendar weeks starting %s, ending %s",
+    async (startDay, endDay) => {
+      vi.useFakeTimers({ now: new Date("2026-10-13T01:00:00Z") });
+      const getPlansInDateRange = vi.fn<
+        PlanningCenterPlansService["getPlansInDateRange"]
+      >((_id, after, before, timeZone) =>
+        Effect.succeed([
+          {
+            id: "first",
+            type: "Plan",
+            attributes: {
+              title: `${after} in ${timeZone}`,
+              sort_date: `${after}T19:00:00Z`,
+            },
+          },
+          {
+            id: "last",
+            type: "Plan",
+            attributes: { title: before, sort_date: `${before}T19:00:00Z` },
+          },
+        ])
+      );
+      const plans = await Effect.runPromise(
+        getPlansForServiceType(
+          "weekly",
+          {
+            plansService: { getPlansInDateRange },
+            resolveTimeZone: Effect.succeed("America/Los_Angeles"),
+          },
+          startDay
+        )
+      );
+      expect(
+        plans.map((plan) => [plan.id, plan.title, plan.sortDate?.toISOString()])
+      ).toStrictEqual([
+        [
+          "first",
+          `${startDay} in America/Los_Angeles`,
+          `${startDay}T19:00:00.000Z`,
+        ],
+        ["last", endDay, `${endDay}T19:00:00.000Z`],
+      ]);
+    }
+  );
 });

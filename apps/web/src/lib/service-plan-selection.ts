@@ -1,4 +1,3 @@
-import type { DateRangeFilter } from "@pcobooster/planning-center-models/service-plans";
 import { Option, Schema } from "effect";
 
 export interface ServicePlanTableSelectorProps {
@@ -14,15 +13,6 @@ export const SERVICE_TYPE_FILTER_STORAGE_KEY =
 
 const decodeServiceTypeIds = Schema.decodeUnknownOption(
   Schema.fromJsonString(Schema.mutable(Schema.Array(Schema.String)))
-);
-/** The date range a filter control chose; anything else is a programming error and throws. */
-export const parseDateRange = Schema.decodeUnknownSync(
-  Schema.Literals([
-    "all",
-    "14",
-    "30",
-    "60",
-  ] as const satisfies readonly DateRangeFilter[])
 );
 export const readStoredServiceTypeIds = (
   raw: string | null

@@ -145,6 +145,7 @@ describe("the procedures route table", () => {
 
 /** Procedures added after the cutover, so they are absent from main's list. */
 const addedSinceCutover = [
+  { tag: "catalog.planWindow", kind: "read", feature: null },
   { tag: "songs.attachmentLink", kind: "read", feature: "chordCharts" },
   { tag: "songs.attachments", kind: "read", feature: "chordCharts" },
 ] as const;
@@ -197,6 +198,7 @@ describe(matchRoute, () => {
     ["PATCH", `${items}/order`, "planItems.update"],
     ["PATCH", `${items}/item-1`, "planItems.update"],
     ["POST", "/api/v1/people/plan-window-history", "people.planWindowHistory"],
+    ["GET", "/api/v1/service-types/st-1/plan-window", "catalog.planWindow"],
     ["GET", "/api/v1/songs/suggestions", "songs.suggestions"],
     ["GET", "/api/v1/songs/song-1/history", "songs.history"],
   ])("finds %s %s as %s", (method, path, tag) => {

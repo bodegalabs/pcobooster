@@ -1,9 +1,10 @@
-import { speculativeQuery } from "@pcobooster/client/query";
+import { callForQuery, speculativeQuery } from "@pcobooster/client/query";
+import {
+  addCalendarDaysToDayKey,
+  formatCalendarDayInTimeZone,
+} from "@pcobooster/planning-center-models/calendar";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
-import type {
-  DateRangeFilter,
-  ServicePlanRow,
-} from "@pcobooster/planning-center-models/service-plans";
+import type { ServicePlanRow } from "@pcobooster/planning-center-models/service-plans";
 import {
   buildServicePlanRows,
   formatPlanDate,
@@ -12,14 +13,7 @@ import {
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
-import {
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useDeferredValue, useMemo, useState } from "react";
 
 import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
@@ -30,12 +24,7 @@ import { createPlanTimesQueryOptions } from "@/hooks/use-plan-times";
 import { useServiceTypes } from "@/hooks/use-service-types";
 import { createTeamPositionsQueryOptions } from "@/hooks/use-team-positions";
 import { isQueryFresh } from "@/lib/intent-prefetch";
-import { hydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import {
-  readCachedPlansEntry,
-  writeCachedPlans,
-} from "@/lib/schedule-catalog-cache";
 import { planWorkspaceLink } from "@/lib/schedule-navigation";
 import type { ServicePlanTableSelectorProps } from "@/lib/service-plan-selection";
 import {
@@ -61,7 +50,6 @@ export const useServicePlanSelection = ({
 }: ServicePlanTableSelectorProps) => {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const cachedPlanWritesRef = useRef(new Map<string, number>());
   const orgTimeZone = useOrganizationTimeZone();
   const serviceTypesQuery = useServiceTypes();
   const { data: serviceTypes, isLoading: serviceTypesLoading } =
@@ -86,7 +74,18 @@ export const useServicePlanSelection = ({
     },
     [setStoredIds]
   );
-  const [dateRangeFilter, setDateRangeFilter] = useState<DateRangeFilter>("60");
+  const [windows, setWindows] = useState(() => ({
+    anchor: new Date(),
+    future: 1,
+    history: 0,
+  }));
+  const { anchor, future: futureWindows, history: historyWindows } = windows;
+  const todayKey = formatCalendarDayInTimeZone(anchor, orgTimeZone);
+  const startDays = Array.from(
+    { length: historyWindows + futureWindows },
+    (_, index) =>
+      addCalendarDaysToDayKey(todayKey, (index - historyWindows) * 14)
+  );
 
   const allServiceTypeIds = useMemo(
     () => (serviceTypes ?? []).map((serviceType) => serviceType.id),
@@ -120,45 +119,58 @@ export const useServicePlanSelection = ({
     [effectiveSelectedServiceTypeIds]
   );
 
-  const planQueryOptions = useMemo(
-    () =>
-      (serviceTypes ?? []).map((serviceType) => ({
-        queryKey: queryKeys.plans(serviceType.id),
-        queryFn: async ({ signal }: QueryFunctionContext) =>
-          await productClient.run(
-            (api) =>
-              api.catalog.plans({ params: { serviceTypeId: serviceType.id } }),
-            { signal }
-          ),
-        staleTime: 5 * 60 * 1000,
-        enabled: !!serviceTypes && selectedServiceTypeIdSet.has(serviceType.id),
-      })),
-    [selectedServiceTypeIdSet, serviceTypes]
+  const selectedTypes = (serviceTypes ?? []).filter((type) =>
+    selectedServiceTypeIdSet.has(type.id)
   );
-
-  // Saved plans seed their queries before `useQueries` reads them; see `useHydrateQueryFromCache`.
-  for (const serviceType of serviceTypes ?? []) {
-    if (selectedServiceTypeIdSet.has(serviceType.id)) {
-      hydrateQueryFromCache(queryClient, queryKeys.plans(serviceType.id), () =>
-        readCachedPlansEntry(serviceType.id)
-      );
-    }
-  }
-  const planQueries = useQueries({
-    queries: planQueryOptions,
-  });
-
-  const rows = useMemo(
-    () =>
-      serviceTypes
-        ? buildServicePlanRows(
-            serviceTypes,
-            (_serviceType, index) => planQueries[index]?.data,
-            selectedServiceTypeIdSet
-          )
-        : [],
-    [planQueries, selectedServiceTypeIdSet, serviceTypes]
+  const planQueryOptions = startDays.flatMap((startDay) =>
+    selectedTypes.map((serviceType) => ({
+      queryKey: queryKeys.planWindow(serviceType.id, startDay),
+      queryFn: async (context: QueryFunctionContext) =>
+        await callForQuery(context, productClient, (api) =>
+          api.catalog.planWindow({
+            params: { serviceTypeId: serviceType.id },
+            query: { startDay },
+          })
+        ),
+      staleTime: 5 * 60 * 1000,
+    }))
   );
+  const planQueries = useQueries({ queries: planQueryOptions });
+  // Reveal a window together, so service types cannot shuffle rows under the pointer.
+  const completeWindows = new Set(
+    startDays.filter((_day, windowIndex) =>
+      selectedTypes.every(
+        (_type, typeIndex) =>
+          planQueries[windowIndex * selectedTypes.length + typeIndex]?.data !==
+          undefined
+      )
+    )
+  );
+  const rows = buildServicePlanRows(
+    selectedTypes,
+    (_type, typeIndex) =>
+      startDays.flatMap((startDay, windowIndex) =>
+        completeWindows.has(startDay)
+          ? (planQueries[windowIndex * selectedTypes.length + typeIndex]
+              ?.data ?? [])
+          : []
+      ),
+    selectedServiceTypeIdSet
+  );
+  const lastWindowQueries = planQueries.slice(-selectedTypes.length);
+  const canAutoLoadMore =
+    deferredSearchValue.trim() === "" &&
+    selectedTypes.length > 0 &&
+    lastWindowQueries.every(
+      (query) => query.data !== undefined && !query.isError
+    ) &&
+    lastWindowQueries.some((query) => (query.data?.length ?? 0) > 0);
+  const loadLaterWeeks = useCallback(() => {
+    setWindows((current) => ({ ...current, future: current.future + 1 }));
+  }, [setWindows]);
+  const loadEarlierWeeks = useCallback(() => {
+    setWindows((current) => ({ ...current, history: current.history + 1 }));
+  }, [setWindows]);
 
   const myScheduledPlanIdSet = useMemo(
     () => new Set(myScheduledPlans?.planIds),
@@ -169,13 +181,10 @@ export const useServicePlanSelection = ({
   const failedQueries = [
     { title: "Couldn't load service types", query: serviceTypesQuery },
     { title: "Couldn't load your services", query: myScheduledPlansQuery },
-    ...planQueries.flatMap((query, index) => {
-      const serviceType = serviceTypes?.[index];
-      return serviceType !== undefined &&
-        selectedServiceTypeIdSet.has(serviceType.id)
-        ? [{ title: `Couldn't load ${serviceType.name} plans`, query }]
-        : [];
-    }),
+    ...planQueries.map((query, index) => ({
+      title: `Couldn't load ${selectedTypes[index % selectedTypes.length]?.name ?? "service"} plans for ${startDays[Math.floor(index / selectedTypes.length)]}`,
+      query,
+    })),
   ].filter(({ query }) => query.error !== null);
   const errorMessage = failedQueries[0]?.query.error ?? undefined;
   // Service types answer at different times, and each one's plans interleave by date, so
@@ -192,14 +201,17 @@ export const useServicePlanSelection = ({
   const isInitialLoading = !hasLoaded;
   const isRefreshing = hasLoaded && plansLoading;
 
+  // Keep the shortcuts one row tall as later agenda windows arrive.
   const myScheduledRows = useMemo(
     () =>
-      rows.filter(
-        (row) =>
-          myScheduledPlanIdSet.has(row.planId) &&
-          isInDateWindow(row.sortDate, dateRangeFilter, orgTimeZone)
-      ),
-    [dateRangeFilter, myScheduledPlanIdSet, orgTimeZone, rows]
+      rows
+        .filter(
+          (row) =>
+            myScheduledPlanIdSet.has(row.planId) &&
+            isInDateWindow(row.sortDate, "60", orgTimeZone)
+        )
+        .slice(0, 3),
+    [myScheduledPlanIdSet, orgTimeZone, rows]
   );
 
   const visibleRows = useMemo(() => {
@@ -210,10 +222,6 @@ export const useServicePlanSelection = ({
         return false;
       }
       if (!selectedServiceTypeIdSet.has(row.serviceTypeId)) {
-        return false;
-      }
-
-      if (!isInDateWindow(row.sortDate, dateRangeFilter, orgTimeZone)) {
         return false;
       }
 
@@ -232,32 +240,7 @@ export const useServicePlanSelection = ({
 
       return haystack.includes(normalizedSearch);
     });
-  }, [
-    dateRangeFilter,
-    deferredSearchValue,
-    orgTimeZone,
-    rows,
-    selectedServiceTypeIdSet,
-  ]);
-
-  useEffect(() => {
-    if (!serviceTypes) {
-      return;
-    }
-    for (const [index, serviceType] of serviceTypes.entries()) {
-      const query = planQueries[index];
-      const plans = query?.data;
-      if (!plans) {
-        continue;
-      }
-      const { dataUpdatedAt } = query;
-      if (cachedPlanWritesRef.current.get(serviceType.id) === dataUpdatedAt) {
-        continue;
-      }
-      writeCachedPlans(serviceType.id, plans);
-      cachedPlanWritesRef.current.set(serviceType.id, dataUpdatedAt);
-    }
-  }, [planQueries, serviceTypes]);
+  }, [deferredSearchValue, orgTimeZone, rows, selectedServiceTypeIdSet]);
 
   /** On hover: the positions, items, and times a plan opens with. */
   const prefetchPlanData = useCallback(
@@ -309,13 +292,22 @@ export const useServicePlanSelection = ({
   const handleSelectRow = useCallback(
     (row: ServicePlanRow) => {
       cancelIntent();
+      const plan = planQueries
+        .flatMap((query) => query.data ?? [])
+        .find((item) => item.id === row.planId);
+      if (plan !== undefined) {
+        queryClient.setQueryData(
+          queryKeys.planDetails(row.serviceTypeId, row.planId),
+          plan
+        );
+      }
       void loadOpenedPlan(row);
       onSelect({
         serviceTypeId: row.serviceTypeId,
         planId: row.planId,
       });
     },
-    [cancelIntent, loadOpenedPlan, onSelect]
+    [cancelIntent, loadOpenedPlan, onSelect, planQueries, queryClient]
   );
 
   return {
@@ -324,8 +316,10 @@ export const useServicePlanSelection = ({
     serviceTypes,
     effectiveSelectedServiceTypeIds,
     setSelectedServiceTypeIds,
-    dateRangeFilter,
-    setDateRangeFilter,
+    loadLaterWeeks,
+    loadEarlierWeeks,
+    canAutoLoadMore,
+    latestStartDay: startDays.at(-1),
     isInitialLoading,
     isRefreshing,
     errorMessage,
