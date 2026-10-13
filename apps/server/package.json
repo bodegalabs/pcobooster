@@ -5,7 +5,8 @@
   "main": "src/worker.ts",
   "scripts": {
     "test": "vitest run --root ../.. apps/server/src",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:load": "vitest run --root ../.. --config apps/server/vitest.load.config.ts"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
