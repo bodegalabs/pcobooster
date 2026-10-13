@@ -4,10 +4,10 @@ import { describe, expect, it } from "vitest";
 import { planSlotLink, planWorkspaceLink } from "@/lib/schedule-navigation";
 
 describe(planWorkspaceLink, () => {
-  it("opens a plan on its overview", () => {
+  it("opens a plan on its plan items", () => {
     expect(planWorkspaceLink("78", "90")).toStrictEqual({
       to: "/services/$serviceTypeId/plans/$planId/$view",
-      params: { serviceTypeId: "78", planId: "90", view: "overview" },
+      params: { serviceTypeId: "78", planId: "90", view: "plan" },
     });
   });
 });

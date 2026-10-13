@@ -7,7 +7,9 @@
 #   default, so the generated ios/ folder and its Pods stay put; pass --clean to regenerate
 #   both from scratch (after removing a native module, for example).
 # - --no-debug-symbols omits symbol and index data when disk space is limited.
-# - Xcode keeps one derived-data folder per worktree in build/derived (git-ignored).
+# - Xcode keeps one derived-data folder per worktree in build/derived (git-ignored), but the
+#   module cache is Xcode's shared one, so a new worktree reuses the system modules (several GB)
+#   that earlier builds compiled. Clang keys and locks its entries, so concurrent builds are safe.
 # - ccache is on when it is installed (app.config.ts asks `command -v ccache`). React Native's
 #   compiler wrapper (scripts/xcode/ccache-clang.sh) runs `$CCACHE_BINARY clang`, but Xcode does
 #   not pass build settings to compiler processes, so the binary is exported here; without it the
@@ -73,6 +75,7 @@ xcodebuild \
   -configuration "$configuration" \
   -destination "$destination" \
   -derivedDataPath build/derived \
+  MODULE_CACHE_DIR="$HOME/Library/Developer/Xcode/DerivedData/ModuleCache.noindex" \
   RCT_METRO_PORT="$(bash scripts/metro-port.sh)" \
   ${extra_settings[@]+"${extra_settings[@]}"} \
   build

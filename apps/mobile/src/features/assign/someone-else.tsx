@@ -1,5 +1,4 @@
-import type { ProductApi } from "@pcobooster/client/product-client";
-import type { Effect } from "effect";
+import type { peopleSearchResultSchema } from "@pcobooster/contracts/http/people-schemas";
 import { useEffect, useState } from "react";
 import {
   Modal,
@@ -44,9 +43,7 @@ export const SomeoneElse = ({
 }: {
   visible: boolean;
   onClose: () => void;
-  onPick: (
-    person: Effect.Success<ReturnType<ProductApi["people"]["search"]>>[number]
-  ) => void;
+  onPick: (person: typeof peopleSearchResultSchema.Type) => void;
 }) => {
   const context = useProductClient();
   const [text, setText] = useState("");

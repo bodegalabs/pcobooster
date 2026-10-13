@@ -8,7 +8,7 @@ import { productFaultSchema } from "@pcobooster/contracts/faults";
  */
 import { RequestRejected } from "@pcobooster/contracts/faults/request-rejected";
 import type { ProvidedBy } from "@pcobooster/contracts/http/server-services";
-import { HttpApiMiddleware } from "effect/unstable/httpapi";
+import { HttpApiMiddleware } from "effect/http-api";
 
 /** Each fault on its own, so every one is encoded and decoded with its own status. */
 export const productFaults = [

@@ -12,7 +12,7 @@ import { PlanningCenterSession } from "@pcobooster/contracts/http/planning-cente
 import { ProcedureScope } from "@pcobooster/contracts/http/procedure-scope";
 import type { ProcedureRoute } from "@pcobooster/contracts/http/route";
 import type { NonEmptyReadonlyArray } from "effect/Array";
-import { HttpApiGroup } from "effect/unstable/httpapi";
+import { HttpApiGroup } from "effect/http-api";
 
 /** Each declaration's server endpoint, its type kept per declaration. */
 const endpointsOf = <

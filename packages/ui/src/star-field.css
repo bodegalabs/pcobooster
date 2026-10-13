@@ -1,0 +1,87 @@
+/*
+ * Motion for `@pcobooster/ui/star-field`. Only `opacity` and `transform` animate, so the sky
+ * stays on the compositor. Each shooting star streaks for the first slice of a long cycle,
+ * then waits offscreen; the resting frame is hidden, so reduced motion shows only still stars.
+ */
+[data-slot="star-field"] {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+[data-slot="star-field-tail-start"],
+[data-slot="star-field-tail-end"] {
+  stop-color: #fff;
+}
+
+[data-slot="star-field-stars"] > * {
+  fill: #fff;
+  opacity: 0.75;
+  animation: star-field-twinkle 3.6s ease-in-out infinite alternate;
+}
+[data-slot="star-field-stars"] > :nth-child(3n + 1) {
+  animation-duration: 4.4s;
+  animation-delay: -1.3s;
+}
+[data-slot="star-field-stars"] > :nth-child(3n + 2) {
+  animation-duration: 2.9s;
+  animation-delay: -2.1s;
+}
+[data-slot="star-field-stars"] > :nth-child(4n) {
+  animation-delay: -0.6s;
+}
+
+[data-slot="star-field-meteor"] {
+  fill: #fff;
+  opacity: 0;
+  animation: star-field-meteor 9s var(--ease-snappy) 1.5s infinite;
+}
+[data-slot="star-field-meteors"]
+  > :nth-child(2)
+  [data-slot="star-field-meteor"] {
+  animation-duration: 13s;
+  animation-delay: 5s;
+}
+[data-slot="star-field-meteors"]
+  > :nth-child(3)
+  [data-slot="star-field-meteor"] {
+  animation-duration: 17s;
+  animation-delay: 10s;
+}
+
+@keyframes star-field-twinkle {
+  from {
+    opacity: 0.2;
+  }
+  to {
+    opacity: 0.8;
+  }
+}
+
+@keyframes star-field-meteor {
+  0% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  1.5% {
+    opacity: 1;
+  }
+  9% {
+    opacity: 0;
+    transform: translateX(340px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(340px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="star-field-stars"] > *,
+  [data-slot="star-field-meteor"] {
+    animation: none;
+  }
+}

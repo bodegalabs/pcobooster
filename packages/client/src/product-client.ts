@@ -22,11 +22,11 @@ import { matchRoute } from "@pcobooster/contracts/http/route";
 import { REQUEST_PRIORITY_HEADER } from "@pcobooster/contracts/request-priority";
 import type { RequestPriority } from "@pcobooster/contracts/request-priority";
 import { Cause, Data, Effect, Exit, Layer, Option } from "effect";
-import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
-import * as HttpClient from "effect/unstable/http/HttpClient";
-import * as HttpClientError from "effect/unstable/http/HttpClientError";
-import * as HttpClientRequest from "effect/unstable/http/HttpClientRequest";
-import { HttpApiClient } from "effect/unstable/httpapi";
+import { HttpApiClient } from "effect/http-api";
+import * as FetchHttpClient from "effect/http/FetchHttpClient";
+import * as HttpClient from "effect/http/HttpClient";
+import * as HttpClientError from "effect/http/HttpClientError";
+import * as HttpClientRequest from "effect/http/HttpClientRequest";
 
 import { CallOptions } from "./call-options";
 

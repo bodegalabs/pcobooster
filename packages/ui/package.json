@@ -5,7 +5,9 @@
   "type": "module",
   "exports": {
     "./mobile-menu": "./src/mobile-menu.tsx",
-    "./mobile-menu.css": "./src/mobile-menu.css"
+    "./mobile-menu.css": "./src/mobile-menu.css",
+    "./star-field": "./src/star-field.tsx",
+    "./star-field.css": "./src/star-field.css"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
@@ -18,7 +20,7 @@
     "typescript": "^7.0.2"
   },
   "peerDependencies": {
-    "lucide-react": "^1.55.0",
+    "lucide-react": "^1.47.0",
     "react": "19.3.0"
   }
 }

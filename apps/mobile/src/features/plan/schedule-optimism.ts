@@ -1,6 +1,8 @@
-import type { ProductApi } from "@pcobooster/client/product-client";
+import type {
+  PositionCandidates,
+  PlanWindowHistoryBatch,
+} from "@pcobooster/contracts/http/people-schemas";
 import { matchesAssignmentPosition } from "@pcobooster/planning-center-models/plan-assignment-labels";
-import type { Effect } from "effect";
 
 import type { AssignPerson } from "./assign-person";
 import type { AssignmentIdentity } from "./assignment";
@@ -12,12 +14,8 @@ import { statusCodes } from "./roster";
  * web's `use-schedule-cache-optimism.ts` make them: a schedule write changes the slot on the
  * candidate list and the plan's rows in window history the moment it starts.
  */
-export type CandidatesData = Effect.Success<
-  ReturnType<ProductApi["people"]["positionCandidates"]>
->;
-export type HistoryData = Effect.Success<
-  ReturnType<ProductApi["people"]["planWindowHistory"]>
->[];
+export type CandidatesData = PositionCandidates;
+export type HistoryData = PlanWindowHistoryBatch[];
 type Candidate = CandidatesData["candidates"][number];
 
 /** Puts the person on the slot as pending; a new person joins at the end. */

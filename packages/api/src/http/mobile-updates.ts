@@ -13,9 +13,9 @@ import {
 import type { UpdateStore } from "@pcobooster/api/modules/mobile-updates/update-store";
 import { assetKey, isAssetHash } from "@pcobooster/contracts/mobile-updates";
 import { Context, Effect } from "effect";
-import * as HttpRouter from "effect/unstable/http/HttpRouter";
-import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
-import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
+import * as HttpRouter from "effect/http/HttpRouter";
+import * as HttpServerRequest from "effect/http/HttpServerRequest";
+import * as HttpServerResponse from "effect/http/HttpServerResponse";
 
 const log = moduleLog("mobile-updates");
 

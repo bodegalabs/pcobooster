@@ -48,12 +48,12 @@ import {
   REQUEST_PRIORITY_HEADER,
 } from "@pcobooster/contracts/request-priority";
 import { Context, Effect, Exit, Layer, Option } from "effect";
-import * as Cookies from "effect/unstable/http/Cookies";
-import * as HttpClient from "effect/unstable/http/HttpClient";
-import * as HttpEffect from "effect/unstable/http/HttpEffect";
-import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
-import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
-import { HttpApiSchemaError } from "effect/unstable/httpapi/HttpApiError";
+import { HttpApiSchemaError } from "effect/http-api/HttpApiError";
+import * as Cookies from "effect/http/Cookies";
+import * as HttpClient from "effect/http/HttpClient";
+import * as HttpEffect from "effect/http/HttpEffect";
+import * as HttpServerRequest from "effect/http/HttpServerRequest";
+import * as HttpServerResponse from "effect/http/HttpServerResponse";
 
 /**
  * What the Worker hands each request: the isolate's server dependencies (built by the first

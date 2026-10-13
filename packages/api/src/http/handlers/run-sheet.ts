@@ -16,7 +16,7 @@ import {
 import { preparedWrite } from "@pcobooster/api/http/write";
 import { ProductApi } from "@pcobooster/contracts/http/api";
 import { Layer } from "effect";
-import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { HttpApiBuilder } from "effect/http-api";
 
 /** The plan page's run sheet: items, times, people's times, and open positions. */
 export const RunSheetHandlers = Layer.mergeAll(

@@ -1,5 +1,9 @@
 import type { ProductApi } from "@pcobooster/client/product-client";
 import { callForQuery, speculativeQuery } from "@pcobooster/client/query";
+import type {
+  CandidateDetailsBatch,
+  PlanWindowHistoryBatch,
+} from "@pcobooster/contracts/http/people-schemas";
 import {
   CANDIDATE_DETAILS_BATCH_CONCURRENCY,
   candidateDetailsAdvanced,
@@ -7,7 +11,6 @@ import {
 } from "@pcobooster/planning-center-models/candidate-list";
 import { queryOptions } from "@tanstack/react-query";
 import type { QueryClient, QueryFunctionContext } from "@tanstack/react-query";
-import type { Effect } from "effect";
 
 import type { AppClient } from "../../app-shell/app-client";
 import type { ProductClientContextValue } from "../../app-shell/queries";
@@ -22,9 +25,7 @@ export interface CandidateSlot {
   date: string;
   timePreferenceOptionId?: string | null;
 }
-export type CandidateDetail = Effect.Success<
-  ReturnType<ProductApi["people"]["candidateDetails"]>
->["people"][number];
+export type CandidateDetail = CandidateDetailsBatch["people"][number];
 type DetailRequest = Parameters<ProductApi["people"]["candidateDetails"]>[0];
 type DetailInput = DetailRequest["params"] & DetailRequest["payload"];
 const STALE_MS = 300_000;
@@ -38,9 +39,7 @@ export const fetchWindowHistory = async (
   read: PlanReadContext,
   date: string,
   context: QueryFunctionContext
-): Promise<
-  Effect.Success<ReturnType<ProductApi["people"]["planWindowHistory"]>>[]
-> => {
+): Promise<PlanWindowHistoryBatch[]> => {
   const serviceTypesQuery = planReads.serviceTypes(read);
   const saved = context.client.getQueryData(serviceTypesQuery.queryKey);
   if (saved !== undefined) {

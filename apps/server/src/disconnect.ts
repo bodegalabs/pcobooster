@@ -10,8 +10,8 @@ import { clientClosedOutcome } from "@pcobooster/contracts/faults";
 import { API_PREFIX } from "@pcobooster/contracts/http/route";
 import * as Cloudflare from "alchemy/Cloudflare";
 import { Effect, Fiber, Option } from "effect";
-import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
-import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
+import * as HttpServerRequest from "effect/http/HttpServerRequest";
+import * as HttpServerResponse from "effect/http/HttpServerResponse";
 
 /** Keeps the invocation alive for work that finishes after the caller left. */
 export type AfterDisconnect<Services> = (

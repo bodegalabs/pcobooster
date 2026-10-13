@@ -30,7 +30,7 @@ import type { EnabledFeatures } from "@pcobooster/contracts/features";
 import { enabledFeaturesSchema } from "@pcobooster/contracts/http/features";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { Cause, Effect, Schema } from "effect";
-import * as HttpClient from "effect/unstable/http/HttpClient";
+import * as HttpClient from "effect/http/HttpClient";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
 const DEMO_ACCOUNT_ID = "demo";

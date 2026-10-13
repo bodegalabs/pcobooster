@@ -21,7 +21,7 @@ import { readSongLibrary } from "@pcobooster/api/application/song-library";
 import { preparedWrite } from "@pcobooster/api/http/write";
 import { ProductApi } from "@pcobooster/contracts/http/api";
 import { Layer } from "effect";
-import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { HttpApiBuilder } from "effect/http-api";
 
 export const SongHandlers = Layer.mergeAll(
   HttpApiBuilder.group(ProductApi, "songs", (handlers) =>

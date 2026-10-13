@@ -29,8 +29,8 @@ import {
   REQUEST_PRIORITY_HEADER,
 } from "@pcobooster/contracts/request-priority";
 import { Effect, Schema } from "effect";
-import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
-import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
+import * as HttpServerRequest from "effect/http/HttpServerRequest";
+import * as HttpServerResponse from "effect/http/HttpServerResponse";
 
 const METHOD_NOT_ALLOWED = 405;
 

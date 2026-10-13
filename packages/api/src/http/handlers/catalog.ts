@@ -9,7 +9,7 @@ import {
 } from "@pcobooster/api/application/catalog";
 import { ProductApi } from "@pcobooster/contracts/http/api";
 import { Layer } from "effect";
-import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { HttpApiBuilder } from "effect/http-api";
 
 export const CatalogHandlers = Layer.mergeAll(
   HttpApiBuilder.group(ProductApi, "access", (handlers) =>
@@ -20,6 +20,9 @@ export const CatalogHandlers = Layer.mergeAll(
       .handle("serviceTypes", () => getCatalogServiceTypes)
       .handle("organization", () => getCatalogOrganization)
       .handle("plans", ({ params }) => getCatalogPlans(params))
+      .handle("planWindow", ({ params, query }) =>
+        getCatalogPlans({ ...params, ...query })
+      )
       .handle("plan", ({ params }) => getCatalogPlan(params))
       .handle("adjacentPlans", ({ params, query }) =>
         getCatalogAdjacentPlans({ ...params, ...query })

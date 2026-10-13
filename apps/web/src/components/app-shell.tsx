@@ -1,6 +1,8 @@
 import {
   ArrowDown01Icon,
   Calendar04Icon,
+  HelpCircleIcon,
+  ListMusicIcon,
   KeyboardIcon,
   LaptopIcon,
   Logout01Icon,
@@ -30,6 +32,10 @@ import {
 } from "@/components/access/access-review";
 import { HotkeyChord } from "@/components/hotkey-chord";
 import { MobileHeader } from "@/components/mobile-menu";
+import {
+  OnboardingProvider,
+  useOnboarding,
+} from "@/components/onboarding/onboarding-provider";
 import { planViewIcons } from "@/components/plan-view-icons";
 import { SidebarBrandMark } from "@/components/sidebar-brand-mark";
 import { SidebarChromeTrigger } from "@/components/sidebar-chrome-trigger";
@@ -166,6 +172,7 @@ const PlanViewTabs = () => {
             search
             replace
             aria-current={active ? "page" : undefined}
+            data-tour={`plan-view-${view}`}
             className={headerTabClass(active)}
           >
             <SidebarNavIcon icon={planViewIcons[view]} className="size-4" />
@@ -254,6 +261,8 @@ const SidebarAccountPanel = ({
   const { setTheme, theme } = useTheme();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const { openReview, restricted } = useAccessReview();
+  const { openWelcome, startPlanTour } = useOnboarding();
+  const planRoute = usePlanRoute();
   const {
     data,
     demo,
@@ -266,7 +275,7 @@ const SidebarAccountPanel = ({
 
   return (
     <SidebarMenu>
-      <SidebarMenuItem>
+      <SidebarMenuItem data-tour="account-menu">
         <DropdownMenu
           open={accountMenuOpen}
           onOpenChange={(open) => {
@@ -376,6 +385,32 @@ const SidebarAccountPanel = ({
                     Limited
                   </span>
                 ) : null}
+              </DropdownMenuItem>
+            )}
+
+            <DropdownMenuItem
+              onSelect={() => {
+                openWelcome();
+              }}
+            >
+              <SidebarNavIcon
+                icon={HelpCircleIcon}
+                className="text-muted-foreground"
+              />
+              <span className="flex-1">Getting started</span>
+            </DropdownMenuItem>
+
+            {planRoute === null ? null : (
+              <DropdownMenuItem
+                onSelect={() => {
+                  startPlanTour();
+                }}
+              >
+                <SidebarNavIcon
+                  icon={ListMusicIcon}
+                  className="text-muted-foreground"
+                />
+                <span className="flex-1">Tour this plan</span>
               </DropdownMenuItem>
             )}
 
@@ -543,11 +578,11 @@ const AppSidebar = ({
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem>
+                <SidebarMenuItem data-tour="nav-services">
                   <ServicesSidebarMenuItem />
                 </SidebarMenuItem>
                 {peopleNavEnabled ? (
-                  <SidebarMenuItem>
+                  <SidebarMenuItem data-tour="nav-people">
                     <SidebarMenuButton
                       render={<Link to="/people" />}
                       isActive={pathname.startsWith("/people")}
@@ -559,7 +594,7 @@ const AppSidebar = ({
                   </SidebarMenuItem>
                 ) : null}
                 {songsNavEnabled ? (
-                  <SidebarMenuItem>
+                  <SidebarMenuItem data-tour="nav-songs">
                     <SidebarMenuButton
                       render={<Link to="/songs" />}
                       isActive={pathname.startsWith("/songs")}
@@ -700,23 +735,25 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
         defaultOpen={sidebarDefaultOpen}
         className="min-h-dvh md:h-dvh md:min-h-0 md:overflow-hidden"
       >
-        <SidebarToggleHotkey />
-        <AppSidebar
-          peopleNavEnabled={peopleNavEnabled}
-          songsNavEnabled={songsNavEnabled}
-        />
-        <SidebarInset className="@container md:min-h-0 md:overflow-hidden">
-          <AppInsetChromeHeader>
-            <SidebarChromeTrigger when="inset" />
-            <AppTopBar />
-            <DemoBadge />
-            {presentationMode ? <PresentationModeBadge /> : null}
-          </AppInsetChromeHeader>
-          <MobileChromeHeader />
-          <div className="page-gutters flex flex-1 flex-col md:min-h-0">
-            <AppShellContent>{children}</AppShellContent>
-          </div>
-        </SidebarInset>
+        <OnboardingProvider>
+          <SidebarToggleHotkey />
+          <AppSidebar
+            peopleNavEnabled={peopleNavEnabled}
+            songsNavEnabled={songsNavEnabled}
+          />
+          <SidebarInset className="@container md:min-h-0 md:overflow-hidden">
+            <AppInsetChromeHeader>
+              <SidebarChromeTrigger when="inset" />
+              <AppTopBar />
+              <DemoBadge />
+              {presentationMode ? <PresentationModeBadge /> : null}
+            </AppInsetChromeHeader>
+            <MobileChromeHeader />
+            <div className="page-gutters flex flex-1 flex-col md:min-h-0">
+              <AppShellContent>{children}</AppShellContent>
+            </div>
+          </SidebarInset>
+        </OnboardingProvider>
       </SidebarProvider>
     </AccessReviewProvider>
   );
