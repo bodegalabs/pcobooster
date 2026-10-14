@@ -1,3 +1,6 @@
+/** One page per key change, such as `/key-transitions/g-to-b-flat`. */
+const KEY_TRANSITION_PAGE = /^\/key-transitions\/[a-z0-9-]+\/?$/u;
+
 /**
  * Public marketing pages, their prerendered assets, and the deployed version, never product
  * APIs.
@@ -10,6 +13,9 @@ export const isPublicPath = (pathname: string): boolean =>
   pathname === "/privacy/" ||
   pathname === "/terms" ||
   pathname === "/terms/" ||
+  pathname === "/key-transitions" ||
+  pathname === "/key-transitions/" ||
+  KEY_TRANSITION_PAGE.test(pathname) ||
   pathname === "/robots.txt" ||
   pathname === "/sitemap.xml" ||
   pathname === "/version" ||

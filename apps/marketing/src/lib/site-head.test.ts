@@ -33,6 +33,11 @@ describe(pageHead, () => {
   it.each([
     ["/", "https://pcobooster.com", "og-home.png"],
     ["/about", "https://pcobooster.com/about", "og-about.png"],
+    [
+      "/key-transitions",
+      "https://pcobooster.com/key-transitions",
+      "og-home.png",
+    ],
   ] as const)(
     "gives %s a distinct canonical and sharing image",
     (pathname, url, image) => {

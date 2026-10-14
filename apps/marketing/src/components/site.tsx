@@ -215,6 +215,9 @@ export const SiteFooter = () => (
         <a className="hover:text-foreground" href="/about">
           Our story
         </a>
+        <a className="hover:text-foreground" href="/key-transitions">
+          Key transitions
+        </a>
         <a className="hover:text-foreground" href="/privacy">
           Privacy
         </a>

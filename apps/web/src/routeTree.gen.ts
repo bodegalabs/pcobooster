@@ -13,12 +13,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as KeyTransitionsRouteImport } from './routes/key-transitions'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as VersionRouteImport } from './routes/version'
 import { Route as AdminSplatRouteImport } from './routes/admin/$'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as DemoKeyRouteImport } from './routes/demo/$key'
+import { Route as KeyTransitionsSlugRouteImport } from './routes/key-transitions_.$slug'
 import { Route as AppPeopleIndexRouteImport } from './routes/_app/people/index'
 import { Route as AppPeoplePersonIdRouteImport } from './routes/_app/people/$personId'
 import { Route as AppServicesIndexRouteImport } from './routes/_app/services/index'
@@ -47,9 +50,19 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KeyTransitionsRoute = KeyTransitionsRouteImport.update({
+  id: '/key-transitions',
+  path: '/key-transitions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -75,6 +88,11 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
 const DemoKeyRoute = DemoKeyRouteImport.update({
   id: '/demo/$key',
   path: '/demo/$key',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KeyTransitionsSlugRoute = KeyTransitionsSlugRouteImport.update({
+  id: '/key-transitions_/$slug',
+  path: '/key-transitions/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppPeopleIndexRoute = AppPeopleIndexRouteImport.update({
@@ -125,12 +143,15 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/key-transitions': typeof KeyTransitionsRoute
   '/privacy': typeof PrivacyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/version': typeof VersionRoute
   '/admin/$': typeof AdminSplatRoute
   '/api/$': typeof ApiSplatRoute
   '/demo/$key': typeof DemoKeyRoute
+  '/key-transitions/$slug': typeof KeyTransitionsSlugRoute
   '/people/$personId': typeof AppPeoplePersonIdRoute
   '/songs/$songId': typeof AppSongsSongIdRoute
   '/people/': typeof AppPeopleIndexRoute
@@ -144,12 +165,15 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/key-transitions': typeof KeyTransitionsRoute
   '/privacy': typeof PrivacyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/version': typeof VersionRoute
   '/admin/$': typeof AdminSplatRoute
   '/api/$': typeof ApiSplatRoute
   '/demo/$key': typeof DemoKeyRoute
+  '/key-transitions/$slug': typeof KeyTransitionsSlugRoute
   '/people/$personId': typeof AppPeoplePersonIdRoute
   '/songs/$songId': typeof AppSongsSongIdRoute
   '/people': typeof AppPeopleIndexRoute
@@ -164,12 +188,15 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/key-transitions': typeof KeyTransitionsRoute
   '/privacy': typeof PrivacyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/version': typeof VersionRoute
   '/admin/$': typeof AdminSplatRoute
   '/api/$': typeof ApiSplatRoute
   '/demo/$key': typeof DemoKeyRoute
+  '/key-transitions_/$slug': typeof KeyTransitionsSlugRoute
   '/_app/people/$personId': typeof AppPeoplePersonIdRoute
   '/_app/songs/$songId': typeof AppSongsSongIdRoute
   '/_app/people/': typeof AppPeopleIndexRoute
@@ -185,12 +212,15 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/key-transitions'
     | '/privacy'
+    | '/sitemap.xml'
     | '/terms'
     | '/version'
     | '/admin/$'
     | '/api/$'
     | '/demo/$key'
+    | '/key-transitions/$slug'
     | '/people/$personId'
     | '/songs/$songId'
     | '/people/'
@@ -204,12 +234,15 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/key-transitions'
     | '/privacy'
+    | '/sitemap.xml'
     | '/terms'
     | '/version'
     | '/admin/$'
     | '/api/$'
     | '/demo/$key'
+    | '/key-transitions/$slug'
     | '/people/$personId'
     | '/songs/$songId'
     | '/people'
@@ -223,12 +256,15 @@ export interface FileRouteTypes {
     | '/_app'
     | '/about'
     | '/auth'
+    | '/key-transitions'
     | '/privacy'
+    | '/sitemap.xml'
     | '/terms'
     | '/version'
     | '/admin/$'
     | '/api/$'
     | '/demo/$key'
+    | '/key-transitions_/$slug'
     | '/_app/people/$personId'
     | '/_app/songs/$songId'
     | '/_app/people/'
@@ -244,12 +280,15 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
+  KeyTransitionsRoute: typeof KeyTransitionsRoute
   PrivacyRoute: typeof PrivacyRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   VersionRoute: typeof VersionRoute
   AdminSplatRoute: typeof AdminSplatRoute
   ApiSplatRoute: typeof ApiSplatRoute
   DemoKeyRoute: typeof DemoKeyRoute
+  KeyTransitionsSlugRoute: typeof KeyTransitionsSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -282,11 +321,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/key-transitions': {
+      id: '/key-transitions'
+      path: '/key-transitions'
+      fullPath: '/key-transitions'
+      preLoaderRoute: typeof KeyTransitionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -322,6 +375,13 @@ declare module '@tanstack/react-router' {
       path: '/demo/$key'
       fullPath: '/demo/$key'
       preLoaderRoute: typeof DemoKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/key-transitions_/$slug': {
+      id: '/key-transitions_/$slug'
+      path: '/key-transitions/$slug'
+      fullPath: '/key-transitions/$slug'
+      preLoaderRoute: typeof KeyTransitionsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/people/': {
@@ -427,12 +487,15 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
+  KeyTransitionsRoute: KeyTransitionsRoute,
   PrivacyRoute: PrivacyRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   VersionRoute: VersionRoute,
   AdminSplatRoute: AdminSplatRoute,
   ApiSplatRoute: ApiSplatRoute,
   DemoKeyRoute: DemoKeyRoute,
+  KeyTransitionsSlugRoute: KeyTransitionsSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

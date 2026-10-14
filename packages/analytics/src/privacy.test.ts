@@ -242,6 +242,31 @@ describe("analytics privacy boundary", () => {
     expect(canRecordSession("/songs/private-song", true)).toBeFalsy();
   });
 
+  it.each([
+    ["/key-transitions/", "/key-transitions"],
+    ["/key-transitions/e-to-e-flat/", "/key-transitions/e-to-e-flat"],
+  ])("keeps signed-out pageviews on %s as marketing", (pathname, path) => {
+    const event = prepareAnalyticsEvent(
+      {
+        uuid: "pageview",
+        event: "$pageview",
+        properties: {
+          distinct_id: "visitor",
+          $current_url: `https://pcobooster.com${pathname}?from=G`,
+        },
+      },
+      pathname,
+      false
+    );
+    expect(analyticsPath(pathname)).toBe(path);
+    expect(event?.properties).toStrictEqual({
+      distinct_id: "visitor",
+      $current_url: `https://pcobooster.com${path}`,
+      is_authenticated: false,
+      surface: "marketing",
+    });
+  });
+
   it("removes query strings, fragments, and external referrer paths", () => {
     expect(
       analyticsUrl(
