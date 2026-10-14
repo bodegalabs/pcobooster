@@ -12,6 +12,8 @@ Formats: `-4x5` (1080×1350) is the one to post on LinkedIn and Instagram feeds,
 
 The demo's scenes (`src/scenes/story-scenes.tsx`) carry one plan from start to finish: each applies the earlier scenes' changes, and from the assign view on the product window stays in place while the camera eases out, the screen changes, and it eases in again, so it reads as one app being used. Camera moves always start from where the camera is and aim only where the pan clamp lets them go; the replica's scroll-into-view is turned off in the video (`src/lib/no-scroll-into-view.ts`) because it scrolled the product window differently in each render tab. Captions carry it with the sound off. Cursor clicks, the saved toast, and each row saving back play short sounds from `public/sfx/` (synthesized, no license needed).
 
+The feed cuts are scored with "Bubbles (lofi bright relaxed)" by Holizna, released CC0 on the [Free Music Archive](https://freemusicarchive.org/music/holiznacc0/public-domain-lofi) (no license fee or credit required), trimmed and loudness-normalized to -14 LUFS in `public/music/`. Scenes are timed in seconds; the mix sits around -15.5 LUFS. To swap the track, replace the file and `MUSIC` in `src/cuts.tsx`.
+
 ## Commands
 
 - `bun run studio`: open Remotion Studio to scrub and tweak every composition.

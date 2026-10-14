@@ -53,12 +53,13 @@ const scene = (
 ): CutScene => ({ name, duration, render });
 
 /**
- * The feed cuts' music bed: "Sunset Plains", a calm acoustic guitar and pad piece released
- * CC0 on OpenGameArt (https://opengameart.org/content/sunset-plains). It swells in over
- * its first few seconds, under the hook, and fades out with the end card.
+ * The feed cuts' music bed: "Bubbles (lofi bright relaxed)" by Holizna, released CC0 on
+ * the Free Music Archive (https://freemusicarchive.org/music/holiznacc0/public-domain-lofi).
+ * It opens soft under the hook and the beat comes in as the product does; trimmed and
+ * loudness-normalized to -14 LUFS in public/music.
  */
 const MUSIC = {
-  src: "music/sunset-plains.mp3",
+  src: "music/bubbles.mp3",
   volume: 0.8,
   fadeOutFrames: 45,
 } as const;
