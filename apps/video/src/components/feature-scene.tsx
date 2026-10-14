@@ -43,7 +43,7 @@ const Captions = ({
           size={size}
           at={caption.at}
           pace="caption"
-          exitAt={next === undefined ? undefined : next.at - 6}
+          exitAt={next === undefined ? undefined : next.at - 4}
           style={{ maxWidth: width }}
         />
       </div>
@@ -64,6 +64,7 @@ export const FeatureScene = ({
   cursor,
   highlights,
   revealAt,
+  swaps,
   transition = "soft",
   overlay,
   children,
@@ -76,13 +77,16 @@ export const FeatureScene = ({
   cursor?: readonly CursorStep[];
   highlights?: readonly Highlight[];
   revealAt?: number;
+  /** Frames where the replica changes screen, softened with a brief blur. */
+  swaps?: readonly number[];
   transition?: Transition;
   /** Drawn over the product window, outside the camera (a saved toast, say). */
   overlay?: ReactNode;
   children: ReactNode;
 }) => {
   const layout = useFeatureLayout();
-  const cut = transition === "cut";
+  // Hard cuts and pushes arrive with the product already in place.
+  const cut = transition !== "soft";
 
   return (
     <Scene duration={duration} transition={transition}>
@@ -122,6 +126,7 @@ export const FeatureScene = ({
         // A spring that started a second ago has settled: in place from the first frame.
         enterAt={cut ? -30 : 6}
         revealAt={revealAt}
+        swaps={swaps}
       >
         {children}
       </ProductStage>

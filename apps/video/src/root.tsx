@@ -1,5 +1,6 @@
 import "@pcobooster/design-tokens/tokens.css";
 import "./theme.css";
+import "./lib/instant-scroll";
 import { useLayoutEffect } from "react";
 import {
   Composition,

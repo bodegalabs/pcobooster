@@ -14,7 +14,7 @@ import { cameraAt } from "./camera";
 import type { Rect, Shot } from "./camera";
 import { fontsReady } from "./fonts";
 import { FPS, useFormat } from "./format";
-import { mix, progress, settle } from "./motion";
+import { mix, progress, pulse, settle } from "./motion";
 import { ScriptedReplica, beatIndexAt, findTarget, targetKey } from "./replica";
 import type { Beat, Target } from "./replica";
 
@@ -53,6 +53,10 @@ const NO_SHOTS: readonly Shot[] = [];
 const NO_STEPS: readonly CursorStep[] = [];
 const NO_HIGHLIGHTS: readonly Highlight[] = [];
 const CLICK_VOLUME = 0.45;
+const NO_SWAPS: readonly number[] = [];
+/** A screen change blurs across this many frames, sharpest on either side of the swap. */
+const SWAP_FRAMES = 10;
+const SWAP_BLUR = 10;
 
 interface BeatLayout {
   readonly rects: Readonly<Record<string, Rect>>;
@@ -142,6 +146,7 @@ export const ProductStage = ({
   highlights = NO_HIGHLIGHTS,
   enterAt = 0,
   revealAt,
+  swaps = NO_SWAPS,
   children,
 }: {
   beats: readonly Beat[];
@@ -154,9 +159,18 @@ export const ProductStage = ({
   enterAt?: number;
   /** Frame the history bars start growing in, as they do on the site. */
   revealAt?: number;
+  /** Frames where the replica changes screen, softened with a brief blur. */
+  swaps?: readonly number[];
   children: ReactNode;
 }) => {
   const frame = useCurrentFrame();
+  const swapBlur =
+    SWAP_BLUR *
+    pulse(
+      frame,
+      swaps.map((at) => at - SWAP_FRAMES / 2),
+      SWAP_FRAMES
+    );
   const portrait = useFormat() === "portrait";
   const rootRef = useRef<HTMLDivElement>(null);
   const [fontsLoaded, setFontsLoaded] = useState(false);
@@ -310,6 +324,7 @@ export const ProductStage = ({
               height: nativeHeight,
               transform: `translate(${camera.panX}px, ${camera.panY}px) scale(${camera.zoom})`,
               transformOrigin: "0 0",
+              filter: swapBlur > 0.1 ? `blur(${swapBlur}px)` : undefined,
             }}
           >
             <div

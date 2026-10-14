@@ -472,12 +472,13 @@ export const FillJobScene = ({
       beat: 1,
       duration: 22,
     },
+    // A slow push toward the top-ranked person while the list is read.
     {
-      at: add - 34,
+      at: open + 40,
       target: HAYDEN_ROW,
       zoom: 2,
       beat: 1,
-      duration: 26,
+      duration: add - open - 46,
     },
     {
       at: add + 8,
@@ -485,6 +486,14 @@ export const FillJobScene = ({
       zoom: 1.9,
       beat: 2,
       duration: 20,
+    },
+    // Then a gentle drift in while the saved toast holds.
+    {
+      at: add + 30,
+      target: HAYDEN_SCHEDULED,
+      zoom: 2.15,
+      beat: 2,
+      duration: 90,
     },
   ];
 
@@ -500,7 +509,8 @@ export const FillJobScene = ({
         { from: add + 20, to: duration, target: HAYDEN_SCHEDULED },
       ]}
       revealAt={open + 8}
-      transition="cut"
+      swaps={[open + 3]}
+      transition="push"
       overlay={<SavedToast at={saved} />}
     >
       <ProductDemo />
@@ -528,48 +538,9 @@ export const QuickHealthScene = ({ duration }: { duration: number }) => {
         { from: 12, to: duration, target: HEAVY_LOAD },
         { from: 24, to: duration, target: DECLINING },
       ]}
-      transition="cut"
+      transition="push"
     >
       {portrait ? <PeopleShowcase /> : <ProductDemo />}
-    </FeatureScene>
-  );
-};
-
-/** A song's key set straight from the run sheet. */
-export const QuickKeyScene = ({ duration }: { duration: number }) => {
-  const openAt = 18;
-  const pickAt = openAt + 22;
-  return (
-    <FeatureScene
-      duration={duration}
-      captions={[{ at: 0, lines: ["Set keys", "*from the run sheet.*"] }]}
-      beats={[
-        { at: 0, apply: showView("plan") },
-        { at: openAt + 3, clicks: [KEY_CHIP] },
-        {
-          at: pickAt + 3,
-          apply: () => {
-            updatePlanItem("i5", { songKey: "D" });
-          },
-        },
-      ]}
-      cursor={[
-        { at: openAt, target: KEY_CHIP, click: true, travel: 14 },
-        { at: pickAt, target: PICK_D, click: true, travel: 14 },
-      ]}
-      shots={[
-        {
-          at: 0,
-          target: KEY_CHIP,
-          zoom: 1.8,
-          portraitZoom: 1.5,
-          duration: 1,
-        },
-      ]}
-      highlights={[{ from: pickAt + 6, to: duration, target: NEW_KEY }]}
-      transition="cut"
-    >
-      <ProductDemo />
     </FeatureScene>
   );
 };
@@ -615,9 +586,77 @@ export const QuickTransposeScene = ({ duration }: { duration: number }) => {
         },
         { at: pickAt + 8, zoom: 1.7, target: CHART_TEXT, duration: 18 },
       ]}
-      transition="cut"
+      transition="push"
     >
       <ChordChartShowcase />
+    </FeatureScene>
+  );
+};
+
+/** Morning Light (G) into Steady Ground (Eb), down a major third: worth a look. */
+const TRICKY_CHANGE: Target = {
+  selector: '[data-level="worth-a-look"]',
+  closest: "button",
+};
+const KEY_CHANGE_PANEL = css('dialog[aria-label="Key change"]');
+const PLAY_IN_KEY: Target = {
+  selector: `.${styles.alternates} button`,
+};
+
+/**
+ * Key transitions: the run sheet flags a tricky change between two songs, the panel says
+ * why and how to connect them, and one click on a better key makes it flow.
+ */
+export const KeyTransitionScene = ({ duration }: { duration: number }) => {
+  const openAt = 34;
+  const pickAt = 112;
+  return (
+    <FeatureScene
+      duration={duration}
+      captions={[
+        { at: 0, lines: ["See how each song", "*lands in the next key.*"] },
+        {
+          at: openAt + 6,
+          lines: ["A tricky change?", "*Get ways to connect.*"],
+        },
+        { at: pickAt + 6, lines: ["One click,", "*and it flows.*"] },
+      ]}
+      beats={[
+        { at: 0, apply: showView("plan") },
+        { at: openAt + 3, clicks: [TRICKY_CHANGE] },
+        { at: pickAt + 3, clicks: [TRICKY_CHANGE, PLAY_IN_KEY] },
+      ]}
+      cursor={[
+        { at: openAt, target: TRICKY_CHANGE, click: true, travel: 18 },
+        { at: pickAt, target: PLAY_IN_KEY, click: true, travel: 24, beat: 1 },
+      ]}
+      shots={[
+        { at: 0, target: TRICKY_CHANGE, zoom: 1.8, duration: 1 },
+        {
+          at: openAt + 4,
+          target: KEY_CHANGE_PANEL,
+          pad: 18,
+          portraitZoom: 1.45,
+          beat: 1,
+          duration: 20,
+        },
+        {
+          at: pickAt + 1,
+          target: TRICKY_CHANGE,
+          zoom: 1.8,
+          beat: 0,
+          duration: 10,
+        },
+      ]}
+      swaps={[pickAt + 4]}
+      highlights={[
+        { from: 6, to: openAt - 2, target: TRICKY_CHANGE },
+        { from: openAt + 50, to: pickAt - 2, target: PLAY_IN_KEY, beat: 1 },
+        { from: pickAt + 14, to: duration, target: NEW_KEY },
+      ]}
+      transition="push"
+    >
+      <ProductDemo />
     </FeatureScene>
   );
 };

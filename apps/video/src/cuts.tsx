@@ -24,9 +24,9 @@ import {
   FillTeamsScene,
   HistoryScene,
   ImportScene,
+  KeyTransitionScene,
   OverviewScene,
   QuickHealthScene,
-  QuickKeyScene,
   QuickTransposeScene,
   RunSheetScene,
   TeamHealthScene,
@@ -97,7 +97,7 @@ const TEASER = onBeats([
     "Hook",
     4,
     (duration) => (
-      <HookScene duration={duration} lines={HOOK} instant transition="cut" />
+      <HookScene duration={duration} lines={HOOK} instant transition="push" />
     ),
   ],
   [
@@ -108,27 +108,31 @@ const TEASER = onBeats([
   [
     "End card",
     8,
-    (duration) => <EndCard duration={duration} transition="cut" />,
+    (duration) => <EndCard duration={duration} transition="push-in" />,
   ],
 ]);
 
-/** About 27 seconds: the problem, one spot filled and saved, three quick wins, the ask. */
+/** About 29 seconds: the problem, one spot filled and saved, key transitions, two quick wins, the ask. */
 const LAUNCH = onBeats([
   [
     "Hook",
     4,
     (duration) => (
-      <HookScene duration={duration} lines={HOOK} instant transition="cut" />
+      <HookScene duration={duration} lines={HOOK} instant transition="push" />
     ),
   ],
   ["Fill a spot", 18, (duration) => <FillJobScene duration={duration} />],
+  [
+    "Key transitions",
+    10,
+    (duration) => <KeyTransitionScene duration={duration} />,
+  ],
   ["Team health", 5, (duration) => <QuickHealthScene duration={duration} />],
-  ["Keys", 5, (duration) => <QuickKeyScene duration={duration} />],
   ["Transpose", 5, (duration) => <QuickTransposeScene duration={duration} />],
   [
     "End card",
     8,
-    (duration) => <EndCard duration={duration} transition="cut" />,
+    (duration) => <EndCard duration={duration} transition="push-in" />,
   ],
 ]);
 
