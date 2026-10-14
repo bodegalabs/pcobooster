@@ -73,7 +73,7 @@ const questions = [
   {
     question: "How much will it cost?",
     answer:
-      "We’re working on Solo and Team plans. Prices and final plan details are still being decided. There are no published paid subscriptions to choose from yet.",
+      "Nothing during beta. We may add paid plans later. If we do, we’ll tell you ahead of time, and nothing will be charged unless you opt in. Since everything saves straight to Planning Center, there’s no lock-in.",
   },
 ];
 
@@ -98,21 +98,10 @@ const steps = [
   },
 ];
 
-const plans = [
-  {
-    name: "Solo",
-    audience: "For the leader getting Sunday ready.",
-    description:
-      "Everything in PCOBooster for one person: scheduling, team health, the run sheet, and chord charts.",
-    cta: "Tell us what you need",
-  },
-  {
-    name: "Team",
-    audience: "For the staff sharing the work.",
-    description:
-      "For churches where worship, production, and ministry leaders all plan in Planning Center.",
-    cta: "Let’s talk about your team",
-  },
+const pricingChecks = [
+  "Every feature, for everyone on your team",
+  "Nothing charged unless you choose a plan",
+  "Everything stays in Planning Center, so you can stop anytime",
 ];
 
 const teamChecks = [
@@ -399,39 +388,35 @@ const Pricing = () => (
     <SectionHeading
       title={
         <>
-          Lead on your own.
+          Use all of it, free.
           <br />
-          <em>Or plan as a staff.</em>
+          <em>While we’re in beta.</em>
         </>
       }
     >
-      Whether one person gets Sunday ready or a whole staff shares the work,
-      we’re building a plan that fits. Pricing is still being finalized.
+      Everything PCOBooster does works today at no cost. If paid plans come
+      later, you’ll hear from us first.
     </SectionHeading>
-    <div className="grid gap-4 md:grid-cols-2">
-      {plans.map((plan) => (
-        <div key={plan.name} className="reveal flex">
-          <Card className="w-full">
-            <CardHeader>
-              <div className="flex items-center justify-between gap-4">
-                <CardTitle variant="display">
-                  <h3>{plan.name}</h3>
-                </CardTitle>
-                <Badge variant="brand">Pricing soon</Badge>
-              </div>
-              <CardDescription>{plan.audience}</CardDescription>
-            </CardHeader>
-            <CardContent className="grow">
-              <p className="border-border text-body border-t pt-6">
-                {plan.description}
-              </p>
-            </CardContent>
-            <CardFooter>
-              <TextLink href={CONTACT_URL}>{plan.cta}</TextLink>
-            </CardFooter>
-          </Card>
-        </div>
-      ))}
+    <div className="reveal">
+      <Card className="md:grid md:grid-cols-2 md:grid-rows-[auto_1fr]">
+        <CardHeader>
+          <div className="flex items-center justify-between gap-4">
+            <CardTitle variant="display">
+              <h3>Beta</h3>
+            </CardTitle>
+            <Badge variant="brand">Free</Badge>
+          </div>
+          <CardDescription>
+            For anyone whose church plans in Planning Center Services.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="md:col-start-2 md:row-span-2 md:row-start-1 md:self-center">
+          <Checklist items={pricingChecks} divided={false} />
+        </CardContent>
+        <CardFooter className="md:self-end">
+          <ActionLink>Open PCOBooster</ActionLink>
+        </CardFooter>
+      </Card>
     </div>
   </section>
 );
