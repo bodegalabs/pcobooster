@@ -9,7 +9,7 @@ import {
 
 import { Backdrop } from "./components/backdrop";
 import type { Lines } from "./components/headline";
-import { seconds } from "./lib/format";
+import { FPS, seconds } from "./lib/format";
 import {
   BrandScene,
   EndCard,
@@ -53,13 +53,15 @@ const scene = (
 ): CutScene => ({ name, duration, render });
 
 /**
- * The feed cuts' music bed: "Bubbles (lofi bright relaxed)" by Holizna, released CC0 on
- * the Free Music Archive (https://freemusicarchive.org/music/holiznacc0/public-domain-lofi).
- * It opens soft under the hook and the beat comes in as the product does; trimmed and
- * loudness-normalized to -14 LUFS in public/music.
+ * The feed cuts' music bed: "Saturn" from Holizna's Interstellar Pop Songs, released CC0
+ * on the Free Music Archive (https://freemusicarchive.org/music/holiznacc0/interstellar-pop-songs).
+ * It runs at 120 BPM, a beat every half second, with its first beat 0.174s in; the cut
+ * starts the track there, so scenes whose lengths are whole half seconds cut on the beat.
+ * Trimmed and loudness-normalized to -14 LUFS in public/music.
  */
 const MUSIC = {
-  src: "music/bubbles.mp3",
+  src: "music/saturn.mp3",
+  firstBeatSeconds: 0.174,
   volume: 0.8,
   fadeOutFrames: 45,
 } as const;
@@ -77,20 +79,20 @@ const DEMO_CHANGES: readonly Change[] = [
 
 /** 15 seconds: the problem, one spot filled and saved, a key smoothed out, the ask. */
 const TEASER: readonly CutScene[] = [
-  scene("Hook", seconds(2.6), (duration) => (
+  scene("Hook", seconds(2.5), (duration) => (
     <HookScene duration={duration} lines={HOOK} />
   )),
-  scene("Fill a team", seconds(4.8), (duration) => (
+  scene("Fill a team", seconds(5), (duration) => (
     <FillTeamsScene
       duration={duration}
       fromLineup={false}
       lines={["Fill every team", "*with the right people.*"]}
     />
   )),
-  scene("Key transitions", seconds(4.8), (duration) => (
+  scene("Key transitions", seconds(5), (duration) => (
     <KeyTransitionScene duration={duration} carry={false} />
   )),
-  scene("End card", seconds(3.6), (duration) => (
+  scene("End card", seconds(3.5), (duration) => (
     <EndCard duration={duration} />
   )),
 ];
@@ -101,10 +103,10 @@ const TEASER: readonly CutScene[] = [
  * see it all saved back. The opening takes its time while the music swells in.
  */
 const DEMO: readonly CutScene[] = [
-  scene("Hook", seconds(3.6), (duration) => (
+  scene("Hook", seconds(3.5), (duration) => (
     <HookScene duration={duration} lines={HOOK} />
   )),
-  scene("PCOBooster", seconds(4.2), (duration) => (
+  scene("PCOBooster", seconds(4), (duration) => (
     <BrandScene duration={duration} />
   )),
   scene("Fill a spot", seconds(17), (duration) => (
@@ -116,10 +118,10 @@ const DEMO: readonly CutScene[] = [
   scene("Key transitions", seconds(5.5), (duration) => (
     <KeyTransitionScene duration={duration} />
   )),
-  scene("People", seconds(9.7), (duration) => (
+  scene("People", seconds(9.5), (duration) => (
     <PeopleScene duration={duration} />
   )),
-  scene("Saves back", seconds(3.4), (duration) => (
+  scene("Saves back", seconds(3.5), (duration) => (
     <SavesBackScene duration={duration} changes={DEMO_CHANGES} />
   )),
   scene("End card", seconds(4.5), (duration) => (
@@ -182,6 +184,7 @@ export const cutDuration = (cut: CutId): number =>
 const Music = ({ duration }: { duration: number }) => (
   <Html5Audio
     src={staticFile(MUSIC.src)}
+    trimBefore={Math.round(MUSIC.firstBeatSeconds * FPS)}
     volume={(frame) =>
       MUSIC.volume *
       interpolate(frame, [duration - MUSIC.fadeOutFrames, duration], [1, 0], {
