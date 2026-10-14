@@ -77,6 +77,8 @@ The event includes the message exactly as the user wrote it. It is the only Post
 
 A PostHog destination posts each `feedback submitted` event to the `#pcobooster-alerts` Slack channel, with the message, path, the author's name, email, and church, and a replay link (`https://us.posthog.com/project/614621/replay/{event.properties.$session_id}`). Slack is connected in [Settings → Integrations](https://us.posthog.com/project/614621/settings/environment-integrations); the destination lives in [Data pipelines](https://us.posthog.com/project/614621/pipeline/destinations). Slack destinations are free on PostHog's free plan; email and generic webhooks are not.
 
+A second destination, **Sign-ins → #pcobooster-alerts**, posts each server `signed in` event (one per new Better Auth session, web or iPhone, production only) with the person's name, email, and church from the event's `$set`, and a link to their PostHog person. Pause it in Data pipelines once launch sign-ins get too frequent to read.
+
 Feedback forwards to PostHog only from production, so feedback sent from staging, previews, or local stays in that stage's D1 `feedback` table and never alerts.
 
 If PostHog delivery fails, the API logs `Failed to forward feedback to PostHog` with the feedback ID. The database row remains the complete record.
