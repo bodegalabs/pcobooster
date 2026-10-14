@@ -66,24 +66,41 @@ const viewFor = (
     return full;
   }
   const pad = shot.pad ?? DEFAULT_PAD;
+  // Aim where the camera can actually go: a focus the clamp would move is pulled in here,
+  // so moves between shots never run into the edge and stop short.
   const fitted = Math.min(
     viewport.width / (rect.width + pad * 2),
     viewport.height / (rect.height + pad * 2)
   );
+  // At phone width the replica already fills the frame edge to edge, and most zooms
+  // crop names or buttons off a side; portrait shots pan unless they opt in.
+  const zoom = viewport.portrait
+    ? (shot.portraitZoom ?? 1)
+    : Math.min(MAX_ZOOM, Math.max(1, shot.zoom ?? fitted));
+  const within = (value: number, size: number, content: number) =>
+    Math.min(Math.max(value, size / (2 * zoom)), content - size / (2 * zoom));
   return {
-    // At phone width the replica already fills the frame edge to edge, and most zooms
-    // crop names or buttons off a side; portrait shots pan unless they opt in.
-    zoom: viewport.portrait
-      ? (shot.portraitZoom ?? 1)
-      : Math.min(MAX_ZOOM, Math.max(1, shot.zoom ?? fitted)),
-    focusX: rect.x + rect.width / 2,
-    focusY: rect.y + rect.height / 2,
+    zoom,
+    focusX: within(rect.x + rect.width / 2, viewport.width, viewport.width),
+    focusY: within(
+      rect.y + rect.height / 2,
+      viewport.height,
+      Math.max(viewport.height, viewport.contentHeight)
+    ),
   };
 };
 
+const lerpView = (from: View, to: View, amount: number): View => ({
+  zoom: mix(from.zoom, to.zoom, amount),
+  focusX: mix(from.focusX, to.focusX, amount),
+  focusY: mix(from.focusY, to.focusY, amount),
+});
+
 /**
- * Where the camera is at `frame`: easing from the previous shot to the current one, with
- * the pan clamped so the replica always covers the window.
+ * Where the camera is at `frame`. Each shot eases from wherever the camera actually is
+ * when the shot starts, so a shot that begins before the last one has settled carries on
+ * from mid-move instead of snapping to that move's end. The pan is clamped so the replica
+ * always covers the window.
  */
 export const cameraAt = (
   frame: number,
@@ -92,27 +109,23 @@ export const cameraAt = (
   viewport: Viewport,
   rectFor: (target: Target, beat: number) => Rect | undefined
 ): Camera => {
-  const index = shots.findLastIndex((shot) => shot.at <= frame);
-  const shot = shots[index];
-  const current = viewFor(shot, beats, viewport, rectFor);
-  const previous = viewFor(
-    index > 0 ? shots[index - 1] : undefined,
-    beats,
-    viewport,
-    rectFor
-  );
-  const amount =
-    shot === undefined
-      ? 1
-      : progress(
-          frame,
-          shot.at,
-          shot.duration ?? DEFAULT_SHOT_FRAMES,
-          easeInOut
-        );
-  const zoom = mix(previous.zoom, current.zoom, amount);
-  const focusX = mix(previous.focusX, current.focusX, amount);
-  const focusY = mix(previous.focusY, current.focusY, amount);
+  let view = viewFor(undefined, beats, viewport, rectFor);
+  for (const [index, shot] of shots.entries()) {
+    if (shot.at > frame) {
+      break;
+    }
+    const next = shots[index + 1];
+    // Ease toward this shot until the frame, or until the next shot takes over.
+    const until = next === undefined ? frame : Math.min(frame, next.at);
+    const amount = progress(
+      until,
+      shot.at,
+      shot.duration ?? DEFAULT_SHOT_FRAMES,
+      easeInOut
+    );
+    view = lerpView(view, viewFor(shot, beats, viewport, rectFor), amount);
+  }
+  const { zoom, focusX, focusY } = view;
   const clampPan = (value: number, size: number, content: number) =>
     Math.min(0, Math.max(size - content * zoom, value));
   return {

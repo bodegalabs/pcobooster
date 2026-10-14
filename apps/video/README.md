@@ -4,13 +4,13 @@ Three cuts of the launch video. Built with [Remotion](https://www.remotion.dev):
 
 | Composition | Length | Use |
 | --- | --- | --- |
-| `Teaser15-*` | 15s | Feed teaser: the problem, one open spot filled and saved, the ask |
-| `Launch30-*` | ~27s | Launch post: the problem, one spot filled and saved, three quick wins, the ask |
+| `Teaser15-*` | 15s | Feed teaser: the problem, one fill, one transpose, the ask |
+| `Launch30-*` | ~30s | Launch post: one beat per job (fill, key transitions, team health, charts), saves back, the ask |
 | `Walkthrough70-*` | ~64s | Walkthrough with room for a voiceover |
 
 Formats: `-4x5` (1080×1350) is the one to post on LinkedIn and Instagram feeds, where it plays largest on a phone; `-16x9` is for YouTube, X, and the site; `-9x16` is for Reels, TikTok, and Shorts. Vertical text stays inside the band that feed UI leaves clear (below the top ~14%, above the bottom ~24%). The walkthrough renders in 16:9 and 9:16 only.
 
-The feed cuts follow common launch-video practice: the first frame is fully composed (it is the thumbnail), the product shows within two seconds, one job runs all the way to its payoff ("Saved to Planning Center"), scenes hard-cut, every shot zooms to text that reads on a phone, captions carry it with the sound off, and the end card asks for one thing. Cursor clicks and the saved toast play short sounds from `public/sfx/` (synthesized, no license needed). The feed cuts are scored with "Inspiration" by Pro Sensory, released CC0 on [OpenGameArt](https://opengameart.org/content/inspiration-1) (no license fee or credit required; the composer appreciates a credit). Scene lengths in those cuts are counted in beats of the track (`onBeats` in `src/cuts.tsx`), so every hard cut lands on a beat; swapping the track means re-measuring its tempo and first beat in `MUSIC`. The mix sits around -15 LUFS with peaks near -6 dBFS.
+The feed cuts reuse the walkthrough's scenes, trimmed to the music: the brand gets one short beat so the product shows within five seconds, every shot zooms to text that reads on a phone, captions carry it with the sound off, and the end card asks for one thing. Camera moves always start from where the camera is, and aim only where the clamp lets it go, so nothing snaps; screen changes inside the replica get a brief soft blur. Cursor clicks, the saved toast, and each row saving back play short sounds from `public/sfx/` (synthesized, no license needed).
 
 ## Commands
 

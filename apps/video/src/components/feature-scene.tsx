@@ -85,8 +85,8 @@ export const FeatureScene = ({
   children: ReactNode;
 }) => {
   const layout = useFeatureLayout();
-  // Hard cuts and pushes arrive with the product already in place.
-  const cut = transition !== "soft";
+  // A hard cut arrives with the product already in place.
+  const cut = transition === "cut";
 
   return (
     <Scene duration={duration} transition={transition}>

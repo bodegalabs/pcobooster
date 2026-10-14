@@ -20,14 +20,11 @@ import {
 } from "./scenes/brand-scenes";
 import {
   ChordChartScene,
-  FillJobScene,
   FillTeamsScene,
   HistoryScene,
   ImportScene,
   KeyTransitionScene,
   OverviewScene,
-  QuickHealthScene,
-  QuickTransposeScene,
   RunSheetScene,
   TeamHealthScene,
 } from "./scenes/product-scenes";
@@ -87,53 +84,46 @@ const onBeats = (
 };
 
 /*
- * The feed cuts follow launch-video practice: a first frame that reads as the thumbnail,
- * one job carried all the way to its payoff, hard cuts on the beat, and a short ask.
+ * The feed cuts: the walkthrough's scenes, trimmed to the beat of the music bed, with the
+ * brand in one short beat so the product shows within five seconds.
  */
 
-/** 15 seconds: the problem, one spot filled and saved, the ask. */
+/** 15 seconds: the problem, one fill, one transpose, the ask. */
 const TEASER = onBeats([
+  ["Hook", 4, (duration) => <HookScene duration={duration} lines={HOOK} />],
   [
-    "Hook",
-    4,
+    "Fill a team",
+    7,
     (duration) => (
-      <HookScene duration={duration} lines={HOOK} instant transition="push" />
+      <FillTeamsScene
+        duration={duration}
+        fromLineup={false}
+        lines={["Fill every team", "*with the right people.*"]}
+      />
     ),
   ],
-  [
-    "Fill a spot",
-    13,
-    (duration) => <FillJobScene duration={duration} pace="quick" />,
-  ],
-  [
-    "End card",
-    8,
-    (duration) => <EndCard duration={duration} transition="push-in" />,
-  ],
+  ["Chord charts", 7, (duration) => <ChordChartScene duration={duration} />],
+  ["End card", 8, (duration) => <EndCard duration={duration} />],
 ]);
 
-/** About 29 seconds: the problem, one spot filled and saved, key transitions, two quick wins, the ask. */
+/** About 30 seconds: one beat per job of the planning week, then the ask. */
 const LAUNCH = onBeats([
+  ["Hook", 4, (duration) => <HookScene duration={duration} lines={HOOK} />],
   [
-    "Hook",
-    4,
-    (duration) => (
-      <HookScene duration={duration} lines={HOOK} instant transition="push" />
-    ),
+    "PCOBooster",
+    5,
+    (duration) => <BrandScene duration={duration} subline={false} />,
   ],
-  ["Fill a spot", 18, (duration) => <FillJobScene duration={duration} />],
+  ["Fill a team", 9, (duration) => <FillTeamsScene duration={duration} />],
   [
     "Key transitions",
-    10,
+    8,
     (duration) => <KeyTransitionScene duration={duration} />,
   ],
-  ["Team health", 5, (duration) => <QuickHealthScene duration={duration} />],
-  ["Transpose", 5, (duration) => <QuickTransposeScene duration={duration} />],
-  [
-    "End card",
-    8,
-    (duration) => <EndCard duration={duration} transition="push-in" />,
-  ],
+  ["Team health", 6, (duration) => <TeamHealthScene duration={duration} />],
+  ["Chord charts", 7, (duration) => <ChordChartScene duration={duration} />],
+  ["Saves back", 5, (duration) => <SavesBackScene duration={duration} />],
+  ["End card", 6, (duration) => <EndCard duration={duration} />],
 ]);
 
 /** About 70 seconds: the walkthrough, room for a voiceover over each beat. */

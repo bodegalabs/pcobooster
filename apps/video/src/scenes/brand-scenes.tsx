@@ -1,5 +1,11 @@
 import type { CSSProperties, ReactNode } from "react";
-import { useCurrentFrame, useVideoConfig } from "remotion";
+import {
+  Html5Audio,
+  Sequence,
+  staticFile,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 
 import { Rocket, ServicesMark, Wordmark } from "../components/brand";
 import { Headline, Subline } from "../components/headline";
@@ -240,9 +246,17 @@ export const ServicesScene = ({ duration }: { duration: number }) => {
 };
 
 /** The rocket flies in and the name lands: "Planning Center, boosted." */
-export const BrandScene = ({ duration }: { duration: number }) => {
+export const BrandScene = ({
+  duration,
+  subline = true,
+}: {
+  duration: number;
+  /** Short cuts leave out the supporting line, which needs a few seconds to read. */
+  subline?: boolean;
+}) => {
   const frame = useCurrentFrame();
-  const portrait = useFormat() === "portrait";
+  // The 4:5 feed shares portrait's width, so it stacks like portrait.
+  const portrait = useFormat() !== "landscape";
   const flight = progress(frame, 0, 34, easeOut);
   const rocketSize = portrait ? 220 : 190;
   const thrust = mix(1, 0.35, progress(frame, 18, 30));
@@ -287,14 +301,16 @@ export const BrandScene = ({ duration }: { duration: number }) => {
           at={44}
           style={{ marginTop: portrait ? 96 : 72 }}
         />
-        <Subline
-          at={60}
-          size={portrait ? 36 : 32}
-          style={{ marginTop: 26, maxWidth: portrait ? 820 : 980 }}
-        >
-          The workspace ministry leaders open every week, on top of the Services
-          you already use.
-        </Subline>
+        {subline ? (
+          <Subline
+            at={60}
+            size={portrait ? 36 : 32}
+            style={{ marginTop: 26, maxWidth: portrait ? 820 : 980 }}
+          >
+            The workspace ministry leaders open every week, on top of the
+            Services you already use.
+          </Subline>
+        ) : null}
       </Center>
     </Scene>
   );
@@ -439,16 +455,33 @@ const CHANGES = [
 ] as const;
 
 /** The changes from the earlier scenes, each saving back to Planning Center Services. */
+const SAVED_VOLUME = 0.28;
+
 export const SavesBackScene = ({ duration }: { duration: number }) => {
   const frame = useCurrentFrame();
-  const portrait = useFormat() === "portrait";
+  const format = useFormat();
+  const portrait = format !== "landscape";
   const rowWidth = portrait ? 900 : 860;
   const markSize = portrait ? 140 : 150;
   // Row column and mark positions, with the mark's clear space kept empty.
-  const rows = portrait ? { left: 90, top: 760 } : { left: 230, top: 410 };
-  const mark = portrait
-    ? { left: 540 - markSize / 2, top: 1250 }
-    : { left: 1500, top: 540 - markSize / 2 };
+  const layouts = {
+    landscape: {
+      headlineTop: 80,
+      rows: { left: 230, top: 410 },
+      mark: { left: 1500, top: 540 - markSize / 2 },
+    },
+    portrait: {
+      headlineTop: PORTRAIT_SAFE.top + 10,
+      rows: { left: 90, top: 760 },
+      mark: { left: 540 - markSize / 2, top: 1250 },
+    },
+    feed: {
+      headlineTop: 80,
+      rows: { left: 90, top: 420 },
+      mark: { left: 540 - markSize / 2, top: 960 },
+    },
+  } as const;
+  const { rows, mark, headlineTop } = layouts[format];
   const rowHeight = portrait ? 132 : 128;
   const rowGap = 22;
 
@@ -457,7 +490,7 @@ export const SavesBackScene = ({ duration }: { duration: number }) => {
       <div
         style={{
           position: "absolute",
-          top: portrait ? PORTRAIT_SAFE.top + 10 : 80,
+          top: headlineTop,
           left: 0,
           right: 0,
           display: "flex",
@@ -495,6 +528,16 @@ export const SavesBackScene = ({ duration }: { duration: number }) => {
         const dotY = mix(fromY, toY, travel) - Math.sin(travel * Math.PI) * 60;
         return (
           <div key={change.title}>
+            <Sequence
+              from={travelStart + 22}
+              durationInFrames={30}
+              layout="none"
+            >
+              <Html5Audio
+                src={staticFile("sfx/saved.wav")}
+                volume={SAVED_VOLUME}
+              />
+            </Sequence>
             <div
               style={{
                 position: "absolute",

@@ -55,8 +55,8 @@ const NO_HIGHLIGHTS: readonly Highlight[] = [];
 const CLICK_VOLUME = 0.45;
 const NO_SWAPS: readonly number[] = [];
 /** A screen change blurs across this many frames, sharpest on either side of the swap. */
-const SWAP_FRAMES = 10;
-const SWAP_BLUR = 10;
+const SWAP_FRAMES = 8;
+const SWAP_BLUR = 4;
 
 interface BeatLayout {
   readonly rects: Readonly<Record<string, Rect>>;

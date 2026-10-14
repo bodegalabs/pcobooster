@@ -7,20 +7,22 @@ The on-screen headlines already carry each cut with the sound off. These lines a
 | At | Scene | Line |
 | --- | --- | --- |
 | 0:00 | Hook | Still filling Sunday's team on Thursday night? |
-| 0:02 | Fill a spot | Pick the open spot, see who's rested, and add them. It's already in Planning Center. |
-| 0:10 | End card | PCOBooster. Free during the beta at pcobooster.com. |
+| 0:02 | Fill a team | PCOBooster shows who's rested and ready, and fills the spot in a click. |
+| 0:06 | Chord charts | Transpose a whole chart in one step. |
+| 0:11 | End card | PCOBooster. Free during the beta at pcobooster.com. |
 
-## About 26 seconds (`Launch30`)
+## About 30 seconds (`Launch30`)
 
 | At | Scene | Line |
 | --- | --- | --- |
 | 0:00 | Hook | Still filling Sunday's team on Thursday night? |
-| 0:02 | Fill a spot | Pick the open spot. PCOBooster shows who's free, ranked by who's rested. |
-| 0:09 | Saved | Add them in a click, and it's saved straight to Planning Center. |
-| 0:13 | Team health | Notice who's carrying too much, |
-| 0:15 | Keys | set keys from the run sheet, |
-| 0:18 | Transpose | and transpose a chart in one click. |
-| 0:21 | End card | PCOBooster. Free during the beta at pcobooster.com. |
+| 0:02 | PCOBooster | PCOBooster. Planning Center, boosted. |
+| 0:05 | Fill a team | Find the open spot, see who's rested and ready, and fill it in a click. |
+| 0:11 | Key transitions | See how each song lands in the next key, and smooth out the tricky ones. |
+| 0:15 | Team health | Notice who's carrying too much before it turns into a no. |
+| 0:19 | Chord charts | Transpose a whole chart before rehearsal. |
+| 0:23 | Saves back | Every change saves straight back to Planning Center. |
+| 0:26 | End card | Free during the beta at pcobooster.com. |
 
 ## About a minute (`Walkthrough70`)
 
