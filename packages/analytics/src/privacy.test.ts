@@ -242,6 +242,28 @@ describe("analytics privacy boundary", () => {
     expect(canRecordSession("/songs/private-song", true)).toBeFalsy();
   });
 
+  it("keeps signed-out pageviews on the public key transition page as marketing", () => {
+    const event = prepareAnalyticsEvent(
+      {
+        uuid: "pageview",
+        event: "$pageview",
+        properties: {
+          distinct_id: "visitor",
+          $current_url: "https://pcobooster.com/key-transitions?from=G",
+        },
+      },
+      "/key-transitions",
+      false
+    );
+    expect(analyticsPath("/key-transitions/")).toBe("/key-transitions");
+    expect(event?.properties).toStrictEqual({
+      distinct_id: "visitor",
+      $current_url: "https://pcobooster.com/key-transitions",
+      is_authenticated: false,
+      surface: "marketing",
+    });
+  });
+
   it("removes query strings, fragments, and external referrer paths", () => {
     expect(
       analyticsUrl(

@@ -10,6 +10,8 @@ export const isPublicPath = (pathname: string): boolean =>
   pathname === "/privacy/" ||
   pathname === "/terms" ||
   pathname === "/terms/" ||
+  pathname === "/key-transitions" ||
+  pathname === "/key-transitions/" ||
   pathname === "/robots.txt" ||
   pathname === "/sitemap.xml" ||
   pathname === "/version" ||

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as KeyTransitionsRouteImport } from './routes/key-transitions'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as VersionRouteImport } from './routes/version'
@@ -45,6 +46,11 @@ const AboutRoute = AboutRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KeyTransitionsRoute = KeyTransitionsRouteImport.update({
+  id: '/key-transitions',
+  path: '/key-transitions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/key-transitions': typeof KeyTransitionsRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/version': typeof VersionRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/key-transitions': typeof KeyTransitionsRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/version': typeof VersionRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/key-transitions': typeof KeyTransitionsRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/version': typeof VersionRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/key-transitions'
     | '/privacy'
     | '/terms'
     | '/version'
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/key-transitions'
     | '/privacy'
     | '/terms'
     | '/version'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/about'
     | '/auth'
+    | '/key-transitions'
     | '/privacy'
     | '/terms'
     | '/version'
@@ -244,6 +256,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
+  KeyTransitionsRoute: typeof KeyTransitionsRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
   VersionRoute: typeof VersionRoute
@@ -280,6 +293,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/key-transitions': {
+      id: '/key-transitions'
+      path: '/key-transitions'
+      fullPath: '/key-transitions'
+      preLoaderRoute: typeof KeyTransitionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -427,6 +447,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
+  KeyTransitionsRoute: KeyTransitionsRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
   VersionRoute: VersionRoute,

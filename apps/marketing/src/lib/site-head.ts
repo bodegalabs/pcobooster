@@ -19,6 +19,13 @@ const SOCIAL_PREVIEWS = {
     image: "og-about.png",
     alt: "PCOBooster was built for the people who bring the team together",
   },
+  "/key-transitions": {
+    title: "Song Key Transitions | PCOBooster",
+    description:
+      "Pick two song keys and get chord-by-chord ways to move your band from one song into the next.",
+    image: "og-home.png",
+    alt: "PCOBooster: the workspace ministry leaders use on top of Planning Center Services",
+  },
   "/privacy": {
     title: "Privacy Policy | PCOBooster",
     description:

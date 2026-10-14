@@ -9,6 +9,7 @@ const PERSON_PATH = /^\/people\/[^/]+\/?$/u;
 const PUBLIC_PATHS = new Set([
   "/",
   "/about",
+  "/key-transitions",
   "/auth",
   "/services",
   "/people",
@@ -156,10 +157,18 @@ export const sanitizeAnalyticsProperties = (
   return result;
 };
 
+const MARKETING_PATHS = new Set([
+  "/",
+  "/about",
+  "/about/",
+  "/key-transitions",
+  "/key-transitions/",
+]);
+
 export const analyticsSurface = (
   pathname: string
 ): "marketing" | "auth" | "app" => {
-  if (pathname === "/" || pathname === "/about" || pathname === "/about/") {
+  if (MARKETING_PATHS.has(pathname)) {
     return "marketing";
   }
   return pathname === "/auth" ? "auth" : "app";

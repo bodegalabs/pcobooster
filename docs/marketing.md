@@ -12,6 +12,10 @@ Use the product port (3001 in the main checkout) to test the whole journey, incl
 
 The marketing dev server is Vite. Its assets are served under `/marketing/` while its pages route at `/` and `/about`; Start rewrites the page requests internally. Vite's HMR websocket may not survive the product's proxy, so open the marketing port directly for hot reload. Styling uses Tailwind and marketing's own shadcn primitives (`src/components/ui`, Base UI, the same `base-luma` style as the product) on the product's design tokens; the interactive replica keeps its CSS modules. The phone menu comes from `@pcobooster/ui/mobile-menu`, which the product's phone header uses too. Marketing does not import other product UI, authentication, or providers.
 
+## Key transition finder
+
+`/key-transitions` is a public, prerendered tool page for search: a visitor picks two keys and gets the product's own rating and advice from `@pcobooster/planning-center-models/key-transition-advice` (`src/lib/key-transition-tool.ts`). It opens on G into Bb so the prerendered HTML carries real advice. Like `/about`, the product serves it from `public/marketing` through its own server route, and it is listed in `robots.txt` and `sitemap.xml`.
+
 ## Build and deployment
 
 Run `bun run build` from the repository root. It:

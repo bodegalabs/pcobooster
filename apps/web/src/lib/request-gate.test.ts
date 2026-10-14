@@ -43,6 +43,7 @@ describe(decideRequestGate, () => {
     "/about/",
     "/privacy",
     "/terms",
+    "/key-transitions",
     "/marketing/assets/index.js",
   ])("serves the public marketing path %s without a session", (path) => {
     expect(

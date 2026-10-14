@@ -3,6 +3,7 @@ Allow: /
 Allow: /about
 Allow: /privacy
 Allow: /terms
+Allow: /key-transitions
 Allow: /marketing/
 Disallow: /api/
 Disallow: /auth
@@ -14,5 +15,6 @@ Disallow: /marketing/index.html
 Disallow: /marketing/about.html
 Disallow: /marketing/privacy.html
 Disallow: /marketing/terms.html
+Disallow: /marketing/key-transitions.html
 
 Sitemap: https://pcobooster.com/sitemap.xml
