@@ -9,7 +9,7 @@ import {
 
 import { Backdrop } from "./components/backdrop";
 import type { Lines } from "./components/headline";
-import { FPS, seconds } from "./lib/format";
+import { FPS } from "./lib/format";
 import {
   BrandScene,
   EndCard,
@@ -53,18 +53,21 @@ const scene = (
 ): CutScene => ({ name, duration, render });
 
 /**
- * The feed cuts' music bed: "Saturn" from Holizna's Interstellar Pop Songs, released CC0
- * on the Free Music Archive (https://freemusicarchive.org/music/holiznacc0/interstellar-pop-songs).
- * It runs at 120 BPM, a beat every half second, with its first beat 0.174s in; the cut
- * starts the track there, so scenes whose lengths are whole half seconds cut on the beat.
- * Trimmed and loudness-normalized to -14 LUFS in public/music.
+ * The feed cuts' music bed: "Busted Jazz" from Holizna's Lo-Fi and Chill, released CC0 on
+ * the Free Music Archive (https://freemusicarchive.org/music/holiznacc0/lo-fi-and-chill).
+ * It runs at 90 BPM, a beat every 20 frames, with its first beat 0.639s in; the cut starts
+ * the track there and every scene lasts whole beats, so each cut lands on one. Trimmed and
+ * loudness-normalized to -14 LUFS in public/music.
  */
 const MUSIC = {
-  src: "music/saturn.mp3",
-  firstBeatSeconds: 0.174,
+  src: "music/busted-jazz.mp3",
+  firstBeatSeconds: 0.639,
   volume: 0.8,
   fadeOutFrames: 45,
 } as const;
+
+const FRAMES_PER_BEAT = 20;
+const beats = (count: number): number => count * FRAMES_PER_BEAT;
 
 /** What the demo changed, as it saves back to Planning Center. */
 const DEMO_CHANGES: readonly Change[] = [
@@ -79,22 +82,20 @@ const DEMO_CHANGES: readonly Change[] = [
 
 /** 15 seconds: the problem, one spot filled and saved, a key smoothed out, the ask. */
 const TEASER: readonly CutScene[] = [
-  scene("Hook", seconds(2.5), (duration) => (
+  scene("Hook", beats(4), (duration) => (
     <HookScene duration={duration} lines={HOOK} />
   )),
-  scene("Fill a team", seconds(5), (duration) => (
+  scene("Fill a team", beats(7), (duration) => (
     <FillTeamsScene
       duration={duration}
       fromLineup={false}
       lines={["Fill every team", "*with the right people.*"]}
     />
   )),
-  scene("Key transitions", seconds(5), (duration) => (
+  scene("Key transitions", beats(7), (duration) => (
     <KeyTransitionScene duration={duration} carry={false} />
   )),
-  scene("End card", seconds(3.5), (duration) => (
-    <EndCard duration={duration} />
-  )),
+  scene("End card", beats(5), (duration) => <EndCard duration={duration} />),
 ];
 
 /**
@@ -103,30 +104,26 @@ const TEASER: readonly CutScene[] = [
  * see it all saved back. The opening takes its time while the music swells in.
  */
 const DEMO: readonly CutScene[] = [
-  scene("Hook", seconds(3.5), (duration) => (
+  scene("Hook", beats(6), (duration) => (
     <HookScene duration={duration} lines={HOOK} />
   )),
-  scene("PCOBooster", seconds(4), (duration) => (
+  scene("PCOBooster", beats(6), (duration) => (
     <BrandScene duration={duration} />
   )),
-  scene("Fill a spot", seconds(17), (duration) => (
+  scene("Fill a spot", beats(26), (duration) => (
     <FillSundayScene duration={duration} />
   )),
-  scene("Build the set", seconds(4.5), (duration) => (
+  scene("Build the set", beats(7), (duration) => (
     <BuildSetScene duration={duration} />
   )),
-  scene("Key transitions", seconds(5.5), (duration) => (
+  scene("Key transitions", beats(8), (duration) => (
     <KeyTransitionScene duration={duration} />
   )),
-  scene("People", seconds(9.5), (duration) => (
-    <PeopleScene duration={duration} />
-  )),
-  scene("Saves back", seconds(3.5), (duration) => (
+  scene("People", beats(14), (duration) => <PeopleScene duration={duration} />),
+  scene("Saves back", beats(5), (duration) => (
     <SavesBackScene duration={duration} changes={DEMO_CHANGES} />
   )),
-  scene("End card", seconds(4.5), (duration) => (
-    <EndCard duration={duration} />
-  )),
+  scene("End card", beats(7), (duration) => <EndCard duration={duration} />),
 ];
 
 /** About 70 seconds: the walkthrough, room for a voiceover over each beat. */
