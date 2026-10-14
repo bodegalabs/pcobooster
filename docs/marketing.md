@@ -38,7 +38,7 @@ Prerendering runs only at build time. Start serves the pages through `vite previ
 
 ## Content and screenshots
 
-The working product strategy informed the positioning, but its proposed prices, seats, future features, and older naming are not commitments. Public copy uses pcobooster.com. Solo and Team prices are TBD, with no checkout or fabricated waitlist submission.
+The working product strategy informed the positioning, but its proposed prices, seats, future features, and older naming are not commitments. Public copy uses pcobooster.com. The site says PCOBooster is free during beta and promises only two things about pricing: users hear about any paid plan before it arrives, and nothing is charged without opting in. It names no notice period, price, or discount. There is no checkout or fabricated waitlist submission.
 
 The home page tells one story: PCOBooster is the workspace ministry leaders use on top of the Planning Center Services they already have, and every change saves back. Sections follow the jobs of a planning week (filling teams, caring for people, songs and charts, then the smaller jobs), each backed by a live piece of the replica rather than a screenshot. Copy only claims behavior the product ships today.
 
