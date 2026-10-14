@@ -1,7 +1,7 @@
 /** Public URL prefix of every marketing asset, which the product serves from `public/marketing`. */
 export const MARKETING_BASE = "/marketing/";
 
-const SITE_ORIGIN = "https://pcobooster.com";
+export const SITE_ORIGIN = "https://pcobooster.com";
 const SITE_NAME = "PCOBooster";
 const DEFAULT_TITLE = "PCOBooster | The Workspace for Planning Center Services";
 const SOCIAL_PREVIEWS = {
@@ -79,17 +79,26 @@ export const siteHead = (): PageHead => ({
   links: [{ rel: "icon", href: marketingAssetUrl("icon.svg") }],
 });
 
-/** Per-page title, description, canonical URL, and social preview. */
-export const pageHead = ({
-  title,
-  description,
-  pathname,
-}: {
-  title?: string;
+export interface SocialPreview {
+  title: string;
   description: string;
-  pathname: keyof typeof SOCIAL_PREVIEWS;
-}): PageHead => {
-  const preview = SOCIAL_PREVIEWS[pathname];
+  image: string;
+  alt: string;
+}
+
+type PageHeadInput = { title?: string; description: string } & (
+  | { pathname: keyof typeof SOCIAL_PREVIEWS }
+  | { pathname: string; preview: SocialPreview }
+);
+
+/**
+ * Per-page title, description, canonical URL, and social preview. Generated pages, such as
+ * one per key change, pass their own preview.
+ */
+export const pageHead = (input: PageHeadInput): PageHead => {
+  const { title, description, pathname } = input;
+  const preview: SocialPreview =
+    "preview" in input ? input.preview : SOCIAL_PREVIEWS[input.pathname];
   const imageUrl = `${SITE_ORIGIN}${marketingAssetUrl(preview.image)}`;
   return {
     meta: [
@@ -113,3 +122,8 @@ export const pageHead = ({
     links: [{ rel: "canonical", href: canonicalUrl(pathname) }],
   };
 };
+
+/** A listed page's social preview, as the base for pages generated beneath it. */
+export const socialPreviewOf = (
+  pathname: keyof typeof SOCIAL_PREVIEWS
+): SocialPreview => SOCIAL_PREVIEWS[pathname];

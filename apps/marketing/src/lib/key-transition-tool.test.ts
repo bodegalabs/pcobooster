@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { keyTransitionAdvice, switchMode } from "./key-transition-tool";
+import { keyTransitionAdvice } from "./key-transition-tool";
 
 const adviceLines = (
   from: Parameters<typeof keyTransitionAdvice>[0],
@@ -60,16 +60,5 @@ describe(keyTransitionAdvice, () => {
       kind: "relative",
       reason: "Relative key: same key signature",
     });
-  });
-});
-
-describe(switchMode, () => {
-  it.each([
-    ["G", "Gm"],
-    ["Db", "C#m"],
-    ["Bbm", "Bb"],
-    ["G#m", "Ab"],
-  ] as const)("turns %s into %s", (choice, expected) => {
-    expect(switchMode(choice)).toBe(expected);
   });
 });

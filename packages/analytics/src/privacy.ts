@@ -6,6 +6,8 @@ const PLAN_PATH =
 const OVERVIEW_PATH = /^\/services\/[^/]+\/plans\/[^/]+\/overview\/?$/u;
 const SONG_PATH = /^\/songs\/[^/]+\/?$/u;
 const PERSON_PATH = /^\/people\/[^/]+\/?$/u;
+/** Public key change pages, such as `/key-transitions/g-to-b-flat`; the pair is not private. */
+const KEY_TRANSITION_PATH = /^\/key-transitions\/[a-z0-9-]+\/?$/u;
 const PUBLIC_PATHS = new Set([
   "/",
   "/about",
@@ -18,7 +20,7 @@ const PUBLIC_PATHS = new Set([
 
 export const analyticsPath = (pathname: string): string => {
   const path = pathname.length > 1 ? pathname.replace(/\/$/u, "") : pathname;
-  if (PUBLIC_PATHS.has(path)) {
+  if (PUBLIC_PATHS.has(path) || KEY_TRANSITION_PATH.test(path)) {
     return path;
   }
   const plan = PLAN_PATH.exec(path);
@@ -168,7 +170,7 @@ const MARKETING_PATHS = new Set([
 export const analyticsSurface = (
   pathname: string
 ): "marketing" | "auth" | "app" => {
-  if (MARKETING_PATHS.has(pathname)) {
+  if (MARKETING_PATHS.has(pathname) || KEY_TRANSITION_PATH.test(pathname)) {
     return "marketing";
   }
   return pathname === "/auth" ? "auth" : "app";

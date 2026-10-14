@@ -6,9 +6,23 @@ import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 
 import { withPublicBase } from "./src/lib/base-path.ts";
-import { MARKETING_BASE } from "./src/lib/site-head.ts";
+import { KEY_PAIRS, pairPath } from "./src/lib/key-transition-pages.ts";
+import { MARKETING_BASE, SITE_ORIGIN } from "./src/lib/site-head.ts";
 
-/** Lets prerendering fetch `/`, `/about`, `/privacy`, and `/terms` through the preview server's base guard. */
+/**
+ * Every public page, in sitemap order. Start discovers static routes on its own, but the key
+ * change pages share one dynamic route, so each is listed.
+ */
+const SITE_PAGES = [
+  "/",
+  "/about",
+  "/key-transitions",
+  ...KEY_PAIRS.map((pair) => pairPath(pair)),
+  "/privacy",
+  "/terms",
+];
+
+/** Lets prerendering fetch every page (`/`, `/about`, `/key-transitions/...`) through the preview server's base guard. */
 const previewPagesOutsideBase = (): Plugin => ({
   name: "pcobooster:marketing-preview-pages",
   configurePreviewServer: (server) => {
@@ -54,6 +68,9 @@ export default defineConfig({
     previewPagesOutsideBase(),
     tanstackStart({
       router: { basepath: "/" },
+      pages: SITE_PAGES.map((path) => ({ path })),
+      // Written to `sitemap.xml` beside the pages; the product serves it at `/sitemap.xml`.
+      sitemap: { enabled: true, host: SITE_ORIGIN },
       prerender: {
         enabled: true,
         // Static routes are discovered from the route tree. Crawling would follow product

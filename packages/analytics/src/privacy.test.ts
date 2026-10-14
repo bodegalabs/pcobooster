@@ -242,23 +242,26 @@ describe("analytics privacy boundary", () => {
     expect(canRecordSession("/songs/private-song", true)).toBeFalsy();
   });
 
-  it("keeps signed-out pageviews on the public key transition page as marketing", () => {
+  it.each([
+    ["/key-transitions/", "/key-transitions"],
+    ["/key-transitions/e-to-e-flat/", "/key-transitions/e-to-e-flat"],
+  ])("keeps signed-out pageviews on %s as marketing", (pathname, path) => {
     const event = prepareAnalyticsEvent(
       {
         uuid: "pageview",
         event: "$pageview",
         properties: {
           distinct_id: "visitor",
-          $current_url: "https://pcobooster.com/key-transitions?from=G",
+          $current_url: `https://pcobooster.com${pathname}?from=G`,
         },
       },
-      "/key-transitions",
+      pathname,
       false
     );
-    expect(analyticsPath("/key-transitions/")).toBe("/key-transitions");
+    expect(analyticsPath(pathname)).toBe(path);
     expect(event?.properties).toStrictEqual({
       distinct_id: "visitor",
-      $current_url: "https://pcobooster.com/key-transitions",
+      $current_url: `https://pcobooster.com${path}`,
       is_authenticated: false,
       surface: "marketing",
     });

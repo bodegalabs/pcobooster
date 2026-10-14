@@ -16,5 +16,8 @@ Disallow: /marketing/about.html
 Disallow: /marketing/privacy.html
 Disallow: /marketing/terms.html
 Disallow: /marketing/key-transitions.html
+Disallow: /marketing/key-transitions/
+Disallow: /marketing/sitemap.xml
+Disallow: /marketing/pages.json
 
 Sitemap: https://pcobooster.com/sitemap.xml

@@ -1,11 +1,12 @@
 # Marketing search and sharing
 
-The public marketing pages are `/`, `/about`, `/privacy`, and `/terms`. The prerendered TanStack Start marketing build is staged under `/marketing/` and served by the product Worker, so root crawl files belong in `apps/web/public`.
+The public marketing pages are `/`, `/about`, `/privacy`, `/terms`, `/key-transitions`, and one page per key change under `/key-transitions/`. The prerendered TanStack Start marketing build is staged under `/marketing/` and served by the product Worker, so root crawl files belong in `apps/web/public`.
 
 ## Implemented
 
-- Root `robots.txt` and `sitemap.xml` are served publicly. The sitemap lists only the canonical marketing URLs. The exported HTML copies under `/marketing/` are excluded from crawling.
+- Root `robots.txt` and `sitemap.xml` are served publicly. The marketing build generates the sitemap from its page list (`SITE_PAGES` in `apps/marketing/vite.config.ts`), so it lists every canonical marketing URL, including each key change page. The exported HTML copies under `/marketing/` are excluded from crawling.
 - Each page has its own canonical URL, descriptive title and description, Open Graph URL and image, and large image social card. The source SVGs and raster PNGs are under `apps/marketing/public/`.
+- Each key change page targets searches for that change ("G to Bb key change") with its own title and description, the product's advice in the prerendered HTML, and plain links to related changes so crawlers reach every pair.
 - The home page identifies the site as `PCOBooster` with `WebSite` JSON-LD. The sign-in page is marked `noindex`.
 - All tracked repository text rejects em and en dashes through `bun run check`.
 
