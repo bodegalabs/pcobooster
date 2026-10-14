@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import type { Shot } from "../lib/camera";
+import { useFormat } from "../lib/format";
 import { useFeatureLayout } from "../lib/layout";
 import { ProductStage } from "../lib/product-stage";
 import type { CursorStep, Highlight } from "../lib/product-stage";
@@ -75,6 +76,7 @@ export const FeatureScene = ({
   transition = "soft",
   carry = false,
   handOff = false,
+  canvasWidth,
   overlay,
   children,
 }: {
@@ -96,11 +98,28 @@ export const FeatureScene = ({
   carry?: boolean;
   /** The next scene carries the product on: ease back to the whole window to meet it. */
   handOff?: boolean;
+  /**
+   * In the 4:5 feed, lays the replica out this wide and scales it into the same window,
+   * for pages whose columns would otherwise truncate their names.
+   */
+  canvasWidth?: number;
   /** Drawn over the product window, outside the camera (a saved toast, say). */
   overlay?: ReactNode;
   children: ReactNode;
 }) => {
-  const layout = useFeatureLayout();
+  const base = useFeatureLayout();
+  const format = useFormat();
+  const layout =
+    // Only the 4:5 feed widens: portrait keeps the phone layout, landscape is already wide.
+    canvasWidth === undefined || format !== "feed"
+      ? base
+      : {
+          ...base,
+          nativeWidth: canvasWidth,
+          nativeHeight: Math.round(
+            (base.nativeHeight * canvasWidth) / base.nativeWidth
+          ),
+        };
   // A carried scene opens on the whole window and eases in to its first subject; a scene
   // that hands off eases back out, so the camera never jumps between scenes.
   const framed = (shots ?? []).map((shot, index) =>

@@ -409,7 +409,15 @@ const section = (title: string): Target => ({
   text: title,
   closest: "section",
 });
-const TEAMS_YOU_LEAD = css(`.${styles["health-card"]}`);
+/**
+ * The People page's three attention cards truncate names at the feed's 1000px canvas;
+ * laid out at this width they read in full. Phone layouts stack the cards and ignore it.
+ */
+const PEOPLE_CANVAS_WIDTH = 1240;
+/** The "Steady" pill beside "Teams you lead", at the top left of the health summary. */
+const TEAMS_YOU_LEAD_TITLE = css(
+  `.${styles["health-card"]} .${styles["status-pill"]}`
+);
 const WAITING = section("Waiting on a reply");
 const CHECK_IN = section("Check in");
 const DUE = section("Due for a slot");
@@ -426,6 +434,7 @@ export const PeopleScene = ({ duration }: { duration: number }) => {
   const dueAt = 212;
   return (
     <FeatureScene
+      canvasWidth={PEOPLE_CANVAS_WIDTH}
       carry
       transition="soft-out"
       duration={duration}
@@ -446,7 +455,7 @@ export const PeopleScene = ({ duration }: { duration: number }) => {
       ]}
       beats={[{ at: 0, apply: showView("people") }]}
       shots={[
-        { at: 0, target: TEAMS_YOU_LEAD, zoom: 1.25, duration: 1 },
+        { at: 0, target: TEAMS_YOU_LEAD_TITLE, zoom: 1.6, duration: 1 },
         { at: waitingAt, target: WAITING, pad: 12, duration: 26 },
         { at: checkInAt, target: CHECK_IN, pad: 12, duration: 26 },
         { at: dueAt, target: DUE, pad: 12, duration: 26 },
