@@ -29,10 +29,10 @@ import {
   TeamHealthScene,
 } from "./scenes/product-scenes";
 import {
-  BuildSetScene,
   FillSundayScene,
   KeyTransitionScene,
   PeopleScene,
+  PlanScene,
 } from "./scenes/story-scenes";
 
 interface CutScene {
@@ -94,7 +94,7 @@ const TEASER: readonly CutScene[] = [
     />
   )),
   scene("Key transitions", beats(7), (duration) => (
-    <KeyTransitionScene duration={duration} carry={false} />
+    <KeyTransitionScene duration={duration} />
   )),
   scene("End card", beats(5), (duration) => <EndCard duration={duration} />),
 ];
@@ -114,11 +114,8 @@ const DEMO: readonly CutScene[] = [
   scene("Fill a spot", beats(26), (duration) => (
     <FillSundayScene duration={duration} />
   )),
-  scene("Build the set", beats(7), (duration) => (
-    <BuildSetScene duration={duration} />
-  )),
-  scene("Key transitions", beats(8), (duration) => (
-    <KeyTransitionScene duration={duration} />
+  scene("Set the plan", beats(15), (duration) => (
+    <PlanScene duration={duration} />
   )),
   scene("People", beats(14), (duration) => <PeopleScene duration={duration} />),
   scene("Saves back", beats(5), (duration) => (

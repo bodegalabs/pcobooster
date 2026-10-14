@@ -20,6 +20,8 @@ export interface Target {
   readonly selector: string;
   readonly text?: string;
   readonly closest?: string;
+  /** A second element to frame with this one: the camera takes the box around both. */
+  readonly with?: Target;
 }
 
 /**
@@ -38,7 +40,9 @@ export interface Beat {
 }
 
 export const targetKey = (target: Target): string =>
-  `${target.selector}::${target.text ?? ""}::${target.closest ?? ""}`;
+  `${target.selector}::${target.text ?? ""}::${target.closest ?? ""}${
+    target.with === undefined ? "" : `+${targetKey(target.with)}`
+  }`;
 
 const isVisible = (element: Element): boolean =>
   element.getClientRects().length > 0 &&

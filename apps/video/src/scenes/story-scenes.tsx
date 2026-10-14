@@ -10,6 +10,7 @@ import {
 import { ProductDemo } from "../../../marketing/src/components/product-demo/product-demo";
 import { FeatureScene } from "../components/feature-scene";
 import { SavedToast } from "../components/saved-toast";
+import { useFormat } from "../lib/format";
 import type { Beat, Target } from "../lib/replica";
 
 import styles from "../../../marketing/src/components/product-demo/product-demo.module.css";
@@ -188,33 +189,74 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
 
 // Plan
 const ADD_AFTER_OPEN_DOORS = css('[aria-label="Add after Open Doors"]');
+/** The "+" at the start of the insert line, which the cursor aims for. */
+const INSERT_PLUS = css(
+  `[aria-label="Add after Open Doors"] .${styles["insert-plus"]}`
+);
 const SONG_CHOICE: Target = { selector: '[role="menuitem"]', text: "Song" };
 const OPEN_LANTERN_HILL = css('[aria-label="Open Lantern Hill"]');
-const LANTERN_HILL_ROW: Target = {
-  selector: '[aria-label="Open Lantern Hill"]',
+const OPEN_DOORS_ROW: Target = {
+  selector: '[aria-label="Open Open Doors"]',
   closest: "li",
 };
-const WORSHIP_SET: Target = {
+const DETAILS = css('aside[aria-label="Details"]');
+/** Clicks that reopen the new song's details on a beat's fresh mount. */
+const KEEP_DETAILS: readonly Target[] = [OPEN_LANTERN_HILL];
+const NO_CLICKS: readonly Target[] = [];
+const KEY_HINT = css(`.${styles["pane-hint"]}`);
+/** Morning Light (G) into Steady Ground (Eb), down a major third: worth a look. */
+const TRICKY_CHANGE: Target = {
+  selector: '[data-level="worth-a-look"]',
+  closest: "button",
+};
+const KEY_CHANGE_PANEL = css('dialog[aria-label="Key change"]');
+const STEADY_GROUND_ROW: Target = {
   selector: '[aria-label="Open Steady Ground"]',
   closest: "li",
 };
+/** Steady Ground's row with its key panel open under it, framed as one. */
+const ROW_AND_PANEL: Target = { ...STEADY_GROUND_ROW, with: KEY_CHANGE_PANEL };
+const PLAY_IN_KEY: Target = { selector: `.${styles.alternates} button` };
+const STEADY_GROUND_IN_D = css(
+  '[aria-label="Key D, change key for Steady Ground"]'
+);
 
-/** Building the set: a song added after Open Doors, its details beside the run sheet. */
-export const BuildSetScene = ({ duration }: { duration: number }) => {
-  const menuAt = 34;
-  const addAt = 64;
+/**
+ * Setting the plan, in one continuous shot of the run sheet: hover the line after Open
+ * Doors and add a song, read how its key fits in the details beside it, then follow the
+ * key changes down the set, open the tricky one, and play Steady Ground in D so it flows.
+ * Menus and panels simply open; only the details pane, which reflows the sheet, softens.
+ */
+export const PlanScene = ({ duration }: { duration: number }) => {
+  const hoverAt = 16;
+  const menuAt = 30;
+  const songAt = 50;
+  const keysAt = 112;
+  const trickyAt = 152;
+  const pickAt = 236;
+  // The details pane is component state, so every later beat opens it again. At phone
+  // width it is a sheet over the run sheet, so it closes before the key changes, and the
+  // hover-only insert line doesn't exist, so the song simply arrives.
+  const portrait = useFormat() === "portrait";
+  const detailsDuringKeys = portrait ? NO_CLICKS : KEEP_DETAILS;
   return (
     <FeatureScene
-      handOff
       carry
+      handOff
       transition="cut"
       duration={duration}
       captions={[
         { at: 0, lines: ["Build the set."] },
+        { at: songAt + 4, lines: ["Add a song.", "*See how its key fits.*"] },
         {
-          at: addAt + 6,
-          lines: ["Add a song.", "*See how its key fits.*"],
+          at: keysAt,
+          lines: ["Follow every key change", "*down the set.*"],
         },
+        {
+          at: trickyAt + 6,
+          lines: ["A tricky one?", "*Get ways to connect.*"],
+        },
+        { at: pickAt + 6, lines: ["One click,", "*and it flows.*"] },
       ]}
       beats={[
         {
@@ -224,63 +266,96 @@ export const BuildSetScene = ({ duration }: { duration: number }) => {
             addHayden();
           },
         },
+        { at: hoverAt, focus: [ADD_AFTER_OPEN_DOORS] },
         { at: menuAt + 3, clicks: [ADD_AFTER_OPEN_DOORS] },
-        { at: addAt + 3, apply: addLanternHill, clicks: [OPEN_LANTERN_HILL] },
+        { at: songAt + 3, apply: addLanternHill, clicks: KEEP_DETAILS },
+        { at: trickyAt + 3, clicks: [...detailsDuringKeys, TRICKY_CHANGE] },
+        { at: pickAt + 3, apply: steadyGroundInD, clicks: detailsDuringKeys },
       ]}
       shots={[
-        { at: 0, target: WORSHIP_SET, zoom: 1.6, duration: 1 },
+        { at: 0, target: OPEN_DOORS_ROW, zoom: 1.7, duration: 1 },
         {
-          at: addAt + 6,
-          target: LANTERN_HILL_ROW,
-          zoom: 1.5,
-          beat: 2,
+          at: songAt + 4,
+          // The details sit at the window's right edge; this zoom keeps the new row's
+          // title in frame on the left.
+          target: DETAILS,
+          zoom: 1.45,
+          beat: 3,
           duration: 24,
+        },
+        {
+          at: keysAt - 6,
+          target: TRICKY_CHANGE,
+          zoom: 1.9,
+          beat: 3,
+          duration: 26,
+        },
+        {
+          at: trickyAt + 4,
+          target: ROW_AND_PANEL,
+          pad: 14,
+          beat: 4,
+          duration: 22,
+        },
+        {
+          at: pickAt + 2,
+          target: STEADY_GROUND_ROW,
+          zoom: 1.9,
+          beat: 5,
+          duration: 18,
         },
       ]}
       cursor={[
-        { at: menuAt, target: ADD_AFTER_OPEN_DOORS, click: true, travel: 18 },
-        { at: addAt, target: SONG_CHOICE, click: true, travel: 16, beat: 1 },
+        ...(portrait
+          ? []
+          : [
+              { at: hoverAt, target: INSERT_PLUS, travel: 14 },
+              {
+                at: menuAt,
+                target: INSERT_PLUS,
+                click: true,
+                travel: 6,
+                beat: 1,
+              },
+              {
+                at: songAt,
+                target: SONG_CHOICE,
+                click: true,
+                travel: 14,
+                beat: 2,
+              },
+            ]),
+        {
+          at: trickyAt,
+          target: TRICKY_CHANGE,
+          click: true,
+          travel: 22,
+          beat: 3,
+        },
+        { at: pickAt, target: PLAY_IN_KEY, click: true, travel: 22, beat: 4 },
       ]}
       highlights={[
-        { from: addAt + 20, to: duration, target: LANTERN_HILL_ROW },
+        { from: songAt + 18, to: keysAt - 8, target: KEY_HINT },
+        { from: keysAt + 12, to: trickyAt - 2, target: TRICKY_CHANGE },
+        { from: pickAt - 34, to: pickAt - 2, target: PLAY_IN_KEY, beat: 4 },
+        { from: pickAt + 14, to: duration, target: STEADY_GROUND_IN_D },
       ]}
-      swaps={[menuAt + 3, addAt + 3]}
+      swaps={portrait ? [songAt + 3, trickyAt + 3] : [songAt + 3]}
     >
       <ProductDemo />
     </FeatureScene>
   );
 };
 
-/** Morning Light (G) into Steady Ground (Eb), down a major third: worth a look. */
-const TRICKY_CHANGE: Target = {
-  selector: '[data-level="worth-a-look"]',
-  closest: "button",
-};
-const KEY_CHANGE_PANEL = css('dialog[aria-label="Key change"]');
-const PLAY_IN_KEY: Target = { selector: `.${styles.alternates} button` };
-const STEADY_GROUND_IN_D = css(
-  '[aria-label="Key D, change key for Steady Ground"]'
-);
-
 /**
- * Key transitions: the run sheet flags a tricky change between two songs, the panel says
- * why and how to connect them, and one click on a better key makes it flow.
+ * Key transitions on their own, for short cuts: the run sheet flags a tricky change, the
+ * panel says how to connect the songs, and one click on a better key makes it flow.
  */
-export const KeyTransitionScene = ({
-  duration,
-  carry = true,
-}: {
-  duration: number;
-  /** Off when it opens a cut on its own, after a scene that fades out. */
-  carry?: boolean;
-}) => {
-  const openAt = 34;
-  const pickAt = 112;
+export const KeyTransitionScene = ({ duration }: { duration: number }) => {
+  const openAt = 30;
+  const pickAt = 104;
   return (
     <FeatureScene
-      handOff={carry}
-      carry={carry}
-      transition={carry ? "cut" : "soft"}
       duration={duration}
       captions={[
         { at: 0, lines: ["See how each song", "*lands in the next key.*"] },
@@ -291,45 +366,37 @@ export const KeyTransitionScene = ({
         { at: pickAt + 6, lines: ["One click,", "*and it flows.*"] },
       ]}
       beats={[
-        {
-          at: 0,
-          apply: () => {
-            showView("plan")();
-            addHayden();
-            addLanternHill();
-          },
-        },
+        { at: 0, apply: showView("plan") },
         { at: openAt + 3, clicks: [TRICKY_CHANGE] },
         { at: pickAt + 3, apply: steadyGroundInD },
       ]}
       cursor={[
         { at: openAt, target: TRICKY_CHANGE, click: true, travel: 18 },
-        { at: pickAt, target: PLAY_IN_KEY, click: true, travel: 24, beat: 1 },
+        { at: pickAt, target: PLAY_IN_KEY, click: true, travel: 22, beat: 1 },
       ]}
       shots={[
         { at: 0, target: TRICKY_CHANGE, zoom: 1.8, duration: 1 },
         {
           at: openAt + 4,
-          target: KEY_CHANGE_PANEL,
-          pad: 18,
+          target: ROW_AND_PANEL,
+          pad: 14,
           portraitZoom: 1.45,
           beat: 1,
           duration: 22,
         },
         {
-          at: pickAt + 4,
-          target: STEADY_GROUND_IN_D,
-          zoom: 1.8,
+          at: pickAt + 2,
+          target: STEADY_GROUND_ROW,
+          zoom: 1.9,
           beat: 2,
-          duration: 22,
+          duration: 18,
         },
       ]}
       highlights={[
         { from: 6, to: openAt - 2, target: TRICKY_CHANGE },
-        { from: openAt + 50, to: pickAt - 2, target: PLAY_IN_KEY, beat: 1 },
+        { from: openAt + 40, to: pickAt - 2, target: PLAY_IN_KEY, beat: 1 },
         { from: pickAt + 14, to: duration, target: STEADY_GROUND_IN_D },
       ]}
-      swaps={[openAt + 3, pickAt + 3]}
     >
       <ProductDemo />
     </FeatureScene>

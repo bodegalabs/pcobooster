@@ -72,17 +72,36 @@ const measureAll = (
 ): BeatLayout => {
   const rootRect = root.getBoundingClientRect();
   const scale = rootRect.width / root.offsetWidth;
+  const measure = (target: Target): Rect | undefined => {
+    const element = findTarget(root, target);
+    if (element === null) {
+      return undefined;
+    }
+    const rect = element.getBoundingClientRect();
+    const own = {
+      x: (rect.left - rootRect.left) / scale,
+      y: (rect.top - rootRect.top) / scale,
+      width: rect.width / scale,
+      height: rect.height / scale,
+    };
+    const other = target.with === undefined ? undefined : measure(target.with);
+    if (other === undefined) {
+      return own;
+    }
+    const left = Math.min(own.x, other.x);
+    const top = Math.min(own.y, other.y);
+    return {
+      x: left,
+      y: top,
+      width: Math.max(own.x + own.width, other.x + other.width) - left,
+      height: Math.max(own.y + own.height, other.y + other.height) - top,
+    };
+  };
   const rects: Record<string, Rect> = {};
   for (const target of targets) {
-    const element = findTarget(root, target);
-    if (element !== null) {
-      const rect = element.getBoundingClientRect();
-      rects[targetKey(target)] = {
-        x: (rect.left - rootRect.left) / scale,
-        y: (rect.top - rootRect.top) / scale,
-        width: rect.width / scale,
-        height: rect.height / scale,
-      };
+    const rect = measure(target);
+    if (rect !== undefined) {
+      rects[targetKey(target)] = rect;
     }
   }
   return { rects, contentHeight: root.scrollHeight };

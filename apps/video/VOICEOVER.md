@@ -22,8 +22,7 @@ The on-screen headlines already carry each cut with the sound off. These lines a
 | 0:14 | History | Frankie's played three Sundays and the rehearsals between. |
 | 0:18 | Ranked | Hayden's rested, so Hayden ranks first. |
 | 0:20 | Saved | Ask in a click, and it's saved to Planning Center. |
-| 0:25 | Build the set | Add a song, and see how its key fits. |
-| 0:29 | Key transitions | A tricky key change gets ideas to connect it, and one click smooths it out. |
+| 0:25 | Set the plan | Build the set: add a song and see how its key fits, follow every key change down the set, and fix the tricky one in a click. |
 | 0:35 | People | Then look after your people: who hasn't answered, who's carrying too much, and who's ready for another Sunday. |
 | 0:44 | Saves back | Every change saves straight back to Planning Center. |
 | 0:48 | End card | Free during the beta at pcobooster.com. |
