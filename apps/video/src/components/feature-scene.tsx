@@ -10,6 +10,9 @@ import type { Lines } from "./headline";
 import { Scene } from "./scene";
 import type { Transition } from "./scene";
 
+const CARRY_IN_AT = 3;
+const CARRY_FRAMES = 22;
+
 /** One caption of a scene that narrates as it goes, shown from `at` until the next. */
 export interface Caption {
   readonly at: number;
@@ -21,13 +24,17 @@ const Captions = ({
   captions,
   size,
   width,
+  endAt,
 }: {
   captions: readonly Caption[];
   size: number;
   width: number;
+  /** Where the last caption clears, when the scene ends on a hard edge. */
+  endAt?: number;
 }) =>
   captions.map((caption, index) => {
     const next = captions[index + 1];
+    const exitAt = next === undefined ? endAt : next.at - 4;
     return (
       <div
         key={caption.at}
@@ -43,7 +50,7 @@ const Captions = ({
           size={size}
           at={caption.at}
           pace="caption"
-          exitAt={next === undefined ? undefined : next.at - 4}
+          exitAt={exitAt}
           style={{ maxWidth: width }}
         />
       </div>
@@ -66,6 +73,8 @@ export const FeatureScene = ({
   revealAt,
   swaps,
   transition = "soft",
+  carry = false,
+  handOff = false,
   overlay,
   children,
 }: {
@@ -80,13 +89,30 @@ export const FeatureScene = ({
   /** Frames where the replica changes screen, softened with a brief blur. */
   swaps?: readonly number[];
   transition?: Transition;
+  /**
+   * Picks up from a product scene before it: the window is already in place and only its
+   * contents change, softened like any screen swap, as if the same app moved on.
+   */
+  carry?: boolean;
+  /** The next scene carries the product on: ease back to the whole window to meet it. */
+  handOff?: boolean;
   /** Drawn over the product window, outside the camera (a saved toast, say). */
   overlay?: ReactNode;
   children: ReactNode;
 }) => {
   const layout = useFeatureLayout();
-  // A hard cut arrives with the product already in place.
-  const cut = transition === "cut";
+  // A carried scene opens on the whole window and eases in to its first subject; a scene
+  // that hands off eases back out, so the camera never jumps between scenes.
+  const framed = (shots ?? []).map((shot, index) =>
+    carry && index === 0 && shot.at === 0
+      ? { ...shot, at: CARRY_IN_AT, duration: CARRY_FRAMES }
+      : shot
+  );
+  const cameraShots = handOff
+    ? [...framed, { at: duration - CARRY_FRAMES - 2, duration: CARRY_FRAMES }]
+    : framed;
+  // A hard cut or a carried scene arrives with the product already in place.
+  const inPlace = carry || transition === "cut";
 
   return (
     <Scene duration={duration} transition={transition}>
@@ -112,6 +138,11 @@ export const FeatureScene = ({
             captions={captions}
             size={layout.headlineSize}
             width={layout.headlineWidth}
+            endAt={
+              transition === "cut" || transition === "soft-in"
+                ? duration - 8
+                : undefined
+            }
           />
         )}
       </div>
@@ -120,13 +151,13 @@ export const FeatureScene = ({
         nativeWidth={layout.nativeWidth}
         nativeHeight={layout.nativeHeight}
         box={layout.product}
-        shots={shots}
+        shots={cameraShots}
         cursor={cursor}
         highlights={highlights}
         // A spring that started a second ago has settled: in place from the first frame.
-        enterAt={cut ? -30 : 6}
+        enterAt={inPlace ? -30 : 6}
         revealAt={revealAt}
-        swaps={swaps}
+        swaps={carry ? [0, ...(swaps ?? [])] : swaps}
       >
         {children}
       </ProductStage>

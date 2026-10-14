@@ -324,7 +324,11 @@ export const ProductStage = ({
               height: nativeHeight,
               transform: `translate(${camera.panX}px, ${camera.panY}px) scale(${camera.zoom})`,
               transformOrigin: "0 0",
-              filter: swapBlur > 0.1 ? `blur(${swapBlur}px)` : undefined,
+              // Blur inside the camera is magnified by its zoom; divide it back out.
+              filter:
+                swapBlur > 0.1
+                  ? `blur(${swapBlur / camera.zoom}px)`
+                  : undefined,
             }}
           >
             <div

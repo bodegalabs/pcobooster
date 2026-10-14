@@ -11,18 +11,22 @@ The on-screen headlines already carry each cut with the sound off. These lines a
 | 0:06 | Chord charts | Transpose a whole chart in one step. |
 | 0:11 | End card | PCOBooster. Free during the beta at pcobooster.com. |
 
-## About 30 seconds (`Launch30`)
+## About 47 seconds (`Demo50`)
 
 | At | Scene | Line |
 | --- | --- | --- |
 | 0:00 | Hook | Still filling Sunday's team on Thursday night? |
 | 0:02 | PCOBooster | PCOBooster. Planning Center, boosted. |
-| 0:05 | Fill a team | Find the open spot, see who's rested and ready, and fill it in a click. |
-| 0:11 | Key transitions | See how each song lands in the next key, and smooth out the tricky ones. |
-| 0:15 | Team health | Notice who's carrying too much before it turns into a no. |
-| 0:19 | Chord charts | Transpose a whole chart before rehearsal. |
-| 0:23 | Saves back | Every change saves straight back to Planning Center. |
-| 0:26 | End card | Free during the beta at pcobooster.com. |
+| 0:05 | Overview | Start with Sunday, and see what's still open. |
+| 0:07 | Assign | Everyone who could play, with their month around it. |
+| 0:10 | History | Frankie's played three Sundays and the rehearsals between. |
+| 0:13 | Ranked | Hayden's rested, so Hayden ranks first. |
+| 0:16 | Saved | Ask in a click, and it's saved to Planning Center. |
+| 0:20 | Build the set | Add a song, and see how its key fits. |
+| 0:24 | Key transitions | A tricky key change gets ideas to connect it, and one click smooths it out. |
+| 0:30 | People | Then look after your people: who hasn't answered, who's carrying too much, and who's ready for another Sunday. |
+| 0:39 | Saves back | Every change saves straight back to Planning Center. |
+| 0:42 | End card | Free during the beta at pcobooster.com. |
 
 ## About a minute (`Walkthrough70`)
 

@@ -11,14 +11,25 @@ const exitEase = Easing.bezier(0.55, 0, 0.75, 0.3);
 
 /**
  * How a scene meets its neighbours: `soft` focuses in at its start and blurs out at its
- * end; `cut` is a hard cut. Neither overlaps the next scene, which would mount two
+ * end; `soft-in` and `soft-out` do only one side, next to a scene that carries the
+ * product on; `cut` is a hard cut. None overlaps the next scene, which would mount two
  * replicas that both drive the replica's shared stores.
  */
-export type Transition = "soft" | "cut";
+export type Transition = "soft" | "soft-in" | "soft-out" | "cut";
 
-const softStyle = (duration: number, frame: number): CSSProperties => {
-  const enter = progress(frame, 0, ENTER_FRAMES);
-  const exit = progress(frame, duration - EXIT_FRAMES, EXIT_FRAMES, exitEase);
+const softStyle = (
+  duration: number,
+  frame: number,
+  transition: Transition
+): CSSProperties => {
+  const enter =
+    transition === "soft" || transition === "soft-in"
+      ? progress(frame, 0, ENTER_FRAMES)
+      : 1;
+  const exit =
+    transition === "soft" || transition === "soft-out"
+      ? progress(frame, duration - EXIT_FRAMES, EXIT_FRAMES, exitEase)
+      : 0;
   const shown = enter * (1 - exit);
   return {
     opacity: shown,
@@ -39,7 +50,11 @@ export const Scene = ({
   const frame = useCurrentFrame();
   return (
     <AbsoluteFill
-      style={transition === "soft" ? softStyle(duration, frame) : undefined}
+      style={
+        transition === "cut"
+          ? undefined
+          : softStyle(duration, frame, transition)
+      }
     >
       {children}
     </AbsoluteFill>

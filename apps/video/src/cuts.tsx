@@ -18,16 +18,22 @@ import {
   SavesBackScene,
   ServicesScene,
 } from "./scenes/brand-scenes";
+import type { Change } from "./scenes/brand-scenes";
 import {
   ChordChartScene,
   FillTeamsScene,
   HistoryScene,
   ImportScene,
-  KeyTransitionScene,
   OverviewScene,
   RunSheetScene,
   TeamHealthScene,
 } from "./scenes/product-scenes";
+import {
+  BuildSetScene,
+  FillSundayScene,
+  KeyTransitionScene,
+  PeopleScene,
+} from "./scenes/story-scenes";
 
 interface CutScene {
   readonly name: string;
@@ -83,17 +89,23 @@ const onBeats = (
   });
 };
 
-/*
- * The feed cuts: the walkthrough's scenes, trimmed to the beat of the music bed, with the
- * brand in one short beat so the product shows within five seconds.
- */
+/** What the demo changed, as it saves back to Planning Center. */
+const DEMO_CHANGES: readonly Change[] = [
+  {
+    badge: "HC",
+    title: "Hayden Collins",
+    detail: "Acoustic Guitar, requested",
+  },
+  { badge: null, title: "Lantern Hill", detail: "Added after Open Doors" },
+  { badge: null, title: "Steady Ground", detail: "Key changed to D" },
+];
 
-/** 15 seconds: the problem, one fill, one transpose, the ask. */
+/** 15 seconds: the problem, one spot filled and saved, a key smoothed out, the ask. */
 const TEASER = onBeats([
   ["Hook", 4, (duration) => <HookScene duration={duration} lines={HOOK} />],
   [
     "Fill a team",
-    7,
+    8,
     (duration) => (
       <FillTeamsScene
         duration={duration}
@@ -102,28 +114,40 @@ const TEASER = onBeats([
       />
     ),
   ],
-  ["Chord charts", 7, (duration) => <ChordChartScene duration={duration} />],
-  ["End card", 8, (duration) => <EndCard duration={duration} />],
-]);
-
-/** About 30 seconds: one beat per job of the planning week, then the ask. */
-const LAUNCH = onBeats([
-  ["Hook", 4, (duration) => <HookScene duration={duration} lines={HOOK} />],
-  [
-    "PCOBooster",
-    5,
-    (duration) => <BrandScene duration={duration} subline={false} />,
-  ],
-  ["Fill a team", 9, (duration) => <FillTeamsScene duration={duration} />],
   [
     "Key transitions",
     8,
+    (duration) => <KeyTransitionScene duration={duration} carry={false} />,
+  ],
+  ["End card", 6, (duration) => <EndCard duration={duration} />],
+]);
+
+/**
+ * About 50 seconds: planning one Sunday. Start from what's open, fill a spot with the
+ * history behind the choice, build the set, smooth its keys, look after the people, and
+ * see it all saved back.
+ */
+const DEMO = onBeats([
+  ["Hook", 4, (duration) => <HookScene duration={duration} lines={HOOK} />],
+  [
+    "PCOBooster",
+    4,
+    (duration) => <BrandScene duration={duration} subline={false} />,
+  ],
+  ["Fill a spot", 26, (duration) => <FillSundayScene duration={duration} />],
+  ["Build the set", 7, (duration) => <BuildSetScene duration={duration} />],
+  [
+    "Key transitions",
+    9,
     (duration) => <KeyTransitionScene duration={duration} />,
   ],
-  ["Team health", 6, (duration) => <TeamHealthScene duration={duration} />],
-  ["Chord charts", 7, (duration) => <ChordChartScene duration={duration} />],
-  ["Saves back", 5, (duration) => <SavesBackScene duration={duration} />],
-  ["End card", 6, (duration) => <EndCard duration={duration} />],
+  ["People", 16, (duration) => <PeopleScene duration={duration} />],
+  [
+    "Saves back",
+    5,
+    (duration) => <SavesBackScene duration={duration} changes={DEMO_CHANGES} />,
+  ],
+  ["End card", 7, (duration) => <EndCard duration={duration} />],
 ]);
 
 /** About 70 seconds: the walkthrough, room for a voiceover over each beat. */
@@ -159,18 +183,18 @@ const WALKTHROUGH: readonly CutScene[] = [
   scene("End card", 165, (duration) => <EndCard duration={duration} />),
 ];
 
-export const CUT_IDS = ["Teaser15", "Launch30", "Walkthrough70"] as const;
+export const CUT_IDS = ["Teaser15", "Demo50", "Walkthrough70"] as const;
 export type CutId = (typeof CUT_IDS)[number];
 
 /** The walkthrough's brand scenes are laid out for 16:9 and 9:16 only. */
 export const FEED_CUT_IDS = [
   "Teaser15",
-  "Launch30",
+  "Demo50",
 ] as const satisfies readonly CutId[];
 
 export const CUTS = {
   Teaser15: TEASER,
-  Launch30: LAUNCH,
+  Demo50: DEMO,
   Walkthrough70: WALKTHROUGH,
 } as const satisfies Record<CutId, readonly CutScene[]>;
 

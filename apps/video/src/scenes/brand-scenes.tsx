@@ -444,7 +444,14 @@ const SongIcon = ({ size }: { size: number }) => (
   </svg>
 );
 
-const CHANGES = [
+export interface Change {
+  /** Initials for a person; a song shows a note instead. */
+  readonly badge: string | null;
+  readonly title: string;
+  readonly detail: string;
+}
+
+const CHANGES: readonly Change[] = [
   {
     badge: "HC",
     title: "Hayden Collins",
@@ -457,7 +464,14 @@ const CHANGES = [
 /** The changes from the earlier scenes, each saving back to Planning Center Services. */
 const SAVED_VOLUME = 0.28;
 
-export const SavesBackScene = ({ duration }: { duration: number }) => {
+export const SavesBackScene = ({
+  duration,
+  changes = CHANGES,
+}: {
+  duration: number;
+  /** The changes the cut made, in the order it made them. */
+  changes?: readonly Change[];
+}) => {
   const frame = useCurrentFrame();
   const format = useFormat();
   const portrait = format !== "landscape";
@@ -514,7 +528,7 @@ export const SavesBackScene = ({ duration }: { duration: number }) => {
           style={{ maxWidth: portrait ? 960 : 1600 }}
         />
       </div>
-      {CHANGES.map((change, index) => {
+      {changes.map((change, index) => {
         const appear = settle(frame, 14 + index * 12, 24);
         const travelStart = 28 + index * 12;
         const travel = progress(frame, travelStart, 22, easeInOut);
@@ -627,7 +641,7 @@ export const SavesBackScene = ({ duration }: { duration: number }) => {
         const shown = pop(frame, 8);
         const arrival = pulse(
           frame,
-          CHANGES.map((_, index) => 28 + index * 12 + 22),
+          changes.map((_, index) => 28 + index * 12 + 22),
           12
         );
         return (
