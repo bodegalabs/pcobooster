@@ -421,7 +421,8 @@ interface FillPace {
 }
 
 const FILL_PACES = {
-  full: { open: 40, add: 196, saved: 214 },
+  // Against the hook's 72 frames, the add click and the saved chime land on beats 15 and 16.
+  full: { open: 35, add: 196, saved: 214 },
   quick: { open: 30, add: 132, saved: 148 },
 } as const satisfies Record<string, FillPace>;
 
