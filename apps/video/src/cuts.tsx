@@ -55,13 +55,14 @@ const scene = (
 /**
  * The feed cuts' music bed: "Busted Jazz" from Holizna's Lo-Fi and Chill, released CC0 on
  * the Free Music Archive (https://freemusicarchive.org/music/holiznacc0/lo-fi-and-chill).
- * It runs at 90 BPM, a beat every 20 frames, with its first beat 0.639s in; the cut starts
- * the track there and every scene lasts whole beats, so each cut lands on one. Trimmed and
- * loudness-normalized to -14 LUFS in public/music.
+ * It runs at 90 BPM, a beat every 20 frames. The file in public/music starts 53.97s into
+ * the track, on the downbeat where its fuller section comes in, so the cut opens at full
+ * energy; every scene lasts whole beats, so each cut lands on one. Loudness-normalized to
+ * -14 LUFS.
  */
 const MUSIC = {
   src: "music/busted-jazz.mp3",
-  firstBeatSeconds: 0.639,
+  firstBeatSeconds: 0,
   volume: 0.8,
   fadeOutFrames: 45,
 } as const;
