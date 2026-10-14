@@ -10,5 +10,6 @@ export const appRoot = path.resolve(import.meta.dirname, "..");
 export const bundleVideo = async (): Promise<string> =>
   await bundle({
     entryPoint: path.join(appRoot, "src/index.ts"),
+    publicDir: path.join(appRoot, "public"),
     webpackOverride,
   });

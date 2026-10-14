@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { continueRender, delayRender, useCurrentFrame } from "remotion";
+import {
+  Html5Audio,
+  Sequence,
+  continueRender,
+  delayRender,
+  staticFile,
+  useCurrentFrame,
+} from "remotion";
 
 import { Cursor } from "../components/cursor";
 import { cameraAt } from "./camera";
@@ -45,6 +52,7 @@ const RING = 6;
 const NO_SHOTS: readonly Shot[] = [];
 const NO_STEPS: readonly CursorStep[] = [];
 const NO_HIGHLIGHTS: readonly Highlight[] = [];
+const CLICK_VOLUME = 0.45;
 
 interface BeatLayout {
   readonly rects: Readonly<Record<string, Rect>>;
@@ -252,80 +260,97 @@ export const ProductStage = ({
   };
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        left: box.left,
-        top: box.top,
-        width: nativeWidth * fit,
-        height: nativeHeight * fit,
-        borderRadius: CARD_RADIUS,
-        overflow: "hidden",
-        background: "white",
-        boxShadow: "var(--shadow-frame)",
-        opacity: enter,
-        transform: `translateY(${(1 - enter) * 80}px) scale(${mix(0.94, 1, enter)})`,
-      }}
-    >
-      <style>
-        {`.${styles.demo}:not(.${styles.embedded}){height:${nativeHeight}px}` +
-          `.${styles["sample-badge"]}{display:none !important}`}
-      </style>
+    <>
+      {cursor.map((step) =>
+        step.click === true ? (
+          <Sequence
+            key={`click-${step.at}`}
+            from={step.at}
+            durationInFrames={6}
+            layout="none"
+          >
+            <Html5Audio
+              src={staticFile("sfx/click.wav")}
+              volume={CLICK_VOLUME}
+            />
+          </Sequence>
+        ) : null
+      )}
       <div
         style={{
-          width: nativeWidth,
-          height: nativeHeight,
-          transform: `scale(${fit})`,
-          transformOrigin: "0 0",
+          position: "absolute",
+          left: box.left,
+          top: box.top,
+          width: nativeWidth * fit,
+          height: nativeHeight * fit,
+          borderRadius: CARD_RADIUS,
+          overflow: "hidden",
+          background: "white",
+          boxShadow: "var(--shadow-frame)",
+          opacity: enter,
+          transform: `translateY(${(1 - enter) * 80}px) scale(${mix(0.94, 1, enter)})`,
         }}
       >
+        <style>
+          {`.${styles.demo}:not(.${styles.embedded}){height:${nativeHeight}px}` +
+            `.${styles["sample-badge"]}{display:none !important}`}
+        </style>
         <div
           style={{
-            position: "relative",
             width: nativeWidth,
             height: nativeHeight,
-            transform: `translate(${camera.panX}px, ${camera.panY}px) scale(${camera.zoom})`,
+            transform: `scale(${fit})`,
             transformOrigin: "0 0",
           }}
         >
           <div
-            ref={rootRef}
-            data-replica=""
-            data-reveal-wave={revealAt === undefined ? undefined : ""}
-            style={replicaStyle}
+            style={{
+              position: "relative",
+              width: nativeWidth,
+              height: nativeHeight,
+              transform: `translate(${camera.panX}px, ${camera.panY}px) scale(${camera.zoom})`,
+              transformOrigin: "0 0",
+            }}
           >
-            {fontsLoaded ? (
-              <ScriptedReplica
+            <div
+              ref={rootRef}
+              data-replica=""
+              data-reveal-wave={revealAt === undefined ? undefined : ""}
+              style={replicaStyle}
+            >
+              {fontsLoaded ? (
+                <ScriptedReplica
+                  beats={beats}
+                  beat={calibrated ? liveBeat : calibrating}
+                  onSettled={onSettled}
+                >
+                  {children}
+                </ScriptedReplica>
+              ) : null}
+            </div>
+            {calibrated ? (
+              <Highlights
+                frame={frame}
+                highlights={highlights}
                 beats={beats}
-                beat={calibrated ? liveBeat : calibrating}
-                onSettled={onSettled}
-              >
-                {children}
-              </ScriptedReplica>
+                rectFor={rectFor}
+              />
+            ) : null}
+            {calibrated && cursor.length > 0 ? (
+              <Cursor
+                frame={frame}
+                steps={cursor.map((step) => ({
+                  at: step.at,
+                  travel: step.travel ?? DEFAULT_TRAVEL,
+                  click: step.click ?? false,
+                }))}
+                points={points}
+                zoom={camera.zoom}
+              />
             ) : null}
           </div>
-          {calibrated ? (
-            <Highlights
-              frame={frame}
-              highlights={highlights}
-              beats={beats}
-              rectFor={rectFor}
-            />
-          ) : null}
-          {calibrated && cursor.length > 0 ? (
-            <Cursor
-              frame={frame}
-              steps={cursor.map((step) => ({
-                at: step.at,
-                travel: step.travel ?? DEFAULT_TRAVEL,
-                click: step.click ?? false,
-              }))}
-              points={points}
-              zoom={camera.zoom}
-            />
-          ) : null}
         </div>
       </div>
-    </div>
+    </>
   );
 };

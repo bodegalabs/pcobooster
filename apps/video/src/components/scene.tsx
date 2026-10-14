@@ -7,20 +7,25 @@ const ENTER_FRAMES = 10;
 const EXIT_FRAMES = 9;
 
 /**
- * One scene's frame: it focuses in at its start and softly blurs out at its end, so scenes
- * can cut back to back without overlapping. Overlap would mount two replicas that both
- * drive the replica's shared stores.
+ * How a scene meets its neighbours: `soft` focuses in at its start and blurs out at its
+ * end; `cut` is a hard cut, the pace of a feed video. Neither overlaps the next scene, which
+ * would mount two replicas that both drive the replica's shared stores.
  */
+export type Transition = "soft" | "cut";
+
 export const Scene = ({
   duration,
+  transition = "soft",
   children,
 }: {
   duration: number;
+  transition?: Transition;
   children: ReactNode;
 }) => {
   const frame = useCurrentFrame();
-  const enter = progress(frame, 0, ENTER_FRAMES);
-  const exit = progress(frame, duration - EXIT_FRAMES, EXIT_FRAMES);
+  const soft = transition === "soft";
+  const enter = soft ? progress(frame, 0, ENTER_FRAMES) : 1;
+  const exit = soft ? progress(frame, duration - EXIT_FRAMES, EXIT_FRAMES) : 0;
   const shown = enter * (1 - exit);
 
   return (

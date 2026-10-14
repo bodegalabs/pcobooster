@@ -9,7 +9,7 @@ import {
   delayRender,
 } from "remotion";
 
-import { CUT_IDS, Cut, cutDuration } from "./cuts";
+import { CUT_IDS, Cut, FEED_CUT_IDS, cutDuration } from "./cuts";
 import type { CutId } from "./cuts";
 import { fontsReady } from "./lib/fonts";
 import { FORMATS, FORMAT_IDS, FPS } from "./lib/format";
@@ -17,6 +17,13 @@ import { FORMATS, FORMAT_IDS, FPS } from "./lib/format";
 const FORMAT_NAMES = {
   landscape: { folder: "Landscape-16x9", suffix: "16x9" },
   portrait: { folder: "Portrait-9x16", suffix: "9x16" },
+  feed: { folder: "Feed-4x5", suffix: "4x5" },
+} as const;
+
+const CUTS_BY_FORMAT = {
+  landscape: CUT_IDS,
+  portrait: CUT_IDS,
+  feed: FEED_CUT_IDS,
 } as const;
 
 /** Holds the first frame until Inter has loaded, so no frame renders in a fallback font. */
@@ -39,7 +46,7 @@ export const RemotionRoot = () => (
   <>
     {FORMAT_IDS.map((format) => (
       <Folder key={format} name={FORMAT_NAMES[format].folder}>
-        {CUT_IDS.map((cut) => (
+        {CUTS_BY_FORMAT[format].map((cut) => (
           <Composition
             key={cut}
             id={`${cut}-${FORMAT_NAMES[format].suffix}`}

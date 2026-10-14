@@ -7,23 +7,20 @@ The on-screen headlines already carry each cut with the sound off. These lines a
 | At | Scene | Line |
 | --- | --- | --- |
 | 0:00 | Hook | Still filling Sunday's team on Thursday night? |
-| 0:02 | Fill a team | PCOBooster shows who's rested and ready, and fills the spot in a click. |
-| 0:06 | Chord charts | Transpose a whole chart in one step. |
-| 0:10 | End card | PCOBooster. Planning Center, boosted. The beta is open at pcobooster.com. |
+| 0:02 | Fill a spot | Pick the open spot, see who's rested, and add them. It's already in Planning Center. |
+| 0:10 | End card | PCOBooster. Free during the beta at pcobooster.com. |
 
-## 30 seconds (`Launch30`)
+## About 26 seconds (`Launch30`)
 
 | At | Scene | Line |
 | --- | --- | --- |
 | 0:00 | Hook | Still filling Sunday's team on Thursday night? |
-| 0:02 | Planning Center Services | Your church already runs on Planning Center Services. |
-| 0:04 | PCOBooster | PCOBooster is the workspace on top of it. |
-| 0:07 | Fill a team | Find the open spot, see who's rested and ready, and fill it in a click. |
-| 0:12 | Team health | See who's waiting on a reply, who's carrying too much, and who hasn't been asked. |
-| 0:16 | Run sheet | Set keys right from the run sheet. |
-| 0:19 | Chord charts | And transpose a whole chart before rehearsal. |
-| 0:23 | Saves back | Every change saves straight back to Planning Center. |
-| 0:26 | End card | PCOBooster. The beta is open at pcobooster.com. |
+| 0:02 | Fill a spot | Pick the open spot. PCOBooster shows who's free, ranked by who's rested. |
+| 0:09 | Saved | Add them in a click, and it's saved straight to Planning Center. |
+| 0:13 | Team health | Notice who's carrying too much, |
+| 0:15 | Keys | set keys from the run sheet, |
+| 0:18 | Transpose | and transpose a chart in one click. |
+| 0:21 | End card | PCOBooster. Free during the beta at pcobooster.com. |
 
 ## About a minute (`Walkthrough70`)
 

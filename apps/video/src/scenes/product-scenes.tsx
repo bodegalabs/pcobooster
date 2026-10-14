@@ -16,7 +16,9 @@ import {
   ProductDemo,
 } from "../../../marketing/src/components/product-demo/product-demo";
 import { FeatureScene } from "../components/feature-scene";
+import type { Caption } from "../components/feature-scene";
 import type { Lines } from "../components/headline";
+import { SavedToast } from "../components/saved-toast";
 import type { Shot } from "../lib/camera";
 import { useFormat } from "../lib/format";
 import type { CursorStep, Highlight } from "../lib/product-stage";
@@ -390,3 +392,231 @@ export const OverviewScene = ({ duration }: { duration: number }) => (
     <ProductDemo />
   </FeatureScene>
 );
+
+/*
+ * Launch scenes: one job carried all the way through, then quick beats that each open
+ * already framed on their moment, for hard cuts at feed pace.
+ */
+
+/** Hayden's row and the rest of who's free, ranked. */
+const CANDIDATES: Target = {
+  selector: '[aria-label="Add Hayden Collins to this position"]',
+  closest: "section",
+};
+const HAYDEN_ROW: Target = {
+  selector: '[aria-label="Add Hayden Collins to this position"]',
+  closest: "li",
+};
+
+/** Hayden's row once he is on the slot, still waiting on his answer. */
+const HAYDEN_SCHEDULED: Target = {
+  selector: '[aria-label="Pending. Change status for Hayden Collins"]',
+  closest: "li",
+};
+
+interface FillPace {
+  readonly open: number;
+  readonly add: number;
+  readonly saved: number;
+}
+
+const FILL_PACES = {
+  full: { open: 40, add: 196, saved: 214 },
+  quick: { open: 30, add: 132, saved: 148 },
+} as const satisfies Record<string, FillPace>;
+
+/**
+ * Filling one open spot, start to finish: pick the open Acoustic Guitar slot on the
+ * lineup, read who's free ranked by who's rested, add the top person, and see it saved.
+ */
+export const FillJobScene = ({
+  duration,
+  pace = "full",
+}: {
+  duration: number;
+  pace?: keyof typeof FILL_PACES;
+}) => {
+  const { open, add, saved } = FILL_PACES[pace];
+  const captions: Caption[] = [
+    { at: 0, lines: ["Pick the open spot."] },
+    {
+      at: open + 8,
+      lines: ["See who’s free,", "*ranked by who’s rested.*"],
+    },
+    {
+      at: add + 6,
+      lines: ["Add them in a click.", "*Saved to Planning Center.*"],
+    },
+  ];
+  const beats: Beat[] = [
+    { at: 0, apply: showView("lineup") },
+    { at: open + 3, apply: showView("assign") },
+    {
+      at: add + 3,
+      apply: () => {
+        addAssignment("acoustic", HAYDEN);
+      },
+    },
+  ];
+  const cursor: CursorStep[] = [
+    { at: open, target: OPEN_ACOUSTIC, click: true, travel: 18 },
+    { at: add, target: ADD_HAYDEN, click: true, travel: 26, beat: 1 },
+  ];
+  const shots: Shot[] = [
+    { at: 0, target: OPEN_ACOUSTIC, zoom: 2, duration: 1 },
+    {
+      at: open + 4,
+      target: CANDIDATES,
+      pad: 14,
+      beat: 1,
+      duration: 22,
+    },
+    {
+      at: add - 34,
+      target: HAYDEN_ROW,
+      zoom: 2,
+      beat: 1,
+      duration: 26,
+    },
+    {
+      at: add + 8,
+      target: HAYDEN_SCHEDULED,
+      zoom: 1.9,
+      beat: 2,
+      duration: 20,
+    },
+  ];
+
+  return (
+    <FeatureScene
+      duration={duration}
+      captions={captions}
+      beats={beats}
+      shots={shots}
+      cursor={cursor}
+      highlights={[
+        { from: open + 40, to: add - 4, target: HAYDEN_ROW, beat: 1 },
+        { from: add + 20, to: duration, target: HAYDEN_SCHEDULED },
+      ]}
+      revealAt={open + 8}
+      transition="cut"
+      overlay={<SavedToast at={saved} />}
+    >
+      <ProductDemo />
+    </FeatureScene>
+  );
+};
+
+/** Team health, opened on who to check in with. */
+export const QuickHealthScene = ({ duration }: { duration: number }) => {
+  const portrait = useFormat() === "portrait";
+  return (
+    <FeatureScene
+      duration={duration}
+      captions={[{ at: 0, lines: ["Notice who’s", "*carrying too much.*"] }]}
+      beats={HEALTH_BEATS}
+      shots={[
+        {
+          at: 0,
+          target: CHECK_IN,
+          pad: 12,
+          duration: 1,
+        },
+      ]}
+      highlights={[
+        { from: 12, to: duration, target: HEAVY_LOAD },
+        { from: 24, to: duration, target: DECLINING },
+      ]}
+      transition="cut"
+    >
+      {portrait ? <PeopleShowcase /> : <ProductDemo />}
+    </FeatureScene>
+  );
+};
+
+/** A song's key set straight from the run sheet. */
+export const QuickKeyScene = ({ duration }: { duration: number }) => {
+  const openAt = 18;
+  const pickAt = openAt + 22;
+  return (
+    <FeatureScene
+      duration={duration}
+      captions={[{ at: 0, lines: ["Set keys", "*from the run sheet.*"] }]}
+      beats={[
+        { at: 0, apply: showView("plan") },
+        { at: openAt + 3, clicks: [KEY_CHIP] },
+        {
+          at: pickAt + 3,
+          apply: () => {
+            updatePlanItem("i5", { songKey: "D" });
+          },
+        },
+      ]}
+      cursor={[
+        { at: openAt, target: KEY_CHIP, click: true, travel: 14 },
+        { at: pickAt, target: PICK_D, click: true, travel: 14 },
+      ]}
+      shots={[
+        {
+          at: 0,
+          target: KEY_CHIP,
+          zoom: 1.8,
+          portraitZoom: 1.5,
+          duration: 1,
+        },
+      ]}
+      highlights={[{ from: pickAt + 6, to: duration, target: NEW_KEY }]}
+      transition="cut"
+    >
+      <ProductDemo />
+    </FeatureScene>
+  );
+};
+
+/** The chart's text, where every chord has just been rewritten. */
+const CHART_TEXT = css('[aria-label="Lyrics and chords"]');
+
+/** A whole chart transposed in one step, the preview following. */
+export const QuickTransposeScene = ({ duration }: { duration: number }) => {
+  const openAt = 18;
+  const pickAt = openAt + 22;
+  return (
+    <FeatureScene
+      duration={duration}
+      captions={[{ at: 0, lines: ["Transpose a chart", "*in one click.*"] }]}
+      beats={[
+        { at: 0 },
+        { at: openAt + 3, clicks: [TRANSPOSE] },
+        {
+          at: pickAt + 3,
+          apply: () => {
+            const chart = chordCharts.get("s1");
+            if (chart !== undefined) {
+              updateChordChart("s1", {
+                key: "A",
+                chart: transposeChart(chart.chart, chart.key, "A"),
+              });
+            }
+          },
+        },
+      ]}
+      cursor={[
+        { at: openAt, target: TRANSPOSE, click: true, travel: 14 },
+        { at: pickAt, target: PICK_A, click: true, travel: 14 },
+      ]}
+      shots={[
+        {
+          at: 0,
+          target: TRANSPOSE,
+          zoom: 1.6,
+          portraitZoom: 1.5,
+          duration: 1,
+        },
+        { at: pickAt + 8, zoom: 1.7, target: CHART_TEXT, duration: 18 },
+      ]}
+      transition="cut"
+    >
+      <ChordChartShowcase />
+    </FeatureScene>
+  );
+};

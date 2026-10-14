@@ -1,14 +1,16 @@
 # pcobooster.com launch video
 
-Three cuts of the launch video, each rendered natively for horizontal (16:9, 1920×1080) and vertical (9:16, 1080×1920) feeds. Built with [Remotion](https://www.remotion.dev): the product shots are the marketing site's interactive replica (`apps/marketing/src/components/product-demo`) driven frame by frame, so they always match the shipped UI and re-render when it changes.
+Three cuts of the launch video. Built with [Remotion](https://www.remotion.dev): the product shots are the marketing site's interactive replica (`apps/marketing/src/components/product-demo`) driven frame by frame, so they always match the shipped UI and re-render when it changes.
 
 | Composition | Length | Use |
 | --- | --- | --- |
-| `Teaser15-*` | 15s | Feed teaser: the problem, one fill, one transpose, CTA |
-| `Launch30-*` | 30s | Launch hero: one beat per job of the planning week |
+| `Teaser15-*` | 15s | Feed teaser: the problem, one open spot filled and saved, the ask |
+| `Launch30-*` | ~26s | Launch post: the problem, one spot filled and saved, three quick wins, the ask |
 | `Walkthrough70-*` | ~64s | Walkthrough with room for a voiceover |
 
-`-16x9` is for YouTube, X, LinkedIn, and the site; `-9x16` is for Reels, TikTok, and Shorts. Vertical text stays inside the band that feed UI leaves clear (below the top ~14%, above the bottom ~24%).
+Formats: `-4x5` (1080×1350) is the one to post on LinkedIn and Instagram feeds, where it plays largest on a phone; `-16x9` is for YouTube, X, and the site; `-9x16` is for Reels, TikTok, and Shorts. Vertical text stays inside the band that feed UI leaves clear (below the top ~14%, above the bottom ~24%). The walkthrough renders in 16:9 and 9:16 only.
+
+The feed cuts follow common launch-video practice: the first frame is fully composed (it is the thumbnail), the product shows within two seconds, one job runs all the way to its payoff ("Saved to Planning Center"), scenes hard-cut, every shot zooms to text that reads on a phone, captions carry it with the sound off, and the end card asks for one thing. Cursor clicks and the saved toast play short sounds from `public/sfx/` (synthesized, no license needed). There is no music bed: add a licensed track as an `<Html5Audio>` in `Cut` (`src/cuts.tsx`) at low volume.
 
 ## Commands
 

@@ -5,6 +5,7 @@ import { Rocket, ServicesMark, Wordmark } from "../components/brand";
 import { Headline, Subline } from "../components/headline";
 import type { Lines } from "../components/headline";
 import { Scene } from "../components/scene";
+import type { Transition } from "../components/scene";
 import { PORTRAIT_SAFE, useFormat } from "../lib/format";
 import { useStatementSize } from "../lib/layout";
 import {
@@ -113,32 +114,64 @@ const OpenChip = ({ position, scale }: { position: string; scale: number }) => (
 );
 
 const OPEN_CHIPS = [
-  { position: "Acoustic Guitar", landscape: [0.17, 0.2], portrait: [0.3, 0.2] },
-  { position: "Drums", landscape: [0.83, 0.16], portrait: [0.74, 0.26] },
-  { position: "Sound", landscape: [0.12, 0.78], portrait: [0.26, 0.66] },
-  { position: "Tenor", landscape: [0.86, 0.74], portrait: [0.76, 0.72] },
-  { position: "Greeter", landscape: [0.5, 0.88], portrait: [0.5, 0.78] },
+  {
+    position: "Acoustic Guitar",
+    landscape: [0.17, 0.2],
+    portrait: [0.3, 0.2],
+    feed: [0.3, 0.13],
+  },
+  {
+    position: "Drums",
+    landscape: [0.83, 0.16],
+    portrait: [0.74, 0.26],
+    feed: [0.76, 0.22],
+  },
+  {
+    position: "Sound",
+    landscape: [0.12, 0.78],
+    portrait: [0.26, 0.66],
+    feed: [0.24, 0.76],
+  },
+  {
+    position: "Tenor",
+    landscape: [0.86, 0.74],
+    portrait: [0.76, 0.72],
+    feed: [0.78, 0.82],
+  },
+  {
+    position: "Greeter",
+    landscape: [0.5, 0.88],
+    portrait: [0.5, 0.78],
+    feed: [0.46, 0.91],
+  },
 ] as const;
 
-/** The problem, in the leader's words, with Sunday's open slots floating around it. */
+/**
+ * The problem, in the leader's words, with Sunday's open slots floating around it. An
+ * `instant` hook is fully composed on its first frame, which feeds use as the thumbnail.
+ */
 export const HookScene = ({
   duration,
   lines,
+  instant = false,
+  transition = "soft",
 }: {
   duration: number;
   lines: Lines;
+  instant?: boolean;
+  transition?: Transition;
 }) => {
   const frame = useCurrentFrame();
   const format = useFormat();
   const { width, height } = useVideoConfig();
   const size = useStatementSize();
-  const chipScale = format === "portrait" ? 1.05 : 1.15;
+  const chipScale = format === "landscape" ? 1.15 : 1.25;
 
   return (
-    <Scene duration={duration}>
+    <Scene duration={duration} transition={transition}>
       {OPEN_CHIPS.map((chip, index) => {
         const [x, y] = chip[format];
-        const shown = pop(frame, 4 + index * 5);
+        const shown = instant ? 1 : pop(frame, 4 + index * 5);
         const float = Math.sin((frame + index * 17) / 24) * 8;
         return (
           <div
@@ -156,7 +189,13 @@ export const HookScene = ({
         );
       })}
       <Center style={{ padding: "0 60px" }}>
-        <Headline lines={lines} size={size} at={8} stagger={4} />
+        <Headline
+          lines={lines}
+          size={size}
+          at={8}
+          stagger={4}
+          pace={instant ? "instant" : "reveal"}
+        />
       </Center>
     </Scene>
   );
@@ -567,15 +606,23 @@ export const SavesBackScene = ({ duration }: { duration: number }) => {
 };
 
 /** Name, line, and where to go. Carries the not-affiliated note Planning Center expects. */
-export const EndCard = ({ duration }: { duration: number }) => {
+export const EndCard = ({
+  duration,
+  transition = "soft",
+}: {
+  duration: number;
+  transition?: Transition;
+}) => {
   const frame = useCurrentFrame();
-  const portrait = useFormat() === "portrait";
+  const format = useFormat();
+  // The 4:5 feed shares portrait's width, so it takes portrait's type sizes.
+  const portrait = format !== "landscape";
   const rocket = settle(frame, 0, 30);
   const cta = settle(frame, 30, 26);
   const note = settle(frame, 44, 26);
 
   return (
-    <Scene duration={duration}>
+    <Scene duration={duration} transition={transition}>
       <Center>
         <div
           style={{
@@ -616,7 +663,7 @@ export const EndCard = ({ duration }: { duration: number }) => {
               color: "var(--muted-foreground)",
             }}
           >
-            The beta is open.
+            Free during the beta.
           </span>
           <span
             style={{
@@ -638,7 +685,7 @@ export const EndCard = ({ duration }: { duration: number }) => {
           position: "absolute",
           left: 0,
           right: 0,
-          bottom: portrait ? 1920 - PORTRAIT_SAFE.bottom + 10 : 48,
+          bottom: format === "portrait" ? 1920 - PORTRAIT_SAFE.bottom + 10 : 48,
           margin: 0,
           padding: "0 80px",
           textAlign: "center",

@@ -1,4 +1,5 @@
 import { PORTRAIT_SAFE, useFormat } from "./format";
+import type { Format } from "./format";
 import type { Box } from "./product-stage";
 
 /**
@@ -33,9 +34,27 @@ const PORTRAIT: FeatureLayout = {
   nativeHeight: 760,
 };
 
-export const useFeatureLayout = (): FeatureLayout =>
-  useFormat() === "portrait" ? PORTRAIT : LANDSCAPE;
+/**
+ * 4:5 keeps the desktop replica (wider than its 760px phone breakpoint) at full size, so
+ * a camera zoom on the action reads on a phone held upright in a feed.
+ */
+const FEED: FeatureLayout = {
+  headlineTop: 84,
+  headlineSize: 70,
+  headlineWidth: 980,
+  product: { left: 40, top: 290, width: 1000 },
+  nativeWidth: 1000,
+  nativeHeight: 1010,
+};
+
+const LAYOUTS = {
+  landscape: LANDSCAPE,
+  portrait: PORTRAIT,
+  feed: FEED,
+} as const satisfies Record<Format, FeatureLayout>;
+
+export const useFeatureLayout = (): FeatureLayout => LAYOUTS[useFormat()];
 
 /** Display size for full-screen statement cards. */
 export const useStatementSize = (): number =>
-  useFormat() === "portrait" ? 96 : 124;
+  useFormat() === "landscape" ? 124 : 96;

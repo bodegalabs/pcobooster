@@ -13,10 +13,14 @@ import {
 } from "./scenes/brand-scenes";
 import {
   ChordChartScene,
+  FillJobScene,
   FillTeamsScene,
   HistoryScene,
   ImportScene,
   OverviewScene,
+  QuickHealthScene,
+  QuickKeyScene,
+  QuickTransposeScene,
   RunSheetScene,
   TeamHealthScene,
 } from "./scenes/product-scenes";
@@ -38,47 +42,40 @@ const scene = (
   render: (duration: number) => ReactNode
 ): CutScene => ({ name, duration, render });
 
-/** 15 seconds: the problem, one fill, one transpose, the name. */
+/*
+ * The feed cuts follow launch-video practice: a first frame that reads as the thumbnail,
+ * one job carried all the way to its payoff, hard cuts, and a short ask at the end.
+ */
+
+/** 15 seconds: the problem, one spot filled and saved, the ask. */
 const TEASER: readonly CutScene[] = [
-  scene("Hook", 66, (duration) => (
-    <HookScene duration={duration} lines={HOOK} />
+  scene("Hook", 60, (duration) => (
+    <HookScene duration={duration} lines={HOOK} instant transition="cut" />
   )),
-  scene("Fill a team", 120, (duration) => (
-    <FillTeamsScene
-      duration={duration}
-      fromLineup={false}
-      lines={["Fill every team", "*with the right people.*"]}
-    />
+  scene("Fill a spot", 246, (duration) => (
+    <FillJobScene duration={duration} pace="quick" />
   )),
-  scene("Chord charts", 120, (duration) => (
-    <ChordChartScene duration={duration} />
+  scene("End card", 144, (duration) => (
+    <EndCard duration={duration} transition="cut" />
   )),
-  scene("End card", 144, (duration) => <EndCard duration={duration} />),
 ];
 
-/** 30 seconds: the launch hero, one beat per job of the planning week. */
+/** 30 seconds: the problem, one spot filled and saved, three quick wins, the ask. */
 const LAUNCH: readonly CutScene[] = [
-  scene("Hook", 75, (duration) => (
-    <HookScene duration={duration} lines={HOOK} />
+  scene("Hook", 66, (duration) => (
+    <HookScene duration={duration} lines={HOOK} instant transition="cut" />
   )),
-  scene("Planning Center Services", 60, (duration) => (
-    <ServicesScene duration={duration} />
+  scene("Fill a spot", 318, (duration) => <FillJobScene duration={duration} />),
+  scene("Team health", 84, (duration) => (
+    <QuickHealthScene duration={duration} />
   )),
-  scene("PCOBooster", 78, (duration) => <BrandScene duration={duration} />),
-  scene("Fill a team", 150, (duration) => (
-    <FillTeamsScene duration={duration} />
+  scene("Keys", 84, (duration) => <QuickKeyScene duration={duration} />),
+  scene("Transpose", 84, (duration) => (
+    <QuickTransposeScene duration={duration} />
   )),
-  scene("Team health", 120, (duration) => (
-    <TeamHealthScene duration={duration} />
+  scene("End card", 150, (duration) => (
+    <EndCard duration={duration} transition="cut" />
   )),
-  scene("Run sheet", 111, (duration) => (
-    <RunSheetScene duration={duration} withTimes={false} />
-  )),
-  scene("Chord charts", 120, (duration) => (
-    <ChordChartScene duration={duration} />
-  )),
-  scene("Saves back", 78, (duration) => <SavesBackScene duration={duration} />),
-  scene("End card", 108, (duration) => <EndCard duration={duration} />),
 ];
 
 /** About 70 seconds: the walkthrough, room for a voiceover over each beat. */
@@ -116,6 +113,12 @@ const WALKTHROUGH: readonly CutScene[] = [
 
 export const CUT_IDS = ["Teaser15", "Launch30", "Walkthrough70"] as const;
 export type CutId = (typeof CUT_IDS)[number];
+
+/** The walkthrough's brand scenes are laid out for 16:9 and 9:16 only. */
+export const FEED_CUT_IDS = [
+  "Teaser15",
+  "Launch30",
+] as const satisfies readonly CutId[];
 
 export const CUTS = {
   Teaser15: TEASER,
