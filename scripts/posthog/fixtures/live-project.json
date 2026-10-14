@@ -14,7 +14,7 @@
   "capture_console_log_opt_in": true,
   "capture_performance_opt_in": true,
   "session_recording_opt_in": true,
-  "session_recording_sample_rate": "0.20",
+  "session_recording_sample_rate": "1.00",
   "session_recording_minimum_duration_milliseconds": 10000,
   "session_recording_linked_flag": null,
   "session_recording_network_payload_capture_config": {

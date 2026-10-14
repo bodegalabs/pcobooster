@@ -444,7 +444,7 @@ export const project: ProjectDefinition = {
     heatmaps_opt_in: true,
     surveys_opt_in: false,
     session_recording_opt_in: true,
-    session_recording_sample_rate: "0.20",
+    session_recording_sample_rate: "1.00",
     session_recording_minimum_duration_milliseconds: 10_000,
     session_recording_retention_period: "30d",
     session_recording_masking_config: {
