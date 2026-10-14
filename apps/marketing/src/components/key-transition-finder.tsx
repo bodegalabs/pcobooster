@@ -1,4 +1,3 @@
-import type { KeyTransitionLevel } from "@pcobooster/planning-center-models/key-transition-advice";
 import { ArrowLeftRight, ArrowRight } from "lucide-react";
 
 import {
@@ -12,7 +11,7 @@ import {
 } from "../lib/key-transition-pages";
 import type { KeyChoice, KeyPair } from "../lib/key-transition-pages";
 import { LEVELS, keyTransitionAdvice } from "../lib/key-transition-tool";
-import { ActionLink } from "./site";
+import { ActionLink, TextLink } from "./site";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 
@@ -135,12 +134,7 @@ export const KeyTransitionFinder = ({
                 {level.label}
               </span>
             </h2>
-            <p className="text-muted-foreground">
-              {rating.reason}.
-              {rating.level === "smooth"
-                ? " Your band can go straight in."
-                : " A little setup makes it land."}
-            </p>
+            <p className="text-muted-foreground">{rating.reason}.</p>
           </div>
           <ol className="grid gap-3 md:grid-cols-2">
             {suggestions.map((suggestion) => (
@@ -190,51 +184,17 @@ export const KeyTransitionFinder = ({
               ))}
             </div>
           )}
-          <p className="text-muted-foreground pb-2 text-xs">
-            Chords are spelled in the key you are heading into.
+          <p className="border-border text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 border-t pt-5 pb-1 text-sm">
+            PCOBooster checks every key change in your Planning Center plan.
+            <TextLink href="/services" data-analytics-cta="key-transitions">
+              Open PCOBooster
+            </TextLink>
           </p>
         </div>
       </Card>
     </section>
   );
 };
-
-const levelNotes = [
-  {
-    level: "smooth",
-    text: "Same key, a relative or parallel key, a neighbor on the circle of fifths, or a lift up a half or whole step. Most bands can go straight in.",
-  },
-  {
-    level: "worth-a-look",
-    text: "A jump of a third, a step down, or a mode change a few keys away. A pivot chord or a held note makes it feel planned.",
-  },
-  {
-    level: "rough",
-    text: "A tritone, a half step down, or a distant key in another mode. Plan the setup, move the next song's key, or put a prayer or reading between them.",
-  },
-] as const satisfies readonly { level: KeyTransitionLevel; text: string }[];
-
-export const LevelGuide = () => (
-  <section className="wrap pt-section grid gap-7 md:grid-cols-[1fr_1.45fr] md:gap-12 lg:gap-24">
-    <div className="self-start md:sticky md:top-24">
-      <h2 className="text-headline">How each change is rated</h2>
-    </div>
-    <ul className="grid gap-6">
-      {levelNotes.map(({ level, text }) => (
-        <li key={level} className="border-border grid gap-2 border-t pt-6">
-          <h3 className="flex items-center gap-2 text-lg font-medium">
-            <span
-              aria-hidden="true"
-              className={`size-2.5 rounded-full ${LEVELS[level].dot}`}
-            />
-            {LEVELS[level].label}
-          </h3>
-          <p className="text-muted-foreground">{text}</p>
-        </li>
-      ))}
-    </ul>
-  </section>
-);
 
 export const KeyTransitionsClosing = () => (
   <section className="wrap pt-section">
@@ -244,10 +204,6 @@ export const KeyTransitionsClosing = () => (
         <br />
         <em>checked for you.</em>
       </h2>
-      <p className="text-muted-foreground max-w-[520px]">
-        PCOBooster flags rough transitions right in your Planning Center
-        Services plan and puts the fix in the band’s notes.
-      </p>
       <ActionLink>Open PCOBooster</ActionLink>
     </div>
   </section>
@@ -274,14 +230,11 @@ export const AllTransitions = () => (
   <section className="wrap pt-section grid gap-7 md:grid-cols-[1fr_1.45fr] md:gap-12 lg:gap-24">
     <div className="self-start md:sticky md:top-24">
       <h2 className="text-headline">Every key change</h2>
-      <p className="text-muted-foreground mt-5">
-        Pick the key you’re starting from to see every change out of it.
-      </p>
     </div>
-    <div className="grid">
+    <div className="grid content-start gap-x-8 sm:grid-flow-col sm:grid-cols-2 sm:grid-rows-12">
       {ALL_KEYS.map((from) => (
-        <details key={from} className="border-border group border-t py-4">
-          <summary className="cursor-pointer text-lg font-medium">
+        <details key={from} className="border-border group border-t py-3">
+          <summary className="cursor-pointer font-medium">
             From {keyLongName(from)}
           </summary>
           <div className="pt-4">

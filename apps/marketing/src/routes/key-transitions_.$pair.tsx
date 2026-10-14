@@ -3,7 +3,6 @@ import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import {
   KeyTransitionFinder,
   KeyTransitionsClosing,
-  LevelGuide,
   PairLinks,
 } from "../components/key-transition-finder";
 import { TextLink } from "../components/site";
@@ -16,7 +15,7 @@ import {
   pairSlug,
 } from "../lib/key-transition-pages";
 import type { KeyPair } from "../lib/key-transition-pages";
-import { LEVELS, keyTransitionAdvice } from "../lib/key-transition-tool";
+import { keyTransitionAdvice } from "../lib/key-transition-tool";
 import { pageHead, socialPreviewOf } from "../lib/site-head";
 
 type AssertPair = (pair: KeyPair | undefined) => asserts pair is KeyPair;
@@ -54,7 +53,6 @@ const PairPage = () => {
   const pair = Route.useLoaderData();
   const navigate = useNavigate();
   const { from, to } = pair;
-  const { rating } = keyTransitionAdvice(from, to);
   const others = KEY_PAIRS.filter(
     (other) => other.from !== other.to && pairSlug(other) !== pairSlug(pair)
   );
@@ -68,9 +66,7 @@ const PairPage = () => {
           <em>key change.</em>
         </h1>
         <p className="text-muted-foreground text-lede mx-auto mt-6 max-w-[560px]">
-          Moving your band from a song in {keyLongName(from)} into a song in{" "}
-          {keyLongName(to)}. {rating.reason}, so PCOBooster rates this change{" "}
-          {LEVELS[rating.level].label.toLowerCase()}.
+          From a song in {keyLongName(from)} into one in {keyLongName(to)}.
         </p>
       </header>
       <KeyTransitionFinder
@@ -109,7 +105,6 @@ const PairPage = () => {
           </div>
         </div>
       </section>
-      <LevelGuide />
       <KeyTransitionsClosing />
     </main>
   );
