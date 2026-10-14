@@ -5,7 +5,7 @@ Three cuts of the launch video. Built with [Remotion](https://www.remotion.dev):
 | Composition | Length | Use |
 | --- | --- | --- |
 | `Teaser15-*` | 15s | Feed teaser: the problem, one fill, a key change smoothed out, the ask |
-| `Demo50-*` | ~47s | The launch demo: planning one Sunday, from what's open to filling a spot (with the history behind the choice), building the set, smoothing its keys, looking after the people, and saving it all back |
+| `Demo50-*` | ~52s | The launch demo: planning one Sunday, from what's open to filling a spot (with the history behind the choice), building the set, smoothing its keys, looking after the people, and saving it all back |
 | `Walkthrough70-*` | ~64s | Walkthrough with room for a voiceover |
 
 Formats: `-4x5` (1080×1350) is the one to post on LinkedIn and Instagram feeds, where it plays largest on a phone; `-16x9` is for YouTube, X, and the site; `-9x16` is for Reels, TikTok, and Shorts. Vertical text stays inside the band that feed UI leaves clear (below the top ~14%, above the bottom ~24%). The walkthrough renders in 16:9 and 9:16 only.

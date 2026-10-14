@@ -83,11 +83,12 @@ const HAYDEN_SCHEDULED: Target = {
  * is asked and saved.
  */
 export const FillSundayScene = ({ duration }: { duration: number }) => {
-  const assignAt = 70;
-  const rehearsalAt = 150;
-  const sundayAt = 200;
-  const rankedAt = 252;
-  const addAt = 330;
+  // The overview holds a few seconds before the click, so the opening can breathe.
+  const assignAt = 104;
+  const rehearsalAt = 188;
+  const sundayAt = 240;
+  const rankedAt = 294;
+  const addAt = 374;
   const beats: Beat[] = [
     { at: 0, apply: showView("overview") },
     { at: assignAt + 3, apply: showView("assign") },
@@ -123,7 +124,7 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
       beats={beats}
       shots={[
         { at: 0, target: PEOPLE_CARD, zoom: 1.7, duration: 1 },
-        { at: 30, target: ACOUSTIC_NEEDED, zoom: 2, duration: 30 },
+        { at: 50, target: ACOUSTIC_NEEDED, zoom: 2, duration: 36 },
         {
           at: assignAt + 6,
           target: FRANKIE_ROW,

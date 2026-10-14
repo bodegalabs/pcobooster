@@ -157,7 +157,12 @@ export const FeatureScene = ({
         // A spring that started a second ago has settled: in place from the first frame.
         enterAt={inPlace ? -30 : 6}
         revealAt={revealAt}
-        swaps={carry ? [0, ...(swaps ?? [])] : swaps}
+        swaps={[
+          ...(carry ? [0] : []),
+          ...(swaps ?? []),
+          // The outgoing screen softens into the cut as the incoming one sharpens out of it.
+          ...(handOff ? [duration] : []),
+        ]}
       >
         {children}
       </ProductStage>

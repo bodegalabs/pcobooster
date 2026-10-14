@@ -9,7 +9,7 @@ import {
 
 import { Backdrop } from "./components/backdrop";
 import type { Lines } from "./components/headline";
-import { FPS } from "./lib/format";
+import { seconds } from "./lib/format";
 import {
   BrandScene,
   EndCard,
@@ -53,41 +53,15 @@ const scene = (
 ): CutScene => ({ name, duration, render });
 
 /**
- * The feed cuts' music bed: "Inspiration" by Pro Sensory, released CC0 on OpenGameArt
- * (https://opengameart.org/content/inspiration-1). Measured at 100.6 BPM with its first
- * beat 0.337s in; the cut starts the track there so frame 0 is a downbeat.
+ * The feed cuts' music bed: "Sunset Plains", a calm acoustic guitar and pad piece released
+ * CC0 on OpenGameArt (https://opengameart.org/content/sunset-plains). It swells in over
+ * its first few seconds, under the hook, and fades out with the end card.
  */
 const MUSIC = {
-  src: "music/inspiration.mp3",
-  bpm: 100.6,
-  firstBeatSeconds: 0.337,
-  volume: 0.62,
-  fadeOutFrames: 30,
+  src: "music/sunset-plains.mp3",
+  volume: 0.8,
+  fadeOutFrames: 45,
 } as const;
-
-const FRAMES_PER_BEAT = (FPS * 60) / MUSIC.bpm;
-
-/**
- * Scenes measured in beats. Each scene ends on the frame nearest its beat, counted from
- * the start of the cut, so rounding never drifts the cuts off the music.
- */
-const onBeats = (
-  entries: readonly (readonly [
-    name: string,
-    beats: number,
-    render: (duration: number) => ReactNode,
-  ])[]
-): readonly CutScene[] => {
-  let beat = 0;
-  let frame = 0;
-  return entries.map(([name, beats, render]) => {
-    beat += beats;
-    const end = Math.round(beat * FRAMES_PER_BEAT);
-    const entry = scene(name, end - frame, render);
-    frame = end;
-    return entry;
-  });
-};
 
 /** What the demo changed, as it saves back to Planning Center. */
 const DEMO_CHANGES: readonly Change[] = [
@@ -101,54 +75,56 @@ const DEMO_CHANGES: readonly Change[] = [
 ];
 
 /** 15 seconds: the problem, one spot filled and saved, a key smoothed out, the ask. */
-const TEASER = onBeats([
-  ["Hook", 4, (duration) => <HookScene duration={duration} lines={HOOK} />],
-  [
-    "Fill a team",
-    8,
-    (duration) => (
-      <FillTeamsScene
-        duration={duration}
-        fromLineup={false}
-        lines={["Fill every team", "*with the right people.*"]}
-      />
-    ),
-  ],
-  [
-    "Key transitions",
-    8,
-    (duration) => <KeyTransitionScene duration={duration} carry={false} />,
-  ],
-  ["End card", 6, (duration) => <EndCard duration={duration} />],
-]);
+const TEASER: readonly CutScene[] = [
+  scene("Hook", seconds(2.6), (duration) => (
+    <HookScene duration={duration} lines={HOOK} />
+  )),
+  scene("Fill a team", seconds(4.8), (duration) => (
+    <FillTeamsScene
+      duration={duration}
+      fromLineup={false}
+      lines={["Fill every team", "*with the right people.*"]}
+    />
+  )),
+  scene("Key transitions", seconds(4.8), (duration) => (
+    <KeyTransitionScene duration={duration} carry={false} />
+  )),
+  scene("End card", seconds(3.6), (duration) => (
+    <EndCard duration={duration} />
+  )),
+];
 
 /**
  * About 50 seconds: planning one Sunday. Start from what's open, fill a spot with the
  * history behind the choice, build the set, smooth its keys, look after the people, and
- * see it all saved back.
+ * see it all saved back. The opening takes its time while the music swells in.
  */
-const DEMO = onBeats([
-  ["Hook", 4, (duration) => <HookScene duration={duration} lines={HOOK} />],
-  [
-    "PCOBooster",
-    4,
-    (duration) => <BrandScene duration={duration} subline={false} />,
-  ],
-  ["Fill a spot", 26, (duration) => <FillSundayScene duration={duration} />],
-  ["Build the set", 7, (duration) => <BuildSetScene duration={duration} />],
-  [
-    "Key transitions",
-    9,
-    (duration) => <KeyTransitionScene duration={duration} />,
-  ],
-  ["People", 16, (duration) => <PeopleScene duration={duration} />],
-  [
-    "Saves back",
-    5,
-    (duration) => <SavesBackScene duration={duration} changes={DEMO_CHANGES} />,
-  ],
-  ["End card", 7, (duration) => <EndCard duration={duration} />],
-]);
+const DEMO: readonly CutScene[] = [
+  scene("Hook", seconds(3.6), (duration) => (
+    <HookScene duration={duration} lines={HOOK} />
+  )),
+  scene("PCOBooster", seconds(4.2), (duration) => (
+    <BrandScene duration={duration} />
+  )),
+  scene("Fill a spot", seconds(17), (duration) => (
+    <FillSundayScene duration={duration} />
+  )),
+  scene("Build the set", seconds(4.5), (duration) => (
+    <BuildSetScene duration={duration} />
+  )),
+  scene("Key transitions", seconds(5.5), (duration) => (
+    <KeyTransitionScene duration={duration} />
+  )),
+  scene("People", seconds(9.7), (duration) => (
+    <PeopleScene duration={duration} />
+  )),
+  scene("Saves back", seconds(3.4), (duration) => (
+    <SavesBackScene duration={duration} changes={DEMO_CHANGES} />
+  )),
+  scene("End card", seconds(4.5), (duration) => (
+    <EndCard duration={duration} />
+  )),
+];
 
 /** About 70 seconds: the walkthrough, room for a voiceover over each beat. */
 const WALKTHROUGH: readonly CutScene[] = [
@@ -205,7 +181,6 @@ export const cutDuration = (cut: CutId): number =>
 const Music = ({ duration }: { duration: number }) => (
   <Html5Audio
     src={staticFile(MUSIC.src)}
-    trimBefore={Math.round(MUSIC.firstBeatSeconds * FPS)}
     volume={(frame) =>
       MUSIC.volume *
       interpolate(frame, [duration - MUSIC.fadeOutFrames, duration], [1, 0], {

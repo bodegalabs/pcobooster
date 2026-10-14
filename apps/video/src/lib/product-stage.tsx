@@ -55,8 +55,10 @@ const NO_HIGHLIGHTS: readonly Highlight[] = [];
 const CLICK_VOLUME = 0.45;
 const NO_SWAPS: readonly number[] = [];
 /** A screen change blurs across this many frames, sharpest on either side of the swap. */
-const SWAP_FRAMES = 8;
-const SWAP_BLUR = 4;
+const SWAP_FRAMES = 10;
+const SWAP_BLUR = 3;
+/** How far a screen change dips toward the card's white, like a page turning. */
+const SWAP_DIM = 0.35;
 
 interface BeatLayout {
   readonly rects: Readonly<Record<string, Rect>>;
@@ -164,13 +166,12 @@ export const ProductStage = ({
   children: ReactNode;
 }) => {
   const frame = useCurrentFrame();
-  const swapBlur =
-    SWAP_BLUR *
-    pulse(
-      frame,
-      swaps.map((at) => at - SWAP_FRAMES / 2),
-      SWAP_FRAMES
-    );
+  const swap = pulse(
+    frame,
+    swaps.map((at) => at - SWAP_FRAMES / 2),
+    SWAP_FRAMES
+  );
+  const swapBlur = SWAP_BLUR * swap;
   const portrait = useFormat() === "portrait";
   const rootRef = useRef<HTMLDivElement>(null);
   const [fontsLoaded, setFontsLoaded] = useState(false);
@@ -329,6 +330,7 @@ export const ProductStage = ({
                 swapBlur > 0.1
                   ? `blur(${swapBlur / camera.zoom}px)`
                   : undefined,
+              opacity: 1 - SWAP_DIM * swap,
             }}
           >
             <div
