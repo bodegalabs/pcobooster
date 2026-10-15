@@ -95,13 +95,14 @@ const HAYDEN_ROW: Target = {
 };
 /** Hayden's fit, the only 100 on the list while the spot is open. */
 const HAYDEN_FIT = css('[aria-label^="100 fit."]');
+const TAYLOR_ROW: Target = {
+  selector: '[aria-label="Add Taylor Lane to this position"]',
+  closest: "li",
+};
 /** Hayden over Taylor, the first two of everyone who could take the spot. */
 const TOP_TWO: Target = {
   ...HAYDEN_ROW,
-  with: {
-    selector: '[aria-label="Add Taylor Lane to this position"]',
-    closest: "li",
-  },
+  with: TAYLOR_ROW,
 };
 const ADD_HAYDEN = css('[aria-label="Add Hayden Collins to this position"]');
 const HAYDEN_SCHEDULED: Target = {
@@ -110,6 +111,11 @@ const HAYDEN_SCHEDULED: Target = {
 };
 /** Scheduled, now 2 of 2: Frankie, and Hayden asked. */
 const SPOT_FILLED: Target = { ...FRANKIE_ROW, with: HAYDEN_SCHEDULED };
+/**
+ * Hayden, now scheduled, over Taylor, now first to add: framed like the top two were, so
+ * the rows stay put as the list changes under them.
+ */
+const HAYDEN_ASKED: Target = { ...HAYDEN_SCHEDULED, with: TAYLOR_ROW };
 /** Fills the window with the people pane, just past the roster beside it. */
 const PANE_ZOOM = 2.03;
 const WIDE_PANE_ZOOM = 1.75;
@@ -192,14 +198,22 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
           duration: 28,
         },
         {
-          at: addAt + 8,
+          // On the frame the list changes, so Hayden's row doesn't jump.
+          at: addAt + 3,
+          target: HAYDEN_ASKED,
+          zoom: zoom(PANE_ZOOM),
+          beat: 4,
+          duration: 1,
+        },
+        {
+          at: addAt + 10,
           target: SPOT_FILLED,
           zoom: zoom(PANE_ZOOM),
           beat: 4,
-          duration: 26,
+          duration: 34,
         },
         {
-          at: addAt + 34,
+          at: addAt + 44,
           target: SPOT_FILLED,
           zoom: zoom(2.12),
           beat: 4,
@@ -238,7 +252,8 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
         },
       ]}
       revealAt={12}
-      swaps={[addAt + 3]}
+      // The add is an in-place update, like a menu opening: no page-change softening.
+
       overlay={<SavedToast at={addAt + 16} />}
     >
       <ProductDemo />
