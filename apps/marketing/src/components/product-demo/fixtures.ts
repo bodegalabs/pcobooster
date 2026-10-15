@@ -328,7 +328,7 @@ export const people: readonly DemoPerson[] = [
   person("p05", "Robin Lane", ["acoustic", "keys"], weeks("keys", 3, 7), {
     blockedOut: true,
   }),
-  person("p06", "Drew Scott", ["bass"], weeks("bass", 3, 7)),
+  person("p06", "Drew Scott", ["bass", "acoustic"], weeks("bass", 3, 7)),
   person("p07", "Kendall Evans", ["bass", "electric"], weeks("bass", 1, 2)),
   person("p08", "Lane Parker", ["drums"], weeks("drums", 2, 4, 6), {
     upcoming: ahead("drums", "confirmed", 2),
@@ -339,7 +339,12 @@ export const people: readonly DemoPerson[] = [
     declined: "Traveling for a family wedding that weekend.",
   }),
   person("p12", "Dakota Bennett", ["keys"], weeks("keys", 5)),
-  person("p13", "Eden Brooks", ["keys", "alto"], weeks("alto", 1, 3)),
+  person(
+    "p13",
+    "Eden Brooks",
+    ["keys", "alto", "acoustic"],
+    weeks("alto", 1, 3)
+  ),
   person("p14", "Jordan Hale", ["lead"], weeks("lead", 2, 4)),
   person("p15", "Morgan Reyes", ["lead", "alto"], weeks("lead", 6, 10)),
   person("p16", "Logan Archer", ["alto"], weeks("alto", 2, 5)),
@@ -351,8 +356,13 @@ export const people: readonly DemoPerson[] = [
   ),
   person("p18", "Sage Porter", ["alto"], weeks("alto", 7)),
   person("p19", "Casey Monroe", ["alto", "greeter"], [], { blockedOut: true }),
-  person("p20", "Emerson Diaz", ["tenor"], weeks("tenor", 3)),
-  person("p21", "Riley Foster", ["tenor", "lead"], weeks("tenor", 1, 2, 4)),
+  person("p20", "Emerson Diaz", ["tenor", "acoustic"], weeks("tenor", 3)),
+  person(
+    "p21",
+    "Riley Foster",
+    ["tenor", "lead", "acoustic"],
+    weeks("tenor", 1, 2, 4)
+  ),
   person("p22", "Parker West", ["sound", "livestream"], weeks("sound", 2, 5)),
   person("p23", "Blake Collins", ["sound", "camera"], weeks("camera", 4)),
   person("p24", "Eden Lane", ["lyrics"], weeks("lyrics", 5, 9)),

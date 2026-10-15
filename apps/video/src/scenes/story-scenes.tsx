@@ -48,26 +48,6 @@ const steadyGroundInD = () => {
 };
 
 // Assign
-/** The position's header down to the first person who could take it. */
-const ASSIGN_TOP: Target = {
-  ...css(`.${styles["assign-head"]}`),
-  with: {
-    selector: '[aria-label="Add Hayden Collins to this position"]',
-    closest: "li",
-  },
-};
-/**
- * Which Sunday, the band's roster with its open spots, and the open Acoustic Guitar
- * spot's first rows beside it.
- */
-const SUNDAY_AND_SPOT: Target = {
-  // The heading's last part, the date: the heading itself spans the whole page.
-  ...css(`.${styles["plan-heading"]} > span:last-child`),
-  with: {
-    ...css(`.${styles["assign-roster"]} .${styles["team-panel"]}`),
-    with: ASSIGN_TOP,
-  },
-};
 /** The band's roster, with its open spots, beside the open spot's name. */
 const OPEN_SPOTS: Target = {
   ...css(`.${styles["assign-roster"]} .${styles["team-panel"]}`),
@@ -95,14 +75,19 @@ const HAYDEN_ROW: Target = {
 };
 /** Hayden's fit, the only 100 on the list while the spot is open. */
 const HAYDEN_FIT = css('[aria-label^="100 fit."]');
-const TAYLOR_ROW: Target = {
-  selector: '[aria-label="Add Taylor Lane to this position"]',
+const EMERSON_ROW: Target = {
+  selector: '[aria-label="Add Emerson Diaz to this position"]',
   closest: "li",
 };
-/** Hayden over Taylor, the first two of everyone who could take the spot. */
+/** Hayden over Emerson, the first two of everyone who could take the spot. */
 const TOP_TWO: Target = {
   ...HAYDEN_ROW,
-  with: TAYLOR_ROW,
+  with: EMERSON_ROW,
+};
+/** Everyone who could take the spot, each with a fit and their month. */
+const EVERYONE: Target = {
+  selector: '[aria-label="Add Hayden Collins to this position"]',
+  closest: `.${styles["candidate-section"]}`,
 };
 const ADD_HAYDEN = css('[aria-label="Add Hayden Collins to this position"]');
 const HAYDEN_SCHEDULED: Target = {
@@ -111,14 +96,10 @@ const HAYDEN_SCHEDULED: Target = {
 };
 /** Scheduled, now 2 of 2: Frankie, and Hayden asked. */
 const SPOT_FILLED: Target = { ...FRANKIE_ROW, with: HAYDEN_SCHEDULED };
-/**
- * Hayden, now scheduled, over Taylor, now first to add: framed like the top two were, so
- * the rows stay put as the list changes under them.
- */
-const HAYDEN_ASKED: Target = { ...HAYDEN_SCHEDULED, with: TAYLOR_ROW };
+/** Tall enough to lay out everyone who could play, so the camera can pan down the list. */
+const FILL_CANVAS = 1.4;
 /** Fills the window with the people pane, just past the roster beside it. */
 const PANE_ZOOM = 2.03;
-const WIDE_PANE_ZOOM = 1.75;
 /** Past the row's bottom-right corner, off the window: the pointer leaves after asking. */
 const OUT_OF_THE_WAY = { x: 1.12, y: 1.5 } as const;
 
@@ -142,13 +123,13 @@ const YOUR_SERVICES_AND_SUNDAY: Target = {
 export const FillSundayScene = ({ duration }: { duration: number }) => {
   // Every click lands on the music's beat (20 frames). Services holds before Sunday is
   // picked, and the roster before the camera moves in, so the opening can breathe.
-  const pickAt = 60;
+  const pickAt = 100;
   const openAt = pickAt + 3;
-  const assignAt = 160;
-  const rehearsalAt = 240;
-  const sundayAt = 300;
-  const rankedAt = 360;
-  const addAt = 440;
+  const assignAt = 200;
+  const rehearsalAt = 300;
+  const sundayAt = 360;
+  const rankedAt = 420;
+  const addAt = 500;
   // The feed's zooms are tuned to its 1000px canvas; the wide canvas fits each subject.
   const wide = useFormat() === "landscape";
   const zoom = (feed: number) => (wide ? undefined : feed);
@@ -170,7 +151,7 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
         { at: pickAt + 6, lines: ["See what’s still open."] },
         {
           at: assignAt + 8,
-          lines: ["Everyone who could play,", "*with their month around it.*"],
+          lines: ["Everyone who could play,", "*ranked by their last month.*"],
         },
         {
           at: rehearsalAt,
@@ -187,19 +168,26 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
       ]}
       beats={beats}
       shots={[
-        { at: 0, target: YOUR_SERVICES_AND_SUNDAY, pad: 48, duration: 1 },
-        // A gentle push toward Sunday's row before it's picked.
-        { at: 6, target: YOUR_SERVICES_AND_SUNDAY, pad: 12, duration: 50 },
-        { at: openAt, target: SUNDAY_AND_SPOT, pad: 12, beat: 1, duration: 1 },
-        // A slow push in on the band's open spots while the opening breathes.
-        { at: openAt + 6, target: OPEN_SPOTS, pad: 16, beat: 1, duration: 84 },
+        // The whole app first, sidebar and all, then in toward Sunday's row.
+        { at: 0, duration: 1 },
+        { at: 30, target: YOUR_SERVICES_AND_SUNDAY, pad: 12, duration: 56 },
+        // Sunday opens on the whole window, then a slow push in on its open spots.
+        { at: openAt, beat: 1, duration: 1 },
+        { at: openAt + 12, target: OPEN_SPOTS, pad: 16, beat: 1, duration: 78 },
         {
+          // The best fits first, then back to reveal everyone who could play.
           at: assignAt + 6,
-          target: ASSIGN_TOP,
-          // The wide window is short: just past the roster, the pane's top two rows.
-          zoom: wide ? WIDE_PANE_ZOOM : PANE_ZOOM,
+          target: TOP_TWO,
+          zoom: zoom(PANE_ZOOM),
           beat: 1,
           duration: 26,
+        },
+        {
+          at: assignAt + 40,
+          target: EVERYONE,
+          pad: 12,
+          beat: 1,
+          duration: 44,
         },
         {
           at: rehearsalAt - 16,
@@ -216,19 +204,13 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
           duration: 28,
         },
         {
-          // On the frame the list changes, so Hayden's row doesn't jump.
-          at: addAt + 3,
-          target: HAYDEN_ASKED,
-          zoom: zoom(PANE_ZOOM),
-          beat: 5,
-          duration: 1,
-        },
-        {
-          at: addAt + 10,
+          // Already easing toward the filled spot as the click lands, so the list's
+          // change happens mid-move instead of as a jump.
+          at: addAt,
           target: SPOT_FILLED,
           zoom: zoom(PANE_ZOOM),
           beat: 5,
-          duration: 34,
+          duration: 44,
         },
         {
           at: addAt + 44,
@@ -278,9 +260,10 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
         },
       ]}
       revealAt={openAt + 12}
-      // The add is an in-place update, like a menu opening: no page-change softening.
-
       swaps={[openAt]}
+      // Hayden's row moves up to Scheduled: the list crossfades instead of jumping.
+      dissolves={[addAt + 3]}
+      tallCanvas={FILL_CANVAS}
       overlay={<SavedToast at={addAt + 16} />}
     >
       <ProductDemo />

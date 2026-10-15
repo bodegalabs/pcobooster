@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import {
   Html5Audio,
@@ -14,7 +14,7 @@ import { cameraAt } from "./camera";
 import type { Rect, Shot } from "./camera";
 import { fontsReady } from "./fonts";
 import { FPS, useFormat } from "./format";
-import { mix, progress, pulse, settle } from "./motion";
+import { easeInOut, mix, progress, pulse, settle } from "./motion";
 import { ScriptedReplica, beatIndexAt, findTarget, targetKey } from "./replica";
 import type { Beat, Target } from "./replica";
 
@@ -59,6 +59,25 @@ const SWAP_FRAMES = 10;
 const SWAP_BLUR = 3;
 /** How far a screen change dips toward the card's white, like a page turning. */
 const SWAP_DIM = 0.35;
+/** How long a change in place crossfades from the screen before it. */
+const DISSOLVE_FRAMES = 12;
+
+/** The beat crossfading out at this frame, if any, and how much of it still shows. */
+const dissolveAt = (
+  frame: number,
+  dissolves: readonly number[],
+  beats: readonly Beat[]
+): { fadingBeat: number | undefined; fadingOpacity: number } => {
+  const at = dissolves.find(
+    (start) => frame >= start && frame < start + DISSOLVE_FRAMES
+  );
+  return at === undefined
+    ? { fadingBeat: undefined, fadingOpacity: 0 }
+    : {
+        fadingBeat: beatIndexAt(beats, at - 1),
+        fadingOpacity: 1 - progress(frame, at, DISSOLVE_FRAMES, easeInOut),
+      };
+};
 
 interface BeatLayout {
   readonly rects: Readonly<Record<string, Rect>>;
@@ -168,6 +187,8 @@ export const ProductStage = ({
   enterAt = 0,
   revealAt,
   swaps = NO_SWAPS,
+  dissolves = NO_SWAPS,
+  canvasHeight,
   children,
 }: {
   beats: readonly Beat[];
@@ -182,6 +203,16 @@ export const ProductStage = ({
   revealAt?: number;
   /** Frames where the replica changes screen, softened with a brief blur. */
   swaps?: readonly number[];
+  /**
+   * Beat frames where part of the screen changes in place (a row moving): the screen
+   * before crossfades into the new one instead of jumping.
+   */
+  dissolves?: readonly number[];
+  /**
+   * Lays the replica out taller than its window, so the camera can pan down to content
+   * the window would otherwise scroll.
+   */
+  canvasHeight?: number;
   children: ReactNode;
 }) => {
   const frame = useCurrentFrame();
@@ -199,6 +230,9 @@ export const ProductStage = ({
     readonly BeatLayout[] | null
   >(null);
   const partial = useRef<BeatLayout[]>([]);
+  // Each beat's settled screen, kept to crossfade from when a later beat dissolves in.
+  const snapshots = useRef<HTMLElement[]>([]);
+  const dissolveRef = useRef<HTMLDivElement>(null);
   const calibrated = measurements !== null;
 
   const targets = useMemo(() => {
@@ -244,6 +278,12 @@ export const ProductStage = ({
       return;
     }
     partial.current[settledBeat] = measureAll(root, targets);
+    const copy = root.cloneNode(true);
+    if (copy instanceof HTMLElement) {
+      // By the time a beat dissolves into the next, its history bars have grown in.
+      delete copy.dataset.revealWave;
+      snapshots.current[settledBeat] = copy;
+    }
     if (settledBeat + 1 < beats.length) {
       setCalibrating(settledBeat + 1);
     } else {
@@ -253,6 +293,15 @@ export const ProductStage = ({
   };
 
   const liveBeat = beatIndexAt(beats, frame);
+  const { fadingBeat, fadingOpacity } = dissolveAt(frame, dissolves, beats);
+  useLayoutEffect(() => {
+    const host = dissolveRef.current;
+    const snapshot =
+      fadingBeat === undefined ? undefined : snapshots.current[fadingBeat];
+    host?.replaceChildren(
+      ...(snapshot === undefined ? [] : [snapshot.cloneNode(true)])
+    );
+  }, [fadingBeat]);
   const rectFor = (target: Target, beat: number): Rect | undefined =>
     measurements?.[beat]?.rects[targetKey(target)];
   const camera = cameraAt(
@@ -329,7 +378,7 @@ export const ProductStage = ({
         }}
       >
         <style>
-          {`.${styles.demo}:not(.${styles.embedded}){height:${nativeHeight}px}` +
+          {`.${styles.demo}:not(.${styles.embedded}){height:${canvasHeight ?? nativeHeight}px}` +
             `.${styles["sample-badge"]}{display:none !important}`}
         </style>
         <div
@@ -371,6 +420,17 @@ export const ProductStage = ({
                 </ScriptedReplica>
               ) : null}
             </div>
+            <div
+              ref={dissolveRef}
+              aria-hidden
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                pointerEvents: "none",
+                opacity: fadingOpacity,
+              }}
+            />
             {calibrated ? (
               <Highlights
                 frame={frame}

@@ -118,7 +118,7 @@ const DEMO: readonly CutScene[] = [
   scene("PCOBooster", beats(6), (duration) => (
     <BrandScene duration={duration} subline="Watch one Sunday come together." />
   )),
-  scene("Fill a spot", beats(29), (duration) => (
+  scene("Fill a spot", beats(32), (duration) => (
     <FillSundayScene duration={duration} />
   )),
   scene("Set the plan", beats(15), (duration) => (

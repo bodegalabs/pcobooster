@@ -64,6 +64,9 @@ const LetGo = ({ at, children }: { at: number; children: ReactNode }) => {
   );
 };
 
+const stretched = (height: number, ratio: number | undefined) =>
+  ratio === undefined ? undefined : Math.round(height * ratio);
+
 /** One caption of a scene that narrates as it goes, shown from `at` until the next. */
 export interface Caption {
   readonly at: number;
@@ -123,10 +126,12 @@ export const FeatureScene = ({
   highlights,
   revealAt,
   swaps,
+  dissolves,
   transition = "soft",
   carry = false,
   handOff = false,
   canvasWidth,
+  tallCanvas,
   overlay,
   children,
 }: {
@@ -140,6 +145,8 @@ export const FeatureScene = ({
   revealAt?: number;
   /** Frames where the replica changes screen, softened with a brief blur. */
   swaps?: readonly number[];
+  /** Beat frames where part of the screen changes in place: crossfade, don't jump. */
+  dissolves?: readonly number[];
   transition?: Transition;
   /**
    * Picks up from a product scene before it: the window is already in place and only its
@@ -153,6 +160,11 @@ export const FeatureScene = ({
    * for pages whose columns would otherwise truncate their names.
    */
   canvasWidth?: number;
+  /**
+   * Lays the replica out this many times taller than its window, so the camera can pan
+   * down a long list instead of the window scrolling it out of reach.
+   */
+  tallCanvas?: number;
   /** Drawn over the product window, outside the camera (a saved toast, say). */
   overlay?: ReactNode;
   children: ReactNode;
@@ -229,6 +241,8 @@ export const FeatureScene = ({
         // Otherwise the window rises right behind the caption, so the cut has no dead air.
         enterAt={inPlace ? -30 : 2}
         revealAt={revealAt}
+        canvasHeight={stretched(layout.nativeHeight, tallCanvas)}
+        dissolves={dissolves}
         swaps={[
           ...(carry ? [0] : []),
           ...(swaps ?? []),
