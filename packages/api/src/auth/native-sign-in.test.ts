@@ -707,16 +707,21 @@ describe("native sign-in", { timeout: LOCAL_WORKER_TEST_TIMEOUT_MS }, () => {
   });
 
   it("accepts only signed bearer tokens", async () => {
+    vi.useRealTimers();
     const token = await tokenFor(profile("signature"));
-    const [rawToken = "", signature = ""] = token.split(".");
-    const sessions = await Promise.all(
-      [
-        token,
-        rawToken,
-        `${rawToken}.x${signature.slice(1)}`,
-        `${rawToken}x.${signature}`,
-      ].map(sessionFor)
-    );
+    const separator = token.lastIndexOf(".");
+    const rawToken = token.slice(0, separator);
+    const signature = token.slice(separator + 1);
+    const candidates = [
+      token,
+      rawToken,
+      `${rawToken}.x${signature.slice(1)}`,
+      `${rawToken}x.${signature}`,
+    ];
+    const sessions = [];
+    for (const candidate of candidates) {
+      sessions.push(await sessionFor(candidate));
+    }
 
     expect(sessions.map((found) => found !== null)).toStrictEqual([
       true,
