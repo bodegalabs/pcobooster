@@ -75,7 +75,9 @@ export const scannerProbeRule: Cloudflare.Ruleset.Rule = {
 /**
  * Free-plan edge protection for a zone: Bot Fight Mode and a custom WAF rule for scanner probes.
  * Blocked requests never invoke a Worker. Bot Fight Mode cannot be bypassed on the Free plan, so
- * any future inbound webhook must be checked against it.
+ * any future inbound webhook must be checked against it. It challenges scripted clients on
+ * datacenter networks: since October 13, 2026 that includes every GitHub runner, so CI verifies
+ * production through its workers.dev origin and the Cloudflare API, never through this zone.
  *
  * The AI crawler policy (block training crawlers; allow AI search and assistant fetches) is set
  * by hand with `cf bot-management update --ai-training block --ai-search disabled --ai-user

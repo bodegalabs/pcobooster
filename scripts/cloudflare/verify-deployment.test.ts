@@ -186,6 +186,27 @@ describe(verifyDeployment, () => {
       "https://example.test API served 0fc13cc, expected b57ca91"
     );
   });
+
+  it("fails at once when Cloudflare challenges the check instead of waiting out the deadline", async () => {
+    // What Bot Fight Mode answered every CI request to pcobooster.com from October 13, 2026.
+    const challenge = respondWith(
+      new Response("<!DOCTYPE html><title>Just a moment...</title>", {
+        status: 403,
+        headers: { "cf-mitigated": "challenge", "content-type": "text/html" },
+      })
+    );
+    const started = Date.now();
+    await expect(
+      verifyDeployment("https://example.test", "b57ca91", {
+        fetchImpl: challenge,
+        intervalMs: 0,
+        deadlineMs: 60_000,
+      })
+    ).rejects.toThrow(
+      /^Cloudflare challenged https:\/\/example\.test\/(?:version|api\/v1\/health) instead of letting it reach the Worker/u
+    );
+    expect(Date.now() - started).toBeLessThan(5000);
+  });
 });
 
 const recordHeaders = () => {

@@ -9,6 +9,10 @@
  *
  * Behind Cloudflare Access (staging), set `CLOUDFLARE_ACCESS_CLIENT_ID` and
  * `CLOUDFLARE_ACCESS_CLIENT_SECRET` to a service token the application admits.
+ *
+ * Pass a workers.dev origin, never a hostname in a zone with Bot Fight Mode: it challenges
+ * datacenter clients such as CI runners, and the Free plan cannot exempt them. A challenged
+ * check fails at once rather than polling until the deadline.
  */
 import { setTimeout as sleep } from "node:timers/promises";
 
@@ -79,6 +83,10 @@ const homeIsServing = async (
   }
 };
 
+/** Cloudflare marks every challenge page it serves with this header. */
+const isChallenge = (response: Response): boolean =>
+  response.headers.get("cf-mitigated") === "challenge";
+
 export const verifyDeployment = async (
   origin: string,
   expectedVersion: string,
@@ -88,6 +96,20 @@ export const verifyDeployment = async (
     deadlineMs = defaultDeadlineMs,
   } = {}
 ): Promise<void> => {
+  let challengedUrl: string | undefined;
+  const watchedFetch = Object.assign(
+    async (
+      input: Parameters<Fetch>[0],
+      init?: Parameters<Fetch>[1]
+    ): Promise<Response> => {
+      const response = await fetchImpl(input, init);
+      if (isChallenge(response)) {
+        challengedUrl = input instanceof Request ? input.url : input.toString();
+      }
+      return response;
+    },
+    fetchImpl
+  );
   const deadline = Date.now() + deadlineMs;
   let webVersion: string | undefined;
   let apiVersion: string | undefined;
@@ -95,14 +117,19 @@ export const verifyDeployment = async (
   while (Date.now() < deadline) {
     // oxlint-disable-next-line no-await-in-loop -- Polling waits for the rollout.
     [webVersion, apiVersion] = await Promise.all([
-      readWebVersion(origin, fetchImpl),
-      readVersion(origin, fetchImpl),
+      readWebVersion(origin, watchedFetch),
+      readVersion(origin, watchedFetch),
     ]);
     homeServing =
       webVersion === expectedVersion &&
       apiVersion === expectedVersion &&
       // oxlint-disable-next-line no-await-in-loop -- Polling waits for the rollout.
-      (await homeIsServing(origin, fetchImpl));
+      (await homeIsServing(origin, watchedFetch));
+    if (challengedUrl !== undefined) {
+      throw new Error(
+        `Cloudflare challenged ${challengedUrl} instead of letting it reach the Worker. Verify through the Worker's workers.dev origin.`
+      );
+    }
     if (homeServing) {
       break;
     }
