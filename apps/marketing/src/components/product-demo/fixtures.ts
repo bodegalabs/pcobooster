@@ -108,6 +108,109 @@ export const plan = {
   when: "Sun, Oct 11, 2026",
 } as const;
 
+/** One plan on the Services list: a service type's plan on a calendar day. */
+export interface DemoServicePlan {
+  readonly id: string;
+  readonly serviceType: string;
+  readonly title: string;
+  readonly series: string | null;
+  /** The date tile's parts, as the product prints them. */
+  readonly month: string;
+  readonly day: number;
+  readonly weekday: string;
+  /** "In 3 days" and so on, for plans in the next two weeks. */
+  readonly relativeDay: string | null;
+  /** The visitor is scheduled on it. */
+  readonly scheduled: boolean;
+}
+
+/** The sample's "today": the Thursday before the sample plan. */
+export const DEMO_TODAY = { month: "Oct", day: 8 } as const;
+
+/** The plan the Services list opens, the sample plan itself. */
+export const SAMPLE_PLAN_ID = "sun-oct-11";
+
+/** The next few weeks of plans across the sample church's service types. */
+export const servicePlans: readonly DemoServicePlan[] = [
+  {
+    id: "thu-oct-8",
+    serviceType: "Midweek Prayer",
+    title: "Prayer night",
+    series: null,
+    month: "Oct",
+    day: 8,
+    weekday: "Thu",
+    relativeDay: "Today",
+    scheduled: false,
+  },
+  {
+    id: SAMPLE_PLAN_ID,
+    serviceType: plan.serviceType,
+    title: plan.title,
+    series: "Open Hands",
+    month: "Oct",
+    day: 11,
+    weekday: "Sun",
+    relativeDay: "In 3 days",
+    scheduled: true,
+  },
+  {
+    id: "sun-oct-11-evening",
+    serviceType: plan.serviceType,
+    title: "Evening gathering",
+    series: "Open Hands",
+    month: "Oct",
+    day: 11,
+    weekday: "Sun",
+    relativeDay: "In 3 days",
+    scheduled: false,
+  },
+  {
+    id: "wed-oct-14",
+    serviceType: "Youth Night",
+    title: "Night of worship",
+    series: null,
+    month: "Oct",
+    day: 14,
+    weekday: "Wed",
+    relativeDay: "In 6 days",
+    scheduled: true,
+  },
+  {
+    id: "thu-oct-15",
+    serviceType: "Midweek Prayer",
+    title: "Prayer night",
+    series: null,
+    month: "Oct",
+    day: 15,
+    weekday: "Thu",
+    relativeDay: "In 7 days",
+    scheduled: false,
+  },
+  {
+    id: "sun-oct-18",
+    serviceType: plan.serviceType,
+    title: plan.title,
+    series: "Open Hands",
+    month: "Oct",
+    day: 18,
+    weekday: "Sun",
+    relativeDay: "In 10 days",
+    scheduled: true,
+  },
+  {
+    id: "sun-oct-25",
+    serviceType: plan.serviceType,
+    title: plan.title,
+    series: "Open Hands",
+    month: "Oct",
+    day: 25,
+    weekday: "Sun",
+    relativeDay: null,
+    scheduled: false,
+  },
+];
+
 /** The plan's calendar day, as a UTC midnight, for the history bars' date labels. */
 export const PLAN_DAY_UTC = Date.UTC(2026, 9, 11);
 

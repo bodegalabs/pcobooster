@@ -26,7 +26,7 @@ import styles from "../../../marketing/src/components/product-demo/product-demo.
 
 const css = (selector: string): Target => ({ selector });
 
-const showView = (view: PlanView | "people") => () => {
+const showView = (view: PlanView | "services" | "people") => () => {
   navigateDemo({ view, positionId: "acoustic" });
 };
 
@@ -122,25 +122,39 @@ const WIDE_PANE_ZOOM = 1.75;
 /** Past the row's bottom-right corner, off the window: the pointer leaves after asking. */
 const OUT_OF_THE_WAY = { x: 1.12, y: 1.5 } as const;
 
+// Services
+/** The plans the visitor is on, down to Sunday's row in the list below. */
+const SUNDAY_PLAN = css(
+  '[aria-label="Sunday Services, Sun, Oct 11, 2026: you are scheduled"]'
+);
+const ON_THE_NAME = { x: 0.18, y: 0.32 } as const;
+const YOUR_SERVICES_AND_SUNDAY: Target = {
+  ...css(`.${styles["your-services"]}`),
+  with: SUNDAY_PLAN,
+};
+
 /**
- * Filling a spot, start to finish: Sunday's roster shows what's open, the open Acoustic
+ * Filling a spot, start to finish: Services lists every plan, Sunday's roster shows what's open, the open Acoustic
  * Guitar spot lists everyone who could play with their month around it, Frankie's
  * rehearsal and Sunday show what's on each day, Hayden's fit says why the most rested
  * ranks first, and one click asks Hayden and saves it.
  */
 export const FillSundayScene = ({ duration }: { duration: number }) => {
-  // Every click lands on the music's beat (20 frames). The roster holds before the
-  // camera moves in, so the opening can breathe.
-  const assignAt = 100;
-  const rehearsalAt = 180;
-  const sundayAt = 240;
-  const rankedAt = 300;
-  const addAt = 380;
+  // Every click lands on the music's beat (20 frames). Services holds before Sunday is
+  // picked, and the roster before the camera moves in, so the opening can breathe.
+  const pickAt = 60;
+  const openAt = pickAt + 3;
+  const assignAt = 160;
+  const rehearsalAt = 240;
+  const sundayAt = 300;
+  const rankedAt = 360;
+  const addAt = 440;
   // The feed's zooms are tuned to its 1000px canvas; the wide canvas fits each subject.
   const wide = useFormat() === "landscape";
   const zoom = (feed: number) => (wide ? undefined : feed);
   const beats: Beat[] = [
-    { at: 0, apply: showView("assign") },
+    { at: 0, apply: showView("services") },
+    { at: openAt, apply: showView("assign") },
     { at: rehearsalAt + 3, focus: [FRANKIE_REHEARSAL] },
     { at: sundayAt + 3, focus: [FRANKIE_SUNDAY] },
     { at: rankedAt + 3, focus: [HAYDEN_FIT] },
@@ -152,7 +166,8 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
       transition="soft-in"
       duration={duration}
       captions={[
-        { at: 0, lines: ["Start with Sunday.", "*See what’s still open.*"] },
+        { at: 0, lines: ["Start with Sunday."] },
+        { at: pickAt + 6, lines: ["See what’s still open."] },
         {
           at: assignAt + 8,
           lines: ["Everyone who could play,", "*with their month around it.*"],
@@ -172,29 +187,32 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
       ]}
       beats={beats}
       shots={[
-        { at: 0, target: SUNDAY_AND_SPOT, pad: 12, duration: 1 },
+        { at: 0, target: YOUR_SERVICES_AND_SUNDAY, pad: 48, duration: 1 },
+        // A gentle push toward Sunday's row before it's picked.
+        { at: 6, target: YOUR_SERVICES_AND_SUNDAY, pad: 12, duration: 50 },
+        { at: openAt, target: SUNDAY_AND_SPOT, pad: 12, beat: 1, duration: 1 },
         // A slow push in on the band's open spots while the opening breathes.
-        { at: 8, target: OPEN_SPOTS, pad: 16, duration: 84 },
+        { at: openAt + 6, target: OPEN_SPOTS, pad: 16, beat: 1, duration: 84 },
         {
           at: assignAt + 6,
           target: ASSIGN_TOP,
           // The wide window is short: just past the roster, the pane's top two rows.
           zoom: wide ? WIDE_PANE_ZOOM : PANE_ZOOM,
-          beat: 0,
+          beat: 1,
           duration: 26,
         },
         {
           at: rehearsalAt - 16,
           target: FRANKIE_AND_DAY,
           zoom: zoom(2.1),
-          beat: 1,
+          beat: 2,
           duration: 26,
         },
         {
           at: rankedAt - 14,
           target: TOP_TWO,
           zoom: zoom(PANE_ZOOM),
-          beat: 3,
+          beat: 4,
           duration: 28,
         },
         {
@@ -202,58 +220,67 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
           at: addAt + 3,
           target: HAYDEN_ASKED,
           zoom: zoom(PANE_ZOOM),
-          beat: 4,
+          beat: 5,
           duration: 1,
         },
         {
           at: addAt + 10,
           target: SPOT_FILLED,
           zoom: zoom(PANE_ZOOM),
-          beat: 4,
+          beat: 5,
           duration: 34,
         },
         {
           at: addAt + 44,
           target: SPOT_FILLED,
           zoom: zoom(2.12),
-          beat: 4,
+          beat: 5,
           duration: 80,
         },
       ]}
       cursor={[
         {
+          at: pickAt,
+          target: SUNDAY_PLAN,
+          click: true,
+          travel: 26,
+          // On the service's name, not the empty middle of its row.
+          anchor: ON_THE_NAME,
+        },
+        {
           at: rehearsalAt,
           target: FRANKIE_REHEARSAL,
           anchor: BESIDE_BAR,
           travel: 24,
-          beat: 0,
+          beat: 1,
         },
         {
           at: sundayAt,
           target: FRANKIE_SUNDAY,
           anchor: BESIDE_BAR,
           travel: 18,
-          beat: 1,
+          beat: 2,
         },
         {
           at: rankedAt,
           target: HAYDEN_FIT,
           click: true,
           travel: 24,
-          beat: 2,
+          beat: 3,
         },
-        { at: addAt, target: ADD_HAYDEN, click: true, travel: 24, beat: 3 },
+        { at: addAt, target: ADD_HAYDEN, click: true, travel: 24, beat: 4 },
         {
           at: addAt + 48,
           target: HAYDEN_SCHEDULED,
           anchor: OUT_OF_THE_WAY,
           travel: 30,
-          beat: 4,
+          beat: 5,
         },
       ]}
-      revealAt={12}
+      revealAt={openAt + 12}
       // The add is an in-place update, like a menu opening: no page-change softening.
 
+      swaps={[openAt]}
       overlay={<SavedToast at={addAt + 16} />}
     >
       <ProductDemo />

@@ -30,6 +30,7 @@ import { OverviewView } from "./overview-view";
 import { PeopleView } from "./people-view";
 import { resetPlan } from "./plan-model";
 import { PlanView } from "./plan-view";
+import { ServicesView } from "./services-view";
 import { SongsView } from "./songs-view";
 import { TimesView } from "./times-view";
 
@@ -62,7 +63,10 @@ const resetDemo = () => {
 };
 
 const viewLabel = (view: DemoView) =>
-  [...planViews, ...sections].find((entry) => entry.id === view)?.label ?? "";
+  view === "services"
+    ? "Services"
+    : ([...planViews, ...sections].find((entry) => entry.id === view)?.label ??
+      "");
 
 const PlanTitle = () => (
   <h2 className={styles["plan-heading"]}>
@@ -90,8 +94,9 @@ const Sidebar = ({
         <li>
           <DemoButton
             variant="nav"
+            aria-current={view === "services" ? "page" : undefined}
             onClick={() => {
-              navigateDemo({ view: "overview" });
+              navigateDemo({ view: "services" });
             }}
           >
             <DemoIcon icon={Calendar04Icon} />
@@ -263,9 +268,11 @@ const PhoneMenu = ({
       <li>
         <DemoButton
           variant="nav"
-          aria-current={isPlanView(view) ? "page" : undefined}
+          aria-current={
+            isPlanView(view) || view === "services" ? "page" : undefined
+          }
           onClick={() => {
-            navigateDemo({ view: "overview" });
+            navigateDemo({ view: "services" });
             onClose();
           }}
         >
@@ -377,6 +384,7 @@ export const ProductDemo = () => {
           ) : null}
           {view === "plan" ? <PlanView /> : null}
           {view === "times" ? <TimesView /> : null}
+          {view === "services" ? <ServicesView /> : null}
           {view === "people" ? <PeopleView /> : null}
           {view === "songs" && songId === null ? <SongsView /> : null}
           {view === "songs" && songId !== null ? (

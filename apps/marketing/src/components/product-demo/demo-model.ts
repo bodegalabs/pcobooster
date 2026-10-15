@@ -471,10 +471,10 @@ export const resetAssignments = () => {
 
 /** The plan's own views, in the order the product lists them. */
 export type PlanView = "overview" | "assign" | "lineup" | "plan" | "times";
-export type DemoView = PlanView | "people" | "songs";
+export type DemoView = PlanView | "services" | "people" | "songs";
 
 export const isPlanView = (view: DemoView): view is PlanView =>
-  view !== "people" && view !== "songs";
+  view !== "services" && view !== "people" && view !== "songs";
 
 export interface DemoRoute {
   readonly view: DemoView;
