@@ -1176,11 +1176,101 @@ const noNudgedIconRule = {
   },
 };
 
+/**
+ * Identifiers `node` mentions, and whether it calls `calleeName`, found by walking its children.
+ * @param {any} node
+ * @param {string} calleeName
+ */
+const scanExpression = (node, calleeName) => {
+  /** @type {Set<string>} */
+  const names = new Set();
+  let calls = false;
+  /** @param {any} current */
+  const visit = (current) => {
+    if (current === null || typeof current !== "object") {
+      return;
+    }
+    if (Array.isArray(current)) {
+      for (const child of current) {
+        visit(child);
+      }
+      return;
+    }
+    if (current.type === "Identifier") {
+      names.add(current.name);
+    }
+    if (
+      current.type === "CallExpression" &&
+      current.callee?.type === "Identifier" &&
+      current.callee.name === calleeName
+    ) {
+      calls = true;
+    }
+    for (const [key, child] of Object.entries(current)) {
+      if (key !== "parent") {
+        visit(child);
+      }
+    }
+  };
+  visit(node);
+  return { names, calls };
+};
+
+const BATCH_GATE_HELPER = "batchHasAnswered";
+
+const batchGateUsesBatchHasAnsweredRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Require batched reads that wait on the batch ahead (`batches[index - N]`) to gate through `batchHasAnswered`.",
+    },
+    messages: {
+      handRolledGate:
+        "Gate on the batch ahead with `batchHasAnswered` from `@pcobooster/client/query`. A hand-rolled settled check counts data restored from storage as answered, so every stale batch refetches at once and spends the user's Planning Center budget.",
+    },
+    schema: [],
+  },
+  create(context) {
+    /** Names bound to `list[index - N]`: the batch a query waits on. */
+    const gates = new Set();
+    return {
+      VariableDeclarator(node) {
+        const { id, init } = node;
+        if (
+          id.type === "Identifier" &&
+          init?.type === "MemberExpression" &&
+          init.computed &&
+          init.property.type === "BinaryExpression" &&
+          init.property.operator === "-"
+        ) {
+          gates.add(id.name);
+        }
+      },
+      Property(node) {
+        if (
+          node.key.type !== "Identifier" ||
+          node.key.name !== "enabled" ||
+          gates.size === 0
+        ) {
+          return;
+        }
+        const { names, calls } = scanExpression(node.value, BATCH_GATE_HELPER);
+        if (calls || ![...names].some((name) => gates.has(name))) {
+          return;
+        }
+        context.report({ node, messageId: "handRolledGate" });
+      },
+    };
+  },
+};
+
 export default {
   meta: {
     name: "local",
   },
   rules: {
+    "batch-gate-uses-batch-has-answered": batchGateUsesBatchHasAnsweredRule,
     "flush-list-rows": flushListRowsRule,
     "no-absolute-input-overlay": noAbsoluteInputOverlayRule,
     "no-backdrop-blur": noBackdropBlurRule,
@@ -1194,6 +1284,7 @@ export default {
 };
 
 export {
+  batchGateUsesBatchHasAnsweredRule,
   flushListRowsRule,
   noAbsoluteInputOverlayRule,
   noBackdropBlurRule,

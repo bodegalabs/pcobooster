@@ -1,6 +1,7 @@
 /**
  * TanStack Query glue for product calls, shared by web and Expo: which lane a query's call goes
- * out in (`speculativeQuery`, `callForQuery`) and which read failures are worth one retry.
+ * out in (`speculativeQuery`, `callForQuery`), which read failures are worth one retry, and when
+ * a batched read may start behind the one ahead (`batchHasAnswered`).
  */
 import type {
   ProductClient,
@@ -9,7 +10,11 @@ import type {
 import { failureStatus } from "@pcobooster/client/product-client";
 import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
 import type { RequestPriority } from "@pcobooster/contracts/request-priority";
-import type { QueryFunctionContext, QueryMeta } from "@tanstack/query-core";
+import type {
+  QueryFunctionContext,
+  QueryMeta,
+  QueryState,
+} from "@tanstack/query-core";
 import type { Effect } from "effect";
 
 const SPECULATIVE_META: QueryMeta = { requestPriority: "speculative" };
@@ -92,3 +97,25 @@ export const retryTransientReadFailure = (
 ): boolean =>
   failureCount < MAX_READ_RETRIES &&
   (failureStatus(error) ?? SERVER_ERROR_STATUS) >= SERVER_ERROR_STATUS;
+
+/** What a batch's gate reads from the query ahead of it. */
+export type GateQueryState = Pick<
+  QueryState,
+  "status" | "fetchStatus" | "dataUpdatedAt"
+>;
+
+/**
+ * Whether the batch ahead lets the next one start: it failed, or its data dates from
+ * `freshSince` (the visit's start less the stale time) or later, so it will not refetch.
+ * Saved data older than that refetches on arrival and keeps its place in line until it
+ * answers; counting it as answered starts every stale saved batch at once, past the user's
+ * Planning Center budget.
+ */
+export const batchHasAnswered = (
+  state: GateQueryState | undefined,
+  freshSince: number
+): boolean =>
+  state !== undefined &&
+  state.fetchStatus !== "fetching" &&
+  (state.status === "error" ||
+    (state.status === "success" && state.dataUpdatedAt >= freshSince));

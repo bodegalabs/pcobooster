@@ -13,7 +13,7 @@ import type { Activity, ActivityBatch, PersonDetail, Roster } from "./types";
 
 /** The roster changes when teams change: rarely. */
 const ROSTER_STALE_MS = 300_000;
-const ACTIVITY_STALE_MS = 120_000;
+export const ACTIVITY_STALE_MS = 120_000;
 const PERSON_STALE_MS = 120_000;
 const BLOCKOUTS_STALE_MS = 120_000;
 /** Follow-up calls one partial read may make before it counts as stalled. */

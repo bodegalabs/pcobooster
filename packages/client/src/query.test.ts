@@ -4,6 +4,7 @@ import {
 } from "@pcobooster/client/product-client";
 import type { ProductReadApi } from "@pcobooster/client/product-client";
 import {
+  batchHasAnswered,
   callForQuery,
   queryCallPriority,
   retryTransientReadFailure,
@@ -226,5 +227,60 @@ describe(retryTransientReadFailure, () => {
     ],
   ])("does not retry %s", (_name, error) => {
     expect(retryTransientReadFailure(0, error)).toBeFalsy();
+  });
+});
+
+describe(batchHasAnswered, () => {
+  // The visit started at 12:00 with a two-minute stale time.
+  const freshSince = Date.parse("2026-10-15T11:58:00Z");
+  const savedYesterday = Date.parse("2026-10-14T20:00:00Z");
+  const fetchedThisVisit = Date.parse("2026-10-15T12:00:03Z");
+
+  it("holds the line behind a batch restored from yesterday's saved data until it refetches", () => {
+    expect(
+      batchHasAnswered(
+        {
+          status: "success",
+          fetchStatus: "idle",
+          dataUpdatedAt: savedYesterday,
+        },
+        freshSince
+      )
+    ).toBeFalsy();
+  });
+
+  it("opens once the batch ahead has answered on this visit", () => {
+    expect(
+      batchHasAnswered(
+        {
+          status: "success",
+          fetchStatus: "idle",
+          dataUpdatedAt: fetchedThisVisit,
+        },
+        freshSince
+      )
+    ).toBeTruthy();
+  });
+
+  it("opens behind a batch that failed, so one failure does not stall the rest", () => {
+    expect(
+      batchHasAnswered(
+        { status: "error", fetchStatus: "idle", dataUpdatedAt: savedYesterday },
+        freshSince
+      )
+    ).toBeTruthy();
+  });
+
+  it("waits while the batch ahead is fetching", () => {
+    expect(
+      batchHasAnswered(
+        {
+          status: "success",
+          fetchStatus: "fetching",
+          dataUpdatedAt: fetchedThisVisit,
+        },
+        freshSince
+      )
+    ).toBeFalsy();
   });
 });
