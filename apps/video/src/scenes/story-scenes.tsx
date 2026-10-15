@@ -47,18 +47,6 @@ const steadyGroundInD = () => {
   updatePlanItem(STEADY_GROUND, { songKey: "D" });
 };
 
-// Overview
-const ACOUSTIC_NEEDED: Target = {
-  selector: "button",
-  text: "Acoustic Guitar · Band",
-};
-/** The plan's title down to the open spot: which Sunday, and what it still needs. */
-const SUNDAY_AND_OPEN: Target = {
-  // The heading's last part, the date: the heading itself spans the whole page.
-  ...css(`.${styles["plan-heading"]} > span:last-child`),
-  with: ACOUSTIC_NEEDED,
-};
-
 // Assign
 /** The position's header down to the first person who could take it. */
 const ASSIGN_TOP: Target = {
@@ -66,6 +54,18 @@ const ASSIGN_TOP: Target = {
   with: {
     selector: '[aria-label="Add Hayden Collins to this position"]',
     closest: "li",
+  },
+};
+/**
+ * Which Sunday, the band's roster with its open spots, and the open Acoustic Guitar
+ * spot's first rows beside it.
+ */
+const SUNDAY_AND_SPOT: Target = {
+  // The heading's last part, the date: the heading itself spans the whole page.
+  ...css(`.${styles["plan-heading"]} > span:last-child`),
+  with: {
+    ...css(`.${styles["assign-roster"]} .${styles["team-panel"]}`),
+    with: ASSIGN_TOP,
   },
 };
 const FRANKIE_ROW: Target = {
@@ -112,14 +112,14 @@ const WIDE_PANE_ZOOM = 1.75;
 const OUT_OF_THE_WAY = { x: 1.12, y: 1.5 } as const;
 
 /**
- * Filling a spot, start to finish: the Sunday's overview shows what's open, the open
- * Acoustic Guitar spot leads to everyone who could play with their month around it,
- * Frankie's rehearsal and Sunday show what's on each day, Hayden's fit says why the
- * most rested ranks first, and one click asks Hayden and saves it.
+ * Filling a spot, start to finish: Sunday's roster shows what's open, the open Acoustic
+ * Guitar spot lists everyone who could play with their month around it, Frankie's
+ * rehearsal and Sunday show what's on each day, Hayden's fit says why the most rested
+ * ranks first, and one click asks Hayden and saves it.
  */
 export const FillSundayScene = ({ duration }: { duration: number }) => {
-  // Every click lands on the music's beat (20 frames). The overview holds before the
-  // first, so the opening can breathe.
+  // Every click lands on the music's beat (20 frames). The roster holds before the
+  // camera moves in, so the opening can breathe.
   const assignAt = 100;
   const rehearsalAt = 180;
   const sundayAt = 240;
@@ -129,8 +129,7 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
   const wide = useFormat() === "landscape";
   const zoom = (feed: number) => (wide ? undefined : feed);
   const beats: Beat[] = [
-    { at: 0, apply: showView("overview") },
-    { at: assignAt + 3, apply: showView("assign") },
+    { at: 0, apply: showView("assign") },
     { at: rehearsalAt + 3, focus: [FRANKIE_REHEARSAL] },
     { at: sundayAt + 3, focus: [FRANKIE_SUNDAY] },
     { at: rankedAt + 3, focus: [HAYDEN_FIT] },
@@ -162,83 +161,77 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
       ]}
       beats={beats}
       shots={[
-        { at: 0, target: SUNDAY_AND_OPEN, zoom: zoom(1.65), duration: 1 },
+        { at: 0, target: SUNDAY_AND_SPOT, pad: 12, duration: 1 },
         {
           at: assignAt + 6,
           target: ASSIGN_TOP,
           // The wide window is short: just past the roster, the pane's top two rows.
           zoom: wide ? WIDE_PANE_ZOOM : PANE_ZOOM,
-          beat: 1,
+          beat: 0,
           duration: 26,
         },
         {
           at: rehearsalAt - 16,
           target: FRANKIE_AND_DAY,
           zoom: zoom(2.1),
-          beat: 2,
+          beat: 1,
           duration: 26,
         },
         {
           at: rankedAt - 14,
           target: TOP_TWO,
           zoom: zoom(PANE_ZOOM),
-          beat: 4,
+          beat: 3,
           duration: 28,
         },
         {
           at: addAt + 8,
           target: SPOT_FILLED,
           zoom: zoom(PANE_ZOOM),
-          beat: 5,
+          beat: 4,
           duration: 26,
         },
         {
           at: addAt + 34,
           target: SPOT_FILLED,
           zoom: zoom(2.12),
-          beat: 5,
+          beat: 4,
           duration: 80,
         },
       ]}
       cursor={[
-        { at: assignAt, target: ACOUSTIC_NEEDED, click: true, travel: 24 },
         {
           at: rehearsalAt,
           target: FRANKIE_REHEARSAL,
           anchor: BESIDE_BAR,
           travel: 24,
-          beat: 1,
+          beat: 0,
         },
         {
           at: sundayAt,
           target: FRANKIE_SUNDAY,
           anchor: BESIDE_BAR,
           travel: 18,
-          beat: 2,
+          beat: 1,
         },
         {
           at: rankedAt,
           target: HAYDEN_FIT,
           click: true,
           travel: 24,
-          beat: 3,
+          beat: 2,
         },
-        { at: addAt, target: ADD_HAYDEN, click: true, travel: 24, beat: 4 },
+        { at: addAt, target: ADD_HAYDEN, click: true, travel: 24, beat: 3 },
         {
           at: addAt + 48,
           target: HAYDEN_SCHEDULED,
           anchor: OUT_OF_THE_WAY,
           travel: 30,
-          beat: 5,
+          beat: 4,
         },
       ]}
-      highlights={[
-        { from: 30, to: assignAt - 4, target: ACOUSTIC_NEEDED },
-        { from: rankedAt + 10, to: addAt - 4, target: HAYDEN_ROW },
-        { from: addAt + 18, to: duration, target: HAYDEN_SCHEDULED },
-      ]}
-      revealAt={assignAt + 6}
-      swaps={[assignAt + 3, addAt + 3]}
+      revealAt={12}
+      swaps={[addAt + 3]}
       overlay={<SavedToast at={addAt + 16} />}
     >
       <ProductDemo />
@@ -262,7 +255,6 @@ const DETAILS = css('aside[aria-label="Details"]');
 /** Clicks that reopen the new song's details on a beat's fresh mount. */
 const KEEP_DETAILS: readonly Target[] = [OPEN_LANTERN_HILL];
 const NO_CLICKS: readonly Target[] = [];
-const KEY_HINT = css(`.${styles["pane-hint"]}`);
 /** Morning Light (G) into Steady Ground (Eb), down a major third: worth a look. */
 const TRICKY_CHANGE: Target = {
   selector: '[data-level="worth-a-look"]',
@@ -285,19 +277,6 @@ const WORSHIP_SET: Target = {
   closest: "li",
   with: { selector: '[aria-label="Open Lantern Hill"]', closest: "li" },
 };
-/** A song's key, with the key-change icon before it when it has one. */
-const songKey = (key: string, title: string): Target => ({
-  selector: `[aria-label="Key ${key}, change key for ${title}"]`,
-  closest: `.${styles["key-controls"]}`,
-});
-/** Every key down the set, lit one after another, frames after the caption lands. */
-const SET_KEYS = [
-  { key: songKey("G", "Morning Light"), after: 6 },
-  { key: songKey("Eb", "Steady Ground"), after: 12 },
-  { key: songKey("E", "Open Doors"), after: 18 },
-  { key: songKey("A", "Lantern Hill"), after: 24 },
-] as const;
-const SET_KEY_LIT = 12;
 /** Where the cursor picks Song: right of the new row's key chip once the menu closes. */
 const SONG_CLICK = { x: 0.6, y: 0.5 } as const;
 
@@ -432,22 +411,10 @@ export const PlanScene = ({ duration }: { duration: number }) => {
           at: trickyAt,
           target: TRICKY_CHANGE,
           click: true,
-          // Sets off once the last key down the set has lit.
           travel: 16,
           beat: 4,
         },
         { at: pickAt, target: PLAY_IN_KEY, click: true, travel: 22, beat: 5 },
-      ]}
-      highlights={[
-        { from: songAt + 22, to: keysAt - 8, target: KEY_HINT },
-        ...SET_KEYS.map(({ key, after }) => ({
-          from: keysAt + after,
-          to: keysAt + after + SET_KEY_LIT,
-          target: key,
-          beat: 4,
-        })),
-        { from: pickAt - 34, to: pickAt - 2, target: PLAY_IN_KEY, beat: 5 },
-        { from: pickAt + 14, to: duration, target: STEADY_GROUND_IN_D },
       ]}
       swaps={portrait ? [songAt + 3, keysAt - 6] : [songAt + 3]}
     >
@@ -529,9 +496,6 @@ const HEALTH_CARD = css(`.${styles["health-card"]}`);
 const WAITING = section("Waiting on a reply");
 const CHECK_IN = section("Check in");
 const DUE = section("Due for a slot");
-/** The check-in card's own badges, not the roster table's copies further down. */
-const HEAVY_LOAD: Target = { selector: "li span", text: "Heavy load" };
-const DECLINING: Target = { selector: "li span", text: "Declining" };
 /**
  * Where each attention card sits in its frame, in native pixels from its centre. The feed
  * frames it under the whole health card, whose numbers back it up; landscape's shorter
@@ -611,10 +575,6 @@ export const PeopleScene = ({ duration }: { duration: number }) => {
           portraitZoom: LOWER_PORTRAIT_ZOOM,
           duration: 26,
         },
-      ]}
-      highlights={[
-        { from: checkInAt + 20, to: dueAt - lead, target: HEAVY_LOAD },
-        { from: checkInAt + 40, to: dueAt - lead, target: DECLINING },
       ]}
     >
       {/* The phone layout scrolls inside its window, out of the camera's reach; the
