@@ -1,3 +1,4 @@
+import { batchHasAnswered } from "@pcobooster/client/query";
 import { PEOPLE_DASHBOARD_ACTIVITY_BATCH_SIZE } from "@pcobooster/contracts/people";
 import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
 import { useQueryClient } from "@tanstack/react-query";
@@ -35,7 +36,7 @@ import {
   savedPeopleScope,
   savePeoplePreferences,
 } from "./preferences";
-import { peopleKeys, peopleReads } from "./reads";
+import { ACTIVITY_STALE_MS, peopleKeys, peopleReads } from "./reads";
 import { computeTeamHealth } from "./team-health";
 import type { PersonSignal } from "./team-health";
 
@@ -125,7 +126,13 @@ export const usePeopleDashboard = () => {
   const features = useFeatures();
   const isActive = isFocused && features.people;
   const timeZone = useOrgTimeZone();
-  const todayKey = formatCalendarDayInTimeZone(useClock().now(), timeZone);
+  const clock = useClock();
+  const todayKey = formatCalendarDayInTimeZone(clock.now(), timeZone);
+  // Fixed for the visit: activity fetched since mount stays answered as it ages.
+  const freshSince = useMemo(
+    () => clock.now().getTime() - ACTIVITY_STALE_MS,
+    [clock]
+  );
 
   const rosterQuery = useVisibleQuery({
     ...peopleReads.roster(context),
@@ -180,8 +187,13 @@ export const usePeopleDashboard = () => {
       const gate = batches[index - PEOPLE_DASHBOARD_BATCH_CONCURRENCY];
       return {
         ...peopleReads.activity(context, personIds),
-        // A call starts once the one two places ahead has settled.
-        enabled: gate === undefined || isSettled(cache, accountScope, gate),
+        // A call starts once the one two places ahead has answered.
+        enabled:
+          gate === undefined ||
+          batchHasAnswered(
+            activityState(cache, accountScope, gate),
+            freshSince
+          ),
       };
     }),
     subscribed: isActive,

@@ -36,6 +36,8 @@ export default defineConfig({
     },
   ],
   rules: {
+    // Batched reads wait on the batch ahead through `batchHasAnswered`, never a settled check.
+    "local/batch-gate-uses-batch-has-answered": "error",
     // Flush list rows keep hover backgrounds on the list's rounded border.
     "local/flush-list-rows": "error",
     // Keep icons/buttons from overlapping Input/Textarea text; use InputGroup.

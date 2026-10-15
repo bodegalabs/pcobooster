@@ -1,4 +1,8 @@
-import { callForQuery, speculativeQuery } from "@pcobooster/client/query";
+import {
+  batchHasAnswered,
+  callForQuery,
+  speculativeQuery,
+} from "@pcobooster/client/query";
 import type {
   CandidateDetailsBatch,
   PlanWindowHistoryBatch,
@@ -52,6 +56,8 @@ import { productClient } from "@/product-client";
  * with, stay fresh as long as the server keeps them.
  */
 const CANDIDATE_LIST_STALE_TIME_MS = 5 * 60 * 1000;
+
+const currentTime = () => Date.now();
 
 /** A position on a plan: what the Assign view lists candidates for. */
 export interface CandidateSlot {
@@ -257,19 +263,6 @@ export const isPositionCandidatesFresh = (
     CANDIDATE_LIST_STALE_TIME_MS
   );
 
-/** Settled: loaded or failed, and not refetching. */
-const isSettled = (
-  queryClient: QueryClient,
-  queryKey: readonly unknown[]
-): boolean => {
-  const state = queryClient.getQueryState(queryKey);
-  return (
-    state !== undefined &&
-    state.status !== "pending" &&
-    state.fetchStatus !== "fetching"
-  );
-};
-
 /** Detail batches as one value; TanStack keeps it stable while no batch changes. */
 const combineDetailQueries = (
   results: readonly UseQueryResult<CandidateDetail[]>[]
@@ -413,13 +406,23 @@ export const usePositionCandidates = (slot: CandidateSlot | null) => {
     }
   }
 
+  // Fixed for the visit: details fetched since mount stay answered as they age.
+  const freshSince = useMemo(
+    () => currentTime() - CANDIDATE_LIST_STALE_TIME_MS,
+    []
+  );
   const detailQueries = useQueries({
     queries: detailsOptions.map((options, index) => {
       const gate = detailsOptions[index - CANDIDATE_DETAILS_BATCH_CONCURRENCY];
       return {
         ...options,
-        // Start a batch once the one `concurrency` places ahead has settled.
-        enabled: gate === undefined || isSettled(queryClient, gate.queryKey),
+        // Start a batch once the one `concurrency` places ahead has answered.
+        enabled:
+          gate === undefined ||
+          batchHasAnswered(
+            queryClient.getQueryState(gate.queryKey),
+            freshSince
+          ),
       };
     }),
     combine: combineDetailQueries,

@@ -1,3 +1,4 @@
+import { batchHasAnswered } from "@pcobooster/client/query";
 import type {
   PeopleDashboardActivity,
   PeopleDashboardRoster,
@@ -44,6 +45,8 @@ const ACTIVITY_STALE_TIME_MS = 2 * 60 * 1000;
 /** A search loads its unloaded matches once typing pauses this long. */
 const SEARCH_LOAD_DELAY_MS = 400;
 const NO_BATCHES: readonly string[][] = [];
+
+const currentTime = () => Date.now();
 
 const fetchRoster = async ({
   signal,
@@ -207,6 +210,8 @@ export const usePeopleDashboard = ({
   const batches = orderActivityBatches(sampleBatches, searchBatches, (ids) =>
     hasStarted(queryClient, ids)
   );
+  // Fixed for the visit: activity fetched since mount stays answered as it ages.
+  const freshSince = useMemo(() => currentTime() - ACTIVITY_STALE_TIME_MS, []);
   const batchQueries = useQueries({
     queries: batches.map((personIds, index) => {
       const gate = batches[index - PEOPLE_DASHBOARD_BATCH_CONCURRENCY];
@@ -218,8 +223,10 @@ export const usePeopleDashboard = ({
           return people;
         },
         staleTime: ACTIVITY_STALE_TIME_MS,
-        // Start a batch once the one `concurrency` places ahead has settled.
-        enabled: gate === undefined || isSettled(queryClient, gate),
+        // Start a batch once the one `concurrency` places ahead has answered.
+        enabled:
+          gate === undefined ||
+          batchHasAnswered(activityState(queryClient, gate), freshSince),
       };
     }),
   });

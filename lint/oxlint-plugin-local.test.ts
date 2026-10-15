@@ -2,6 +2,7 @@ import { RuleTester } from "oxlint/plugins-dev";
 import { describe, it } from "vitest";
 
 import {
+  batchGateUsesBatchHasAnsweredRule,
   flushListRowsRule,
   noAbsoluteInputOverlayRule,
   noBackdropBlurRule,
@@ -660,6 +661,59 @@ ruleTester.run(
         name: "named icon translated",
         code: `<ArrowDownIcon className="translate-y-px" />`,
         errors: [{ messageId: "nudgedIcon" }],
+      },
+    ],
+  }
+);
+
+ruleTester.run(
+  "batch-gate-uses-batch-has-answered",
+  batchGateUsesBatchHasAnsweredRule as Parameters<typeof ruleTester.run>[1],
+  {
+    valid: [
+      {
+        name: "gate through batchHasAnswered",
+        code: `
+        useQueries({
+          queries: batches.map((ids, index) => {
+            const gate = batches[index - CONCURRENCY];
+            return {
+              queryKey: ids,
+              enabled: gate === undefined || batchHasAnswered(stateOf(gate), freshSince),
+            };
+          }),
+        });`,
+      },
+      {
+        name: "enabled unrelated to a batch ahead",
+        code: `
+        const previous = items[index - 1];
+        useQuery({ queryKey: key, enabled: slot !== null });`,
+      },
+    ],
+    invalid: [
+      {
+        name: "hand-rolled settled check on the batch ahead",
+        code: `
+        useQueries({
+          queries: batches.map((ids, index) => {
+            const gate = batches[index - CONCURRENCY];
+            return {
+              queryKey: ids,
+              enabled: gate === undefined || isSettled(queryClient, gate),
+            };
+          }),
+        });`,
+        errors: [{ messageId: "handRolledGate" }],
+      },
+      {
+        name: "gate state read inline",
+        code: `
+        const gate = options[index - 2];
+        const query = {
+          enabled: queryClient.getQueryState(gate.queryKey)?.status === "success",
+        };`,
+        errors: [{ messageId: "handRolledGate" }],
       },
     ],
   }
