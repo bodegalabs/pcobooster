@@ -304,9 +304,15 @@ jobs:
       - name: Deploy production revision
         if: steps.current.outputs.deploy == 'true'
         run: bun alchemy deploy --stage prod --no-input --yes
+      # Through workers.dev: Bot Fight Mode challenges runners on pcobooster.com, and the Free plan
+      # cannot exempt them. The custom domains route to the Worker script, so reading their
+      # attachment from the Cloudflare API covers pcobooster.com without an edge request.
       - name: Verify production serves this commit
         if: steps.current.outputs.deploy == 'true'
-        run: bun scripts/cloudflare/verify-deployment.ts https://pcobooster.com "$GITHUB_SHA"
+        run: bun scripts/cloudflare/verify-deployment.ts https://pcobooster-prod-web.jakebodea.workers.dev "$GITHUB_SHA"
+      - name: Verify pcobooster.com routes to the production Worker
+        if: steps.current.outputs.deploy == 'true'
+        run: bun scripts/cloudflare/verify-custom-domains.ts pcobooster-prod-web pcobooster.com www.pcobooster.com
       # Warns and skips when POSTHOG_ANNOTATION_API_KEY is absent; never fails the deploy.
       - name: Mark the deploy on PostHog charts
         if: steps.current.outputs.deploy == 'true'
