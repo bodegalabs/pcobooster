@@ -129,13 +129,13 @@ export const Wordmark = ({
     style={{
       fontSize: size,
       fontWeight: 450,
-      letterSpacing: "-0.03em",
+      letterSpacing: "-0.025em",
       color: "var(--foreground)",
       lineHeight: 1,
       ...style,
     }}
   >
-    <strong style={{ fontWeight: 650 }}>PCO</strong>Booster
+    <strong style={{ fontWeight: 600 }}>PCO</strong>Booster
   </span>
 );
 

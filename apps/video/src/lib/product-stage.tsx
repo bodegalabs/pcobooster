@@ -287,6 +287,9 @@ export const ProductStage = ({
     position: "relative",
     width: nativeWidth,
     height: nativeHeight,
+    // The replica's menus and panels stack inside it, under the rings and cursor, so a
+    // click inside an open menu stays in sight.
+    isolation: "isolate",
     "--reveal-ms":
       revealAt === undefined || !calibrated
         ? undefined

@@ -140,7 +140,10 @@ export const FitMeter = ({
           <span className={styles["score-bar"]} style={barStyle} />
         </span>
         <span className={styles["hover-card"]} aria-hidden>
-          <strong>Why {score} fit</strong>
+          <span className={styles["hover-card-head"]}>
+            <strong>Why this ranking</strong>
+            <span>{score} fit</span>
+          </span>
           {reasons.map((reason) => (
             <span key={reason}>{reason}</span>
           ))}

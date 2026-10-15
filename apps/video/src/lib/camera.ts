@@ -21,6 +21,8 @@ export interface Shot {
   readonly duration?: number;
   /** Beat whose layout to frame; defaults to the beat live at `at`. */
   readonly beat?: number;
+  /** Native pixels to move the frame's centre off the target's, to compose around it. */
+  readonly offset?: { readonly x?: number; readonly y?: number };
 }
 
 export interface Camera {
@@ -62,6 +64,16 @@ const viewFor = (
     shot?.target === undefined
       ? undefined
       : rectFor(shot.target, shot.beat ?? beatIndexAt(beats, shot.at));
+  if (shot?.target === undefined && shot?.zoom !== undefined) {
+    // No target but a zoom: the window's top-left corner, where the sidebar and header
+    // sit, at that zoom (a wider canvas meeting a narrower one keeps the chrome's size).
+    const zoom = viewport.portrait ? 1 : shot.zoom;
+    return {
+      zoom,
+      focusX: viewport.width / (2 * zoom),
+      focusY: viewport.height / (2 * zoom),
+    };
+  }
   if (shot === undefined || rect === undefined) {
     return full;
   }
@@ -81,9 +93,13 @@ const viewFor = (
     Math.min(Math.max(value, size / (2 * zoom)), content - size / (2 * zoom));
   return {
     zoom,
-    focusX: within(rect.x + rect.width / 2, viewport.width, viewport.width),
+    focusX: within(
+      rect.x + rect.width / 2 + (shot.offset?.x ?? 0),
+      viewport.width,
+      viewport.width
+    ),
     focusY: within(
-      rect.y + rect.height / 2,
+      rect.y + rect.height / 2 + (shot.offset?.y ?? 0),
       viewport.height,
       Math.max(viewport.height, viewport.contentHeight)
     ),
@@ -117,12 +133,10 @@ export const cameraAt = (
     const next = shots[index + 1];
     // Ease toward this shot until the frame, or until the next shot takes over.
     const until = next === undefined ? frame : Math.min(frame, next.at);
-    const amount = progress(
-      until,
-      shot.at,
-      shot.duration ?? DEFAULT_SHOT_FRAMES,
-      easeInOut
-    );
+    const frames = shot.duration ?? DEFAULT_SHOT_FRAMES;
+    // A one-frame shot is a cut: in place on its own first frame, not one frame later.
+    const amount =
+      frames <= 1 ? 1 : progress(until, shot.at, frames, easeInOut);
     view = lerpView(view, viewFor(shot, beats, viewport, rectFor), amount);
   }
   const { zoom, focusX, focusY } = view;

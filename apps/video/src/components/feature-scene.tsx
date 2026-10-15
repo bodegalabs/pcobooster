@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
+import { useCurrentFrame } from "remotion";
 
 import type { Shot } from "../lib/camera";
 import { useFormat } from "../lib/format";
 import { useFeatureLayout } from "../lib/layout";
+import { easeInOut, progress } from "../lib/motion";
 import { ProductStage } from "../lib/product-stage";
 import type { CursorStep, Highlight } from "../lib/product-stage";
 import type { Beat } from "../lib/replica";
@@ -13,6 +15,54 @@ import type { Transition } from "./scene";
 
 const CARRY_IN_AT = 3;
 const CARRY_FRAMES = 22;
+/** How long a handed-off scene's toast and rings take to clear as the camera pulls back. */
+const LET_GO_FRAMES = 12;
+
+/**
+ * The camera's shots with the scene's joins added. A carried scene opens on the whole
+ * window and eases in to its first subject; a wider canvas than the scene it carries on
+ * from opens on its top-left corner at the narrower one's scale, so the sidebar and header
+ * keep their size across the cut. A scene that hands off eases back out from `handOffAt`,
+ * so the camera never jumps between scenes.
+ */
+const joinedShots = (
+  shots: readonly Shot[],
+  join: { carry: boolean; widened: number; handOffAt: number | undefined }
+): readonly Shot[] => {
+  const framed = shots.map((shot, index) =>
+    join.carry && index === 0 && shot.at === 0
+      ? { ...shot, at: CARRY_IN_AT, duration: CARRY_FRAMES }
+      : shot
+  );
+  const opening =
+    join.carry && join.widened > 1
+      ? [{ at: 0, zoom: join.widened, duration: 1 }]
+      : [];
+  const closing =
+    join.handOffAt === undefined
+      ? []
+      : [{ at: join.handOffAt, duration: CARRY_FRAMES }];
+  return [...opening, ...framed, ...closing];
+};
+
+/**
+ * As the camera pulls back to hand off, the moment is over: rings and toasts let go
+ * instead of vanishing with the cut.
+ */
+const LetGo = ({ at, children }: { at: number; children: ReactNode }) => {
+  const frame = useCurrentFrame();
+  return (
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        opacity: 1 - progress(frame, at, LET_GO_FRAMES, easeInOut),
+      }}
+    >
+      {children}
+    </div>
+  );
+};
 
 /** One caption of a scene that narrates as it goes, shown from `at` until the next. */
 export interface Caption {
@@ -120,16 +170,17 @@ export const FeatureScene = ({
             (base.nativeHeight * canvasWidth) / base.nativeWidth
           ),
         };
-  // A carried scene opens on the whole window and eases in to its first subject; a scene
-  // that hands off eases back out, so the camera never jumps between scenes.
-  const framed = (shots ?? []).map((shot, index) =>
-    carry && index === 0 && shot.at === 0
-      ? { ...shot, at: CARRY_IN_AT, duration: CARRY_FRAMES }
-      : shot
-  );
-  const cameraShots = handOff
-    ? [...framed, { at: duration - CARRY_FRAMES - 2, duration: CARRY_FRAMES }]
-    : framed;
+  const handOffAt = handOff ? duration - CARRY_FRAMES - 2 : undefined;
+  const cameraShots = joinedShots(shots ?? [], {
+    carry,
+    widened: layout.nativeWidth / base.nativeWidth,
+    handOffAt,
+  });
+  const lastFrame = handOffAt ?? duration;
+  const framedHighlights = highlights?.map((entry) => ({
+    ...entry,
+    to: Math.min(entry.to, lastFrame),
+  }));
   // A hard cut or a carried scene arrives with the product already in place.
   const inPlace = carry || transition === "cut";
 
@@ -149,7 +200,8 @@ export const FeatureScene = ({
           <Headline
             lines={lines ?? []}
             size={layout.headlineSize}
-            at={2}
+            // From the cut: the scene's own fade-in already softens its first frames.
+            at={0}
             style={{ maxWidth: layout.headlineWidth }}
           />
         ) : (
@@ -172,9 +224,10 @@ export const FeatureScene = ({
         box={layout.product}
         shots={cameraShots}
         cursor={cursor}
-        highlights={highlights}
+        highlights={framedHighlights}
         // A spring that started a second ago has settled: in place from the first frame.
-        enterAt={inPlace ? -30 : 6}
+        // Otherwise the window rises right behind the caption, so the cut has no dead air.
+        enterAt={inPlace ? -30 : 2}
         revealAt={revealAt}
         swaps={[
           ...(carry ? [0] : []),
@@ -185,7 +238,11 @@ export const FeatureScene = ({
       >
         {children}
       </ProductStage>
-      {overlay}
+      {handOffAt === undefined ? (
+        overlay
+      ) : (
+        <LetGo at={handOffAt}>{overlay}</LetGo>
+      )}
     </Scene>
   );
 };

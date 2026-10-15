@@ -244,7 +244,7 @@ export const people: readonly DemoPerson[] = [
     "p17",
     "Rowan West",
     ["alto", "lyrics"],
-    [...weeks("alto", 1), ...weeks("lyrics", 2, 3)]
+    [...weeks("alto", 1), ...weeks("lyrics", 2, 3), ...rehearsals("alto", 1)]
   ),
   person("p18", "Sage Porter", ["alto"], weeks("alto", 7)),
   person("p19", "Casey Monroe", ["alto", "greeter"], [], { blockedOut: true }),

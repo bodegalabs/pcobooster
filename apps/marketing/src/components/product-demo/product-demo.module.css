@@ -480,8 +480,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  border: 1px dashed
-    color-mix(in oklab, var(--muted-foreground) 60%, transparent);
+  border: 1px dashed color-mix(in oklab, var(--status-info) 80%, transparent);
   border-radius: 3px;
 }
 .day-bar {
@@ -535,8 +534,8 @@
   font-variant-numeric: tabular-nums;
 }
 .week-label[data-current] {
-  font-weight: 600;
-  color: var(--foreground);
+  font-weight: 500;
+  color: var(--status-info);
 }
 .week-label[data-edge="start"] {
   left: 0;
@@ -587,6 +586,10 @@
 .day-card-head span {
   color: var(--muted-foreground);
 }
+.day-card-head span[data-current] {
+  font-weight: 500;
+  color: var(--status-info);
+}
 .day-card-list {
   display: grid;
   gap: 6px;
@@ -615,11 +618,18 @@
   align-items: center;
   gap: 5px;
   flex-shrink: 0;
+  font-weight: 500;
   color: var(--muted-foreground);
 }
+.day-card-status[data-tone="confirmed"] {
+  color: var(--status-confirmed);
+}
+.day-card-status[data-tone="pending"] {
+  color: var(--status-scheduled);
+}
 .day-card-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--muted-foreground);
 }
@@ -811,6 +821,14 @@
   font-weight: 600;
   color: var(--popover-foreground);
 }
+.hover-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
 .score:hover .hover-card,
 :focus-visible > .score .hover-card {
   display: grid;
@@ -1000,18 +1018,30 @@
 .legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 12px;
+  gap: 4px 16px;
   font-size: 12px;
   color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
 }
-.legend [data-tone="confirmed"] {
-  color: var(--status-confirmed);
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
-.legend [data-tone="pending"] {
-  color: var(--status-scheduled);
+.legend span::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }
-.legend [data-tone="open"] {
-  color: var(--status-declined);
+.legend [data-tone="confirmed"]::before {
+  background: var(--status-confirmed);
+}
+.legend [data-tone="pending"]::before {
+  background: var(--status-scheduled);
+}
+.legend [data-tone="open"]::before {
+  background: color-mix(in oklab, var(--muted-foreground) 30%, transparent);
 }
 .overview-subhead {
   margin-top: 4px;
@@ -1056,6 +1086,11 @@
 .status-pill {
   color: var(--status-confirmed);
   background: color-mix(in oklab, var(--status-confirmed) 14%, transparent);
+}
+/* The People page's pills are the app's round badges. */
+.status-pill,
+.count-pill {
+  border-radius: 999px;
 }
 .no-key {
   flex-shrink: 0;
@@ -1577,6 +1612,7 @@
 .attention-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
   gap: 12px;
 }
 .attention-row {
@@ -2118,14 +2154,40 @@
 .meter[data-tone="declined"]::after {
   background: var(--status-declined-bright);
 }
+.meter[data-tone="attention"]::after {
+  background: var(--status-scheduled-bright);
+}
+.serving-spread {
+  display: grid;
+  gap: 6px;
+  margin-top: 2px;
+}
+.serving-spread > p {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+}
+.serving-spread strong {
+  font-weight: 500;
+  color: var(--foreground);
+}
+.serving-spread .meter {
+  height: 8px;
+  margin-top: 0;
+}
 .signal-pill {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 1px 7px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 999px;
   font-size: 12px;
+  font-weight: 500;
   color: var(--foreground);
   background: var(--background);
 }
@@ -2137,7 +2199,11 @@
   justify-items: end;
   width: 84px;
 }
+.due-trailing > span {
+  max-width: 100%;
+}
 .due-trailing .meter {
   width: 100%;
-  margin-top: 4px;
+  height: 6px;
+  margin-top: 6px;
 }

@@ -74,11 +74,16 @@ const beats = (count: number): number => count * FRAMES_PER_BEAT;
 const DEMO_CHANGES: readonly Change[] = [
   {
     badge: "HC",
+    pending: true,
     title: "Hayden Collins",
-    detail: "Acoustic Guitar, requested",
+    detail: "Acoustic Guitar · Pending",
   },
   { badge: null, title: "Lantern Hill", detail: "Added after Open Doors" },
-  { badge: null, title: "Steady Ground", detail: "Key changed to D" },
+  {
+    badge: null,
+    title: "Steady Ground",
+    detail: "Key changed from Eb to D",
+  },
 ];
 
 /** 15 seconds: the problem, one spot filled and saved, a key smoothed out, the ask. */
@@ -96,7 +101,9 @@ const TEASER: readonly CutScene[] = [
   scene("Key transitions", beats(7), (duration) => (
     <KeyTransitionScene duration={duration} />
   )),
-  scene("End card", beats(5), (duration) => <EndCard duration={duration} />),
+  scene("End card", beats(5), (duration) => (
+    <EndCard duration={duration} transition="soft-in" />
+  )),
 ];
 
 /**
@@ -109,7 +116,7 @@ const DEMO: readonly CutScene[] = [
     <HookScene duration={duration} lines={HOOK} />
   )),
   scene("PCOBooster", beats(6), (duration) => (
-    <BrandScene duration={duration} />
+    <BrandScene duration={duration} subline="Watch one Sunday come together." />
   )),
   scene("Fill a spot", beats(26), (duration) => (
     <FillSundayScene duration={duration} />
@@ -121,7 +128,9 @@ const DEMO: readonly CutScene[] = [
   scene("Saves back", beats(5), (duration) => (
     <SavesBackScene duration={duration} changes={DEMO_CHANGES} />
   )),
-  scene("End card", beats(7), (duration) => <EndCard duration={duration} />),
+  scene("End card", beats(7), (duration) => (
+    <EndCard duration={duration} transition="soft-in" />
+  )),
 ];
 
 /** About 70 seconds: the walkthrough, room for a voiceover over each beat. */
@@ -154,7 +163,9 @@ const WALKTHROUGH: readonly CutScene[] = [
   scene("Saves back", 135, (duration) => (
     <SavesBackScene duration={duration} />
   )),
-  scene("End card", 165, (duration) => <EndCard duration={duration} />),
+  scene("End card", 165, (duration) => (
+    <EndCard duration={duration} transition="soft-in" />
+  )),
 ];
 
 export const CUT_IDS = ["Teaser15", "Demo50", "Walkthrough70"] as const;
