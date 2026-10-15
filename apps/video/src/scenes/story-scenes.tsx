@@ -126,10 +126,10 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
   const pickAt = 100;
   const openAt = pickAt + 3;
   const assignAt = 200;
-  const rehearsalAt = 300;
-  const sundayAt = 360;
-  const rankedAt = 420;
-  const addAt = 500;
+  const rehearsalAt = 320;
+  const sundayAt = 400;
+  const rankedAt = 480;
+  const addAt = 580;
   // The feed's zooms are tuned to its 1000px canvas; the wide canvas fits each subject.
   const wide = useFormat() === "landscape";
   const zoom = (feed: number) => (wide ? undefined : feed);
@@ -183,11 +183,11 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
           duration: 26,
         },
         {
-          at: assignAt + 40,
+          at: assignAt + 34,
           target: EVERYONE,
           pad: 12,
           beat: 1,
-          duration: 44,
+          duration: 40,
         },
         {
           at: rehearsalAt - 16,
@@ -338,12 +338,12 @@ const PLAN_FRAMING = {
  * Menus and panels simply open; only the details pane, which reflows the sheet, softens.
  */
 export const PlanScene = ({ duration }: { duration: number }) => {
-  const hoverAt = 16;
-  const menuAt = 30;
-  const songAt = 50;
-  const keysAt = 112;
-  const trickyAt = 152;
-  const pickAt = 236;
+  const hoverAt = 20;
+  const menuAt = 40;
+  const songAt = 60;
+  const keysAt = 140;
+  const trickyAt = 200;
+  const pickAt = 300;
   // The details pane is component state, so every later beat opens it again. At phone
   // width it is a sheet over the run sheet, so it closes before the key changes, and the
   // hover-only insert line doesn't exist, so the song simply arrives.
@@ -552,9 +552,9 @@ const LOWER_PORTRAIT_ZOOM = 1.03;
  */
 export const PeopleScene = ({ duration }: { duration: number }) => {
   const format = useFormat();
-  const waitingAt = 60;
-  const checkInAt = 120;
-  const dueAt = 200;
+  const waitingAt = 80;
+  const checkInAt = 160;
+  const dueAt = 260;
   const lead = 4;
   const offset = { y: CARD_OFFSET_Y[format] };
   return (

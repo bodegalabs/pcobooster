@@ -107,7 +107,7 @@ const TEASER: readonly CutScene[] = [
 ];
 
 /**
- * About 50 seconds: planning one Sunday. Start from what's open, fill a spot with the
+ * About a minute: planning one Sunday. Start from what's open, fill a spot with the
  * history behind the choice, build the set, smooth its keys, look after the people, and
  * see it all saved back. The opening takes its time while the music swells in.
  */
@@ -118,14 +118,14 @@ const DEMO: readonly CutScene[] = [
   scene("PCOBooster", beats(6), (duration) => (
     <BrandScene duration={duration} subline="Watch one Sunday come together." />
   )),
-  scene("Fill a spot", beats(32), (duration) => (
+  scene("Fill a spot", beats(37), (duration) => (
     <FillSundayScene duration={duration} />
   )),
-  scene("Set the plan", beats(15), (duration) => (
+  scene("Set the plan", beats(19), (duration) => (
     <PlanScene duration={duration} />
   )),
-  scene("People", beats(14), (duration) => <PeopleScene duration={duration} />),
-  scene("Saves back", beats(5), (duration) => (
+  scene("People", beats(17), (duration) => <PeopleScene duration={duration} />),
+  scene("Saves back", beats(6), (duration) => (
     <SavesBackScene duration={duration} changes={DEMO_CHANGES} />
   )),
   scene("End card", beats(7), (duration) => (
