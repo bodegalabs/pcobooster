@@ -1,0 +1,57 @@
+/*
+ * The launch video wears pcobooster.com: the product's tokens from @pcobooster/design-tokens
+ * plus the marketing site's few surface colors (apps/marketing/src/styles/globals.css).
+ */
+:root {
+  --logo: #73866d;
+  --brand: oklch(0.47 0.075 150);
+  --brand-soft: oklch(0.905 0.035 146);
+  --stage: oklch(0.925 0.018 142);
+  --stage-light: oklch(0.955 0.012 142);
+  --shadow-frame:
+    0 0 0 1px rgb(29 48 40 / 0.07), 0 2px 4px rgb(29 48 40 / 0.04),
+    0 12px 32px -12px rgb(29 48 40 / 0.22),
+    0 40px 80px -48px rgb(29 48 40 / 0.35);
+  --color-mask-visible: #fff;
+  --color-mask-hidden: #000;
+  --font-display: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv11", "ss01";
+}
+
+/*
+ * Video frames are rendered one at a time, so wall-clock CSS motion would land at a random
+ * point in each frame. The replica holds still; every motion comes from the frame number.
+ */
+[data-replica] *,
+[data-replica] *::before,
+[data-replica] *::after {
+  transition: none !important;
+  animation: none !important;
+  caret-color: transparent !important;
+}
+
+[data-replica] {
+  font-family: var(--font-display);
+}
+
+[data-replica] *:focus,
+[data-replica] *:focus-visible {
+  outline: none !important;
+}
+
+/* History bars grow in as a wave from the plan day, driven by `--reveal-ms` per frame. */
+[data-replica][data-reveal-wave] [data-reveal] {
+  transform-origin: bottom;
+  transform: scaleY(
+    clamp(0, calc((var(--reveal-ms) - var(--day-distance) * 6) / 320), 1)
+  );
+}

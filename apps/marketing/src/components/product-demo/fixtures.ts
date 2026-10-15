@@ -108,6 +108,109 @@ export const plan = {
   when: "Sun, Oct 11, 2026",
 } as const;
 
+/** One plan on the Services list: a service type's plan on a calendar day. */
+export interface DemoServicePlan {
+  readonly id: string;
+  readonly serviceType: string;
+  readonly title: string;
+  readonly series: string | null;
+  /** The date tile's parts, as the product prints them. */
+  readonly month: string;
+  readonly day: number;
+  readonly weekday: string;
+  /** "In 3 days" and so on, for plans in the next two weeks. */
+  readonly relativeDay: string | null;
+  /** The visitor is scheduled on it. */
+  readonly scheduled: boolean;
+}
+
+/** The sample's "today": the Thursday before the sample plan. */
+export const DEMO_TODAY = { month: "Oct", day: 8 } as const;
+
+/** The plan the Services list opens, the sample plan itself. */
+export const SAMPLE_PLAN_ID = "sun-oct-11";
+
+/** The next few weeks of plans across the sample church's service types. */
+export const servicePlans: readonly DemoServicePlan[] = [
+  {
+    id: "thu-oct-8",
+    serviceType: "Midweek Prayer",
+    title: "Prayer night",
+    series: null,
+    month: "Oct",
+    day: 8,
+    weekday: "Thu",
+    relativeDay: "Today",
+    scheduled: false,
+  },
+  {
+    id: SAMPLE_PLAN_ID,
+    serviceType: plan.serviceType,
+    title: plan.title,
+    series: "Open Hands",
+    month: "Oct",
+    day: 11,
+    weekday: "Sun",
+    relativeDay: "In 3 days",
+    scheduled: true,
+  },
+  {
+    id: "sun-oct-11-evening",
+    serviceType: plan.serviceType,
+    title: "Evening gathering",
+    series: "Open Hands",
+    month: "Oct",
+    day: 11,
+    weekday: "Sun",
+    relativeDay: "In 3 days",
+    scheduled: false,
+  },
+  {
+    id: "wed-oct-14",
+    serviceType: "Youth Night",
+    title: "Night of worship",
+    series: null,
+    month: "Oct",
+    day: 14,
+    weekday: "Wed",
+    relativeDay: "In 6 days",
+    scheduled: true,
+  },
+  {
+    id: "thu-oct-15",
+    serviceType: "Midweek Prayer",
+    title: "Prayer night",
+    series: null,
+    month: "Oct",
+    day: 15,
+    weekday: "Thu",
+    relativeDay: "In 7 days",
+    scheduled: false,
+  },
+  {
+    id: "sun-oct-18",
+    serviceType: plan.serviceType,
+    title: plan.title,
+    series: "Open Hands",
+    month: "Oct",
+    day: 18,
+    weekday: "Sun",
+    relativeDay: "In 10 days",
+    scheduled: true,
+  },
+  {
+    id: "sun-oct-25",
+    serviceType: plan.serviceType,
+    title: plan.title,
+    series: "Open Hands",
+    month: "Oct",
+    day: 25,
+    weekday: "Sun",
+    relativeDay: null,
+    scheduled: false,
+  },
+];
+
 /** The plan's calendar day, as a UTC midnight, for the history bars' date labels. */
 export const PLAN_DAY_UTC = Date.UTC(2026, 9, 11);
 
@@ -225,7 +328,7 @@ export const people: readonly DemoPerson[] = [
   person("p05", "Robin Lane", ["acoustic", "keys"], weeks("keys", 3, 7), {
     blockedOut: true,
   }),
-  person("p06", "Drew Scott", ["bass"], weeks("bass", 3, 7)),
+  person("p06", "Drew Scott", ["bass", "acoustic"], weeks("bass", 3, 7)),
   person("p07", "Kendall Evans", ["bass", "electric"], weeks("bass", 1, 2)),
   person("p08", "Lane Parker", ["drums"], weeks("drums", 2, 4, 6), {
     upcoming: ahead("drums", "confirmed", 2),
@@ -236,7 +339,12 @@ export const people: readonly DemoPerson[] = [
     declined: "Traveling for a family wedding that weekend.",
   }),
   person("p12", "Dakota Bennett", ["keys"], weeks("keys", 5)),
-  person("p13", "Eden Brooks", ["keys", "alto"], weeks("alto", 1, 3)),
+  person(
+    "p13",
+    "Eden Brooks",
+    ["keys", "alto", "acoustic"],
+    weeks("alto", 1, 3)
+  ),
   person("p14", "Jordan Hale", ["lead"], weeks("lead", 2, 4)),
   person("p15", "Morgan Reyes", ["lead", "alto"], weeks("lead", 6, 10)),
   person("p16", "Logan Archer", ["alto"], weeks("alto", 2, 5)),
@@ -244,12 +352,17 @@ export const people: readonly DemoPerson[] = [
     "p17",
     "Rowan West",
     ["alto", "lyrics"],
-    [...weeks("alto", 1), ...weeks("lyrics", 2, 3)]
+    [...weeks("alto", 1), ...weeks("lyrics", 2, 3), ...rehearsals("alto", 1)]
   ),
   person("p18", "Sage Porter", ["alto"], weeks("alto", 7)),
   person("p19", "Casey Monroe", ["alto", "greeter"], [], { blockedOut: true }),
-  person("p20", "Emerson Diaz", ["tenor"], weeks("tenor", 3)),
-  person("p21", "Riley Foster", ["tenor", "lead"], weeks("tenor", 1, 2, 4)),
+  person("p20", "Emerson Diaz", ["tenor", "acoustic"], weeks("tenor", 3)),
+  person(
+    "p21",
+    "Riley Foster",
+    ["tenor", "lead", "acoustic"],
+    weeks("tenor", 1, 2, 4)
+  ),
   person("p22", "Parker West", ["sound", "livestream"], weeks("sound", 2, 5)),
   person("p23", "Blake Collins", ["sound", "camera"], weeks("camera", 4)),
   person("p24", "Eden Lane", ["lyrics"], weeks("lyrics", 5, 9)),
