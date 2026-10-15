@@ -20,7 +20,7 @@ import { accountApiTokenProvider } from "./scripts/infra/cloudflare";
 import { gitHubProviders, GitHubRuleset } from "./scripts/infra/github";
 import { mainRuleset } from "./scripts/infra/main-ruleset";
 
-const owner = "bodegalabs";
+const owner = "jbolabs";
 const repository = "pcobooster";
 const accountId = "984b82870acd18daf8bda97bad966b38";
 
