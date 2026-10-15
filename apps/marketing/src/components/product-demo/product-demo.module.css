@@ -1255,8 +1255,7 @@
   scroll-margin-bottom: 72px;
 }
 .grip {
-  display: grid;
-  place-items: center;
+  align-self: center;
   width: 30px;
   flex-shrink: 0;
   color: var(--muted-foreground);

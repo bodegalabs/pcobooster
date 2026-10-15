@@ -68,6 +68,11 @@ const SUNDAY_AND_SPOT: Target = {
     with: ASSIGN_TOP,
   },
 };
+/** The band's roster, with its open spots, beside the open spot's name. */
+const OPEN_SPOTS: Target = {
+  ...css(`.${styles["assign-roster"]} .${styles["team-panel"]}`),
+  with: css(`.${styles["position-heading"]}`),
+};
 const FRANKIE_ROW: Target = {
   selector: '[aria-label="Confirmed. Change status for Frankie Turner"]',
   closest: "li",
@@ -162,6 +167,8 @@ export const FillSundayScene = ({ duration }: { duration: number }) => {
       beats={beats}
       shots={[
         { at: 0, target: SUNDAY_AND_SPOT, pad: 12, duration: 1 },
+        // A slow push in on the band's open spots while the opening breathes.
+        { at: 8, target: OPEN_SPOTS, pad: 16, duration: 84 },
         {
           at: assignAt + 6,
           target: ASSIGN_TOP,
