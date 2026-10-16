@@ -10,7 +10,6 @@ import {
   PersonAvatar,
   PersonRowButton,
 } from "@/components/people/shared-components";
-import { ReplayMask } from "@/lib/replay-mask";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
+import { ReplayMask } from "@/lib/replay-mask";
 import {
   describeDue,
   describePersonSignal,

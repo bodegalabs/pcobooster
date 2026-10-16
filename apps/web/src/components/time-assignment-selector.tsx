@@ -20,7 +20,6 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { ItemSeparator } from "@/components/ui/item";
-import { ReplayMask } from "@/lib/replay-mask";
 import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import {
   ResponsivePopover,
@@ -33,6 +32,7 @@ import {
   SelectionPickerShell,
 } from "@/components/ui/selection-picker";
 import { selectionPickerSectionTitleClass } from "@/components/ui/selection-picker-styles";
+import { ReplayMask } from "@/lib/replay-mask";
 
 export interface TimeAssignmentValue {
   teamIds: string[];

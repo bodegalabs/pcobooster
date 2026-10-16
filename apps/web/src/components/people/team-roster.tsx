@@ -21,7 +21,6 @@ import {
   PersonRowButton,
 } from "@/components/people/shared-components";
 import { Badge } from "@/components/ui/badge";
-import { ReplayMask } from "@/lib/replay-mask";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -34,6 +33,7 @@ import {
 } from "@/components/ui/table";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import type { PeopleDashboardRow } from "@/lib/people-dashboard";
+import { ReplayMask } from "@/lib/replay-mask";
 import {
   describePersonSignal,
   formatDayKey,

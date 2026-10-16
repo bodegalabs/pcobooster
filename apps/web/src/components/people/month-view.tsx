@@ -28,7 +28,6 @@ import {
   PersonAvatar,
   PersonRowButton,
 } from "@/components/people/shared-components";
-import { ReplayMask } from "@/lib/replay-mask";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -59,6 +58,7 @@ import {
   serviceDays,
 } from "@/lib/people-dashboard";
 import type { PeopleDashboardDay } from "@/lib/people-dashboard";
+import { ReplayMask } from "@/lib/replay-mask";
 import { cn } from "@/lib/utils";
 
 interface PersonCallbacks {

@@ -11,7 +11,6 @@ import {
   PersonDetailBodySkeleton,
 } from "@/components/people/detail-body";
 import { PersonAvatar } from "@/components/people/shared-components";
-import { ReplayMask } from "@/lib/replay-mask";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { HoverLabel } from "@/components/ui/hover-card";
@@ -22,6 +21,7 @@ import {
   usePeopleDashboardPerson,
   usePersonDashboardContext,
 } from "@/hooks/use-people-dashboard-person";
+import { ReplayMask } from "@/lib/replay-mask";
 import { personSignals } from "@/lib/team-health";
 
 const PersonHeaderSkeleton = () => (

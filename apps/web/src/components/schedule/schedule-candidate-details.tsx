@@ -9,12 +9,12 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
-import { ReplayMask } from "@/lib/replay-mask";
 import {
   ResponsivePopover,
   ResponsivePopoverContent,
   ResponsivePopoverTrigger,
 } from "@/components/ui/responsive-popover";
+import { ReplayMask } from "@/lib/replay-mask";
 
 export type CandidateStatus =
   | "confirmed"
@@ -43,10 +43,7 @@ export const ScheduleCandidateAvatar = ({
   const initials = getInitials(person.fullName);
   const avatarInner = (
     <>
-      <AvatarImage
-        src={person.photoThumbnailUrl ?? undefined}
-        alt=""
-      />
+      <AvatarImage src={person.photoThumbnailUrl ?? undefined} alt="" />
       <AvatarFallback>{initials}</AvatarFallback>
     </>
   );

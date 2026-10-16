@@ -25,7 +25,6 @@ import { useAccessReview } from "@/components/access/access-review";
 import { MobileFeedbackDialog } from "@/components/mobile-feedback-dialog";
 import { useOnboarding } from "@/components/onboarding/onboarding-provider";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
-import { ReplayMask } from "@/lib/replay-mask";
 import { useTheme } from "@/components/theme-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -38,6 +37,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { signOutLabel, useAccountPanel } from "@/hooks/use-account-panel";
 import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
 import { getAppSection } from "@/lib/app-routes";
+import { ReplayMask } from "@/lib/replay-mask";
 import { cn } from "@/lib/utils";
 
 const MOBILE_MENU_ID = "mobile-menu";

@@ -83,8 +83,8 @@ import {
   applyLineupColumnOrder,
   reorderLineupColumnIds,
 } from "@/lib/lineup-column-order";
-import { openSlotCount } from "@/lib/schedule/open-positions";
 import { ReplayMask } from "@/lib/replay-mask";
+import { openSlotCount } from "@/lib/schedule/open-positions";
 import { cn } from "@/lib/utils";
 
 /**
@@ -176,10 +176,7 @@ const PersonRowContent = ({
   const status = getStatusDotStatus(person);
   const avatar = (
     <Avatar>
-      <AvatarImage
-        src={person.photoThumbnailUrl ?? undefined}
-        alt=""
-      />
+      <AvatarImage src={person.photoThumbnailUrl ?? undefined} alt="" />
       <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
     </Avatar>
   );

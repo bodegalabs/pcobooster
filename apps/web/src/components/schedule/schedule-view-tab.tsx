@@ -43,8 +43,8 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import type { PositionCandidateList } from "@/hooks/use-position-candidates";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { useShowScheduleHistory } from "@/hooks/use-show-schedule-history";
-import { openSlotCount } from "@/lib/schedule/open-positions";
 import { ReplayMask } from "@/lib/replay-mask";
+import { openSlotCount } from "@/lib/schedule/open-positions";
 import { cn } from "@/lib/utils";
 
 interface ScheduleViewTabProps {
@@ -123,10 +123,7 @@ const TemporaryFilledPersonRow = ({
   return (
     <article className="group/row hover:bg-muted/30 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 sm:py-3">
       <Avatar size="default">
-        <AvatarImage
-          src={person.photoThumbnailUrl ?? undefined}
-          alt=""
-        />
+        <AvatarImage src={person.photoThumbnailUrl ?? undefined} alt="" />
         <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
       </Avatar>
 

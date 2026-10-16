@@ -40,8 +40,8 @@ import { invalidateCandidateHistoryQueries } from "@/hooks/use-schedule-cache-op
 import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cache-optimism";
 import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
 import { useUpdatePlanPersonStatus } from "@/hooks/use-update-plan-person-status";
-import { ReplayMask } from "@/lib/replay-mask";
 import { queryKeys } from "@/lib/query-keys";
+import { ReplayMask } from "@/lib/replay-mask";
 import { productClient } from "@/product-client";
 
 interface PlanPersonEditDialogProps {
@@ -303,10 +303,7 @@ const PlanPersonEditDialogBody = ({
       <ResponsiveDialogHeader className="max-md:text-left">
         <div className="flex items-center gap-2.5 md:pr-8">
           <Avatar className="max-md:size-10" size="sm">
-            <AvatarImage
-              src={person.photoThumbnailUrl ?? undefined}
-              alt=""
-            />
+            <AvatarImage src={person.photoThumbnailUrl ?? undefined} alt="" />
             <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
