@@ -1,6 +1,7 @@
+import { callForQuery } from "@pcobooster/client/query";
 import type { ServiceType } from "@pcobooster/planning-center-models/types";
 import { useQuery } from "@tanstack/react-query";
-import type { QueryClient } from "@tanstack/react-query";
+import type { QueryClient, QueryFunctionContext } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import {
@@ -16,8 +17,10 @@ import { productClient } from "@/product-client";
 
 const serviceTypesQueryOptions = {
   queryKey: queryKeys.serviceTypes(),
-  queryFn: async ({ signal }: { signal: AbortSignal }) =>
-    await productClient.run((api) => api.catalog.serviceTypes(), { signal }),
+  queryFn: async (context: QueryFunctionContext) =>
+    await callForQuery(context, productClient, (api) =>
+      api.catalog.serviceTypes()
+    ),
   // 10 minutes
   staleTime: 10 * 60 * 1000,
 };

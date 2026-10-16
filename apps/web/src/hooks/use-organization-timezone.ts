@@ -1,3 +1,4 @@
+import { callForQuery } from "@pcobooster/client/query";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 
@@ -25,10 +26,9 @@ export const useOrganizationTimeZone = (): string => {
 
   const { data } = useQuery({
     queryKey,
-    queryFn: async ({ signal }) => {
-      const response = await productClient.run(
-        (api) => api.catalog.organization(),
-        { signal }
+    queryFn: async (context) => {
+      const response = await callForQuery(context, productClient, (api) =>
+        api.catalog.organization()
       );
       writeCachedOrganizationTimeZone(response.timeZone);
       return response;

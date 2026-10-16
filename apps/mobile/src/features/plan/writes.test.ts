@@ -1249,10 +1249,9 @@ describe("authoritative assignment reads", () => {
       }))
     );
     const call = vi.spyOn(transport, "handle");
-    await writer.setStatus(
-      rosterAssignment(ids, position, person),
-      "confirmed"
-    );
+    await expect(
+      writer.setStatus(rosterAssignment(ids, position, person), "confirmed")
+    ).resolves.toBeTruthy();
     expect(call).toHaveBeenCalledWith("schedule.updateStatus", {
       ...ids,
       planPersonId: "external-reassignment",
@@ -1342,8 +1341,8 @@ describe("assignments without a Planning Center person relationship", () => {
     );
     const spy = vi.spyOn(transport, "handle");
     const assignment = rosterAssignment(ids, position, unknown);
-    await writer.setStatus(assignment, "pending");
-    await writer.remove(assignment);
+    await expect(writer.setStatus(assignment, "pending")).resolves.toBeTruthy();
+    await expect(writer.remove(assignment)).resolves.toBeTruthy();
     expect(spy).toHaveBeenCalledWith("schedule.updateStatus", {
       ...ids,
       planPersonId: person.planPersonId,

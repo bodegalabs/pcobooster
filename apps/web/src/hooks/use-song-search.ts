@@ -1,6 +1,6 @@
+import { callForQuery } from "@pcobooster/client/query";
 import type { SongCatalogEntry } from "@pcobooster/planning-center-models/types";
 import { useQuery } from "@tanstack/react-query";
-import type { QueryFunctionContext } from "@tanstack/react-query";
 import { useCallback } from "react";
 
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
@@ -25,14 +25,13 @@ export const useSongSearch = (query: string) => {
 
   return useQuery<SongCatalogEntry[]>({
     queryKey,
-    queryFn: async ({ signal }: QueryFunctionContext) => {
+    queryFn: async (context) => {
       if (!trimmedQuery) {
         return [];
       }
 
-      const songs = await productClient.run(
-        (api) => api.songs.search({ query: { query: trimmedQuery } }),
-        { signal }
+      const songs = await callForQuery(context, productClient, (api) =>
+        api.songs.search({ query: { query: trimmedQuery } })
       );
       writeCachedSongSearch(trimmedQuery, songs);
       return songs;

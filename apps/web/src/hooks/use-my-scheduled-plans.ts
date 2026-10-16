@@ -1,3 +1,4 @@
+import { callForQuery } from "@pcobooster/client/query";
 import type { MyScheduledPlansData } from "@pcobooster/contracts/http/people-schemas";
 import { useQuery } from "@tanstack/react-query";
 
@@ -17,10 +18,9 @@ export const useMyScheduledPlans = () => {
 
   return useQuery<MyScheduledPlansData>({
     queryKey,
-    queryFn: async ({ signal }) => {
-      const scheduledPlans = await productClient.run(
-        (api) => api.people.myScheduledPlans(),
-        { signal }
+    queryFn: async (context) => {
+      const scheduledPlans = await callForQuery(context, productClient, (api) =>
+        api.people.myScheduledPlans()
       );
       writeCachedMyScheduledPlans(scheduledPlans);
       return scheduledPlans;

@@ -74,7 +74,9 @@ describe(createFlagshipFeatureFlags, () => {
       async () => await Promise.resolve(null)
     );
 
-    await Effect.runPromise(flags.isEnabled("people", signedIn));
+    await expect(
+      Effect.runPromise(flags.isEnabled("people", signedIn))
+    ).resolves.toBeTruthy();
     expect(getBooleanDetails).toHaveBeenCalledWith("people-page", false, {
       targetingKey: "user-1",
       userId: "user-1",
@@ -137,9 +139,13 @@ describe(createFlagshipFeatureFlags, () => {
       resolveOrganizationId
     );
 
-    await Effect.runPromise(flags.isEnabled("people", signedIn));
+    await expect(
+      Effect.runPromise(flags.isEnabled("people", signedIn))
+    ).resolves.toBeTruthy();
     await Effect.runPromise(flags.isEnabled("chordCharts", signedIn));
-    await Effect.runPromise(flags.isEnabled("people", signedIn));
+    await expect(
+      Effect.runPromise(flags.isEnabled("people", signedIn))
+    ).resolves.toBeTruthy();
 
     expect(resolveOrganizationId).toHaveBeenCalledOnce();
     expect(getBooleanDetails).toHaveBeenCalledTimes(3);
@@ -161,7 +167,9 @@ describe(createFlagshipFeatureFlags, () => {
     );
 
     await Effect.runPromise(flags.isEnabled("people", signedIn));
-    await Effect.runPromise(flags.isEnabled("people", signedIn));
+    await expect(
+      Effect.runPromise(flags.isEnabled("people", signedIn))
+    ).resolves.toBeTruthy();
 
     expect(resolveOrganizationId).toHaveBeenCalledTimes(2);
     expect(getBooleanDetails).toHaveBeenLastCalledWith("people-page", false, {

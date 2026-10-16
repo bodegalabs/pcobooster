@@ -3,6 +3,7 @@ import { describe, it } from "vitest";
 
 import {
   noSelfReferentialExpectedRule,
+  noSpyOnlyAssertionsRule,
   noWeakOnlyAssertionsRule,
   requireSubjectCallRule,
 } from "./oxlint-plugin-test-quality.mjs";
@@ -91,6 +92,34 @@ ruleTester.run(
           expect(await score("a")).toBeGreaterThan(0);
         });`,
         errors: [{ messageId: "weakOnly" }],
+      },
+    ],
+  }
+);
+
+ruleTester.run(
+  "no-spy-only-assertions",
+  noSpyOnlyAssertionsRule as RuleUnderTest,
+  {
+    valid: [
+      {
+        name: "spy paired with a literal effect",
+        code: `it("persists", async () => {
+          await save(draft);
+          expect(store.write).toHaveBeenCalledOnce();
+          expect(await load()).toBe("saved");
+        });`,
+      },
+    ],
+    invalid: [
+      {
+        name: "spy checks only",
+        code: `it("calls the client", () => {
+          run();
+          expect(run).toHaveBeenCalledOnce();
+          expect(run).toHaveBeenCalledWith("a");
+        });`,
+        errors: [{ messageId: "spyOnly" }],
       },
     ],
   }

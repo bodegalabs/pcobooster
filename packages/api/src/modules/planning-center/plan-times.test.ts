@@ -333,16 +333,18 @@ describe("plan-times module", () => {
   });
 
   it("deletes plan times and invalidates time-sensitive caches", async () => {
-    await Effect.runPromise(
-      deletePlanTime(
-        {
-          serviceTypeId: "st-1",
-          planId: "plan-1",
-          planTimeId: "time-1",
-        },
-        dependencies
+    await expect(
+      Effect.runPromise(
+        deletePlanTime(
+          {
+            serviceTypeId: "st-1",
+            planId: "plan-1",
+            planTimeId: "time-1",
+          },
+          dependencies
+        )
       )
-    );
+    ).resolves.toBeUndefined();
 
     expect(deletePlanTimeMock).toHaveBeenCalledWith("st-1", "plan-1", "time-1");
     expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith(
@@ -364,18 +366,20 @@ describe("plan-times module", () => {
       })
     );
 
-    await Effect.runPromise(
-      updatePlanTime(
-        {
-          serviceTypeId: "st-1",
-          planId: "plan-1",
-          planTimeId: "time-1",
-          assignedNeededPositionIds: ["needed-1"],
-          clearedNeededPositionIds: ["needed-2"],
-        },
-        dependencies
+    await expect(
+      Effect.runPromise(
+        updatePlanTime(
+          {
+            serviceTypeId: "st-1",
+            planId: "plan-1",
+            planTimeId: "time-1",
+            assignedNeededPositionIds: ["needed-1"],
+            clearedNeededPositionIds: ["needed-2"],
+          },
+          dependencies
+        )
       )
-    );
+    ).resolves.toMatchObject({ id: "time-1", timeType: "rehearsal" });
 
     expect(updateServiceTypePlanNeededPositionTimeMock).toHaveBeenCalledWith(
       "st-1",
@@ -488,18 +492,20 @@ describe("plan-times module", () => {
       })
     );
 
-    await Effect.runPromise(
-      updatePlanTime(
-        {
-          serviceTypeId: "st-1",
-          planId: "plan-1",
-          planTimeId: "time-2",
-          assignedPlanPersonIds: ["pp-add"],
-          clearedPlanPersonIds: ["pp-clear", "pp-declined", "pp-no-person"],
-        },
-        dependencies
+    await expect(
+      Effect.runPromise(
+        updatePlanTime(
+          {
+            serviceTypeId: "st-1",
+            planId: "plan-1",
+            planTimeId: "time-2",
+            assignedPlanPersonIds: ["pp-add"],
+            clearedPlanPersonIds: ["pp-clear", "pp-declined", "pp-no-person"],
+          },
+          dependencies
+        )
       )
-    );
+    ).resolves.toMatchObject({ id: "time-2", timeType: "service" });
 
     expect(getPlanTeamMembersMock).toHaveBeenCalledWith("st-1", "plan-1");
     expect(updatePlanPersonTimesMock).toHaveBeenCalledTimes(2);

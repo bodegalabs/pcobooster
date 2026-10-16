@@ -1,4 +1,4 @@
-import { batchHasAnswered } from "@pcobooster/client/query";
+import { batchHasAnswered, callForQuery } from "@pcobooster/client/query";
 import type {
   PeopleDashboardActivity,
   PeopleDashboardRoster,
@@ -48,14 +48,11 @@ const NO_BATCHES: readonly string[][] = [];
 
 const currentTime = () => Date.now();
 
-const fetchRoster = async ({
-  signal,
-}: QueryFunctionContext): Promise<PeopleDashboardRoster> => {
-  const roster = await productClient.run(
-    (api) => api.people.dashboardRoster(),
-    {
-      signal,
-    }
+const fetchRoster = async (
+  context: QueryFunctionContext
+): Promise<PeopleDashboardRoster> => {
+  const roster = await callForQuery(context, productClient, (api) =>
+    api.people.dashboardRoster()
   );
   writeCachedPeopleDashboardRoster(roster);
   return roster;
@@ -67,12 +64,10 @@ const fetchRoster = async ({
  */
 const fetchActivity = async (
   personIds: readonly string[],
-  signal: AbortSignal
+  context: QueryFunctionContext
 ): Promise<PeopleDashboardActivity[]> => {
-  const batch = await productClient.run(
-    (api) =>
-      api.people.dashboardActivity({ query: { personIds: [...personIds] } }),
-    { signal }
+  const batch = await callForQuery(context, productClient, (api) =>
+    api.people.dashboardActivity({ query: { personIds: [...personIds] } })
   );
   const deferred = batch.deferredPersonIds;
   if (deferred.length === 0) {
@@ -81,7 +76,7 @@ const fetchActivity = async (
   if (deferred.length >= personIds.length) {
     throw new Error("People dashboard activity made no progress.");
   }
-  return [...batch.people, ...(await fetchActivity(deferred, signal))];
+  return [...batch.people, ...(await fetchActivity(deferred, context))];
 };
 
 const activityState = (
@@ -217,8 +212,8 @@ export const usePeopleDashboard = ({
       const gate = batches[index - PEOPLE_DASHBOARD_BATCH_CONCURRENCY];
       return {
         queryKey: queryKeys.peopleDashboardActivity(personIds),
-        queryFn: async ({ signal }: QueryFunctionContext) => {
-          const people = await fetchActivity(personIds, signal);
+        queryFn: async (context: QueryFunctionContext) => {
+          const people = await fetchActivity(personIds, context);
           writeCachedPeopleDashboardActivity(people);
           return people;
         },

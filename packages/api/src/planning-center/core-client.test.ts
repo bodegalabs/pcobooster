@@ -651,7 +651,7 @@ describe(PlanningCenterCoreClient, () => {
         )
       )
       .mockResolvedValueOnce(jsonResponse({ data: person }));
-    await Effect.runPromise(
+    const result = await Effect.runPromise(
       Effect.gen(function* retryAfterRateLimit() {
         const fiber = yield* Effect.forkChild(
           basicClient(fetch).fetch("/services/v2/people/1")
@@ -660,9 +660,10 @@ describe(PlanningCenterCoreClient, () => {
         yield* TestClock.adjust("1999 millis");
         expect(fetch).toHaveBeenCalledOnce();
         yield* TestClock.adjust("1 millis");
-        yield* Fiber.join(fiber);
+        return yield* Fiber.join(fiber);
       }).pipe(Effect.provide(TestClock.layer()))
     );
+    expect(result.data.id).toBe("1");
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
