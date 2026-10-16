@@ -720,6 +720,7 @@ describe("native sign-in", { timeout: LOCAL_WORKER_TEST_TIMEOUT_MS }, () => {
     ];
     const sessions = [];
     for (const candidate of candidates) {
+      // oxlint-disable-next-line no-await-in-loop -- sequential lookups avoid flaky parallel getSession races.
       sessions.push(await sessionFor(candidate));
     }
 
