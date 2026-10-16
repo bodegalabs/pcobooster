@@ -20,6 +20,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { ItemSeparator } from "@/components/ui/item";
+import { ReplayMask } from "@/lib/replay-mask";
 import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import {
   ResponsivePopover,
@@ -378,7 +379,7 @@ export const TimeAssignmentSelector = ({
                           <Avatar size="sm" className="shrink-0">
                             <AvatarImage
                               src={person.photoThumbnailUrl ?? undefined}
-                              alt={person.name}
+                              alt=""
                             />
                             <AvatarFallback>
                               {getInitials(person.name)}
@@ -386,7 +387,7 @@ export const TimeAssignmentSelector = ({
                           </Avatar>
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-sm font-medium">
-                              {person.name}
+                              <ReplayMask>{person.name}</ReplayMask>
                             </span>
                             <span className="text-muted-foreground block truncate text-xs">
                               {person.teamName} / {person.positionName}

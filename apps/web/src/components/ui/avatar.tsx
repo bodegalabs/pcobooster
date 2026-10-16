@@ -1,4 +1,5 @@
 import { Avatar as AvatarPrimitive } from "@base-ui/react/avatar";
+import { REPLAY_BLOCK_ATTRIBUTE } from "@pcobooster/analytics/replay-markers";
 import { cn } from "cn";
 import * as React from "react";
 
@@ -12,6 +13,7 @@ const Avatar = ({
   <AvatarPrimitive.Root
     data-slot="avatar"
     data-size={size}
+    {...{ [REPLAY_BLOCK_ATTRIBUTE]: "" }}
     className={cn(
       "group/avatar after:border-border relative flex size-8 shrink-0 rounded-full select-none after:absolute after:inset-0 after:rounded-full after:border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 dark:after:mix-blend-lighten",
       className

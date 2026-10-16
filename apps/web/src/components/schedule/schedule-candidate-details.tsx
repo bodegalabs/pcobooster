@@ -9,6 +9,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
+import { ReplayMask } from "@/lib/replay-mask";
 import {
   ResponsivePopover,
   ResponsivePopoverContent,
@@ -44,7 +45,7 @@ export const ScheduleCandidateAvatar = ({
     <>
       <AvatarImage
         src={person.photoThumbnailUrl ?? undefined}
-        alt={person.fullName}
+        alt=""
       />
       <AvatarFallback>{initials}</AvatarFallback>
     </>
@@ -67,7 +68,7 @@ export const ScheduleCandidateAvatar = ({
         <ResponsivePopoverTrigger
           render={
             <AvatarButton
-              aria-label={`Decline reason for ${person.fullName}`}
+              aria-label="Decline reason"
               title="View decline reason"
             />
           }
@@ -87,9 +88,9 @@ export const ScheduleCandidateAvatar = ({
             <p className="text-muted-foreground text-xs font-medium">
               Decline reason
             </p>
-            <p className="text-foreground mt-1.5 leading-relaxed [overflow-wrap:anywhere]">
+            <ReplayMask className="text-foreground mt-1.5 block leading-relaxed [overflow-wrap:anywhere]">
               {declineReason}
-            </p>
+            </ReplayMask>
           </div>
         </ResponsivePopoverContent>
       </ResponsivePopover>
@@ -103,7 +104,7 @@ export const ScheduleCandidateAvatar = ({
         <ResponsivePopoverTrigger
           render={
             <AvatarButton
-              aria-label={`${person.fullName}. ${assignmentsLabel}`}
+              aria-label={assignmentsLabel}
               title={assignmentsLabel}
             />
           }

@@ -11,6 +11,7 @@ import {
   PersonDetailBodySkeleton,
 } from "@/components/people/detail-body";
 import { PersonAvatar } from "@/components/people/shared-components";
+import { ReplayMask } from "@/lib/replay-mask";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { HoverLabel } from "@/components/ui/hover-card";
@@ -88,7 +89,7 @@ const PersonHeading = ({
       <PersonAvatar person={person} />
       <div className="min-w-0">
         <h1 className="truncate text-xl font-semibold tracking-tight md:text-2xl">
-          {person.name}
+          <ReplayMask>{person.name}</ReplayMask>
         </h1>
         {subtitle === "" ? null : (
           <p className="text-muted-foreground truncate text-sm">{subtitle}</p>

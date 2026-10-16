@@ -10,6 +10,7 @@ import {
   PersonAvatar,
   PersonRowButton,
 } from "@/components/people/shared-components";
+import { ReplayMask } from "@/lib/replay-mask";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -93,7 +94,7 @@ const PersonList = <Entry,>({
             <PersonAvatar person={person} />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium">
-                {person.name}
+                <ReplayMask>{person.name}</ReplayMask>
               </span>
               <span className="text-muted-foreground block truncate text-xs">
                 {renderDetail(entry)}

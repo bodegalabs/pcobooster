@@ -21,6 +21,7 @@ import {
   PersonRowButton,
 } from "@/components/people/shared-components";
 import { Badge } from "@/components/ui/badge";
+import { ReplayMask } from "@/lib/replay-mask";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -311,7 +312,7 @@ export const TeamRoster = ({
                               event.stopPropagation();
                             }}
                           >
-                            {person.name}
+                            <ReplayMask>{person.name}</ReplayMask>
                           </Link>
                           <p className="text-muted-foreground truncate text-xs">
                             {describeRoles(person, member)}
@@ -392,7 +393,7 @@ export const TeamRoster = ({
                   <PersonAvatar person={person} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold">
-                      {person.name}
+                      <ReplayMask>{person.name}</ReplayMask>
                     </span>
                     {member === null ? (
                       // Teams come with the roster; dates follow once activity loads.

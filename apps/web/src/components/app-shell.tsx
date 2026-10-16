@@ -111,6 +111,7 @@ import {
   planViews,
 } from "@/lib/app-routes";
 import { presentationMode } from "@/lib/build-settings";
+import { ReplayMask } from "@/lib/replay-mask";
 import { cn } from "@/lib/utils";
 
 const APP_CHROME_ROW = "flex h-12 shrink-0 items-center gap-2";
@@ -200,7 +201,11 @@ const DetailBreadcrumbLabel = ({ detail }: { detail: DetailRoute }) => {
   const personName = usePersonName(detail.personId);
   return (
     <span className="block max-w-56 truncate">
-      {personName ?? detail.label}
+      {personName === null ? (
+        detail.label
+      ) : (
+        <ReplayMask>{personName}</ReplayMask>
+      )}
     </span>
   );
 };
@@ -327,12 +332,18 @@ const SidebarAccountPanel = ({
                   </>
                 ) : (
                   <>
-                    <span className="text-foreground block truncate text-sm font-semibold">
+                    <ReplayMask className="text-foreground block truncate text-sm font-semibold">
                       {data.session.name}
-                    </span>
-                    <span className="text-muted-foreground mt-1 block truncate text-xs">
-                      {demo ? "Read-only demo" : data.session.email}
-                    </span>
+                    </ReplayMask>
+                    {demo ? (
+                      <span className="text-muted-foreground mt-1 block truncate text-xs">
+                        Read-only demo
+                      </span>
+                    ) : (
+                      <ReplayMask className="text-muted-foreground mt-1 block truncate text-xs">
+                        {data.session.email}
+                      </ReplayMask>
+                    )}
                   </>
                 )}
               </DropdownMenuLabel>

@@ -84,6 +84,7 @@ import {
   reorderLineupColumnIds,
 } from "@/lib/lineup-column-order";
 import { openSlotCount } from "@/lib/schedule/open-positions";
+import { ReplayMask } from "@/lib/replay-mask";
 import { cn } from "@/lib/utils";
 
 /**
@@ -177,7 +178,7 @@ const PersonRowContent = ({
     <Avatar>
       <AvatarImage
         src={person.photoThumbnailUrl ?? undefined}
-        alt={person.name}
+        alt=""
       />
       <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
     </Avatar>
@@ -204,7 +205,7 @@ const PersonRowContent = ({
           status === "declined" && "text-muted-foreground line-through"
         )}
       >
-        {person.name}
+        <ReplayMask>{person.name}</ReplayMask>
       </span>
       {isUnsent(person) ? <UnsentNotificationMark /> : null}
     </>
@@ -249,7 +250,7 @@ const EditablePersonRow = ({
             // Someone just assigned can't be edited until their assign lands.
             disabled={!isSavedPlanPersonId(person.planPersonId)}
             aria-label={[
-              `Edit ${person.name} assignment`,
+              "Edit person assignment",
               ...describePerson(person, otherAssignments),
             ].join(", ")}
           />
@@ -373,7 +374,7 @@ const PositionRows = ({
                     <button
                       type="button"
                       aria-label={[
-                        `${position.name}: ${person.name}`,
+                        `${position.name}: person`,
                         ...describePerson(person, otherAssignments),
                       ].join(", ")}
                       {...selectProps}

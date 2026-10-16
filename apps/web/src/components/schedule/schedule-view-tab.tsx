@@ -44,6 +44,7 @@ import type { PositionCandidateList } from "@/hooks/use-position-candidates";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { useShowScheduleHistory } from "@/hooks/use-show-schedule-history";
 import { openSlotCount } from "@/lib/schedule/open-positions";
+import { ReplayMask } from "@/lib/replay-mask";
 import { cn } from "@/lib/utils";
 
 interface ScheduleViewTabProps {
@@ -124,14 +125,14 @@ const TemporaryFilledPersonRow = ({
       <Avatar size="default">
         <AvatarImage
           src={person.photoThumbnailUrl ?? undefined}
-          alt={person.name}
+          alt=""
         />
         <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
       </Avatar>
 
       <div className="min-w-0">
         <p className="text-foreground truncate text-sm leading-tight font-medium sm:text-base">
-          {person.name}
+          <ReplayMask>{person.name}</ReplayMask>
         </p>
       </div>
 

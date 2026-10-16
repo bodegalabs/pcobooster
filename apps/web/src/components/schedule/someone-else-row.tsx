@@ -21,6 +21,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePeopleSearch } from "@/hooks/use-people-search";
 import type { PeopleSearchResult } from "@/hooks/use-people-search";
+import { ReplayMask } from "@/lib/replay-mask";
 import { useSchedulePlanPerson } from "@/hooks/use-schedule-plan-person";
 
 interface SomeoneElseRowProps {
@@ -87,12 +88,12 @@ const SomeoneElseResultRow = ({
       <Avatar className="size-8 shrink-0">
         <AvatarImage
           src={person.photoThumbnailUrl ?? undefined}
-          alt={person.fullName}
+          alt=""
         />
         <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>
       <p className="min-w-0 flex-1 truncate text-sm font-medium">
-        {person.fullName}
+        <ReplayMask>{person.fullName}</ReplayMask>
       </p>
       {isScheduling ? (
         <Loader2 className="size-3.5 animate-spin" aria-hidden />

@@ -25,6 +25,7 @@ import { useAccessReview } from "@/components/access/access-review";
 import { MobileFeedbackDialog } from "@/components/mobile-feedback-dialog";
 import { useOnboarding } from "@/components/onboarding/onboarding-provider";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
+import { ReplayMask } from "@/lib/replay-mask";
 import { useTheme } from "@/components/theme-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -329,9 +330,9 @@ const MenuAccount = ({
                 )}
               </Avatar>
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium">
+                <ReplayMask className="truncate text-sm font-medium">
                   {data?.session.name ?? summary.avatarName}
-                </p>
+                </ReplayMask>
                 <p className="text-muted-foreground truncate text-xs">
                   {demo ? "Read-only demo" : summary.organizationName}
                 </p>

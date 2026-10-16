@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Item } from "@/components/ui/item";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { parsePlanRoute } from "@/lib/app-routes";
+import { ReplayMask } from "@/lib/replay-mask";
 import { cn } from "@/lib/utils";
 
 /** The position and service type of a commitment, the service type linking to its plan. */
@@ -64,7 +65,7 @@ export const PersonAvatar = ({
       {hasPhoto ? (
         <AvatarImage
           src={person.photoThumbnailUrl ?? ""}
-          alt={person.name}
+          alt=""
           className="object-cover"
         />
       ) : null}
@@ -213,7 +214,7 @@ export const PersonRowButton = ({
     variant={variant}
     size={size}
     className={className}
-    render={<button type="button" aria-label={`Open ${person.name}`} />}
+    render={<button type="button" aria-label="Open person" />}
     {...getPersonIntentProps(person)}
     onClick={() => {
       onOpenPerson(person);
