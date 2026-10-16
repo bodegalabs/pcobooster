@@ -6,6 +6,7 @@
   "exports": {
     "./client": "./src/client.ts",
     "./privacy": "./src/privacy.ts",
+    "./replay-markers": "./src/replay-markers.ts",
     "./reports": "./src/reports.ts"
   },
   "scripts": {

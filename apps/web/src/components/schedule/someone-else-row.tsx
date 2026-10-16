@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePeopleSearch } from "@/hooks/use-people-search";
 import type { PeopleSearchResult } from "@/hooks/use-people-search";
 import { useSchedulePlanPerson } from "@/hooks/use-schedule-plan-person";
+import { ReplayMask } from "@/lib/replay-mask";
 
 interface SomeoneElseRowProps {
   serviceTypeId?: string | null;
@@ -85,14 +86,11 @@ const SomeoneElseResultRow = ({
       disabled={!canSchedule || isScheduling}
     >
       <Avatar className="size-8 shrink-0">
-        <AvatarImage
-          src={person.photoThumbnailUrl ?? undefined}
-          alt={person.fullName}
-        />
+        <AvatarImage src={person.photoThumbnailUrl ?? undefined} alt="" />
         <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>
       <p className="min-w-0 flex-1 truncate text-sm font-medium">
-        {person.fullName}
+        <ReplayMask>{person.fullName}</ReplayMask>
       </p>
       {isScheduling ? (
         <Loader2 className="size-3.5 animate-spin" aria-hidden />

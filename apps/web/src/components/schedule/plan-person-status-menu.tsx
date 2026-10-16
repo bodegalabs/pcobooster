@@ -44,7 +44,6 @@ export const PlanPersonStatusMenu = ({
   planId,
   teamId,
   positionId,
-  personName,
   onSuccess,
   onError,
 }: PlanPersonStatusMenuProps) => {
@@ -132,7 +131,7 @@ export const PlanPersonStatusMenu = ({
             positionId,
           });
         }}
-        title={`Unschedule ${personName}?`}
+        title="Unschedule this person?"
         description="They come off this position in Planning Center."
         confirmLabel="Unschedule"
       />

@@ -22,9 +22,9 @@
     "recordHeaders": false
   },
   "session_recording_masking_config": {
-    "blockSelector": "img, svg, canvas, video, audio, iframe, object, embed",
+    "blockSelector": "[data-replay-block], canvas, video, audio, iframe, object, embed",
     "maskAllInputs": true,
-    "maskTextSelector": "*"
+    "maskTextSelector": "[data-replay-mask]"
   },
   "session_recording_retention_period": "30d",
   "surveys_opt_in": false,

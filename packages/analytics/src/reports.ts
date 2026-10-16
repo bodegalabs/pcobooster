@@ -8,6 +8,7 @@
  * browser allowlist in `./privacy`, so a report cannot query data that is never sent.
  */
 import type { AnalyticsEvent, AnalyticsProperty } from "./privacy";
+import { replayBlockSelector, replayMaskTextSelector } from "./replay-markers";
 
 export type JsonValue =
   | string
@@ -448,9 +449,9 @@ export const project: ProjectDefinition = {
     session_recording_minimum_duration_milliseconds: 10_000,
     session_recording_retention_period: "30d",
     session_recording_masking_config: {
-      blockSelector: "img, svg, canvas, video, audio, iframe, object, embed",
+      blockSelector: replayBlockSelector,
       maskAllInputs: true,
-      maskTextSelector: "*",
+      maskTextSelector: replayMaskTextSelector,
     },
     session_recording_network_payload_capture_config: {
       recordBody: false,

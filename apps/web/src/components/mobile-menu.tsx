@@ -37,6 +37,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { signOutLabel, useAccountPanel } from "@/hooks/use-account-panel";
 import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
 import { getAppSection } from "@/lib/app-routes";
+import { ReplayMask } from "@/lib/replay-mask";
 import { cn } from "@/lib/utils";
 
 const MOBILE_MENU_ID = "mobile-menu";
@@ -329,9 +330,9 @@ const MenuAccount = ({
                 )}
               </Avatar>
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium">
+                <ReplayMask className="truncate text-sm font-medium">
                   {data?.session.name ?? summary.avatarName}
-                </p>
+                </ReplayMask>
                 <p className="text-muted-foreground truncate text-xs">
                   {demo ? "Read-only demo" : summary.organizationName}
                 </p>

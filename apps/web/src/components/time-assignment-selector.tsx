@@ -32,6 +32,7 @@ import {
   SelectionPickerShell,
 } from "@/components/ui/selection-picker";
 import { selectionPickerSectionTitleClass } from "@/components/ui/selection-picker-styles";
+import { ReplayMask } from "@/lib/replay-mask";
 
 export interface TimeAssignmentValue {
   teamIds: string[];
@@ -378,7 +379,7 @@ export const TimeAssignmentSelector = ({
                           <Avatar size="sm" className="shrink-0">
                             <AvatarImage
                               src={person.photoThumbnailUrl ?? undefined}
-                              alt={person.name}
+                              alt=""
                             />
                             <AvatarFallback>
                               {getInitials(person.name)}
@@ -386,7 +387,7 @@ export const TimeAssignmentSelector = ({
                           </Avatar>
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-sm font-medium">
-                              {person.name}
+                              <ReplayMask>{person.name}</ReplayMask>
                             </span>
                             <span className="text-muted-foreground block truncate text-xs">
                               {person.teamName} / {person.positionName}
