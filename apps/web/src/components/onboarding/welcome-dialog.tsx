@@ -130,9 +130,9 @@ const WelcomeSky = ({ step }: { step: number }) => {
   );
 };
 
-/** Sections as quiet rows: the icon sits in the brand color, with no badge behind it. */
+/** Sections as quiet rows: the icon sits in the brand color, with no badge or rule around it. */
 const AreaRow = ({ area }: { area: Area }) => (
-  <li className="flex gap-3 py-3">
+  <li className="flex gap-3">
     <span className="text-chart-2 flex h-lh shrink-0 items-center">
       <SidebarNavIcon icon={area.icon} className="size-5" />
     </span>
@@ -297,14 +297,14 @@ const HintRow = ({
   className?: string;
   children: ReactNode;
 }) => (
-  <li className={cn("flex items-center justify-between gap-4 py-3", className)}>
+  <li className={cn("flex items-center justify-between gap-4", className)}>
     <span className="text-muted-foreground">{label}</span>
     <span className="font-medium">{children}</span>
   </li>
 );
 
 const WhereToFindThings = ({ demo }: { demo: boolean }) => (
-  <ul className="divide-border/60 border-border/60 divide-y border-y text-sm">
+  <ul className="flex flex-col gap-3 text-sm">
     <HintRow label="Keyboard shortcuts" className="max-md:hidden">
       <HotkeyChord id="welcome-shortcuts" binding={SHORTCUTS_PALETTE_HOTKEY} />
     </HintRow>
@@ -321,9 +321,9 @@ const PROMISES = [
 
 /** What to expect, set as a quiet list under the welcome. */
 const Promises = () => (
-  <ul className="divide-border/60 border-border/60 divide-y border-y text-sm">
+  <ul className="flex flex-col gap-3 text-sm">
     {PROMISES.map((promise) => (
-      <li key={promise} className="flex items-center gap-3 py-3">
+      <li key={promise} className="flex items-center gap-3">
         <span
           aria-hidden
           className="bg-chart-2 size-1.5 shrink-0 rounded-full"
@@ -363,7 +363,7 @@ const useWelcomeSteps = (demo: boolean): readonly WelcomeStep[] => {
       title: "Where everything lives",
       description: "The places you’ll use most.",
       body: (
-        <ul className="divide-border/60 -my-3 divide-y">
+        <ul className="flex flex-col gap-4">
           {areas.map((area) => (
             <AreaRow key={area.key} area={area} />
           ))}
@@ -485,7 +485,8 @@ export const WelcomeDialog = ({
           <ResponsiveDialogFooter className="md:mx-6 md:mb-6">
             {isFirst ? null : (
               <Button
-                variant="ghost"
+                variant="outline"
+                className="max-md:order-last max-md:h-11"
                 onClick={() => {
                   go(-1);
                 }}
@@ -501,11 +502,16 @@ export const WelcomeDialog = ({
             )}
             {isLast ? (
               <>
-                <Button variant="outline" onClick={close}>
+                <Button
+                  variant="outline"
+                  className="max-md:order-last max-md:h-11"
+                  onClick={close}
+                >
                   Start exploring
                 </Button>
                 <Button
                   ref={nextButtonRef}
+                  className="max-md:h-11"
                   onClick={() => {
                     setStep(0);
                     onStartTour();
@@ -517,6 +523,7 @@ export const WelcomeDialog = ({
             ) : (
               <Button
                 ref={nextButtonRef}
+                className="max-md:h-11"
                 onClick={() => {
                   go(1);
                 }}
