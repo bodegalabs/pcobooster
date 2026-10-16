@@ -312,7 +312,7 @@ const PositionRows = ({
   const selectLabel =
     context.personAction === "select"
       ? position.name
-      : `Open ${position.name} in Assign`;
+      : `Find people for ${position.name}`;
 
   // Keep the selected position in view when it changes or the list first opens.
   useEffect(() => {

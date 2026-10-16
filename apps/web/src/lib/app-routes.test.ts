@@ -6,6 +6,8 @@ import {
   getAppSection,
   parseDetailRoute,
   parsePlanRoute,
+  phonePlanViews,
+  phonePlanViewTab,
 } from "@/lib/app-routes";
 
 describe(parsePlanRoute, () => {
@@ -43,6 +45,19 @@ describe(assertPlanView, () => {
     expect(() => {
       assertPlanView("unknown");
     }).toThrow(expect.toSatisfy(isNotFound));
+  });
+});
+
+describe("phone plan tabs", () => {
+  it("fold Assign into Lineup, as the iOS app does", () => {
+    expect(phonePlanViews).toStrictEqual([
+      "overview",
+      "lineup",
+      "plan",
+      "times",
+    ]);
+    expect(phonePlanViewTab("assign")).toBe("lineup");
+    expect(phonePlanViewTab("times")).toBe("times");
   });
 });
 

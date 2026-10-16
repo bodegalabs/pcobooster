@@ -65,7 +65,7 @@ export const planTourSteps: readonly TourStep[] = [
   {
     target: "plan-view-lineup",
     title: "Lineup",
-    body: "Every team’s filled and open roles. Mark responses, remove someone, or swap in someone else.",
+    body: "Every team’s filled and open roles. Open a role to fill it, or mark responses, remove someone, and swap in someone else.",
     side: "bottom",
   },
   {
