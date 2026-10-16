@@ -58,6 +58,7 @@ import {
   serviceDays,
 } from "@/lib/people-dashboard";
 import type { PeopleDashboardDay } from "@/lib/people-dashboard";
+import { ReplayMask } from "@/lib/replay-mask";
 import { cn } from "@/lib/utils";
 
 interface PersonCallbacks {
@@ -137,7 +138,7 @@ const DayPeople = ({
           <PersonAvatar person={person} />
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm font-medium">
-              {person.name}
+              <ReplayMask>{person.name}</ReplayMask>
             </span>
             <span className="text-muted-foreground block truncate text-xs">
               {marker.kind === "rehearsal"
@@ -355,12 +356,15 @@ const MatrixDay = ({
       </div>
     );
   }
-  const description = `${person.name}, ${formatMonthDay(month, day)}: ${engagementLabel(marker.kind, marker.status)}`;
+  const commitmentSummary = `${formatMonthDay(month, day)}: ${engagementLabel(marker.kind, marker.status)}`;
   if (isMobile) {
     return (
       <div className="flex justify-center px-2 py-2">
         <Dot entry={marker} />
-        <span className="sr-only">{description}</span>
+        <span className="sr-only">
+          <ReplayMask>{person.name}</ReplayMask>
+          {`, ${commitmentSummary}`}
+        </span>
       </div>
     );
   }
@@ -369,13 +373,19 @@ const MatrixDay = ({
       <HoverCard>
         <HoverCardTrigger
           render={
-            <Button variant="ghost" size="icon-xs" aria-label={description} />
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              aria-label={commitmentSummary}
+            />
           }
         >
           <Dot entry={marker} />
         </HoverCardTrigger>
         <HoverCardContent side="top" variant="panel" className="w-64">
-          <p className="text-xs font-medium">{person.name}</p>
+          <p className="text-xs font-medium">
+            <ReplayMask>{person.name}</ReplayMask>
+          </p>
           <p className="text-muted-foreground mt-1 text-xs">
             {formatWeekdayMonthDay(month, day)}
             {" · "}
@@ -506,7 +516,7 @@ const PeopleMonthMatrix = ({
                         <PersonAvatar person={person} />
                         <span className="min-w-0">
                           <span className="block truncate text-sm font-medium">
-                            {person.name}
+                            <ReplayMask>{person.name}</ReplayMask>
                           </span>
                           <span className="text-muted-foreground block truncate text-xs">
                             {person.roles.join(", ")}

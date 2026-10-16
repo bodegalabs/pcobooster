@@ -21,6 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
+import { ReplayMask } from "@/lib/replay-mask";
 import {
   describeDue,
   describePersonSignal,
@@ -93,7 +94,7 @@ const PersonList = <Entry,>({
             <PersonAvatar person={person} />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium">
-                {person.name}
+                <ReplayMask>{person.name}</ReplayMask>
               </span>
               <span className="text-muted-foreground block truncate text-xs">
                 {renderDetail(entry)}

@@ -3,7 +3,7 @@
   "name": "Protect main via pull requests",
   "target": "branch",
   "source_type": "Repository",
-  "source": "bodegalabs/pcobooster",
+  "source": "jbolabs/pcobooster",
   "enforcement": "active",
   "conditions": {
     "ref_name": {

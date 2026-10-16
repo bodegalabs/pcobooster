@@ -21,6 +21,7 @@ import { Item } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { useSchedulePlanPerson } from "@/hooks/use-schedule-plan-person";
+import { ReplayMask } from "@/lib/replay-mask";
 import { cn } from "@/lib/utils";
 
 const STATUS_META: Record<CandidateStatus, { label: string }> = {
@@ -156,9 +157,7 @@ const ScheduleCandidateAction = ({
         size="sm"
         className="w-full max-sm:size-10"
         aria-label={
-          isScheduling
-            ? `Adding ${person.fullName}`
-            : `Add ${person.fullName} to this position`
+          isScheduling ? "Adding person to position" : "Add person to position"
         }
         disabled={!canSchedule || isScheduling}
         onClick={onSchedule}
@@ -377,7 +376,7 @@ const ScheduleCandidateIdentity = ({
           isUnavailableForSlot && "text-muted-foreground line-through"
         )}
       >
-        {fullName}
+        <ReplayMask>{fullName}</ReplayMask>
       </p>
       {unavailableSlotLabel === null ? null : (
         <span

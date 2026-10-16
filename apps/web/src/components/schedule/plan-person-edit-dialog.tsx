@@ -41,6 +41,7 @@ import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cac
 import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
 import { useUpdatePlanPersonStatus } from "@/hooks/use-update-plan-person-status";
 import { queryKeys } from "@/lib/query-keys";
+import { ReplayMask } from "@/lib/replay-mask";
 import { productClient } from "@/product-client";
 
 interface PlanPersonEditDialogProps {
@@ -302,14 +303,13 @@ const PlanPersonEditDialogBody = ({
       <ResponsiveDialogHeader className="max-md:text-left">
         <div className="flex items-center gap-2.5 md:pr-8">
           <Avatar className="max-md:size-10" size="sm">
-            <AvatarImage
-              src={person.photoThumbnailUrl ?? undefined}
-              alt={person.name}
-            />
+            <AvatarImage src={person.photoThumbnailUrl ?? undefined} alt="" />
             <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <ResponsiveDialogTitle>{person.name}</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>
+              <ReplayMask>{person.name}</ReplayMask>
+            </ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
               {teamName} · {positionName}
             </ResponsiveDialogDescription>
@@ -401,7 +401,7 @@ const PlanPersonEditDialogBody = ({
           setConfirmUnscheduleOpen(false);
           handleUnschedule(person.planPersonId, mutationContext);
         }}
-        title={`Unschedule ${person.name}?`}
+        title="Unschedule this person?"
         description="They come off this position in Planning Center."
         confirmLabel="Unschedule"
       />

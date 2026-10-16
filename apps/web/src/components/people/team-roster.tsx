@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/table";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import type { PeopleDashboardRow } from "@/lib/people-dashboard";
+import { ReplayMask } from "@/lib/replay-mask";
 import {
   describePersonSignal,
   formatDayKey,
@@ -311,7 +312,7 @@ export const TeamRoster = ({
                               event.stopPropagation();
                             }}
                           >
-                            {person.name}
+                            <ReplayMask>{person.name}</ReplayMask>
                           </Link>
                           <p className="text-muted-foreground truncate text-xs">
                             {describeRoles(person, member)}
@@ -392,7 +393,7 @@ export const TeamRoster = ({
                   <PersonAvatar person={person} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold">
-                      {person.name}
+                      <ReplayMask>{person.name}</ReplayMask>
                     </span>
                     {member === null ? (
                       // Teams come with the roster; dates follow once activity loads.

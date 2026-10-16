@@ -83,6 +83,7 @@ import {
   applyLineupColumnOrder,
   reorderLineupColumnIds,
 } from "@/lib/lineup-column-order";
+import { ReplayMask } from "@/lib/replay-mask";
 import { openSlotCount } from "@/lib/schedule/open-positions";
 import { cn } from "@/lib/utils";
 
@@ -175,10 +176,7 @@ const PersonRowContent = ({
   const status = getStatusDotStatus(person);
   const avatar = (
     <Avatar>
-      <AvatarImage
-        src={person.photoThumbnailUrl ?? undefined}
-        alt={person.name}
-      />
+      <AvatarImage src={person.photoThumbnailUrl ?? undefined} alt="" />
       <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
     </Avatar>
   );
@@ -204,7 +202,7 @@ const PersonRowContent = ({
           status === "declined" && "text-muted-foreground line-through"
         )}
       >
-        {person.name}
+        <ReplayMask>{person.name}</ReplayMask>
       </span>
       {isUnsent(person) ? <UnsentNotificationMark /> : null}
     </>
@@ -249,7 +247,7 @@ const EditablePersonRow = ({
             // Someone just assigned can't be edited until their assign lands.
             disabled={!isSavedPlanPersonId(person.planPersonId)}
             aria-label={[
-              `Edit ${person.name} assignment`,
+              "Edit person assignment",
               ...describePerson(person, otherAssignments),
             ].join(", ")}
           />
@@ -312,7 +310,7 @@ const PositionRows = ({
   const selectLabel =
     context.personAction === "select"
       ? position.name
-      : `Open ${position.name} in Assign`;
+      : `Find people for ${position.name}`;
 
   // Keep the selected position in view when it changes or the list first opens.
   useEffect(() => {
@@ -373,7 +371,7 @@ const PositionRows = ({
                     <button
                       type="button"
                       aria-label={[
-                        `${position.name}: ${person.name}`,
+                        `${position.name}: person`,
                         ...describePerson(person, otherAssignments),
                       ].join(", ")}
                       {...selectProps}

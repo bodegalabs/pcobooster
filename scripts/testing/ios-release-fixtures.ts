@@ -23,7 +23,7 @@ export const AT = "2026-10-07T00:00:00.000Z";
 export const HEADER = JSON.stringify({
   version: 1,
   bundleId: BUNDLE,
-  repository: "bodegalabs/pcobooster",
+  repository: "jbolabs/pcobooster",
 });
 
 export const hex = (character: string): string => character.repeat(64);

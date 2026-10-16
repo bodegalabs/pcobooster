@@ -9,6 +9,18 @@ export const planViews: readonly PlanView[] = [
   "times",
 ];
 
+/**
+ * Phones fold Assign into Lineup, as the iOS app does: Lineup is the position list there,
+ * and Assign only opens for one position's candidates.
+ */
+export const phonePlanViews: readonly PlanView[] = planViews.filter(
+  (view) => view !== "assign"
+);
+
+/** The phone tab a view lives under. */
+export const phonePlanViewTab = (view: PlanView): PlanView =>
+  view === "assign" ? "lineup" : view;
+
 const planViewLabels: Record<PlanView, string> = {
   overview: "Overview",
   assign: "Assign",

@@ -64,7 +64,7 @@ export const PersonAvatar = ({
       {hasPhoto ? (
         <AvatarImage
           src={person.photoThumbnailUrl ?? ""}
-          alt={person.name}
+          alt=""
           className="object-cover"
         />
       ) : null}
@@ -213,7 +213,7 @@ export const PersonRowButton = ({
     variant={variant}
     size={size}
     className={className}
-    render={<button type="button" aria-label={`Open ${person.name}`} />}
+    render={<button type="button" aria-label="Open person" />}
     {...getPersonIntentProps(person)}
     onClick={() => {
       onOpenPerson(person);

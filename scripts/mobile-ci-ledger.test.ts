@@ -248,7 +248,7 @@ const fakeGitHub = (initialized = true) => {
     const request = new Request(input, init);
     const body = await request.text();
     const route = new URL(request.url).pathname.replace(
-      "/repos/bodegalabs/pcobooster/git/",
+      "/repos/jbolabs/pcobooster/git/",
       ""
     );
     requests.push({ method: request.method, route, body });
@@ -258,7 +258,7 @@ const fakeGitHub = (initialized = true) => {
   };
   const store = makeGitHubLedgerStore({
     api: "https://api.github.com",
-    repository: "bodegalabs/pcobooster",
+    repository: "jbolabs/pcobooster",
     branch: BRANCH,
     token: "test-token",
     fetch,

@@ -101,7 +101,7 @@ describe(covers, () => {
 
 describe(convergeRuleset, () => {
   const props = {
-    owner: "bodegalabs",
+    owner: "jbolabs",
     repository: "pcobooster",
     ...mainRuleset,
   };
@@ -135,11 +135,11 @@ describe(convergeRuleset, () => {
     expect(requests.map(({ method, url }) => [method, url])).toStrictEqual([
       [
         "GET",
-        "https://api.github.com/repos/bodegalabs/pcobooster/rulesets?includes_parents=false&per_page=100",
+        "https://api.github.com/repos/jbolabs/pcobooster/rulesets?includes_parents=false&per_page=100",
       ],
       [
         "GET",
-        "https://api.github.com/repos/bodegalabs/pcobooster/rulesets/13589390",
+        "https://api.github.com/repos/jbolabs/pcobooster/rulesets/13589390",
       ],
     ]);
     expect(requests[0]?.authorization).toBe("Bearer github-token");
@@ -160,7 +160,7 @@ describe(convergeRuleset, () => {
 
     expect(requests[2]?.method).toBe("PUT");
     expect(requests[2]?.url).toBe(
-      "https://api.github.com/repos/bodegalabs/pcobooster/rulesets/13589390"
+      "https://api.github.com/repos/jbolabs/pcobooster/rulesets/13589390"
     );
     expect(requests[2]?.body).toStrictEqual(mainRuleset);
   });

@@ -16,6 +16,7 @@ import type { ReadQueryState } from "@/components/query-data-boundary";
 import { useCollapsedTeams } from "@/hooks/use-collapsed-teams";
 import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
 import { usePlanTimes } from "@/hooks/use-plan-times";
 import {
@@ -271,6 +272,7 @@ export const useDashboardController = ({
     from: "/_app/services/$serviceTypeId/plans/$planId/$view",
   });
   const queryClient = useQueryClient();
+  const isPhone = useIsMobile();
   /** True once a slot was opened from the phone position list, so Back can pop history. */
   const openedSlotFromListRef = useRef(false);
 
@@ -358,6 +360,24 @@ export const useDashboardController = ({
     teamPositionsLoading,
     view,
   ]);
+
+  // Phones have no Assign tab: without a position, Assign is Lineup's position list.
+  const phoneAssignWithoutPosition =
+    isPhone && view === "assign" && !isNonEmptyString(routeIds.positionId);
+  useEffect(() => {
+    if (phoneAssignWithoutPosition) {
+      void navigate({
+        ...planSlotLink({
+          serviceTypeId,
+          planId,
+          view: "lineup",
+          teamId: null,
+          positionId: null,
+        }),
+        replace: true,
+      });
+    }
+  }, [navigate, phoneAssignWithoutPosition, planId, serviceTypeId]);
 
   // What the other tabs need waits in the speculative lane, behind the view on screen: the
   // Plan tab's items (the Overview and Plan views load them directly), and on the Assign view
@@ -493,7 +513,7 @@ export const useDashboardController = ({
     );
   };
 
-  /** Returns the phone Assign view to its position list. */
+  /** Returns a phone from a position's candidates to Lineup, or Assign to its position list. */
   const handleSlotClear = () => {
     if (openedSlotFromListRef.current) {
       openedSlotFromListRef.current = false;
@@ -506,7 +526,7 @@ export const useDashboardController = ({
         planId: routePlanId,
         teamId: null,
         positionId: null,
-        view: "assign",
+        view: isPhone ? "lineup" : "assign",
       },
       "replace"
     );
