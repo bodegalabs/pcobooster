@@ -164,7 +164,7 @@ const MobilePlanBack = ({ onBack }: { onBack: (() => void) | null }) =>
       type="button"
       variant="ghost"
       size="icon-lg"
-      aria-label="Back to positions"
+      aria-label="Back to lineup"
       className="-ml-2"
       onClick={onBack}
     >
