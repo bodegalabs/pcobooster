@@ -244,10 +244,11 @@ describe(getPeopleDashboardPerson, () => {
       detailCache,
     });
 
-    await readDetail(first.dependencies);
+    const detail = await readDetail(first.dependencies);
     await readDetail(first.dependencies);
     await readDetail(second.dependencies);
 
+    expect(detail.person.id).toBe("person-1");
     expect(first.getPerson).toHaveBeenCalledOnce();
     expect(second.getPerson).toHaveBeenCalledOnce();
   });

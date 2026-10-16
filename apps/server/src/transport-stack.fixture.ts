@@ -43,6 +43,7 @@ import {
 } from "effect";
 import type { Types } from "effect";
 import * as HttpClient from "effect/http/HttpClient";
+import * as HttpClientError from "effect/http/HttpClientError";
 import type * as HttpClientRequest from "effect/http/HttpClientRequest";
 import * as HttpClientResponse from "effect/http/HttpClientResponse";
 import * as HttpServerRequest from "effect/http/HttpServerRequest";
@@ -285,9 +286,14 @@ const serviceTypes = {
       id: "st-2",
       attributes: { name: "Wednesday", sequence: 2, archived_at: null },
     },
+    {
+      type: "ServiceType",
+      id: "rate-limit-st-2",
+      attributes: { name: "Rate limit probe", sequence: 3, archived_at: null },
+    },
   ],
   included: [],
-  meta: { total_count: 2, count: 2 },
+  meta: { total_count: 3, count: 3 },
   links: {},
 };
 
@@ -349,8 +355,15 @@ const scriptHttpApiRead = (method: string, path: string): Scripted => {
   if (path === "/services/v2/service_types") {
     return answer(serviceTypes);
   }
+  if (PLANS_PATH.test(path)) {
+    if (path.includes("rate-limit-")) {
+      return failure(TOO_MANY_REQUESTS, {
+        "retry-after": String(FIXTURE_RETRY_AFTER_SECONDS),
+      });
+    }
+    return answer(emptyCollection);
+  }
   if (
-    PLANS_PATH.test(path) ||
     SONG_ARRANGEMENTS_PATH.test(path) ||
     NEEDED_POSITIONS_PATH.test(path) ||
     TEAM_MEMBERS_PATH.test(path)
@@ -447,8 +460,23 @@ const countRate = (credential: string, now: number) => {
  * (`latencyMs` set) it takes that long to answer and rate limits each credential; load mode
  * keeps counts only, so the call list stays small however many requests run.
  */
+const workerSubrequestRefusal = (
+  request: HttpClientRequest.HttpClientRequest
+): Effect.Effect<never, HttpClientError.HttpClientError> =>
+  Effect.fail(
+    new HttpClientError.HttpClientError({
+      reason: new HttpClientError.TransportError({
+        request,
+        cause: new Error("Too many subrequests."),
+      }),
+    })
+  );
+
 const fakePlanningCenter = (latencyMs: number | null): HttpClient.HttpClient =>
   HttpClient.make((request: HttpClientRequest.HttpClientRequest, url: URL) => {
+    if (url.pathname.includes("subrequest-limit")) {
+      return workerSubrequestRefusal(request);
+    }
     if (latencyMs !== null) {
       seen.planningCenterRequests += 1;
       const rate = countRate(request.headers.authorization ?? "", Date.now());

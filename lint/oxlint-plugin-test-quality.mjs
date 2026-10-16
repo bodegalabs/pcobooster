@@ -21,6 +21,16 @@ const WEAK_MATCHERS = new Set([
   "toBeTypeOf",
 ]);
 
+/** Matchers that only assert a mock or spy was invoked, not a produced value. */
+const SPY_ONLY_MATCHERS = new Set([
+  "toHaveBeenCalled",
+  "toHaveBeenCalledOnce",
+  "toHaveBeenCalledTimes",
+  "toHaveBeenCalledWith",
+  "toHaveBeenLastCalledWith",
+  "toHaveBeenNthCalledWith",
+]);
+
 /** Bounds, which pin nothing when the bound is zero (`toBeGreaterThan(0)`). */
 const BOUND_MATCHERS = new Set([
   "toBeGreaterThan",
@@ -274,6 +284,33 @@ const noWeakOnlyAssertionsRule = {
   },
 };
 
+const noSpyOnlyAssertionsRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow tests whose only expectations are spy call assertions; pair them with a literal on output or effect.",
+    },
+    messages: {
+      spyOnly:
+        "Every assertion in this test is a spy call check (`toHaveBeenCalled*`). Assert a literal produced value or observable effect, or delete the test.",
+    },
+    schema: [],
+  },
+  create(context) {
+    return forEachTest(context, ({ expectations }, test) => {
+      if (
+        expectations.length > 0 &&
+        expectations.every(
+          ({ matcher, negated }) => SPY_ONLY_MATCHERS.has(matcher) && !negated
+        )
+      ) {
+        context.report({ node: test, messageId: "spyOnly" });
+      }
+    });
+  },
+};
+
 const requireSubjectCallRule = {
   meta: {
     type: "problem",
@@ -422,6 +459,7 @@ export default {
   },
   rules: {
     "no-self-referential-expected": noSelfReferentialExpectedRule,
+    "no-spy-only-assertions": noSpyOnlyAssertionsRule,
     "no-weak-only-assertions": noWeakOnlyAssertionsRule,
     "require-subject-call": requireSubjectCallRule,
   },
@@ -429,6 +467,7 @@ export default {
 
 export {
   noSelfReferentialExpectedRule,
+  noSpyOnlyAssertionsRule,
   noWeakOnlyAssertionsRule,
   requireSubjectCallRule,
 };

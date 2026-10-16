@@ -1,3 +1,4 @@
+import { callForQuery } from "@pcobooster/client/query";
 import type { PeopleSearchResult } from "@pcobooster/contracts/http/people-schemas";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
@@ -24,10 +25,9 @@ export const usePeopleSearch = (query: string) => {
 
   return useQuery<PeopleSearchResult[]>({
     queryKey,
-    queryFn: async ({ signal }) => {
-      const results = await productClient.run(
-        (api) => api.people.search({ query: { query: normalizedQuery } }),
-        { signal }
+    queryFn: async (context) => {
+      const results = await callForQuery(context, productClient, (api) =>
+        api.people.search({ query: { query: normalizedQuery } })
       );
       writeCachedPeopleSearch(normalizedQuery, results);
       return results;

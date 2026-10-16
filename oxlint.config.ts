@@ -64,6 +64,7 @@ export default defineConfig({
       files: ["**/*.test.{ts,tsx}"],
       rules: {
         // At least one assertion pins a produced value, not only absence, presence, or type.
+        "test-quality/no-spy-only-assertions": "error",
         "test-quality/no-weak-only-assertions": "error",
         // Expected values are literals, not computed with the module under test.
         "test-quality/no-self-referential-expected": "error",

@@ -256,7 +256,9 @@ describe("planning center read cache shared tier", () => {
     await first.cache.get(`${SCOPE}:a`, 60_000, loads(1));
     await first.session.settle();
     const second = worker.request();
-    await second.cache.get(`${SCOPE}:b`, 60_000, loads(2));
+    await expect(
+      second.cache.get(`${SCOPE}:b`, 60_000, loads(2))
+    ).resolves.toBe(2);
     await second.session.settle();
 
     expect(store.get).toHaveBeenCalledOnce();

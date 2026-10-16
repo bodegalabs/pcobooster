@@ -139,7 +139,10 @@ describe("Assign reads through the product client", () => {
       people: [{ personId: "a", isBlockedForDate: false }],
       deferredPersonIds: [],
     });
-    await cache.query(assignReads.details(context, slot, ["a"], false));
+    const details = await cache.query(
+      assignReads.details(context, slot, ["a"], false)
+    );
+    expect(details).toMatchObject([{ personId: "a", isBlockedForDate: false }]);
     expect(call).toHaveBeenLastCalledWith("people.candidateDetails", {
       date: slot.date,
       planId: slot.planId,

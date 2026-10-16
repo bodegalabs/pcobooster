@@ -23,13 +23,12 @@ export const usePlans = (serviceTypeId: string | null) => {
 
   const query = useQuery<Plan[]>({
     queryKey,
-    queryFn: async ({ signal }) => {
+    queryFn: async (context) => {
       if (!isNonEmptyString(serviceTypeId)) {
         return [];
       }
-      return await productClient.run(
-        (api) => api.catalog.plans({ params: { serviceTypeId } }),
-        { signal }
+      return await callForQuery(context, productClient, (api) =>
+        api.catalog.plans({ params: { serviceTypeId } })
       );
     },
     enabled: isNonEmptyString(serviceTypeId),

@@ -1221,6 +1221,93 @@ test(
 );
 
 test(
+  "answers RateLimited on a progressive people read when Planning Center rate limits",
+  Effect.gen(function* rateLimitedProgressiveRead() {
+    const url = yield* fixtureUrl;
+    const client = nativeClient(url, yield* flagOffSession(url));
+    const outcome = yield* settled(
+      async () =>
+        await client.run((api) =>
+          api.people.planWindowHistory({
+            payload: {
+              date: "2026-10-11T10:00:00-07:00",
+              continuation: {
+                plans: [],
+                ranges: [
+                  {
+                    serviceTypeId: "rate-limit-st-2",
+                    offset: 0,
+                    boundaryPlanId: null,
+                  },
+                ],
+              },
+            },
+          })
+        )
+    );
+
+    assert.isTrue(
+      Result.isFailure(outcome) && outcome.failure.cause instanceof RateLimited
+    );
+  }),
+  requestTimeout
+);
+
+test(
+  "answers RateLimited on catalog.plans when Planning Center rate limits, not an empty list",
+  Effect.gen(function* rateLimitedCatalogRead() {
+    const url = yield* fixtureUrl;
+    const client = nativeClient(url, yield* flagOffSession(url));
+    const outcome = yield* settled(
+      async () =>
+        await client.run((api) =>
+          api.catalog.plans({
+            params: { serviceTypeId: "rate-limit-st-1" },
+          })
+        )
+    );
+
+    assert.isTrue(Result.isFailure(outcome));
+    if (!Result.isFailure(outcome)) {
+      return;
+    }
+    assert.isTrue(outcome.failure.cause instanceof RateLimited);
+  }),
+  requestTimeout
+);
+
+test(
+  "answers ExternalServiceFailure on catalog.plans when Cloudflare refuses a Planning Center subrequest",
+  Effect.gen(function* subrequestLimitedCatalogRead() {
+    const url = yield* fixtureUrl;
+    const client = nativeClient(url, yield* flagOffSession(url));
+    const outcome = yield* settled(
+      async () =>
+        await client.run((api) =>
+          api.catalog.plans({
+            params: { serviceTypeId: "subrequest-limit-st-1" },
+          })
+        )
+    );
+
+    assert.isTrue(Result.isFailure(outcome));
+    if (!Result.isFailure(outcome)) {
+      return;
+    }
+    const { cause } = outcome.failure;
+    assert.isTrue(cause instanceof ExternalServiceFailure);
+    if (!(cause instanceof ExternalServiceFailure)) {
+      return;
+    }
+    assert.include(
+      cause.message,
+      "more Planning Center calls than one request allows"
+    );
+  }),
+  requestTimeout
+);
+
+test(
   "PATCHes a plan person's status through the typed client and audits the real path",
   Effect.gen(function* httpWrite() {
     const url = yield* fixtureUrl;
@@ -1455,7 +1542,10 @@ test(
       async () =>
         await client.run((api) =>
           api.people.planWindowHistory({
-            payload: { date: "2026-10-11T17:00:00Z" },
+            payload: {
+              date: "2026-10-11T17:00:00Z",
+              serviceTypeId: "st-1",
+            },
           })
         )
     );

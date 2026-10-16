@@ -1,6 +1,5 @@
 /**
- * Prototype (spike): flag visible person-name JSX that is not wrapped in ReplayMask.
- * Branch cursor/spike-replay-mask-lint-9182 — not merged; informs docs/agent-friendly-plan.md.
+ * Session replay must not record person-identifying text outside ReplayMask or blocked avatars.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { extname, join, relative } from "node:path";
@@ -12,8 +11,13 @@ const webComponentsRoot = join(repositoryRoot, "apps/web/src/components");
 const sourceExtensions = new Set([".tsx"]);
 const ignoredDirectories = new Set(["dist", "node_modules", "ui"]);
 
-const personNameInJsxPattern =
+const personNamePattern = /\b(?:person\.(?:name|fullName)|fullName)\b/u;
+
+const personNameInJsxText =
   />\s*\{[^}]*\b(?:person\.(?:name|fullName)|fullName)\b[^}]*\}\s*</gu;
+
+const personNameInAttribute =
+  /(?:aria-label|title)=\{[^}]*\b(?:person\.(?:name|fullName)|fullName)\b[^}]*\}/gu;
 
 const walkFiles = (root: string): string[] => {
   const files: string[] = [];
@@ -43,28 +47,50 @@ const isInsideReplayMask = (contents: string, matchIndex: number): boolean => {
   return lastOpen !== -1 && lastOpen > lastClose;
 };
 
-describe("replay mask coverage spike", () => {
-  it("lists person-name JSX not wrapped in ReplayMask", () => {
-    const findings: string[] = [];
+/** Avatar roots set data-replay-block in `avatar.tsx`; initials stay off replay pixels. */
+const isInsideAvatar = (contents: string, matchIndex: number): boolean => {
+  const before = contents.slice(0, matchIndex);
+  const lastOpen = before.lastIndexOf("<Avatar");
+  const lastClose = before.lastIndexOf("</Avatar>");
+  return lastOpen !== -1 && lastOpen > lastClose;
+};
+
+const replayMaskViolations = (contents: string): string[] => {
+  if (!personNamePattern.test(contents)) {
+    return [];
+  }
+  const findings: string[] = [];
+  for (const match of contents.matchAll(personNameInJsxText)) {
+    const index = match.index ?? 0;
+    if (
+      !isInsideReplayMask(contents, index) &&
+      !isInsideAvatar(contents, index)
+    ) {
+      const line = contents.slice(0, index).split("\n").length;
+      findings.push(`unmasked person name in JSX text at line ${line}`);
+    }
+  }
+  for (const match of contents.matchAll(personNameInAttribute)) {
+    const index = match.index ?? 0;
+    if (!isInsideReplayMask(contents, index)) {
+      const line = contents.slice(0, index).split("\n").length;
+      findings.push(
+        `unmasked person name in aria-label or title at line ${line}`
+      );
+    }
+  }
+  return findings;
+};
+
+describe("replay mask coverage", () => {
+  it("masks person-identifying strings in web components", () => {
+    const violations: string[] = [];
     for (const path of walkFiles(webComponentsRoot)) {
       const contents = readFileSync(path, "utf8");
-      if (!contents.includes("ReplayMask") && !personNameInJsxPattern.test(contents)) {
-        continue;
-      }
-      personNameInJsxPattern.lastIndex = 0;
-      for (const match of contents.matchAll(personNameInJsxPattern)) {
-        const index = match.index ?? 0;
-        if (!isInsideReplayMask(contents, index)) {
-          const line = contents.slice(0, index).split("\n").length;
-          findings.push(`${relative(repositoryRoot, path)}:${line}`);
-        }
+      for (const finding of replayMaskViolations(contents)) {
+        violations.push(`${relative(repositoryRoot, path)}: ${finding}`);
       }
     }
-    // Spike: report only; tighten to expect([]) when promoting to CI.
-    expect(findings.length).toBeLessThan(50);
-    if (findings.length > 0) {
-      // eslint-disable-next-line no-console -- spike survey output
-      console.info("unmasked person-name JSX:\n", findings.join("\n"));
-    }
+    expect(violations).toEqual([]);
   });
 });

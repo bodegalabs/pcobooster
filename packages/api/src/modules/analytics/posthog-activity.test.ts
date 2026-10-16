@@ -86,9 +86,11 @@ describe(createPostHogActivityForwarder, () => {
     const send = vi
       .fn<typeof fetch>()
       .mockResolvedValue(new Response(null, { status: 200 }));
-    await createPostHogActivityForwarder({ apiKey: undefined, fetch: send })(
-      scheduleEvent
-    );
+    await expect(
+      createPostHogActivityForwarder({ apiKey: undefined, fetch: send })(
+        scheduleEvent
+      )
+    ).resolves.toBeUndefined();
     expect(send).toHaveBeenCalledTimes(0);
     await createPostHogActivityForwarder({ apiKey: "key", fetch: send })(
       scheduleEvent
