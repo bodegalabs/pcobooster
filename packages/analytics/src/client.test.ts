@@ -45,6 +45,25 @@ describe(createAnalyticsClient, () => {
     vi.unstubAllGlobals();
   });
 
+  it("uses first-party collection and assets with the US dashboard host", async () => {
+    const configurations: unknown[] = [];
+    const sdk: AnalyticsSdk = {
+      ...recordingSdk([]),
+      init: (_key, config) => {
+        configurations.push(config);
+      },
+    };
+    const client = createAnalyticsClient(
+      async () => await Promise.resolve(sdk)
+    );
+    client.initializeAnalytics("phc_key", true);
+    await vi.waitFor(() => {
+      expect(configurations).toMatchObject([
+        { api_host: "/ingest", ui_host: "https://us.posthog.com" },
+      ]);
+    });
+  });
+
   it("sends a capture made while the SDK loads once it is ready", async () => {
     const calls: string[] = [];
     const client = createAnalyticsClient(async () => {
